@@ -69,20 +69,20 @@ const Footer = () => {
               <li className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-accent" />
                 <a href="tel:1300123456" className="text-primary-foreground/70 hover:text-accent transition-colors">
-                  1300 123 456
+                  1300 567 835
                 </a>
               </li>
               <li className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-accent" />
                 <a href="mailto:sales@internext.com.au" className="text-primary-foreground/70 hover:text-accent transition-colors">
-                  sales@internext.com.au
+                  orders@internext.com.au
                 </a>
               </li>
               <li className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 text-accent mt-0.5" />
                 <span className="text-primary-foreground/70">
-                  Level 10, 123 Business Street<br />
-                  Sydney NSW 2000
+                  7B/256 New Line Rd<br />
+                  Dural NSW 2158
                 </span>
               </li>
             </ul>
