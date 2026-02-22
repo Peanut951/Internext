@@ -7,9 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
 const contactTypes = [
-  { icon: Building2, title: "General Enquiries", email: "info@internext.com.au", phone: "1300 123 456" },
-  { icon: Users, title: "Sales Enquiries", email: "sales@internext.com.au", phone: "1300 123 457" },
-  { icon: Headphones, title: "Technical Support", email: "support@internext.com.au", phone: "1300 123 458" },
+  { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 567 835" },
+  { icon: Users, title: "Sales Enquiries", email: "orders@internext.com.au", phone: "1300 567 835" },
+  { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 567 835" },
 ];
 
 const Contact = () => {
@@ -182,26 +182,26 @@ const Contact = () => {
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground">Level 10, 123 Business Street</p>
-                      <p className="text-muted-foreground">Sydney NSW 2000</p>
+                      <p className="text-foreground">7B/256 New Line Rd</p>
+                      <p className="text-muted-foreground">Dural NSW 2158</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-accent flex-shrink-0" />
                     <a href="tel:1300123456" className="text-foreground hover:text-accent">
-                      1300 123 456
+                      1300 567 835
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-accent flex-shrink-0" />
-                    <a href="mailto:info@internext.com.au" className="text-foreground hover:text-accent">
-                      info@internext.com.au
+                    <a href="mailto:orders@internext.com.au" className="text-foreground hover:text-accent">
+                      orders@internext.com.au
                     </a>
                   </div>
                   <div className="flex items-start gap-3">
                     <Clock className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground">Monday - Friday: 8:30am - 5:30pm</p>
+                      <p className="text-foreground">Monday - Friday: 9:00am - 5:00pm</p>
                       <p className="text-muted-foreground">Weekends & Public Holidays: Closed</p>
                     </div>
                   </div>

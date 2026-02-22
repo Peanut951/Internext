@@ -9,11 +9,11 @@ import NotFound from "./pages/NotFound";
 import AboutIndex from "./pages/about/AboutIndex";
 import WhyPartner from "./pages/about/WhyPartner";
 import Team from "./pages/about/Team";
-import Careers from "./pages/about/Careers";
 import Customers from "./pages/about/Customers";
 // Products
 import ProductsIndex from "./pages/products/ProductsIndex";
 import ProductCategory from "./pages/products/ProductCategory";
+import AlloysCatalog from "./pages/products/AlloysCatalog";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -52,11 +52,11 @@ const App = () => (
           <Route path="/about" element={<AboutIndex />} />
           <Route path="/about/why-partner" element={<WhyPartner />} />
           <Route path="/about/team" element={<Team />} />
-          <Route path="/about/careers" element={<Careers />} />
-          <Route path="/about/customers" element={<Customers />} />
+                    <Route path="/about/customers" element={<Customers />} />
           {/* Products */}
           <Route path="/products" element={<ProductsIndex />} />
           <Route path="/products/:category" element={<ProductCategory />} />
+          <Route path="/products/alloys-drop-ship" element={<AlloysCatalog />} />
           {/* Brands */}
           <Route path="/brands" element={<Brands />} />
           <Route path="/brands/:brand" element={<BrandsDetail />} />

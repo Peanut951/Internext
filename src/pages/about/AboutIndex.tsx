@@ -106,7 +106,7 @@ const AboutIndex = () => {
             {[
               { title: "Why Partner With Us", desc: "Discover the benefits of becoming an Internext partner", href: "/about/why-partner" },
               { title: "Meet the Team", desc: "Get to know the people behind Internext", href: "/about/team" },
-              { title: "Join Our Team", desc: "Explore career opportunities with us", href: "/about/careers" },
+              { title: "Join Our Team", desc: "Explore career opportunities with us", href: "/contact" },
               { title: "Our Customers", desc: "See the industries and businesses we serve", href: "/about/customers" },
             ].map((link) => (
               <Link

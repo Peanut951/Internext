@@ -28,6 +28,7 @@ const navItems = [
       { label: "Cameras", href: "/products/cameras" },
       { label: "IP Surveillance", href: "/products/ip-surveillance" },
       { label: "Office Products", href: "/products/office-products" },
+      { label: "Alloys Drop-Ship", href: "/products/alloys-drop-ship" },
       { label: "Printers", href: "/products/printers" },
       { label: "Print Consumables", href: "/products/print-consumables" },
       { label: "Scanners", href: "/products/scanners" },

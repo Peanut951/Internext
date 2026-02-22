@@ -1,11 +1,28 @@
 import { Link } from "react-router-dom";
 import { Phone, Mail, MapPin, Linkedin, Twitter } from "lucide-react";
 
+const quickLinks = [
+  { label: "About Us", path: "/about" },
+  { label: "Brands", path: "/brands" },
+  { label: "Product Range", path: "/products" },
+  { label: "Tools & Resources", path: "/tools" },
+  { label: "Technical Services", path: "/services" },
+];
+
+const supportLinks = [
+  { label: "Reseller Portal", path: "/login" },
+  { label: "Partner Program", path: "/contact" },
+  { label: "Technical Support", path: "/faq" },
+  { label: "RMA Process", path: "/rma" },
+  { label: "Contact Us", path: "/contact" },
+];
+
 const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground">
       <div className="container-wide py-16">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+          
           {/* Brand Column */}
           <div className="space-y-4">
             <div className="flex items-center gap-2">
@@ -14,10 +31,12 @@ const Footer = () => {
               </div>
               <span className="text-2xl font-bold">Internext</span>
             </div>
+
             <p className="text-primary-foreground/70 text-sm leading-relaxed">
               Empowering Australian technology resellers with smarter distribution, 
               better service, and stronger partnerships.
             </p>
+
             <div className="flex gap-4">
               <a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">
                 <Linkedin className="h-5 w-5" />
@@ -32,13 +51,13 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-4">Quick Links</h4>
             <ul className="space-y-3">
-              {["About Us", "Brands", "Product Range", "Tools & Resources", "Technical Services"].map((link) => (
-                <li key={link}>
+              {quickLinks.map((item) => (
+                <li key={item.label}>
                   <Link 
-                    to={`/${link.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}
+                    to={item.path}
                     className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
                   >
-                    {link}
+                    {item.label}
                   </Link>
                 </li>
               ))}
@@ -49,14 +68,14 @@ const Footer = () => {
           <div>
             <h4 className="font-semibold text-lg mb-4">Support</h4>
             <ul className="space-y-3">
-              {["Reseller Portal", "Partner Program", "Technical Support", "RMA Process", "Contact Us"].map((link) => (
-                <li key={link}>
-                  <a 
-                    href="#"
+              {supportLinks.map((item) => (
+                <li key={item.label}>
+                  <Link
+                    to={item.path}
                     className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
                   >
-                    {link}
-                  </a>
+                    {item.label}
+                  </Link>
                 </li>
               ))}
             </ul>
@@ -68,16 +87,18 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-accent" />
-                <a href="tel:1300123456" className="text-primary-foreground/70 hover:text-accent transition-colors">
+                <a href="tel:1300567835" className="text-primary-foreground/70 hover:text-accent transition-colors">
                   1300 567 835
                 </a>
               </li>
+
               <li className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-accent" />
-                <a href="mailto:sales@internext.com.au" className="text-primary-foreground/70 hover:text-accent transition-colors">
+                <a href="mailto:orders@internext.com.au" className="text-primary-foreground/70 hover:text-accent transition-colors">
                   orders@internext.com.au
                 </a>
               </li>
+
               <li className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 text-accent mt-0.5" />
                 <span className="text-primary-foreground/70">
@@ -87,8 +108,10 @@ const Footer = () => {
               </li>
             </ul>
           </div>
+
         </div>
 
+        {/* Bottom Bar */}
         <div className="border-t border-primary-foreground/20 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
             © {new Date().getFullYear()} Internext. All rights reserved.

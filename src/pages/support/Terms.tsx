@@ -145,9 +145,9 @@ const Terms = () => {
                   For questions about these Terms, please contact us:
                 </p>
                 <div className="mt-3 text-muted-foreground">
-                  <p>Email: legal@internext.com.au</p>
-                  <p>Phone: 1300 123 456</p>
-                  <p>Address: Level 10, 123 Business Street, Sydney NSW 2000</p>
+                  <p>Email: orders@internext.com.au</p>
+                  <p>Phone: 1300 567 835</p>
+                  <p>Address: 7B/256 New Line Rd, Dural NSW 2158</p>
                 </div>
               </div>
             </div>

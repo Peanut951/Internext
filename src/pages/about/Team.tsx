@@ -87,20 +87,6 @@ const Team = () => {
         </section>
       ))}
 
-      {/* CTA */}
-      <section className="py-16 bg-primary">
-        <div className="container-wide text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-            Want to Join Our Team?
-          </h2>
-          <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-            We're always looking for talented individuals to join Internext.
-          </p>
-          <Button variant="hero" asChild>
-            <Link to="/about/careers">View Open Positions</Link>
-          </Button>
-        </div>
-      </section>
     </Layout>
   );
 };
