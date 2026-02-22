@@ -19,6 +19,8 @@ type CatalogProduct = {
   supplierCode?: string;
 };
 
+type CartItem = CatalogProduct & { qty: number };
+
 type CategoryInfo = {
   title: string;
   description: string;
@@ -553,6 +555,17 @@ const ProductCategory = () => {
   const [manufacturer, setManufacturer] = useState("All");
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => {
+    if (typeof window === "undefined") {
+      return [];
+    }
+    try {
+      const stored = window.localStorage.getItem("internext-cart");
+      return stored ? (JSON.parse(stored) as CartItem[]) : [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     let isMounted = true;
@@ -580,6 +593,13 @@ const ProductCategory = () => {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    window.localStorage.setItem("internext-cart", JSON.stringify(cartItems));
+  }, [cartItems]);
 
   const categorizedProducts = useMemo(() => {
     return products.map((product) => {
@@ -685,6 +705,41 @@ const ProductCategory = () => {
     setPage(1);
   }, [query, manufacturer, sort]);
 
+  const addToCart = (product: CatalogProduct) => {
+    setCartItems((prev) => {
+      const existing = prev.find((item) => item.code === product.code);
+      if (existing) {
+        return prev.map((item) =>
+          item.code === product.code ? { ...item, qty: item.qty + 1 } : item,
+        );
+      }
+      return [...prev, { ...product, qty: 1 }];
+    });
+  };
+
+  const updateQty = (code: string, delta: number) => {
+    setCartItems((prev) =>
+      prev
+        .map((item) =>
+          item.code === code ? { ...item, qty: Math.max(1, item.qty + delta) } : item,
+        )
+        .filter((item) => item.qty > 0),
+    );
+  };
+
+  const removeItem = (code: string) => {
+    setCartItems((prev) => prev.filter((item) => item.code !== code));
+  };
+
+  const cartTotal = useMemo(() => {
+    return cartItems.reduce((total, item) => {
+      if (item.price === null) {
+        return total;
+      }
+      return total + item.price * item.qty;
+    }, 0);
+  }, [cartItems]);
+
   return (
     <Layout>
       <section className="bg-gradient-hero py-16 md:py-24">
@@ -702,7 +757,7 @@ const ProductCategory = () => {
 
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="flex flex-col lg:flex-row gap-8">
+          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
                 <h3 className="font-semibold text-foreground mb-4">Key Brands</h3>
@@ -812,15 +867,13 @@ const ProductCategory = () => {
                 <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
-                    const hasSafeImage =
-                      !!product.imageUrl && !product.imageUrl.toLowerCase().includes("alloys.com.au");
                     return (
                       <div
                         key={product.code}
                         className="bg-card rounded-xl p-4 shadow-card border border-border/50 hover:shadow-elevated transition-shadow flex flex-col"
                       >
                         <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                          {hasSafeImage ? (
+                          {product.imageUrl ? (
                             <img
                               src={product.imageUrl}
                               alt={product.description}
@@ -846,8 +899,13 @@ const ProductCategory = () => {
                             </span>
                           ) : null}
                         </div>
-                        <Button variant="outline" size="sm" className="w-full" asChild>
-                          <Link to="/contact">Request Pricing</Link>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full"
+                          onClick={() => addToCart(product)}
+                        >
+                          Add to Cart
                         </Button>
                       </div>
                     );
@@ -876,6 +934,81 @@ const ProductCategory = () => {
                 </div>
               )}
             </div>
+
+            <aside className="xl:sticky xl:top-24 h-fit">
+              <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Cart</h3>
+                  <span className="text-sm text-muted-foreground">{cartItems.length} items</span>
+                </div>
+
+                {cartItems.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">
+                    Add products to build your order.
+                  </p>
+                ) : (
+                  <div className="space-y-4">
+                    {cartItems.map((item) => (
+                      <div key={item.code} className="border border-border/50 rounded-lg p-3">
+                        <div className="flex items-start justify-between gap-3">
+                          <div>
+                            <p className="text-sm font-medium text-foreground line-clamp-2">
+                              {item.description}
+                            </p>
+                            <p className="text-xs text-muted-foreground">{item.code}</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => removeItem(item.code)}
+                            className="text-xs text-muted-foreground hover:text-accent"
+                          >
+                            Remove
+                          </button>
+                        </div>
+                        <div className="mt-3 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => updateQty(item.code, -1)}
+                              className="h-8 w-8 border border-border rounded-md flex items-center justify-center hover:bg-secondary"
+                            >
+                              -
+                            </button>
+                            <span className="text-sm font-semibold w-6 text-center">{item.qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => updateQty(item.code, 1)}
+                              className="h-8 w-8 border border-border rounded-md flex items-center justify-center hover:bg-secondary"
+                            >
+                              +
+                            </button>
+                          </div>
+                          <span className="text-sm font-semibold text-foreground">
+                            {formatPrice(item.price) ?? item.priceText ?? "POA"}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+
+                    <div className="border-t border-border pt-4 text-sm text-muted-foreground">
+                      <p className="flex items-center justify-between">
+                        <span>Subtotal</span>
+                        <span className="text-foreground font-semibold">
+                          {formatPrice(cartTotal) ?? "N/A"}
+                        </span>
+                      </p>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Total excludes POA items.
+                      </p>
+                    </div>
+
+                    <Button className="w-full" disabled>
+                      Checkout (setup required)
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </aside>
           </div>
         </div>
       </section>
