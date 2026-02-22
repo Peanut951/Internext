@@ -5,8 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 /**
- * Navigation items for the site.  We mirror the structure of Alloys.com.au while
- * preserving our own brand.  In particular the Product Range dropdown lists
+ * Navigation items for the site. The Product Range dropdown lists
  * all of the top–level categories that Internext carries.  These map to
  * dynamic routes like `/products/:category` which are handled by
  * `ProductCategory.tsx`.  If you add or remove categories here, be sure to
@@ -28,7 +27,6 @@ const navItems = [
       { label: "Cameras", href: "/products/cameras" },
       { label: "IP Surveillance", href: "/products/ip-surveillance" },
       { label: "Office Products", href: "/products/office-products" },
-      { label: "Alloys Drop-Ship", href: "/products/alloys-drop-ship" },
       { label: "Printers", href: "/products/printers" },
       { label: "Print Consumables", href: "/products/print-consumables" },
       { label: "Scanners", href: "/products/scanners" },

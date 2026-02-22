@@ -176,28 +176,6 @@ const ProductsIndex = () => {
       <section className="section-padding bg-background">
         <div className="container-wide">
           <div className="space-y-12">
-            <Link
-              to="/products/alloys-drop-ship"
-              className="block bg-card rounded-2xl p-8 shadow-card border border-border/50 hover:shadow-elevated transition-shadow"
-            >
-              <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                <div>
-                  <p className="text-sm uppercase tracking-[0.2em] text-muted-foreground mb-2">
-                    New
-                  </p>
-                  <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-                    Alloys Drop-Ship Catalog
-                  </h2>
-                  <p className="text-muted-foreground max-w-2xl">
-                    Browse the full Alloys product list, build a customer order, and send it
-                    straight to Alloys for fulfillment.
-                  </p>
-                </div>
-                <span className="inline-flex items-center gap-2 text-sm font-semibold text-accent">
-                  Open Catalog <ArrowRight className="h-4 w-4" />
-                </span>
-              </div>
-            </Link>
             {categories.map((category) => (
               <div key={category.title} className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
                 <div className="flex items-start gap-4 mb-6">
