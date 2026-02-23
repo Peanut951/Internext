@@ -13,6 +13,7 @@ type CatalogProduct = {
   rrp: number | null;
   rrpText?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   supplierCode?: string;
 };
 
@@ -53,6 +54,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<CatalogProduct | null>(null);
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
+  const [activeImage, setActiveImage] = useState<string>("");
 
   useEffect(() => {
     let isMounted = true;
@@ -88,6 +90,20 @@ const ProductDetail = () => {
     }
     return formatPrice(product.price) ?? product.priceText ?? "POA";
   }, [product]);
+
+  const galleryImages = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+    const candidates = [...(product.imageUrls || []), product.imageUrl || ""]
+      .map((value) => value.trim())
+      .filter(Boolean);
+    return Array.from(new Set(candidates));
+  }, [product]);
+
+  useEffect(() => {
+    setActiveImage(galleryImages[0] || "");
+  }, [galleryImages]);
 
   const addToCart = () => {
     if (!product) {
@@ -137,10 +153,10 @@ const ProductDetail = () => {
           {!loading && !error && product && (
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
               <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
-                <div className="aspect-square bg-muted rounded-xl flex items-center justify-center overflow-hidden mb-6">
-                  {product.imageUrl ? (
+                <div className="aspect-square rounded-xl flex items-center justify-center overflow-hidden mb-4">
+                  {activeImage ? (
                     <img
-                      src={product.imageUrl}
+                      src={activeImage}
                       alt={product.description}
                       className="h-full w-full object-contain"
                       loading="eager"
@@ -149,6 +165,23 @@ const ProductDetail = () => {
                     <span className="text-muted-foreground text-sm">No image</span>
                   )}
                 </div>
+                {galleryImages.length > 1 ? (
+                  <div className="grid grid-cols-5 gap-2 mb-6">
+                    {galleryImages.map((img) => (
+                      <button
+                        key={img}
+                        type="button"
+                        onClick={() => setActiveImage(img)}
+                        className={`aspect-square rounded-md overflow-hidden border ${
+                          activeImage === img ? "border-accent" : "border-border/60"
+                        }`}
+                      >
+                        <img src={img} alt={product.description} className="h-full w-full object-cover" loading="lazy" />
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+
                 <h1 className="text-3xl font-bold text-foreground mb-3">{product.description}</h1>
                 <p className="text-sm text-muted-foreground mb-1">Brand: {product.manufacturer || "N/A"}</p>
                 <p className="text-sm text-muted-foreground mb-1">Product Code: {product.code}</p>

@@ -16,6 +16,7 @@ type CatalogProduct = {
   rrp: number | null;
   rrpText?: string;
   imageUrl?: string;
+  imageUrls?: string[];
   supplierCode?: string;
 };
 
@@ -864,18 +865,19 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid sm:grid-cols-2 2xl:grid-cols-3 gap-6">
+                <div className="grid sm:grid-cols-2 gap-6">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
+                    const productImage = product.imageUrls?.[0] || product.imageUrl;
                     return (
                       <div
                         key={product.code}
                         className="bg-card rounded-xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
                       >
-                        <div className="aspect-[4/3] bg-secondary/70 rounded-lg mb-4 flex items-center justify-center overflow-hidden p-3">
-                          {product.imageUrl ? (
+                        <div className="aspect-[16/10] rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                          {productImage ? (
                             <img
-                              src={product.imageUrl}
+                              src={productImage}
                               alt={product.description}
                               loading="lazy"
                               className="h-full w-full object-contain"
@@ -900,7 +902,12 @@ const ProductCategory = () => {
                           ) : null}
                         </div>
                         <div className="grid grid-cols-1 gap-2">
-                          <Button variant="outline" size="sm" className="w-full" asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="w-full min-w-0 whitespace-normal text-center leading-tight px-2"
+                            asChild
+                          >
                             <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
                               View Details
                             </Link>
@@ -908,7 +915,7 @@ const ProductCategory = () => {
                           <Button
                             variant="default"
                             size="sm"
-                            className="w-full"
+                            className="w-full min-w-0 whitespace-normal text-center leading-tight px-2"
                             onClick={() => addToCart(product)}
                           >
                             Add to Cart
