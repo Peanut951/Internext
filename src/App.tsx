@@ -13,6 +13,7 @@ import Customers from "./pages/about/Customers";
 // Products
 import ProductsIndex from "./pages/products/ProductsIndex";
 import ProductCategory from "./pages/products/ProductCategory";
+import ProductDetail from "./pages/products/ProductDetail";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -54,6 +55,7 @@ const App = () => (
                     <Route path="/about/customers" element={<Customers />} />
           {/* Products */}
           <Route path="/products" element={<ProductsIndex />} />
+          <Route path="/products/item/:code" element={<ProductDetail />} />
           <Route path="/products/:category" element={<ProductCategory />} />
           {/* Brands */}
           <Route path="/brands" element={<Brands />} />

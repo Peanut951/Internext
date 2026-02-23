@@ -899,14 +899,20 @@ const ProductCategory = () => {
                             </span>
                           ) : null}
                         </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full"
-                          onClick={() => addToCart(product)}
-                        >
-                          Add to Cart
-                        </Button>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Button variant="outline" size="sm" asChild>
+                            <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
+                              View Details
+                            </Link>
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addToCart(product)}
+                          >
+                            Add to Cart
+                          </Button>
+                        </div>
                       </div>
                     );
                   })}
