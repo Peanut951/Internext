@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="900" viewBox="0 0 1200 900" fill="none">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="900" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#EAF0FA"/>
+      <stop offset="1" stop-color="#DCE6F5"/>
+    </linearGradient>
+    <linearGradient id="card" x1="320" y1="220" x2="880" y2="680" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2D4F7E"/>
+      <stop offset="1" stop-color="#1F3B64"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="900" rx="24" fill="url(#bg)"/>
+  <rect x="320" y="220" width="560" height="360" rx="28" fill="url(#card)"/>
+  <rect x="362" y="262" width="476" height="230" rx="18" fill="#F6FAFF" fill-opacity="0.16"/>
+
+  <rect x="430" y="520" width="340" height="20" rx="10" fill="#F6FAFF" fill-opacity="0.42"/>
+  <rect x="492" y="554" width="216" height="16" rx="8" fill="#F6FAFF" fill-opacity="0.3"/>
+
+  <g opacity="0.95">
+    <path d="M601 300c-52.467 0-95 42.533-95 95 0 52.467 42.533 95 95 95 52.467 0 95-42.533 95-95 0-52.467-42.533-95-95-95Zm0 30c35.899 0 65 29.101 65 65 0 35.899-29.101 65-65 65-35.899 0-65-29.101-65-65 0-35.899 29.101-65 65-65Z" fill="#E8F1FF"/>
+    <path d="M552 425l28-30 35 38 18-20 33 37H536l16-25Z" fill="#CFE1FF"/>
+    <circle cx="642" cy="365" r="16" fill="#CFE1FF"/>
+  </g>
+</svg>
