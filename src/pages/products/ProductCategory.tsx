@@ -11,6 +11,7 @@ type CatalogProduct = {
   code: string;
   manufacturer: string;
   description: string;
+  longDescription?: string;
   price: number | null;
   priceText?: string;
   rrp: number | null;

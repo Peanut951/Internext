@@ -8,6 +8,7 @@ type CatalogProduct = {
   code: string;
   manufacturer: string;
   description: string;
+  longDescription?: string;
   price: number | null;
   priceText?: string;
   rrp: number | null;
@@ -190,7 +191,9 @@ const ProductDetail = () => {
                 ) : null}
                 <div className="bg-secondary rounded-xl p-4">
                   <h2 className="text-base font-semibold text-foreground mb-2">Description</h2>
-                  <p className="text-sm text-muted-foreground">{product.description}</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {product.longDescription || product.description}
+                  </p>
                 </div>
               </div>
 
