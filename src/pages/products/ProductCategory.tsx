@@ -886,7 +886,7 @@ const ProductCategory = () => {
                             <span className="text-muted-foreground text-sm">No image</span>
                           )}
                         </div>
-                        <div className="flex-1">
+                        <div className="flex-1 text-center">
                           <h4 className="font-semibold text-foreground mb-2 leading-snug break-words">
                             {product.description}
                           </h4>
