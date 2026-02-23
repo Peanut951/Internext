@@ -438,7 +438,7 @@ const ProductsIndex = () => {
                   key={category.title}
                   className="rounded-2xl border border-border/50 bg-card p-7 md:p-8 shadow-card transition-all duration-200 hover:shadow-elevated"
                 >
-                  <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
+                  <div className="flex items-start gap-4 mb-6">
                     <div className="flex items-start gap-4">
                       <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-secondary text-accent">
                         <category.icon className="h-7 w-7" />
@@ -448,9 +448,6 @@ const ProductsIndex = () => {
                         <p className="text-muted-foreground max-w-3xl">{category.desc}</p>
                       </div>
                     </div>
-                    <span className="inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold bg-secondary text-muted-foreground">
-                      {category.items.length} subcategories
-                    </span>
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
