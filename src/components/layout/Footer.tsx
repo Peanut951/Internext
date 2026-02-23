@@ -28,7 +28,7 @@ const Footer = () => {
               <img
                 src="/internext logo nb.png"
                 alt="Internext"
-                className="h-12 w-auto rounded-md"
+                className="h-14 w-auto rounded-md"
               />
             </div>
 
