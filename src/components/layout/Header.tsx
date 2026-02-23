@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { Search, Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 /**
  * Navigation items for the site. The Product Range dropdown lists
@@ -73,18 +72,6 @@ const Header = () => {
 
           </Link>
 
-          {/* Search Bar */}
-          <div className="hidden md:flex flex-1 max-w-md">
-            <div className="relative w-full">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search products, brands..."
-                className="pl-10 bg-secondary border-0 focus-visible:ring-accent"
-              />
-            </div>
-          </div>
-
           {/* Desktop Navigation */}
           <nav className="hidden lg:flex items-center gap-1">
             {navItems.map((item) => (
@@ -133,16 +120,6 @@ const Header = () => {
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search products, brands..."
-                  className="pl-10 bg-secondary border-0"
-                />
-              </div>
-            </div>
             {navItems.map((item) => (
               <Link
                 key={item.label}

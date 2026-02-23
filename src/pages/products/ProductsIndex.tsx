@@ -1,5 +1,7 @@
+import { useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
 // Import additional icons to represent the expanded category set.  We choose
 // icons that roughly correspond to each top–level category.  You can swap
 // these out for any other lucide icons if they better suit your brand.
@@ -14,6 +16,7 @@ import {
   HardDrive,
   Headphones,
   ArrowRight,
+  Search,
 } from "lucide-react";
 
 const categories = [
@@ -155,6 +158,40 @@ const categories = [
 ];
 
 const ProductsIndex = () => {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const filteredCategories = useMemo(() => {
+    const query = searchQuery.trim().toLowerCase();
+    if (!query) {
+      return categories;
+    }
+
+    return categories
+      .map((category) => {
+        const categoryMatch =
+          category.title.toLowerCase().includes(query) ||
+          category.desc.toLowerCase().includes(query);
+
+        const itemMatches = category.items.filter((item) =>
+          item.label.toLowerCase().includes(query),
+        );
+
+        if (categoryMatch) {
+          return category;
+        }
+
+        if (itemMatches.length > 0) {
+          return {
+            ...category,
+            items: itemMatches,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean) as typeof categories;
+  }, [searchQuery]);
+
   return (
     <Layout>
       {/* Hero */}
@@ -175,8 +212,21 @@ const ProductsIndex = () => {
       {/* Categories */}
       <section className="section-padding bg-background">
         <div className="container-wide">
+          <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50 mb-8">
+            <div className="relative max-w-xl">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                type="search"
+                placeholder="Search product range..."
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                className="pl-10 bg-secondary border-0 focus-visible:ring-accent"
+              />
+            </div>
+          </div>
+
           <div className="space-y-12">
-            {categories.map((category) => (
+            {filteredCategories.map((category) => (
               <div key={category.title} className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -202,6 +252,11 @@ const ProductsIndex = () => {
                 </div>
               </div>
             ))}
+            {filteredCategories.length === 0 && (
+              <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 text-muted-foreground">
+                No matching product categories found.
+              </div>
+            )}
           </div>
         </div>
       </section>
