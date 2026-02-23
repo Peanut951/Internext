@@ -887,7 +887,7 @@ const ProductCategory = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground mb-2 line-clamp-2 min-h-[3.25rem] leading-snug">
+                          <h4 className="font-semibold text-foreground mb-2 leading-snug break-words">
                             {product.description}
                           </h4>
                           <p className="text-sm text-muted-foreground mb-1">{product.manufacturer}</p>
@@ -966,7 +966,7 @@ const ProductCategory = () => {
                       <div key={item.code} className="border border-border/50 rounded-lg p-3">
                         <div className="flex items-start justify-between gap-3">
                           <div>
-                            <p className="text-sm font-medium text-foreground line-clamp-2">
+                            <p className="text-sm font-medium text-foreground break-words">
                               {item.description}
                             </p>
                             <p className="text-xs text-muted-foreground">{item.code}</p>
