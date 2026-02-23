@@ -3,6 +3,11 @@ import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
+import {
+  getProductImageCandidates,
+  handleProductImageError,
+  PRODUCT_IMAGE_PLACEHOLDER,
+} from "@/lib/productImages";
 
 type CatalogProduct = {
   code: string;
@@ -96,10 +101,8 @@ const ProductDetail = () => {
     if (!product) {
       return [];
     }
-    const candidates = [...(product.imageUrls || []), product.imageUrl || ""]
-      .map((value) => value.trim())
-      .filter(Boolean);
-    return Array.from(new Set(candidates));
+    const candidates = getProductImageCandidates(product);
+    return candidates.length > 0 ? candidates : [PRODUCT_IMAGE_PLACEHOLDER];
   }, [product]);
 
   useEffect(() => {
@@ -161,6 +164,7 @@ const ProductDetail = () => {
                       alt={product.description}
                       className="h-full w-full object-contain"
                       loading="eager"
+                      onError={handleProductImageError}
                     />
                   ) : (
                     <span className="text-muted-foreground text-sm">No image</span>
@@ -177,7 +181,13 @@ const ProductDetail = () => {
                           activeImage === img ? "border-accent" : "border-border/60"
                         }`}
                       >
-                        <img src={img} alt={product.description} className="h-full w-full object-cover" loading="lazy" />
+                        <img
+                          src={img}
+                          alt={product.description}
+                          className="h-full w-full object-cover"
+                          loading="lazy"
+                          onError={handleProductImageError}
+                        />
                       </button>
                     ))}
                   </div>

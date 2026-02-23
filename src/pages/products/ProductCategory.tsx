@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useParams } from "react-router-dom";
-import { Download, Phone, FileText, GraduationCap } from "lucide-react";
+import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -821,36 +822,6 @@ const ProductCategory = () => {
                     </li>
                   ))}
                 </ul>
-
-                <div className="border-t border-border mt-6 pt-6">
-                  <h3 className="font-semibold text-foreground mb-4">Resources</h3>
-                  <ul className="space-y-3">
-                    <li>
-                      <a
-                        href="#"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors text-sm"
-                      >
-                        <Download className="h-4 w-4" /> Product Catalogue
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors text-sm"
-                      >
-                        <FileText className="h-4 w-4" /> Spec Sheets
-                      </a>
-                    </li>
-                    <li>
-                      <a
-                        href="#"
-                        className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors text-sm"
-                      >
-                        <GraduationCap className="h-4 w-4" /> Training
-                      </a>
-                    </li>
-                  </ul>
-                </div>
               </div>
             </aside>
 
@@ -920,23 +891,20 @@ const ProductCategory = () => {
                 <div className="grid sm:grid-cols-2 gap-6">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
-                    const productImage = product.imageUrls?.[0] || product.imageUrl;
+                    const productImage = getPrimaryProductImage(product);
                     return (
                       <div
                         key={product.code}
                         className="bg-card rounded-xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
                       >
                         <div className="aspect-[16/10] rounded-lg mb-4 flex items-center justify-center overflow-hidden">
-                          {productImage ? (
-                            <img
-                              src={productImage}
-                              alt={product.description}
-                              loading="lazy"
-                              className="h-full w-full object-contain"
-                            />
-                          ) : (
-                            <span className="text-muted-foreground text-sm">No image</span>
-                          )}
+                          <img
+                            src={productImage}
+                            alt={product.description}
+                            loading="lazy"
+                            onError={handleProductImageError}
+                            className="h-full w-full object-contain"
+                          />
                         </div>
                         <div className="flex-1 text-center">
                           <h4 className="font-semibold text-foreground mb-2 leading-snug break-words">

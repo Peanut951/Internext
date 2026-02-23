@@ -3,6 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import {
   Monitor,
   Camera,
@@ -386,7 +387,7 @@ const ProductsIndex = () => {
                 ) : (
                   <>
                     {searchState.items.map((product, index) => {
-                      const image = product.imageUrl?.trim();
+                      const image = getPrimaryProductImage(product);
                       const price = formatPrice(product.price) ?? product.priceText ?? "POA";
                       return (
                         <Link
@@ -397,16 +398,13 @@ const ProductsIndex = () => {
                           }`}
                         >
                           <div className="h-16 w-16 rounded-lg bg-white border border-border/40 overflow-hidden flex items-center justify-center">
-                            {image ? (
-                              <img
-                                src={image}
-                                alt={product.description}
-                                loading="lazy"
-                                className="h-full w-full object-contain"
-                              />
-                            ) : (
-                              <span className="text-[11px] text-muted-foreground">No image</span>
-                            )}
+                            <img
+                              src={image}
+                              alt={product.description}
+                              loading="lazy"
+                              onError={handleProductImageError}
+                              className="h-full w-full object-contain"
+                            />
                           </div>
                           <div className="min-w-0">
                             <p className="font-medium text-foreground leading-snug break-words">
