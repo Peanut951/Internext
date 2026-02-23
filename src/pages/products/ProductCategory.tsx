@@ -654,7 +654,7 @@ const ProductCategory = () => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
       const productManufacturer = product.manufacturer?.trim() || "Unbranded";
-      if (manufacturer !== "All" && productManufacturer !== manufacturer) {
+      if (manufacturer !== "All" && normalizeKey(productManufacturer) !== normalizeKey(manufacturer)) {
         return false;
       }
 
@@ -764,9 +764,30 @@ const ProductCategory = () => {
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
                 <h3 className="font-semibold text-foreground mb-4">Key Brands</h3>
                 <ul className="space-y-2">
+                  <li>
+                    <button
+                      type="button"
+                      onClick={() => setManufacturer("All")}
+                      className={`text-sm transition-colors ${
+                        manufacturer === "All" ? "text-accent font-semibold" : "text-muted-foreground hover:text-accent"
+                      }`}
+                    >
+                      All Brands
+                    </button>
+                  </li>
                   {data.brands.map((brand) => (
                     <li key={brand}>
-                      <span className="text-muted-foreground text-sm">{brand}</span>
+                      <button
+                        type="button"
+                        onClick={() => setManufacturer(brand)}
+                        className={`text-sm transition-colors ${
+                          normalizeKey(manufacturer) === normalizeKey(brand)
+                            ? "text-accent font-semibold"
+                            : "text-muted-foreground hover:text-accent"
+                        }`}
+                      >
+                        {brand}
+                      </button>
                     </li>
                   ))}
                 </ul>
