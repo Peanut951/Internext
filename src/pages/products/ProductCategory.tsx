@@ -757,7 +757,7 @@ const ProductCategory = () => {
 
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] xl:grid-cols-[260px_minmax(0,1fr)_320px]">
+          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
                 <h3 className="font-semibold text-foreground mb-4">Key Brands</h3>
@@ -864,15 +864,15 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                <div className="grid sm:grid-cols-2 2xl:grid-cols-3 gap-6">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     return (
                       <div
                         key={product.code}
-                        className="bg-card rounded-xl p-4 shadow-card border border-border/50 hover:shadow-elevated transition-shadow flex flex-col"
+                        className="bg-card rounded-xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
                       >
-                        <div className="aspect-square bg-muted rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                        <div className="aspect-[4/3] bg-secondary/70 rounded-lg mb-4 flex items-center justify-center overflow-hidden p-3">
                           {product.imageUrl ? (
                             <img
                               src={product.imageUrl}
@@ -885,29 +885,30 @@ const ProductCategory = () => {
                           )}
                         </div>
                         <div className="flex-1">
-                          <h4 className="font-semibold text-foreground mb-1 line-clamp-2">
+                          <h4 className="font-semibold text-foreground mb-2 line-clamp-2 min-h-[3.25rem] leading-snug">
                             {product.description}
                           </h4>
                           <p className="text-sm text-muted-foreground mb-1">{product.manufacturer}</p>
-                          <p className="text-xs text-muted-foreground mb-3">Code: {product.code}</p>
+                          <p className="text-xs text-muted-foreground mb-4">Code: {product.code}</p>
                         </div>
-                        <div className="flex items-center justify-between gap-2 mb-3">
-                          <span className="text-sm font-semibold text-foreground">{priceLabel}</span>
+                        <div className="flex items-center justify-between gap-2 mb-4 pt-3 border-t border-border/50">
+                          <span className="text-xl font-bold text-foreground leading-none">{priceLabel}</span>
                           {product.rrp ? (
                             <span className="text-xs text-muted-foreground">
                               RRP {formatPrice(product.rrp)}
                             </span>
                           ) : null}
                         </div>
-                        <div className="grid grid-cols-2 gap-2">
-                          <Button variant="outline" size="sm" asChild>
+                        <div className="grid grid-cols-1 gap-2">
+                          <Button variant="outline" size="sm" className="w-full" asChild>
                             <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
                               View Details
                             </Link>
                           </Button>
                           <Button
-                            variant="outline"
+                            variant="default"
                             size="sm"
+                            className="w-full"
                             onClick={() => addToCart(product)}
                           >
                             Add to Cart
@@ -941,7 +942,7 @@ const ProductCategory = () => {
               )}
             </div>
 
-            <aside className="xl:sticky xl:top-24 h-fit">
+            <aside className="lg:col-span-2 2xl:col-span-1 2xl:sticky 2xl:top-24 h-fit">
               <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="text-lg font-semibold text-foreground">Cart</h3>
