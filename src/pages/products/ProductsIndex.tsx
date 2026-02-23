@@ -213,6 +213,44 @@ const categories = [
   },
 ];
 
+const categoryThemes = [
+  {
+    card: "from-sky-50 via-white to-cyan-50/70",
+    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(6,182,212,0.15),_transparent_65%)]",
+    icon: "bg-cyan-100 text-cyan-700",
+    badge: "bg-cyan-100 text-cyan-800",
+    item: "border-cyan-200/70 bg-white/90 hover:border-cyan-400 hover:bg-cyan-50/90",
+  },
+  {
+    card: "from-emerald-50 via-white to-teal-50/70",
+    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.15),_transparent_65%)]",
+    icon: "bg-emerald-100 text-emerald-700",
+    badge: "bg-emerald-100 text-emerald-800",
+    item: "border-emerald-200/70 bg-white/90 hover:border-emerald-400 hover:bg-emerald-50/90",
+  },
+  {
+    card: "from-amber-50 via-white to-orange-50/70",
+    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(245,158,11,0.14),_transparent_65%)]",
+    icon: "bg-amber-100 text-amber-700",
+    badge: "bg-amber-100 text-amber-800",
+    item: "border-amber-200/70 bg-white/90 hover:border-amber-400 hover:bg-amber-50/90",
+  },
+  {
+    card: "from-indigo-50 via-white to-blue-50/70",
+    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(99,102,241,0.14),_transparent_65%)]",
+    icon: "bg-indigo-100 text-indigo-700",
+    badge: "bg-indigo-100 text-indigo-800",
+    item: "border-indigo-200/70 bg-white/90 hover:border-indigo-400 hover:bg-indigo-50/90",
+  },
+  {
+    card: "from-rose-50 via-white to-pink-50/70",
+    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(244,63,94,0.14),_transparent_65%)]",
+    icon: "bg-rose-100 text-rose-700",
+    badge: "bg-rose-100 text-rose-800",
+    item: "border-rose-200/70 bg-white/90 hover:border-rose-400 hover:bg-rose-50/90",
+  },
+];
+
 const ProductsIndex = () => {
   const navigate = useNavigate();
 
@@ -431,33 +469,48 @@ const ProductsIndex = () => {
             ) : null}
           </div>
 
-          <div className="space-y-12">
-            {categories.map((category) => (
-              <div key={category.title} className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
-                <div className="flex items-start gap-4 mb-6">
-                  <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
-                    <category.icon className="h-7 w-7 text-accent" />
+          <div className="space-y-8">
+            {categories.map((category, index) => {
+              const theme = categoryThemes[index % categoryThemes.length];
+              return (
+                <div
+                  key={category.title}
+                  className={`relative overflow-hidden rounded-[1.5rem] border border-border/60 bg-gradient-to-br ${theme.card} p-7 md:p-8 shadow-[0_16px_42px_-30px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.45)]`}
+                >
+                  <div className={`pointer-events-none absolute inset-0 ${theme.glow}`} />
+
+                  <div className="relative flex flex-wrap items-start justify-between gap-4 mb-6">
+                    <div className="flex items-start gap-4">
+                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${theme.icon}`}>
+                        <category.icon className="h-7 w-7" />
+                      </div>
+                      <div>
+                        <h2 className="text-2xl font-bold text-foreground mb-2">{category.title}</h2>
+                        <p className="text-muted-foreground max-w-3xl">{category.desc}</p>
+                      </div>
+                    </div>
+                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`}>
+                      {category.items.length} subcategories
+                    </span>
                   </div>
-                  <div>
-                    <h2 className="text-2xl font-bold text-foreground mb-2">{category.title}</h2>
-                    <p className="text-muted-foreground">{category.desc}</p>
+
+                  <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                    {category.items.map((item) => (
+                      <Link
+                        key={item.label}
+                        to={item.href}
+                        className={`group rounded-xl border p-4 transition-all duration-200 ${theme.item}`}
+                      >
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-sm font-semibold text-foreground leading-snug">{item.label}</span>
+                          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-foreground" />
+                        </div>
+                      </Link>
+                    ))}
                   </div>
                 </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-                  {category.items.map((item) => (
-                    <Link
-                      key={item.label}
-                      to={item.href}
-                      className="bg-secondary rounded-lg p-4 text-center hover:bg-accent/10 transition-colors group"
-                    >
-                      <span className="text-sm font-medium text-foreground group-hover:text-accent transition-colors">
-                        {item.label}
-                      </span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            ))}
+              );
+            })}
 
             {!catalogLoading && catalogError && (
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 text-destructive">
