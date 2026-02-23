@@ -213,44 +213,6 @@ const categories = [
   },
 ];
 
-const categoryThemes = [
-  {
-    card: "from-blue-50 via-white to-sky-50/70",
-    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(37,99,235,0.16),_transparent_65%)]",
-    icon: "bg-blue-100 text-blue-700",
-    badge: "bg-blue-100 text-blue-800",
-    item: "border-blue-200/70 bg-white/90 hover:border-blue-400 hover:bg-blue-50/90",
-  },
-  {
-    card: "from-indigo-50 via-white to-blue-50/70",
-    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(67,56,202,0.15),_transparent_65%)]",
-    icon: "bg-indigo-100 text-indigo-700",
-    badge: "bg-indigo-100 text-indigo-800",
-    item: "border-indigo-200/70 bg-white/90 hover:border-indigo-400 hover:bg-indigo-50/90",
-  },
-  {
-    card: "from-sky-50 via-white to-blue-50/70",
-    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(2,132,199,0.15),_transparent_65%)]",
-    icon: "bg-sky-100 text-sky-700",
-    badge: "bg-sky-100 text-sky-800",
-    item: "border-sky-200/70 bg-white/90 hover:border-sky-400 hover:bg-sky-50/90",
-  },
-  {
-    card: "from-slate-100 via-white to-blue-50/70",
-    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(30,64,175,0.14),_transparent_65%)]",
-    icon: "bg-blue-100 text-blue-800",
-    badge: "bg-blue-100 text-blue-900",
-    item: "border-blue-200/70 bg-white/90 hover:border-blue-500 hover:bg-blue-50/90",
-  },
-  {
-    card: "from-blue-100/70 via-white to-indigo-50/70",
-    glow: "bg-[radial-gradient(circle_at_top_right,_rgba(29,78,216,0.16),_transparent_65%)]",
-    icon: "bg-indigo-100 text-indigo-700",
-    badge: "bg-indigo-100 text-indigo-800",
-    item: "border-indigo-200/70 bg-white/90 hover:border-indigo-500 hover:bg-indigo-50/90",
-  },
-];
-
 const ProductsIndex = () => {
   const navigate = useNavigate();
 
@@ -470,18 +432,18 @@ const ProductsIndex = () => {
           </div>
 
           <div className="space-y-8">
-            {categories.map((category, index) => {
-              const theme = categoryThemes[index % categoryThemes.length];
+            {categories.map((category) => {
               return (
                 <div
                   key={category.title}
-                  className={`relative overflow-hidden rounded-[1.5rem] border border-border/60 bg-gradient-to-br ${theme.card} p-7 md:p-8 shadow-[0_16px_42px_-30px_rgba(15,23,42,0.45)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_22px_46px_-28px_rgba(15,23,42,0.45)]`}
+                  className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-secondary/55 p-7 md:p-8 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated"
                 >
-                  <div className={`pointer-events-none absolute inset-0 ${theme.glow}`} />
+                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(var(--accent)/0.16),_transparent_64%)]" />
+                  <div className="pointer-events-none absolute left-0 top-0 h-full w-1 bg-gradient-accent opacity-60" />
 
                   <div className="relative flex flex-wrap items-start justify-between gap-4 mb-6">
                     <div className="flex items-start gap-4">
-                      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 ${theme.icon}`}>
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 bg-accent/12 text-accent">
                         <category.icon className="h-7 w-7" />
                       </div>
                       <div>
@@ -489,7 +451,7 @@ const ProductsIndex = () => {
                         <p className="text-muted-foreground max-w-3xl">{category.desc}</p>
                       </div>
                     </div>
-                    <span className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${theme.badge}`}>
+                    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-primary/10 text-primary">
                       {category.items.length} subcategories
                     </span>
                   </div>
@@ -499,11 +461,11 @@ const ProductsIndex = () => {
                       <Link
                         key={item.label}
                         to={item.href}
-                        className={`group rounded-xl border p-4 transition-all duration-200 ${theme.item}`}
+                        className="group rounded-xl border border-border/70 bg-background/85 p-4 transition-all duration-200 hover:border-accent/50 hover:bg-accent/5"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-semibold text-foreground leading-snug">{item.label}</span>
-                          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-foreground" />
+                          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-accent" />
                         </div>
                       </Link>
                     ))}
