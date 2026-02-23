@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
-// Import additional icons to represent the expanded category set.  We choose
-// icons that roughly correspond to each top–level category.  You can swap
-// these out for any other lucide icons if they better suit your brand.
+import { Button } from "@/components/ui/button";
 import {
   Monitor,
   Camera,
@@ -17,7 +15,63 @@ import {
   Headphones,
   ArrowRight,
   Search,
+  X,
 } from "lucide-react";
+
+type CatalogProduct = {
+  code: string;
+  manufacturer: string;
+  description: string;
+  price: number | null;
+  priceText?: string;
+  imageUrl?: string;
+  supplierCode?: string;
+};
+
+type IndexedProduct = {
+  product: CatalogProduct;
+  code: string;
+  description: string;
+  manufacturer: string;
+  supplierCode: string;
+  haystack: string;
+};
+
+const MIN_SEARCH_LENGTH = 2;
+const MAX_SEARCH_RESULTS = 8;
+
+const normalizeText = (value: string) =>
+  value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+
+const formatPrice = (value: number | null | undefined) => {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+};
+
+const getMatchScore = (item: IndexedProduct, query: string) => {
+  let score = 0;
+
+  if (item.code === query) score += 100;
+  else if (item.code.startsWith(query)) score += 80;
+  else if (item.code.includes(query)) score += 55;
+
+  if (item.description.startsWith(query)) score += 45;
+  else if (item.description.includes(query)) score += 30;
+
+  if (item.manufacturer.startsWith(query)) score += 22;
+  else if (item.manufacturer.includes(query)) score += 14;
+
+  if (item.supplierCode.startsWith(query)) score += 18;
+  else if (item.supplierCode.includes(query)) score += 10;
+
+  if (score === 0 && item.haystack.includes(query)) {
+    score = 8;
+  }
+
+  return score;
+};
 
 const categories = [
   {
@@ -48,8 +102,7 @@ const categories = [
   {
     icon: Shield,
     title: "IP Surveillance",
-    desc:
-      "End‑to‑end IP video solutions including cameras, recorders, kits and accessories",
+    desc: "End-to-end IP video solutions including cameras, recorders, kits and accessories",
     items: [
       { label: "IP Cameras", href: "/products/ip-cameras" },
       { label: "NVRs & Recorders", href: "/products/nvrs-recorders" },
@@ -94,7 +147,10 @@ const categories = [
     items: [
       { label: "Inkjet Consumables", href: "/products/inkjet-consumables" },
       { label: "Laser Consumables", href: "/products/laser-consumables" },
-      { label: "Large Format Consumables", href: "/products/large-format-consumables" },
+      {
+        label: "Large Format Consumables",
+        href: "/products/large-format-consumables",
+      },
       { label: "Ribbon & Tape", href: "/products/ribbon-tape" },
       { label: "3D Filament", href: "/products/3d-filament" },
       { label: "Other Consumables", href: "/products/other-consumables" },
@@ -104,7 +160,7 @@ const categories = [
     icon: Scan,
     title: "Scanners",
     desc:
-      "From portable scanners to high‑speed production units plus imaging accessories",
+      "From portable scanners to high-speed production units plus imaging accessories",
     items: [
       { label: "A4 Office Scanners", href: "/products/a4-scanners" },
       { label: "A3 Office Scanners", href: "/products/a3-scanners" },
@@ -158,43 +214,102 @@ const categories = [
 ];
 
 const ProductsIndex = () => {
-  const [searchQuery, setSearchQuery] = useState("");
+  const navigate = useNavigate();
 
-  const filteredCategories = useMemo(() => {
-    const query = searchQuery.trim().toLowerCase();
-    if (!query) {
-      return categories;
+  const [searchQuery, setSearchQuery] = useState("");
+  const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadProducts = async () => {
+      try {
+        const response = await fetch("/data/catalog-products.json");
+        if (!response.ok) {
+          throw new Error("Unable to load product catalog.");
+        }
+        const data = (await response.json()) as CatalogProduct[];
+        if (isMounted) {
+          setProducts(data);
+          setCatalogLoading(false);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setCatalogError(
+            error instanceof Error ? error.message : "Unable to load product catalog.",
+          );
+          setCatalogLoading(false);
+        }
+      }
+    };
+
+    loadProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const indexedProducts = useMemo<IndexedProduct[]>(() => {
+    return products.map((product) => {
+      const code = normalizeText(product.code || "");
+      const description = normalizeText(product.description || "");
+      const manufacturer = normalizeText(product.manufacturer || "");
+      const supplierCode = normalizeText(product.supplierCode || "");
+
+      return {
+        product,
+        code,
+        description,
+        manufacturer,
+        supplierCode,
+        haystack: [description, code, manufacturer, supplierCode].join(" ").trim(),
+      };
+    });
+  }, [products]);
+
+  const query = normalizeText(searchQuery);
+  const hasQuery = query.length > 0;
+  const canSearch = query.length >= MIN_SEARCH_LENGTH;
+
+  const searchState = useMemo(() => {
+    if (!canSearch) {
+      return {
+        total: 0,
+        items: [] as CatalogProduct[],
+      };
     }
 
-    return categories
-      .map((category) => {
-        const categoryMatch =
-          category.title.toLowerCase().includes(query) ||
-          category.desc.toLowerCase().includes(query);
-
-        const itemMatches = category.items.filter((item) =>
-          item.label.toLowerCase().includes(query),
-        );
-
-        if (categoryMatch) {
-          return category;
+    const matches = indexedProducts
+      .map((item) => ({
+        product: item.product,
+        score: getMatchScore(item, query),
+      }))
+      .filter((item) => item.score > 0)
+      .sort((a, b) => {
+        if (a.score !== b.score) {
+          return b.score - a.score;
         }
+        return a.product.description.localeCompare(b.product.description);
+      });
 
-        if (itemMatches.length > 0) {
-          return {
-            ...category,
-            items: itemMatches,
-          };
-        }
+    return {
+      total: matches.length,
+      items: matches.slice(0, MAX_SEARCH_RESULTS).map((item) => item.product),
+    };
+  }, [canSearch, indexedProducts, query]);
 
-        return null;
-      })
-      .filter(Boolean) as typeof categories;
-  }, [searchQuery]);
+  const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (searchState.items[0]) {
+      navigate(`/products/item/${encodeURIComponent(searchState.items[0].code)}`);
+    }
+  };
 
   return (
     <Layout>
-      {/* Hero */}
       <section className="bg-gradient-hero py-20 md:py-28">
         <div className="container-wide">
           <div className="max-w-3xl">
@@ -202,31 +317,122 @@ const ProductsIndex = () => {
               Product Range
             </h1>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              Explore our comprehensive range of technology products from the world's 
+              Explore our comprehensive range of technology products from the world's
               leading brands, available exclusively to our reseller partners.
             </p>
           </div>
         </div>
       </section>
 
-      {/* Categories */}
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50 mb-8">
-            <div className="relative max-w-xl">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                type="search"
-                placeholder="Search product range..."
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                className="pl-10 bg-secondary border-0 focus-visible:ring-accent"
-              />
+          <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50 mb-10">
+            <div className="flex flex-wrap items-start justify-between gap-3 mb-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent mb-1">
+                  Find Products
+                </p>
+                <h2 className="text-xl font-semibold text-foreground">Search the Catalog</h2>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                {products.length.toLocaleString()} products available
+              </p>
             </div>
+
+            <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search products by name, code, brand, or supplier code"
+                  value={searchQuery}
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  className="h-14 rounded-xl border-border/70 bg-background pl-12 pr-12 text-base focus-visible:ring-accent"
+                />
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => setSearchQuery("")}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    aria-label="Clear search"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                ) : null}
+              </div>
+              <Button type="submit" className="h-14 px-7">
+                Search
+              </Button>
+            </form>
+
+            <p className="mt-3 text-sm text-muted-foreground">
+              Start typing to search real products. Press Enter to open the best match.
+            </p>
+
+            {hasQuery ? (
+              <div className="mt-4 rounded-xl border border-border/60 bg-background overflow-hidden">
+                {!canSearch ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    Type at least {MIN_SEARCH_LENGTH} characters to search products.
+                  </p>
+                ) : catalogLoading ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">Loading product search...</p>
+                ) : catalogError ? (
+                  <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
+                ) : searchState.total === 0 ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    No products matched "{searchQuery}".
+                  </p>
+                ) : (
+                  <>
+                    {searchState.items.map((product, index) => {
+                      const image = product.imageUrl?.trim();
+                      const price = formatPrice(product.price) ?? product.priceText ?? "POA";
+                      return (
+                        <Link
+                          key={product.code}
+                          to={`/products/item/${encodeURIComponent(product.code)}`}
+                          className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 hover:bg-secondary/60 transition-colors ${
+                            index < searchState.items.length - 1 ? "border-b border-border/40" : ""
+                          }`}
+                        >
+                          <div className="h-16 w-16 rounded-lg bg-white border border-border/40 overflow-hidden flex items-center justify-center">
+                            {image ? (
+                              <img
+                                src={image}
+                                alt={product.description}
+                                loading="lazy"
+                                className="h-full w-full object-contain"
+                              />
+                            ) : (
+                              <span className="text-[11px] text-muted-foreground">No image</span>
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="font-medium text-foreground leading-snug break-words">
+                              {product.description}
+                            </p>
+                            <p className="text-sm text-muted-foreground break-words">
+                              {product.manufacturer || "Unbranded"} - Code: {product.code}
+                            </p>
+                          </div>
+                          <p className="text-sm font-semibold text-foreground whitespace-nowrap">
+                            {price}
+                          </p>
+                        </Link>
+                      );
+                    })}
+                    <p className="px-4 py-3 text-xs text-muted-foreground border-t border-border/40 bg-secondary/35">
+                      Showing {searchState.items.length} of {searchState.total} matching products.
+                    </p>
+                  </>
+                )}
+              </div>
+            ) : null}
           </div>
 
           <div className="space-y-12">
-            {filteredCategories.map((category) => (
+            {categories.map((category) => (
               <div key={category.title} className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
                 <div className="flex items-start gap-4 mb-6">
                   <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
@@ -252,16 +458,16 @@ const ProductsIndex = () => {
                 </div>
               </div>
             ))}
-            {filteredCategories.length === 0 && (
-              <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 text-muted-foreground">
-                No matching product categories found.
+
+            {!catalogLoading && catalogError && (
+              <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 text-destructive">
+                {catalogError}
               </div>
             )}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
       <section className="py-16 bg-secondary">
         <div className="container-wide text-center">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
