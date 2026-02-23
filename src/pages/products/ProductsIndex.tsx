@@ -436,14 +436,11 @@ const ProductsIndex = () => {
               return (
                 <div
                   key={category.title}
-                  className="relative overflow-hidden rounded-2xl border border-border/60 bg-gradient-to-br from-card via-card to-secondary/55 p-7 md:p-8 shadow-card transition-all duration-300 hover:-translate-y-0.5 hover:shadow-elevated"
+                  className="rounded-2xl border border-border/50 bg-card p-7 md:p-8 shadow-card transition-all duration-200 hover:shadow-elevated"
                 >
-                  <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top_right,_hsl(var(--accent)/0.16),_transparent_64%)]" />
-                  <div className="pointer-events-none absolute left-0 top-0 h-full w-1 bg-gradient-accent opacity-60" />
-
-                  <div className="relative flex flex-wrap items-start justify-between gap-4 mb-6">
+                  <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                     <div className="flex items-start gap-4">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center flex-shrink-0 bg-accent/12 text-accent">
+                      <div className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 bg-secondary text-accent">
                         <category.icon className="h-7 w-7" />
                       </div>
                       <div>
@@ -451,21 +448,21 @@ const ProductsIndex = () => {
                         <p className="text-muted-foreground max-w-3xl">{category.desc}</p>
                       </div>
                     </div>
-                    <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold bg-primary/10 text-primary">
+                    <span className="inline-flex items-center rounded-md px-3 py-1 text-xs font-semibold bg-secondary text-muted-foreground">
                       {category.items.length} subcategories
                     </span>
                   </div>
 
-                  <div className="relative grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
                     {category.items.map((item) => (
                       <Link
                         key={item.label}
                         to={item.href}
-                        className="group rounded-xl border border-border/70 bg-background/85 p-4 transition-all duration-200 hover:border-accent/50 hover:bg-accent/5"
+                        className="group rounded-lg border border-border/60 bg-secondary p-4 transition-colors duration-200 hover:bg-accent/10"
                       >
                         <div className="flex items-center justify-between gap-3">
                           <span className="text-sm font-semibold text-foreground leading-snug">{item.label}</span>
-                          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-accent" />
+                          <ArrowRight className="h-4 w-4 text-muted-foreground transition-transform duration-200 group-hover:translate-x-1 group-hover:text-foreground" />
                         </div>
                       </Link>
                     ))}
