@@ -650,6 +650,36 @@ const ProductCategory = () => {
     return ["All", ...Array.from(values).sort((a, b) => a.localeCompare(b))];
   }, [categoryProducts]);
 
+  const keyBrands = useMemo(() => {
+    const available = manufacturers.filter((value) => value !== "All");
+    if (available.length === 0) {
+      return [];
+    }
+
+    const normalizedAvailable = new Set(available.map((brand) => normalizeKey(brand)));
+    const filteredFromCategory = data.brands.filter((brand) =>
+      normalizedAvailable.has(normalizeKey(brand)),
+    );
+
+    if (filteredFromCategory.length > 0) {
+      return filteredFromCategory;
+    }
+
+    return available.slice(0, 12);
+  }, [manufacturers, data.brands]);
+
+  useEffect(() => {
+    if (manufacturer === "All") {
+      return;
+    }
+    const existsInCurrentCategory = manufacturers.some(
+      (value) => normalizeKey(value) === normalizeKey(manufacturer),
+    );
+    if (!existsInCurrentCategory) {
+      setManufacturer("All");
+    }
+  }, [manufacturer, manufacturers]);
+
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
@@ -775,7 +805,7 @@ const ProductCategory = () => {
                       All Brands
                     </button>
                   </li>
-                  {data.brands.map((brand) => (
+                  {keyBrands.map((brand) => (
                     <li key={brand}>
                       <button
                         type="button"
