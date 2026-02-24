@@ -14,6 +14,8 @@ import Customers from "./pages/about/Customers";
 import ProductsIndex from "./pages/products/ProductsIndex";
 import ProductCategory from "./pages/products/ProductCategory";
 import ProductDetail from "./pages/products/ProductDetail";
+import Checkout from "./pages/checkout/Checkout";
+import OrdersAdmin from "./pages/admin/OrdersAdmin";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -57,6 +59,8 @@ const App = () => (
           <Route path="/products" element={<ProductsIndex />} />
           <Route path="/products/item/:code" element={<ProductDetail />} />
           <Route path="/products/:category" element={<ProductCategory />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route path="/admin/orders" element={<OrdersAdmin />} />
           {/* Brands */}
           <Route path="/brands" element={<Brands />} />
           <Route path="/brands/:brand" element={<BrandsDetail />} />

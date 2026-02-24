@@ -5,6 +5,7 @@ import { Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -580,7 +581,7 @@ const ProductCategory = () => {
         }
         const dataResponse = (await response.json()) as CatalogProduct[];
         if (isMounted) {
-          setProducts(dataResponse);
+          setProducts(normalizeCatalogProducts(dataResponse));
           setLoading(false);
         }
       } catch (err) {
@@ -631,7 +632,7 @@ const ProductCategory = () => {
     });
   }, [products]);
 
-  const slugsForPage = CATEGORY_GROUPS[activeCategory] ?? [activeCategory];
+  const slugsForPage = useMemo(() => CATEGORY_GROUPS[activeCategory] ?? [activeCategory], [activeCategory]);
   const categoryProducts = useMemo(() => {
     if (!activeCategory) {
       return categorizedProducts;
@@ -1036,9 +1037,15 @@ const ProductCategory = () => {
                       </p>
                     </div>
 
-                    <Button className="w-full" disabled>
-                      Checkout (setup required)
-                    </Button>
+                    {cartItems.length > 0 ? (
+                      <Button className="w-full" asChild>
+                        <Link to="/checkout">Checkout</Link>
+                      </Button>
+                    ) : (
+                      <Button className="w-full" disabled>
+                        Checkout
+                      </Button>
+                    )}
                   </div>
                 )}
               </div>

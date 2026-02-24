@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 import {
   Monitor,
   Camera,
@@ -231,7 +232,7 @@ const ProductsIndex = () => {
         if (!response.ok) {
           throw new Error("Unable to load product catalog.");
         }
-        const data = (await response.json()) as CatalogProduct[];
+        const data = normalizeCatalogProducts((await response.json()) as CatalogProduct[]);
         if (isMounted) {
           setProducts(data);
           setCatalogLoading(false);

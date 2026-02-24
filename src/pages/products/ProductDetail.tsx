@@ -8,6 +8,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
+import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 type CatalogProduct = {
   code: string;
@@ -70,7 +71,7 @@ const ProductDetail = () => {
         if (!response.ok) {
           throw new Error("Unable to load product data.");
         }
-        const data = (await response.json()) as CatalogProduct[];
+        const data = normalizeCatalogProducts((await response.json()) as CatalogProduct[]);
         const found = data.find((item) => item.code === productCode) || null;
         if (isMounted) {
           setProduct(found);
@@ -241,6 +242,10 @@ const ProductDetail = () => {
 
                 <Button className="w-full" onClick={addToCart}>
                   {added ? "Added to Cart" : "Add to Cart"}
+                </Button>
+
+                <Button variant="outline" className="w-full mt-3" asChild>
+                  <Link to="/checkout">Go to Checkout</Link>
                 </Button>
 
                 <Button variant="outline" className="w-full mt-3" asChild>
