@@ -17,6 +17,7 @@ import ProductDetail from "./pages/products/ProductDetail";
 import Cart from "./pages/checkout/Cart";
 import Checkout from "./pages/checkout/Checkout";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
+import RequireAdmin from "./components/auth/RequireAdmin";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -62,7 +63,14 @@ const App = () => (
           <Route path="/products/:category" element={<ProductCategory />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
-          <Route path="/admin/orders" element={<OrdersAdmin />} />
+          <Route
+            path="/admin/orders"
+            element={
+              <RequireAdmin>
+                <OrdersAdmin />
+              </RequireAdmin>
+            }
+          />
           {/* Brands */}
           <Route path="/brands" element={<Brands />} />
           <Route path="/brands/:brand" element={<BrandsDetail />} />

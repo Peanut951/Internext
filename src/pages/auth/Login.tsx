@@ -1,17 +1,49 @@
 import Layout from "@/components/layout/Layout";
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { Lock, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { adminCredentialHint, signIn } from "@/lib/auth";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { toast } = useToast();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    // Login logic would go here
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    setError(null);
+    setSubmitting(true);
+
+    const result = signIn(email, password);
+    if (!result.ok) {
+      setError(result.message);
+      setSubmitting(false);
+      return;
+    }
+
+    toast({
+      title: "Signed In",
+      description: `Logged in as ${result.session.role}.`,
+    });
+
+    const redirect = searchParams.get("redirect");
+    if (redirect) {
+      navigate(redirect);
+    } else if (result.session.role === "admin") {
+      navigate("/admin/orders");
+    } else {
+      navigate("/products");
+    }
+
+    setSubmitting(false);
   };
 
   return (
@@ -24,25 +56,19 @@ const Login = () => {
                 <div className="w-16 h-16 bg-gradient-accent rounded-2xl flex items-center justify-center mx-auto mb-4">
                   <Lock className="h-8 w-8 text-accent-foreground" />
                 </div>
-                <h1 className="text-2xl font-bold text-foreground mb-2">
-                  Internext Reseller Portal
-                </h1>
-                <p className="text-muted-foreground">
-                  Access pricing, stock, ordering and tracking
-                </p>
+                <h1 className="text-2xl font-bold text-foreground mb-2">Internext Reseller Portal</h1>
+                <p className="text-muted-foreground">Access pricing, stock, ordering and tracking</p>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Email Address
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Email Address</label>
                   <div className="relative">
                     <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="email"
                       value={email}
-                      onChange={(e) => setEmail(e.target.value)}
+                      onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@company.com"
                       className="pl-10 bg-secondary border-0"
                       required
@@ -51,21 +77,23 @@ const Login = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-foreground mb-2">
-                    Password
-                  </label>
+                  <label className="block text-sm font-medium text-foreground mb-2">Password</label>
                   <div className="relative">
                     <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
                       type="password"
                       value={password}
-                      onChange={(e) => setPassword(e.target.value)}
+                      onChange={(event) => setPassword(event.target.value)}
                       placeholder="••••••••"
                       className="pl-10 bg-secondary border-0"
                       required
                     />
                   </div>
                 </div>
+
+                {error ? (
+                  <p className="text-sm text-destructive bg-destructive/10 rounded-md p-2">{error}</p>
+                ) : null}
 
                 <div className="flex items-center justify-between text-sm">
                   <label className="flex items-center gap-2 cursor-pointer">
@@ -77,15 +105,17 @@ const Login = () => {
                   </a>
                 </div>
 
-                <Button type="submit" className="w-full">
-                  Sign In
+                <Button type="submit" className="w-full" disabled={submitting}>
+                  {submitting ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
 
+              <div className="mt-4 rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground">
+                Admin account email: {adminCredentialHint.email}
+              </div>
+
               <div className="mt-6 pt-6 border-t border-border text-center">
-                <p className="text-muted-foreground text-sm mb-4">
-                  Don't have an account?
-                </p>
+                <p className="text-muted-foreground text-sm mb-4">Don't have an account?</p>
                 <Button variant="outline" className="w-full" asChild>
                   <Link to="/login/register">
                     Request Reseller Access <ArrowRight className="ml-2 h-4 w-4" />

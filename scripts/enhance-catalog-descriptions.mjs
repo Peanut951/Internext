@@ -1,4 +1,4 @@
-import fs from "node:fs";
+﻿import fs from "node:fs";
 import path from "node:path";
 
 const catalogPath = path.resolve("public", "data", "catalog-products.json");
@@ -33,40 +33,46 @@ const ACRONYMS = new Set([
   "SSD",
   "HDD",
   "MFP",
+  "RJ45",
+  "CAT6",
+  "CAT5E",
 ]);
 
 const SMALL_WORDS = new Set(["and", "or", "for", "with", "to", "of", "in", "on", "at", "by"]);
 
-function normalizeWhitespace(value) {
-  return String(value || "")
+const normalizeWhitespace = (value) =>
+  String(value || "")
     .replace(/\u00a0/g, " ")
     .replace(/\s+/g, " ")
     .trim();
-}
 
-function uppercaseRatio(value) {
+const cleanEncoding = (value) =>
+  normalizeWhitespace(value)
+    .replace(/[\uFFFD]+/g, "")
+    .replace(/\s([,.;:!?])/g, "$1")
+    .replace(/\(\s+/g, "(")
+    .replace(/\s+\)/g, ")")
+    .trim();
+
+const uppercaseRatio = (value) => {
   const letters = (value.match(/[A-Za-z]/g) || []).length;
   const upper = (value.match(/[A-Z]/g) || []).length;
   return letters === 0 ? 0 : upper / letters;
-}
+};
 
-function formatToken(token, isFirstToken) {
+const formatToken = (token, isFirstToken) => {
   const clean = token.trim();
-  if (!clean) {
-    return clean;
-  }
+  if (!clean) return clean;
 
   const core = clean.replace(/^[^A-Za-z0-9]+|[^A-Za-z0-9]+$/g, "");
-  if (!core) {
-    return clean;
-  }
+  if (!core) return clean;
 
   const upperCore = core.toUpperCase();
   if (ACRONYMS.has(upperCore)) {
     return clean.replace(core, upperCore === "WIFI" ? "Wi-Fi" : upperCore);
   }
 
-  if (/^[A-Z0-9-]{3,}$/.test(core) || /[A-Z]+\d|\d+[A-Z]+/.test(core)) {
+  if ((/^[A-Z0-9-]{3,}$/.test(core) && /[0-9-]/.test(core)) || /[A-Z]+\d|\d+[A-Z]+/.test(core)) {
     return clean;
   }
 
@@ -75,93 +81,77 @@ function formatToken(token, isFirstToken) {
     return clean.replace(core, lowerCore);
   }
 
-  const titleCased = `${lowerCore.charAt(0).toUpperCase()}${lowerCore.slice(1)}`;
-  return clean.replace(core, titleCased);
-}
+  return clean.replace(core, `${lowerCore.charAt(0).toUpperCase()}${lowerCore.slice(1)}`);
+};
 
-function polishTitle(raw) {
-  const text = normalizeWhitespace(raw);
-  if (!text) {
+const polishTitle = (raw) => {
+  const text = cleanEncoding(raw);
+  if (!text) return text;
+
+  if (uppercaseRatio(text) < 0.58) {
     return text;
   }
 
-  if (uppercaseRatio(text) < 0.6) {
-    return text;
-  }
+  return text
+    .split(" ")
+    .map((token, index) => formatToken(token, index === 0))
+    .join(" ")
+    .replace(/\bAccesscontrol\b/gi, "Access Control")
+    .replace(/\bOnwall\b/gi, "On-Wall");
+};
 
-  const tokens = text.split(" ");
-  return tokens.map((token, index) => formatToken(token, index === 0)).join(" ");
-}
+const normalizeManufacturer = (value) => {
+  const cleaned = cleanEncoding(value || "");
+  if (!cleaned) return "Unbranded";
 
-function inferCategory(text) {
-  if (/(toner|cartridge|drum|ink|ribbon|filament|printhead|consumable)/i.test(text)) {
-    return "print consumable";
-  }
-  if (/(scanner|archiving|document capture)/i.test(text)) {
-    return "document scanning device";
-  }
-  if (/(printer|mfp|multifunction|plotter|designjet|imageprograf)/i.test(text)) {
-    return "printing solution";
-  }
-  if (/(intercom|doorbell|door phone|access control|biometric|rfid)/i.test(text)) {
-    return "security and access control device";
-  }
-  if (/(ups|power supply|battery backup)/i.test(text)) {
-    return "power protection solution";
-  }
-  if (/(router|switch|access point|network|nas|storage)/i.test(text)) {
-    return "network and infrastructure product";
-  }
-  if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) {
-    return "video surveillance product";
-  }
-  if (/(display|projector|panel|signage|interactive)/i.test(text)) {
-    return "audio visual product";
-  }
-  if (/(headset|voip|conference|speakerphone|sip)/i.test(text)) {
-    return "communications product";
-  }
+  return cleaned
+    .split(" ")
+    .map((part) => {
+      if (part.toUpperCase() === part && part.length <= 4) {
+        return part;
+      }
+      return `${part[0].toUpperCase()}${part.slice(1).toLowerCase()}`;
+    })
+    .join(" ");
+};
+
+const inferType = (text) => {
+  if (/(toner|cartridge|drum|ink|ribbon|filament|printhead|waste ink|collector unit)/i.test(text)) return "print consumable";
+  if (/(scanner|archiving|document capture)/i.test(text)) return "document scanning product";
+  if (/(printer|mfp|multifunction|plotter|designjet|imageprograf)/i.test(text)) return "printing product";
+  if (/(intercom|doorbell|door phone|access control|biometric|rfid)/i.test(text)) return "security and access control product";
+  if (/(ups|power supply|battery backup|pdu)/i.test(text)) return "power management product";
+  if (/(router|switch|access point|network|nas|storage|hdd|ssd)/i.test(text)) return "network and storage product";
+  if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) return "video surveillance product";
+  if (/(display|projector|panel|signage|interactive)/i.test(text)) return "audio visual product";
+  if (/(headset|voip|conference|speakerphone|sip)/i.test(text)) return "communications product";
   return "technology product";
-}
+};
 
-function inferUseCase(text) {
-  if (/(toner|cartridge|drum|ink|ribbon|filament|printhead|consumable)/i.test(text)) {
-    return "maintaining print quality and keeping business print fleets operational";
-  }
-  if (/(scanner|archiving|document capture)/i.test(text)) {
-    return "high-volume document capture, archiving, and workflow digitisation";
-  }
-  if (/(printer|mfp|multifunction|plotter|designjet|imageprograf)/i.test(text)) {
-    return "office printing, production output, and day-to-day document workflows";
-  }
-  if (/(intercom|doorbell|door phone|access control|biometric|rfid)/i.test(text)) {
-    return "building security, visitor management, and controlled site access";
-  }
-  if (/(ups|power supply|battery backup)/i.test(text)) {
-    return "power continuity and protection of critical systems";
-  }
-  if (/(router|switch|access point|network|nas|storage)/i.test(text)) {
-    return "network reliability, connectivity, and infrastructure performance";
-  }
-  if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) {
-    return "continuous monitoring, recording, and security incident visibility";
-  }
-  if (/(display|projector|panel|signage|interactive)/i.test(text)) {
-    return "presentations, collaboration, and visual communication in commercial spaces";
-  }
-  if (/(headset|voip|conference|speakerphone|sip)/i.test(text)) {
-    return "clear business communication and modern unified communications deployments";
-  }
-  return "general professional technology deployments";
-}
+const inferUseCase = (text) => {
+  if (/(toner|cartridge|drum|ink|ribbon|filament|printhead|waste ink|collector unit)/i.test(text)) return "maintaining print output quality and device uptime";
+  if (/(scanner|archiving|document capture)/i.test(text)) return "document capture, archiving, and digitisation workflows";
+  if (/(printer|mfp|multifunction|plotter|designjet|imageprograf)/i.test(text)) return "business printing and day-to-day document workflows";
+  if (/(intercom|doorbell|door phone|access control|biometric|rfid)/i.test(text)) return "secure site access and visitor management";
+  if (/(ups|power supply|battery backup|pdu)/i.test(text)) return "power continuity for critical systems";
+  if (/(router|switch|access point|network|nas|storage|hdd|ssd)/i.test(text)) return "network connectivity, storage, and infrastructure reliability";
+  if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) return "continuous monitoring and incident visibility";
+  if (/(display|projector|panel|signage|interactive)/i.test(text)) return "presentation, collaboration, and digital signage environments";
+  if (/(headset|voip|conference|speakerphone|sip)/i.test(text)) return "business communication and unified communications deployments";
+  return "general business technology deployments";
+};
 
-function extractSpecFragments(text) {
-  const fragments = [];
-  const specs = text.match(
-    /\b\d+(\.\d+)?\s?(?:\"|inch|in|mm|cm|w|kw|va|v|a|mah|gb|tb|mp|fps|hz|dpi|ppm|pages?|ml|m)\b/gi,
-  );
+const extractDetailFragments = (text) => {
+  const details = [];
+
+  const specs = text.match(/\b\d+(?:[.,]\d+)?\s?(?:"|inch|in|mm|cm|w|kw|va|v|a|mah|gb|tb|mp|fps|hz|dpi|ppm|pages?|ml|m|gsm|um)\b/gi);
   if (specs) {
-    fragments.push(...specs.slice(0, 3));
+    details.push(...specs.slice(0, 4));
+  }
+
+  const pageYield = text.match(/\b\d[\d,\s]*page yield\b/gi);
+  if (pageYield) {
+    details.push(...pageYield.slice(0, 2));
   }
 
   const keywords = [
@@ -181,73 +171,53 @@ function extractSpecFragments(text) {
     "Laser",
     "Inkjet",
     "Interactive",
+    "Android",
+    "Linux",
   ];
-  for (const key of keywords) {
-    if (new RegExp(`\\b${key.replace("-", "[- ]?")}\\b`, "i").test(text)) {
-      fragments.push(key);
+
+  for (const keyword of keywords) {
+    const re = new RegExp(`\\b${keyword.replace("-", "[- ]?")}\\b`, "i");
+    if (re.test(text)) {
+      details.push(keyword);
     }
   }
 
-  return Array.from(new Set(fragments)).slice(0, 4);
-}
+  const unique = Array.from(new Set(details.map((value) => normalizeWhitespace(value))));
+  const filtered = unique.filter((item) => {
+    const itemLower = item.toLowerCase();
+    return !unique.some((other) => other !== item && other.toLowerCase().includes(itemLower));
+  });
+  return filtered.slice(0, 5);
+};
 
-function extractHighlights(text) {
-  const highlights = [];
-
-  if (/\bpoe\b/i.test(text)) {
-    highlights.push("PoE support helps simplify installation by reducing separate power cabling.");
-  }
-  if (/(wifi|wireless|bluetooth)/i.test(text)) {
-    highlights.push("Wireless connectivity options provide flexible deployment across different environments.");
-  }
-  if (/\bduplex\b/i.test(text)) {
-    highlights.push("Duplex capability improves throughput and reduces manual handling.");
-  }
-  if (/\ba3\b/i.test(text)) {
-    highlights.push("A3 capability supports larger format workflows and specialist output requirements.");
-  } else if (/\ba4\b/i.test(text)) {
-    highlights.push("A4 support makes it suitable for day-to-day business document workflows.");
-  }
-  if (/(facial recognition|biometric|rfid)/i.test(text)) {
-    highlights.push("Advanced identity features improve security and controlled access management.");
-  }
-  if (/(laser|high speed|high-speed|production)/i.test(text)) {
-    highlights.push("Designed for reliable high-volume operation in demanding environments.");
-  }
-
-  return highlights.slice(0, 2);
-}
-
-function buildLongDescription(product) {
-  const brand = normalizeWhitespace(product.manufacturer);
+const buildLongDescription = (product) => {
+  const manufacturer = normalizeManufacturer(product.manufacturer);
   const title = polishTitle(product.description);
-  const category = inferCategory(title);
+  const type = inferType(title);
   const useCase = inferUseCase(title);
-  const specs = extractSpecFragments(title);
-  const highlights = extractHighlights(title);
+  const details = extractDetailFragments(title);
 
-  const intro = brand
-    ? `${brand} ${title} is a ${category} designed for professional and commercial use.`
-    : `${title} is a ${category} designed for professional and commercial use.`;
-  const context = `It is suitable for ${useCase}, with a focus on dependable performance and straightforward integration.`;
-  const specsLine =
-    specs.length > 0
-      ? `Key specifications and technologies include ${specs.join(", ")}.`
-      : "It is engineered to meet practical business requirements with consistent output and serviceability.";
+  const namedTitle = title.toLowerCase().startsWith(manufacturer.toLowerCase())
+    ? title
+    : `${manufacturer} ${title}`;
+  const intro = `${namedTitle} is a ${type} designed for professional and business use.`;
+  const context = `It is best suited to ${useCase}, with focus on dependable operation and straightforward integration.`;
+  const detailsLine =
+    details.length > 0
+      ? `Key details identified from the product listing include ${details.join(", ")}.`
+      : "The product listing indicates practical deployment for day-to-day business requirements.";
 
-  const tail = "It is built for reliable daily operation, straightforward deployment, and long-term serviceability.";
-  let description = [intro, context, specsLine, ...highlights, tail].join(" ");
-  if (description.split(/\s+/).filter(Boolean).length < 25) {
-    description += " This model is intended to deliver stable operation and practical value in business environments.";
-  }
-  return description;
-}
+  const codeLine = `Product code: ${cleanEncoding(product.code)}${product.supplierCode ? `; supplier reference: ${cleanEncoding(product.supplierCode)}.` : "."}`;
+
+  return [intro, context, detailsLine, codeLine].join(" ");
+};
 
 const raw = fs.readFileSync(catalogPath, "utf8");
 const catalog = JSON.parse(raw);
 
 for (const item of catalog) {
   item.description = polishTitle(item.description);
+  item.manufacturer = normalizeManufacturer(item.manufacturer);
   item.longDescription = buildLongDescription(item);
 }
 

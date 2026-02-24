@@ -1,7 +1,8 @@
-﻿import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useNavigate } from "react-router-dom";
 import {
   FulfillmentStatus,
   SupplierIntegrationSettings,
@@ -13,6 +14,7 @@ import {
   saveSupplierIntegrationSettings,
   updateOrderFulfillment,
 } from "@/lib/orderManagement";
+import { clearAuthSession } from "@/lib/auth";
 import { RefreshCw } from "lucide-react";
 
 const supplierStatusClass: Record<SupplierSubmissionStatus, string> = {
@@ -31,6 +33,7 @@ const fulfillmentStatusClass: Record<FulfillmentStatus, string> = {
 };
 
 const OrdersAdmin = () => {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState(getOrders());
   const [settings, setSettings] = useState<SupplierIntegrationSettings>(
     getSupplierIntegrationSettings(),
@@ -82,11 +85,21 @@ const OrdersAdmin = () => {
     });
   };
 
+  const handleSignOut = () => {
+    clearAuthSession();
+    navigate("/login");
+  };
+
   return (
     <Layout>
       <section className="bg-gradient-hero py-14 md:py-20">
         <div className="container-wide">
-          <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-3">Order Operations</h1>
+          <div className="flex flex-wrap items-start justify-between gap-4 mb-3">
+            <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground">Order Operations</h1>
+            <Button variant="secondary" size="sm" onClick={handleSignOut}>
+              Sign Out
+            </Button>
+          </div>
           <p className="text-primary-foreground/80 max-w-3xl">
             Manage customer orders, trigger supplier submissions, and update fulfillment status.
           </p>
@@ -311,3 +324,4 @@ const OrdersAdmin = () => {
 };
 
 export default OrdersAdmin;
+
