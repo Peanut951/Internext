@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown } from "lucide-react";
+import { Menu, X, ChevronDown, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -55,6 +55,35 @@ const navItems = [
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
+  const [cartCount, setCartCount] = useState(0);
+
+  useEffect(() => {
+    const readCartCount = () => {
+      try {
+        const raw = window.localStorage.getItem("internext-cart");
+        if (!raw) {
+          return 0;
+        }
+        const items = JSON.parse(raw) as Array<{ qty?: number }>;
+        return items.reduce((total, item) => total + Math.max(1, Number(item.qty) || 1), 0);
+      } catch {
+        return 0;
+      }
+    };
+
+    const syncCart = () => setCartCount(readCartCount());
+
+    syncCart();
+    window.addEventListener("storage", syncCart);
+    window.addEventListener("focus", syncCart);
+    const intervalId = window.setInterval(syncCart, 1200);
+
+    return () => {
+      window.removeEventListener("storage", syncCart);
+      window.removeEventListener("focus", syncCart);
+      window.clearInterval(intervalId);
+    };
+  }, []);
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
@@ -106,20 +135,45 @@ const Header = () => {
             ))}
           </nav>
 
-          {/* Mobile Menu Button */}
-          <Button
-            variant="ghost"
-            size="icon"
-            className="lg:hidden"
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          >
-            {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild>
+              <Link to="/checkout" className="gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Cart
+                <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs px-1">
+                  {cartCount}
+                </span>
+              </Link>
+            </Button>
+
+            {/* Mobile Menu Button */}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="lg:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </Button>
+          </div>
         </div>
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
+            <Link
+              to="/checkout"
+              className="flex items-center justify-between px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
+              onClick={() => setMobileMenuOpen(false)}
+            >
+              <span className="inline-flex items-center gap-2">
+                <ShoppingCart className="h-4 w-4" />
+                Cart
+              </span>
+              <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs px-1">
+                {cartCount}
+              </span>
+            </Link>
             {navItems.map((item) => (
               <Link
                 key={item.label}
