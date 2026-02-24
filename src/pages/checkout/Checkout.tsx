@@ -80,10 +80,10 @@ const Checkout = () => {
       <section className="bg-gradient-hero py-14 md:py-20">
         <div className="container-wide">
           <Link
-            to="/products"
+            to="/cart"
             className="inline-flex items-center gap-2 text-sm text-primary-foreground/80 hover:text-primary-foreground mb-5"
           >
-            <ArrowLeft className="h-4 w-4" /> Back to Products
+            <ArrowLeft className="h-4 w-4" /> Back to Cart
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-3">Checkout</h1>
           <p className="text-primary-foreground/80 max-w-2xl">
@@ -295,7 +295,12 @@ const Checkout = () => {
               </form>
 
               <aside className="bg-card rounded-2xl p-6 shadow-card border border-border/50 h-fit lg:sticky lg:top-24">
-                <h3 className="text-lg font-semibold text-foreground mb-4">Order Summary</h3>
+                <div className="flex items-center justify-between gap-3 mb-4">
+                  <h3 className="text-lg font-semibold text-foreground">Order Summary</h3>
+                  <Link to="/cart" className="text-xs text-accent hover:underline">
+                    Edit cart
+                  </Link>
+                </div>
 
                 {cartItems.length === 0 ? (
                   <div className="text-sm text-muted-foreground">
@@ -303,8 +308,8 @@ const Checkout = () => {
                       <AlertTriangle className="h-4 w-4 mt-0.5" />
                       <p>Your cart is empty.</p>
                     </div>
-                    <Link to="/products" className="text-accent hover:underline">
-                      Browse products
+                    <Link to="/cart" className="text-accent hover:underline">
+                      Return to cart
                     </Link>
                   </div>
                 ) : (

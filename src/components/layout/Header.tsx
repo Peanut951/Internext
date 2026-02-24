@@ -137,7 +137,7 @@ const Header = () => {
 
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild>
-              <Link to="/checkout" className="gap-2">
+              <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
                 Cart
                 <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs px-1">
@@ -162,7 +162,7 @@ const Header = () => {
         {mobileMenuOpen && (
           <nav className="lg:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
             <Link
-              to="/checkout"
+              to="/cart"
               className="flex items-center justify-between px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >

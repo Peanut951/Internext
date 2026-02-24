@@ -1039,11 +1039,11 @@ const ProductCategory = () => {
 
                     {cartItems.length > 0 ? (
                       <Button className="w-full" asChild>
-                        <Link to="/checkout">Checkout</Link>
+                        <Link to="/cart">View Cart</Link>
                       </Button>
                     ) : (
                       <Button className="w-full" disabled>
-                        Checkout
+                        View Cart
                       </Button>
                     )}
                   </div>

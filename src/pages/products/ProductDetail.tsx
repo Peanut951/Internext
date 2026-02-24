@@ -245,7 +245,7 @@ const ProductDetail = () => {
                 </Button>
 
                 <Button variant="outline" className="w-full mt-3" asChild>
-                  <Link to="/checkout">Go to Checkout</Link>
+                  <Link to="/cart">View Cart</Link>
                 </Button>
 
                 <Button variant="outline" className="w-full mt-3" asChild>
