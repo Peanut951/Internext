@@ -1,6 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
-import { Monitor, Shield, Printer, Network, Building2, GraduationCap, Stethoscope, ShoppingBag, Landmark } from "lucide-react";
+import { Monitor, Shield, Printer, Network, Building2, GraduationCap, Stethoscope, ShoppingBag } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const industries = [
@@ -18,11 +18,6 @@ const industries = [
     icon: Stethoscope,
     title: "Healthcare",
     desc: "Providing hospitals and medical facilities with secure, reliable technology for patient care and administration.",
-  },
-  {
-    icon: Landmark,
-    title: "Essential Services",
-    desc: "Supporting essential service providers and several different government agencies across the state with reliable technology, communications, and infrastructure solutions.",
   },
   {
     icon: ShoppingBag,
