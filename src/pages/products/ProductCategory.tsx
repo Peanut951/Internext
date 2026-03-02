@@ -535,6 +535,33 @@ const formatPrice = (value: number | null | undefined) => {
   return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 };
 
+const getCardSummary = (product: CatalogProduct) => {
+  const text = String(product.longDescription || product.description || "").trim();
+  if (!text) {
+    return "";
+  }
+
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const summary = sentences[1] || sentences[0] || text;
+  return summary.length > 170 ? `${summary.slice(0, 167).trimEnd()}...` : summary;
+};
+
+const getCardHighlights = (product: CatalogProduct) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+  const patterns = [
+    /\b\d+(?:\.\d+)?\s?(?:"|inch|ppm|dpi|nit|nits|gb|tb|mp|fps|hz|w|va)\b/gi,
+    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE|RFID|Bluetooth|Android|Linux|Duplex|Touchscreen|SIP|LTE|5G)\b/gi,
+  ];
+
+  const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
+  const cleaned = matches
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .map((item) => (item.toLowerCase() === "wifi" ? "Wi-Fi" : item))
+    .filter(Boolean);
+
+  return Array.from(new Set(cleaned)).slice(0, 3);
+};
+
 const toTitle = (slug: string) =>
   slug
     .split("-")
@@ -893,12 +920,14 @@ const ProductCategory = () => {
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     const productImage = getPrimaryProductImage(product);
+                    const summary = getCardSummary(product);
+                    const highlights = getCardHighlights(product);
                     return (
                       <div
                         key={product.code}
-                        className="bg-card rounded-xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
+                        className="bg-card rounded-2xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
                       >
-                        <div className="aspect-[16/10] rounded-lg mb-4 flex items-center justify-center overflow-hidden">
+                        <div className="aspect-[16/10] rounded-xl mb-4 bg-secondary/55 flex items-center justify-center overflow-hidden">
                           <img
                             src={productImage}
                             alt={product.description}
@@ -907,17 +936,38 @@ const ProductCategory = () => {
                             className="h-full w-full object-contain"
                           />
                         </div>
-                        <div className="flex-1 text-center">
-                          <h4 className="font-semibold text-foreground mb-2 leading-snug break-words">
+                        <div className="flex-1 flex flex-col">
+                          <div className="flex flex-wrap justify-center gap-2 mb-3">
+                            <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
+                              {product.manufacturer}
+                            </span>
+                            <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+                              {product.code}
+                            </span>
+                          </div>
+                          <h4 className="font-semibold text-foreground mb-3 leading-snug break-words text-center">
                             {product.description}
                           </h4>
-                          <p className="text-sm text-muted-foreground mb-1">{product.manufacturer}</p>
-                          <p className="text-xs text-muted-foreground mb-4">Code: {product.code}</p>
+                          <p className="text-sm text-muted-foreground text-center leading-6 mb-4">
+                            {summary}
+                          </p>
+                          {highlights.length > 0 ? (
+                            <div className="flex flex-wrap justify-center gap-2 mb-4">
+                              {highlights.map((highlight) => (
+                                <span
+                                  key={highlight}
+                                  className="rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] font-medium text-foreground"
+                                >
+                                  {highlight}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
                         </div>
-                        <div className="flex items-center justify-between gap-2 mb-4 pt-3 border-t border-border/50">
-                          <span className="text-xl font-bold text-foreground leading-none">{priceLabel}</span>
+                        <div className="flex items-end justify-between gap-3 mb-4 pt-4 border-t border-border/50">
+                          <span className="text-2xl font-bold text-foreground leading-none">{priceLabel}</span>
                           {product.rrp ? (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-xs text-muted-foreground text-right">
                               RRP {formatPrice(product.rrp)}
                             </span>
                           ) : null}
