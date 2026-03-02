@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+﻿import { FormEvent, useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -39,8 +39,13 @@ type IndexedProduct = {
   haystack: string;
 };
 
+type SearchMatch = {
+  product: CatalogProduct;
+  score: number;
+};
+
 const MIN_SEARCH_LENGTH = 2;
-const MAX_SEARCH_RESULTS = 8;
+const SEARCH_RESULTS_PER_PAGE = 8;
 
 const normalizeText = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -52,24 +57,26 @@ const formatPrice = (value: number | null | undefined) => {
   return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 };
 
-const getMatchScore = (item: IndexedProduct, query: string) => {
+const getTokenScore = (item: IndexedProduct, token: string) => {
   let score = 0;
 
-  if (item.code === query) score += 100;
-  else if (item.code.startsWith(query)) score += 80;
-  else if (item.code.includes(query)) score += 55;
+  if (item.code === token) score += 120;
+  else if (item.code.startsWith(token)) score += 90;
+  else if (item.code.includes(token)) score += 60;
 
-  if (item.description.startsWith(query)) score += 45;
-  else if (item.description.includes(query)) score += 30;
+  if (item.supplierCode === token) score += 100;
+  else if (item.supplierCode.startsWith(token)) score += 70;
+  else if (item.supplierCode.includes(token)) score += 48;
 
-  if (item.manufacturer.startsWith(query)) score += 22;
-  else if (item.manufacturer.includes(query)) score += 14;
+  if (item.manufacturer === token) score += 70;
+  else if (item.manufacturer.startsWith(token)) score += 36;
+  else if (item.manufacturer.includes(token)) score += 22;
 
-  if (item.supplierCode.startsWith(query)) score += 18;
-  else if (item.supplierCode.includes(query)) score += 10;
+  if (item.description.startsWith(token)) score += 52;
+  else if (item.description.includes(token)) score += 34;
 
-  if (score === 0 && item.haystack.includes(query)) {
-    score = 8;
+  if (score === 0 && item.haystack.includes(token)) {
+    score = 12;
   }
 
   return score;
@@ -219,6 +226,7 @@ const ProductsIndex = () => {
   const navigate = useNavigate();
 
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchPage, setSearchPage] = useState(1);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -273,40 +281,52 @@ const ProductsIndex = () => {
   }, [products]);
 
   const query = normalizeText(searchQuery);
+  const searchTokens = useMemo(() => query.split(" ").filter(Boolean), [query]);
   const hasQuery = query.length > 0;
   const canSearch = query.length >= MIN_SEARCH_LENGTH;
 
-  const searchState = useMemo(() => {
+  const searchMatches = useMemo<SearchMatch[]>(() => {
     if (!canSearch) {
-      return {
-        total: 0,
-        items: [] as CatalogProduct[],
-      };
+      return [];
     }
 
-    const matches = indexedProducts
-      .map((item) => ({
-        product: item.product,
-        score: getMatchScore(item, query),
-      }))
-      .filter((item) => item.score > 0)
+    return indexedProducts
+      .map((item) => {
+        const allTokensMatch = searchTokens.every((token) => item.haystack.includes(token));
+        if (!allTokensMatch) {
+          return null;
+        }
+
+        const score = searchTokens.reduce((total, token) => total + getTokenScore(item, token), 0);
+        return {
+          product: item.product,
+          score: score + (searchTokens.length > 1 ? searchTokens.length * 10 : 0),
+        };
+      })
+      .filter((item): item is SearchMatch => Boolean(item))
       .sort((a, b) => {
         if (a.score !== b.score) {
           return b.score - a.score;
         }
         return a.product.description.localeCompare(b.product.description);
       });
+  }, [canSearch, indexedProducts, searchTokens]);
 
-    return {
-      total: matches.length,
-      items: matches.slice(0, MAX_SEARCH_RESULTS).map((item) => item.product),
-    };
-  }, [canSearch, indexedProducts, query]);
+  const totalSearchPages = Math.max(1, Math.ceil(searchMatches.length / SEARCH_RESULTS_PER_PAGE));
+  const currentSearchPage = Math.min(searchPage, totalSearchPages);
+  const pagedSearchItems = useMemo(() => {
+    const start = (currentSearchPage - 1) * SEARCH_RESULTS_PER_PAGE;
+    return searchMatches.slice(start, start + SEARCH_RESULTS_PER_PAGE).map((item) => item.product);
+  }, [currentSearchPage, searchMatches]);
+
+  useEffect(() => {
+    setSearchPage(1);
+  }, [query]);
 
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (searchState.items[0]) {
-      navigate(`/products/item/${encodeURIComponent(searchState.items[0].code)}`);
+    if (searchMatches[0]) {
+      navigate(`/products/item/${encodeURIComponent(searchMatches[0].product.code)}`);
     }
   };
 
@@ -346,7 +366,7 @@ const ProductsIndex = () => {
                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                 <Input
                   type="search"
-                  placeholder="Search products by name, code, brand, or supplier code"
+                  placeholder="Search by brand, product name, code, or combine them together"
                   value={searchQuery}
                   onChange={(event) => setSearchQuery(event.target.value)}
                   className="h-14 rounded-xl border-border/70 bg-background pl-12 pr-12 text-base focus-visible:ring-accent"
@@ -368,7 +388,7 @@ const ProductsIndex = () => {
             </form>
 
             <p className="mt-3 text-sm text-muted-foreground">
-              Start typing to search real products. Press Enter to open the best match.
+              You can combine brand, model, and code in one search, for example "ricoh g31k" or "akuvox ak a02".
             </p>
 
             {hasQuery ? (
@@ -381,21 +401,21 @@ const ProductsIndex = () => {
                   <p className="px-4 py-3 text-sm text-muted-foreground">Loading product search...</p>
                 ) : catalogError ? (
                   <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
-                ) : searchState.total === 0 ? (
+                ) : searchMatches.length === 0 ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">
                     No products matched "{searchQuery}".
                   </p>
                 ) : (
                   <>
-                    {searchState.items.map((product, index) => {
+                    {pagedSearchItems.map((product, index) => {
                       const image = getPrimaryProductImage(product);
                       const price = formatPrice(product.price) ?? product.priceText ?? "POA";
                       return (
                         <Link
-                          key={product.code}
+                          key={`${product.code}-${index}`}
                           to={`/products/item/${encodeURIComponent(product.code)}`}
                           className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 hover:bg-secondary/60 transition-colors ${
-                            index < searchState.items.length - 1 ? "border-b border-border/40" : ""
+                            index < pagedSearchItems.length - 1 ? "border-b border-border/40" : ""
                           }`}
                         >
                           <div className="h-16 w-16 rounded-lg bg-white border border-border/40 overflow-hidden flex items-center justify-center">
@@ -421,9 +441,36 @@ const ProductsIndex = () => {
                         </Link>
                       );
                     })}
-                    <p className="px-4 py-3 text-xs text-muted-foreground border-t border-border/40 bg-secondary/35">
-                      Showing {searchState.items.length} of {searchState.total} matching products.
-                    </p>
+                    <div className="flex flex-col gap-3 px-4 py-3 text-xs text-muted-foreground border-t border-border/40 bg-secondary/35 sm:flex-row sm:items-center sm:justify-between">
+                      <p>
+                        Showing {(currentSearchPage - 1) * SEARCH_RESULTS_PER_PAGE + 1} to {Math.min(currentSearchPage * SEARCH_RESULTS_PER_PAGE, searchMatches.length)} of {searchMatches.length} matching products.
+                      </p>
+                      {totalSearchPages > 1 ? (
+                        <div className="flex items-center gap-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={currentSearchPage <= 1}
+                            onClick={() => setSearchPage((page) => Math.max(1, page - 1))}
+                          >
+                            Previous
+                          </Button>
+                          <span className="text-xs text-muted-foreground px-1">
+                            Page {currentSearchPage} of {totalSearchPages}
+                          </span>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            disabled={currentSearchPage >= totalSearchPages}
+                            onClick={() => setSearchPage((page) => Math.min(totalSearchPages, page + 1))}
+                          >
+                            Next
+                          </Button>
+                        </div>
+                      ) : null}
+                    </div>
                   </>
                 )}
               </div>
