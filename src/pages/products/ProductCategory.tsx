@@ -686,15 +686,15 @@ const ProductCategory = () => {
     }
 
     const normalizedAvailable = new Set(available.map((brand) => normalizeKey(brand)));
-    const filteredFromCategory = data.brands.filter((brand) =>
+    const preferredBrands = data.brands.filter((brand) =>
       normalizedAvailable.has(normalizeKey(brand)),
     );
 
-    if (filteredFromCategory.length > 0) {
-      return filteredFromCategory;
-    }
+    const remainingBrands = available.filter(
+      (brand) => !preferredBrands.some((preferred) => normalizeKey(preferred) === normalizeKey(brand)),
+    );
 
-    return available.slice(0, 12);
+    return [...preferredBrands, ...remainingBrands];
   }, [manufacturers, data.brands]);
 
   useEffect(() => {
@@ -821,7 +821,7 @@ const ProductCategory = () => {
           <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
-                <h3 className="font-semibold text-foreground mb-4">Key Brands</h3>
+                <h3 className="font-semibold text-foreground mb-4">Brands</h3>
                 <ul className="space-y-2">
                   <li>
                     <button

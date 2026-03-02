@@ -52,25 +52,6 @@ const saveStoredCart = (items: CartItem[]) => {
   window.localStorage.setItem("internext-cart", JSON.stringify(items));
 };
 
-const splitDescription = (value?: string) => {
-  const text = String(value || "").trim();
-  if (!text) {
-    return [];
-  }
-
-  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
-  if (sentences.length <= 2) {
-    return [text];
-  }
-
-  const chunks: string[] = [];
-  for (let index = 0; index < sentences.length; index += 2) {
-    chunks.push(sentences.slice(index, index + 2).join(" "));
-  }
-
-  return chunks;
-};
-
 const extractSpecHighlights = (product: CatalogProduct) => {
   const source = `${product.description} ${product.longDescription || ""}`;
   const patterns = [
@@ -83,7 +64,21 @@ const extractSpecHighlights = (product: CatalogProduct) => {
   const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
   const cleaned = matches
     .map((item) => item.replace(/\s+/g, " ").trim())
-    .map((item) => (item.toLowerCase() === "wifi" ? "Wi-Fi" : item))
+    .map((item) => {
+      const lower = item.toLowerCase();
+      if (lower === "wifi" || lower === "wi-fi") return "Wi-Fi";
+      if (lower === "poe") return "PoE";
+      if (lower === "rfid") return "RFID";
+      if (lower === "sip") return "SIP";
+      if (lower === "lte") return "LTE";
+      if (lower === "uhd") return "UHD";
+      if (lower === "fhd") return "FHD";
+      if (lower === "a3") return "A3";
+      if (lower === "a4") return "A4";
+      if (lower === "4k") return "4K";
+      if (lower === "5g") return "5G";
+      return item;
+    })
     .filter(Boolean);
 
   return Array.from(new Set(cleaned)).slice(0, 8);
@@ -149,8 +144,6 @@ const ProductDetail = () => {
     }
     return extractSpecHighlights(product);
   }, [product]);
-
-  const descriptionBlocks = useMemo(() => splitDescription(product?.longDescription), [product]);
 
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
@@ -264,7 +257,7 @@ const ProductDetail = () => {
                       </h1>
 
                       <p className="text-base leading-7 text-muted-foreground mb-6">
-                        {descriptionBlocks[0] || product.longDescription || product.description}
+                        {product.longDescription || product.description}
                       </p>
 
                       {specHighlights.length > 0 ? (
@@ -284,39 +277,7 @@ const ProductDetail = () => {
                           </div>
                         </div>
                       ) : null}
-
-                      <div className="grid gap-3 sm:grid-cols-3">
-                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
-                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
-                            Brand
-                          </p>
-                          <p className="text-sm font-semibold text-foreground">{product.manufacturer || "N/A"}</p>
-                        </div>
-                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
-                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
-                            Product Code
-                          </p>
-                          <p className="text-sm font-semibold text-foreground">{product.code}</p>
-                        </div>
-                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
-                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
-                            Supplier Ref
-                          </p>
-                          <p className="text-sm font-semibold text-foreground">{product.supplierCode || "Not listed"}</p>
-                        </div>
-                      </div>
                     </div>
-                  </div>
-                </div>
-
-                <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
-                  <h2 className="text-lg font-semibold text-foreground mb-4">Product Overview</h2>
-                  <div className="space-y-4">
-                    {(descriptionBlocks.length > 1 ? descriptionBlocks : [product.longDescription || product.description]).map((block) => (
-                      <p key={block} className="text-sm leading-7 text-muted-foreground">
-                        {block}
-                      </p>
-                    ))}
                   </div>
                 </div>
               </div>
