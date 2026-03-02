@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useParams } from "react-router-dom";
-import { Phone } from "lucide-react";
+import { Check, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
@@ -583,7 +583,7 @@ const ProductCategory = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
-  const [manufacturer, setManufacturer] = useState("All");
+  const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -697,23 +697,38 @@ const ProductCategory = () => {
     return [...preferredBrands, ...remainingBrands];
   }, [manufacturers, data.brands]);
 
+  const normalizedSelectedBrands = useMemo(
+    () => new Set(selectedBrands.map((brand) => normalizeKey(brand))),
+    [selectedBrands],
+  );
+
+  const toggleBrand = (brand: string) => {
+    setSelectedBrands((prev) => {
+      const normalizedBrand = normalizeKey(brand);
+      const exists = prev.some((value) => normalizeKey(value) === normalizedBrand);
+      if (exists) {
+        return prev.filter((value) => normalizeKey(value) !== normalizedBrand);
+      }
+      return [...prev, brand];
+    });
+  };
+
   useEffect(() => {
-    if (manufacturer === "All") {
-      return;
-    }
-    const existsInCurrentCategory = manufacturers.some(
-      (value) => normalizeKey(value) === normalizeKey(manufacturer),
+    setSelectedBrands((prev) =>
+      prev.filter((brand) =>
+        manufacturers.some((value) => normalizeKey(value) === normalizeKey(brand)),
+      ),
     );
-    if (!existsInCurrentCategory) {
-      setManufacturer("All");
-    }
-  }, [manufacturer, manufacturers]);
+  }, [manufacturers]);
 
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
       const productManufacturer = product.manufacturer?.trim() || "Unbranded";
-      if (manufacturer !== "All" && normalizeKey(productManufacturer) !== normalizeKey(manufacturer)) {
+      if (
+        normalizedSelectedBrands.size > 0 &&
+        !normalizedSelectedBrands.has(normalizeKey(productManufacturer))
+      ) {
         return false;
       }
 
@@ -753,7 +768,7 @@ const ProductCategory = () => {
     }
 
     return filtered;
-  }, [categoryProducts, manufacturer, query, sort]);
+  }, [categoryProducts, normalizedSelectedBrands, query, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -764,7 +779,7 @@ const ProductCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [query, manufacturer, sort]);
+  }, [query, selectedBrands, sort]);
 
   const addToCart = (product: CatalogProduct) => {
     setCartItems((prev) => {
@@ -822,34 +837,33 @@ const ProductCategory = () => {
             <aside className="lg:w-64 flex-shrink-0">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
                 <h3 className="font-semibold text-foreground mb-4">Brands</h3>
-                <ul className="space-y-2">
-                  <li>
-                    <button
-                      type="button"
-                      onClick={() => setManufacturer("All")}
-                      className={`text-sm transition-colors ${
-                        manufacturer === "All" ? "text-accent font-semibold" : "text-muted-foreground hover:text-accent"
-                      }`}
-                    >
+                <div className="space-y-2">
+                  <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={selectedBrands.length === 0}
+                      onChange={() => setSelectedBrands([])}
+                      className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                    />
+                    <span className={selectedBrands.length === 0 ? "text-accent font-semibold" : ""}>
                       All Brands
-                    </button>
-                  </li>
-                  {keyBrands.map((brand) => (
-                    <li key={brand}>
-                      <button
-                        type="button"
-                        onClick={() => setManufacturer(brand)}
-                        className={`text-sm transition-colors ${
-                          normalizeKey(manufacturer) === normalizeKey(brand)
-                            ? "text-accent font-semibold"
-                            : "text-muted-foreground hover:text-accent"
-                        }`}
-                      >
-                        {brand}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
+                    </span>
+                  </label>
+                  {keyBrands.map((brand) => {
+                    const checked = normalizedSelectedBrands.has(normalizeKey(brand));
+                    return (
+                      <label key={brand} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={() => toggleBrand(brand)}
+                          className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                        />
+                        <span className={checked ? "text-accent font-semibold" : ""}>{brand}</span>
+                      </label>
+                    );
+                  })}
+                </div>
               </div>
             </aside>
 
@@ -865,17 +879,47 @@ const ProductCategory = () => {
                     />
                   </div>
                   <div className="flex flex-col sm:flex-row gap-3">
-                    <select
-                      className="bg-secondary border-0 rounded-md px-3 py-2 text-sm"
-                      value={manufacturer}
-                      onChange={(event) => setManufacturer(event.target.value)}
-                    >
-                      {manufacturers.map((value) => (
-                        <option key={value} value={value}>
-                          {value}
-                        </option>
-                      ))}
-                    </select>
+                    <details className="relative min-w-[220px]">
+                      <summary className="list-none bg-secondary rounded-md px-3 py-2 text-sm cursor-pointer flex items-center justify-between gap-3 text-foreground">
+                        <span>
+                          {selectedBrands.length === 0
+                            ? "All Brands"
+                            : `${selectedBrands.length} brand${selectedBrands.length === 1 ? "" : "s"} selected`}
+                        </span>
+                        <Check className="h-4 w-4 text-muted-foreground" />
+                      </summary>
+                      <div className="absolute z-20 mt-2 w-full min-w-[240px] rounded-xl border border-border/70 bg-card p-3 shadow-elevated">
+                        <div className="max-h-72 overflow-auto space-y-2">
+                          <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedBrands.length === 0}
+                              onChange={() => setSelectedBrands([])}
+                              className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                            />
+                            <span className={selectedBrands.length === 0 ? "text-accent font-semibold" : ""}>
+                              All Brands
+                            </span>
+                          </label>
+                          {manufacturers
+                            .filter((value) => value !== "All")
+                            .map((value) => {
+                              const checked = normalizedSelectedBrands.has(normalizeKey(value));
+                              return (
+                                <label key={value} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
+                                  <input
+                                    type="checkbox"
+                                    checked={checked}
+                                    onChange={() => toggleBrand(value)}
+                                    className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                                  />
+                                  <span className={checked ? "text-accent font-semibold" : ""}>{value}</span>
+                                </label>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    </details>
                     <select
                       className="bg-secondary border-0 rounded-md px-3 py-2 text-sm"
                       value={sort}
