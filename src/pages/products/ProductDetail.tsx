@@ -52,6 +52,43 @@ const saveStoredCart = (items: CartItem[]) => {
   window.localStorage.setItem("internext-cart", JSON.stringify(items));
 };
 
+const splitDescription = (value?: string) => {
+  const text = String(value || "").trim();
+  if (!text) {
+    return [];
+  }
+
+  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
+  if (sentences.length <= 2) {
+    return [text];
+  }
+
+  const chunks: string[] = [];
+  for (let index = 0; index < sentences.length; index += 2) {
+    chunks.push(sentences.slice(index, index + 2).join(" "));
+  }
+
+  return chunks;
+};
+
+const extractSpecHighlights = (product: CatalogProduct) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+  const patterns = [
+    /\b\d+(?:\.\d+)?\s?(?:"|inch)\b/gi,
+    /\b\d+(?:\.\d+)?\s?(?:ppm|dpi|nit|nits|gb|tb|mp|fps|hz|w|va)\b/gi,
+    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE|RFID|Bluetooth|Android|Linux|Duplex|Touchscreen|SIP|LTE|5G)\b/gi,
+    /\b\d+\s?(?:port|ports|user|users|channel|channels)\b/gi,
+  ];
+
+  const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
+  const cleaned = matches
+    .map((item) => item.replace(/\s+/g, " ").trim())
+    .map((item) => (item.toLowerCase() === "wifi" ? "Wi-Fi" : item))
+    .filter(Boolean);
+
+  return Array.from(new Set(cleaned)).slice(0, 8);
+};
+
 const ProductDetail = () => {
   const { code } = useParams();
   const productCode = code || "";
@@ -106,6 +143,15 @@ const ProductDetail = () => {
     return candidates.length > 0 ? candidates : [PRODUCT_IMAGE_PLACEHOLDER];
   }, [product]);
 
+  const specHighlights = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+    return extractSpecHighlights(product);
+  }, [product]);
+
+  const descriptionBlocks = useMemo(() => splitDescription(product?.longDescription), [product]);
+
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
   }, [galleryImages]);
@@ -157,54 +203,121 @@ const ProductDetail = () => {
 
           {!loading && !error && product && (
             <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
-              <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
-                <div className="aspect-square rounded-xl flex items-center justify-center overflow-hidden mb-4">
-                  {activeImage ? (
-                    <img
-                      src={activeImage}
-                      alt={product.description}
-                      className="h-full w-full object-contain"
-                      loading="eager"
-                      onError={handleProductImageError}
-                    />
-                  ) : (
-                    <span className="text-muted-foreground text-sm">No image</span>
-                  )}
+              <div className="space-y-6">
+                <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
+                  <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
+                    <div>
+                      <div className="aspect-square rounded-2xl bg-secondary/60 flex items-center justify-center overflow-hidden mb-4">
+                        {activeImage ? (
+                          <img
+                            src={activeImage}
+                            alt={product.description}
+                            className="h-full w-full object-contain"
+                            loading="eager"
+                            onError={handleProductImageError}
+                          />
+                        ) : (
+                          <span className="text-muted-foreground text-sm">No image</span>
+                        )}
+                      </div>
+                      {galleryImages.length > 1 ? (
+                        <div className="grid grid-cols-5 gap-2">
+                          {galleryImages.map((img) => (
+                            <button
+                              key={img}
+                              type="button"
+                              onClick={() => setActiveImage(img)}
+                              className={`aspect-square rounded-lg overflow-hidden border bg-card ${
+                                activeImage === img ? "border-accent shadow-sm" : "border-border/60"
+                              }`}
+                            >
+                              <img
+                                src={img}
+                                alt={product.description}
+                                className="h-full w-full object-cover"
+                                loading="lazy"
+                                onError={handleProductImageError}
+                              />
+                            </button>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
+                    <div className="flex flex-col">
+                      <div className="flex flex-wrap gap-2 mb-4">
+                        <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
+                          {product.manufacturer || "Unbranded"}
+                        </span>
+                        <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                          Code: {product.code}
+                        </span>
+                        {product.supplierCode ? (
+                          <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
+                            Ref: {product.supplierCode}
+                          </span>
+                        ) : null}
+                      </div>
+
+                      <h1 className="text-3xl font-bold leading-tight text-foreground mb-4">
+                        {product.description}
+                      </h1>
+
+                      <p className="text-base leading-7 text-muted-foreground mb-6">
+                        {descriptionBlocks[0] || product.longDescription || product.description}
+                      </p>
+
+                      {specHighlights.length > 0 ? (
+                        <div className="mb-6">
+                          <h2 className="text-sm font-semibold tracking-[0.18em] text-accent uppercase mb-3">
+                            Spec Highlights
+                          </h2>
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            {specHighlights.map((detail) => (
+                              <div
+                                key={detail}
+                                className="rounded-xl border border-border/60 bg-secondary/55 px-4 py-3 text-sm font-medium text-foreground"
+                              >
+                                {detail}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
+                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
+                            Brand
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">{product.manufacturer || "N/A"}</p>
+                        </div>
+                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
+                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
+                            Product Code
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">{product.code}</p>
+                        </div>
+                        <div className="rounded-xl border border-border/60 bg-background px-4 py-4">
+                          <p className="text-xs font-semibold tracking-[0.14em] text-muted-foreground uppercase mb-1">
+                            Supplier Ref
+                          </p>
+                          <p className="text-sm font-semibold text-foreground">{product.supplierCode || "Not listed"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                {galleryImages.length > 1 ? (
-                  <div className="grid grid-cols-5 gap-2 mb-6">
-                    {galleryImages.map((img) => (
-                      <button
-                        key={img}
-                        type="button"
-                        onClick={() => setActiveImage(img)}
-                        className={`aspect-square rounded-md overflow-hidden border ${
-                          activeImage === img ? "border-accent" : "border-border/60"
-                        }`}
-                      >
-                        <img
-                          src={img}
-                          alt={product.description}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                          onError={handleProductImageError}
-                        />
-                      </button>
+
+                <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
+                  <h2 className="text-lg font-semibold text-foreground mb-4">Product Overview</h2>
+                  <div className="space-y-4">
+                    {(descriptionBlocks.length > 1 ? descriptionBlocks : [product.longDescription || product.description]).map((block) => (
+                      <p key={block} className="text-sm leading-7 text-muted-foreground">
+                        {block}
+                      </p>
                     ))}
                   </div>
-                ) : null}
-
-                <h1 className="text-3xl font-bold text-foreground mb-3">{product.description}</h1>
-                <p className="text-sm text-muted-foreground mb-1">Brand: {product.manufacturer || "N/A"}</p>
-                <p className="text-sm text-muted-foreground mb-1">Product Code: {product.code}</p>
-                {product.supplierCode ? (
-                  <p className="text-sm text-muted-foreground mb-6">Reference Code: {product.supplierCode}</p>
-                ) : null}
-                <div className="bg-secondary rounded-xl p-4">
-                  <h2 className="text-base font-semibold text-foreground mb-2">Description</h2>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {product.longDescription || product.description}
-                  </p>
                 </div>
               </div>
 
