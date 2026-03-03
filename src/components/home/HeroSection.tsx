@@ -13,16 +13,19 @@ const spotlightStats = [
   {
     value: "7,500+",
     label: "Products live in catalogue",
+    eyebrow: "Live Range",
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
   },
   {
     value: "500+",
     label: "Australian reseller partners",
+    eyebrow: "Channel Reach",
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
   },
   {
     value: "Statewide",
     label: "Coverage across government and business",
+    eyebrow: "Trusted Footprint",
     valueClassName: "text-[1.35rem] md:text-[1.55rem] leading-tight",
   },
 ];
@@ -110,7 +113,7 @@ const HeroSection = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-white">Own the customer relationship</p>
-                        <p className="mt-1 text-sm leading-relaxed !text-white/82">
+                        <p className="mt-1 text-sm leading-relaxed text-white" style={{ color: "rgba(255,255,255,0.84)" }}>
                           Present a clean Internext experience while we support product supply behind the scenes.
                         </p>
                       </div>
@@ -122,7 +125,7 @@ const HeroSection = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-white">Operational support that feels practical</p>
-                        <p className="mt-1 text-sm leading-relaxed !text-white/82">
+                        <p className="mt-1 text-sm leading-relaxed text-white" style={{ color: "rgba(255,255,255,0.84)" }}>
                           Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
                         </p>
                       </div>
@@ -132,20 +135,25 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+              <div className="mt-5 grid gap-3 sm:grid-cols-3">
                 {spotlightStats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="min-w-0 rounded-2xl border border-white/18 bg-white/10 px-4 py-5 text-white backdrop-blur-sm text-center"
+                    className="group relative min-w-0 overflow-hidden rounded-2xl border border-white/16 bg-gradient-to-br from-white/14 via-white/8 to-transparent px-5 py-5 text-white backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"
                   >
-                    <div className="mb-3">
+                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90 text-center">
+                      {stat.eyebrow}
+                    </p>
+                    <div className="mt-3 mb-3 text-center">
                       <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
                         {stat.value}
                       </p>
                     </div>
-                    <p className="text-sm leading-6 text-white/82">
+                    <p className="mx-auto max-w-[11rem] text-sm leading-6 text-white/82 text-center">
                       {stat.label}
                     </p>
+                    <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-70" />
                   </div>
                 ))}
               </div>
