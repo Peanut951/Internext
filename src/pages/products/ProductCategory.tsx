@@ -1088,7 +1088,7 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
+                <div className="grid gap-6 md:grid-cols-2">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     const productImage = getPrimaryProductImage(product);
@@ -1101,7 +1101,7 @@ const ProductCategory = () => {
                       >
                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-accent/80 to-transparent opacity-70" />
 
-                        <div className="p-4 pb-3">
+                        <div className="p-5 pb-4">
                           <div className="mb-3 flex flex-wrap justify-center gap-2">
                             <span className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
                               {product.manufacturer}
@@ -1111,9 +1111,9 @@ const ProductCategory = () => {
                             </span>
                           </div>
 
-                          <div className="relative aspect-square overflow-hidden rounded-[1.15rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
-                            <div className="absolute inset-x-6 top-0 h-8 rounded-b-full bg-white/35 blur-xl" />
-                            <div className="flex h-full items-center justify-center p-4">
+                          <div className="relative aspect-[1/1] overflow-hidden rounded-[1.2rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
+                            <div className="absolute inset-x-6 top-0 h-9 rounded-b-full bg-white/35 blur-xl" />
+                            <div className="flex h-full items-center justify-center p-5">
                               <img
                                 src={productImage}
                                 alt={product.description}
@@ -1125,16 +1125,16 @@ const ProductCategory = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-1 flex-col px-4 pb-4">
-                          <h4 className="min-h-[3.2rem] text-center text-[15px] font-semibold leading-snug text-foreground">
+                        <div className="flex flex-1 flex-col px-5 pb-5">
+                          <h4 className="min-h-[4.2rem] text-center text-lg font-semibold leading-snug text-foreground">
                             {product.description}
                           </h4>
 
-                          <p className="mt-2 min-h-[3.2rem] text-center text-sm leading-5 text-muted-foreground">
+                          <p className="mt-3 min-h-[4.4rem] text-center text-sm leading-6 text-muted-foreground">
                             {summary}
                           </p>
 
-                          <div className="mt-3 min-h-[2.2rem]">
+                          <div className="mt-4 min-h-[2.6rem]">
                             {highlights.length > 0 ? (
                               <div className="flex flex-wrap justify-center gap-2">
                                 {highlights.map((highlight) => (
@@ -1151,9 +1151,9 @@ const ProductCategory = () => {
                             )}
                           </div>
 
-                          <div className="mt-4 rounded-xl border border-border/50 bg-secondary/35 px-3 py-3">
+                          <div className="mt-5 rounded-xl border border-border/50 bg-secondary/35 px-4 py-4">
                             <div className="flex items-end justify-between gap-3">
-                              <span className="text-xl font-bold leading-none text-foreground">
+                              <span className="text-2xl font-bold leading-none text-foreground">
                                 {priceLabel}
                               </span>
                               {product.rrp ? (
@@ -1168,7 +1168,7 @@ const ProductCategory = () => {
                             </div>
                           </div>
 
-                          <div className="mt-3 grid grid-cols-1 gap-2">
+                          <div className="mt-4 grid grid-cols-1 gap-2">
                             <Button
                               variant="outline"
                               size="sm"
