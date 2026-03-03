@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useParams } from "react-router-dom";
-import { Check, Phone, SlidersHorizontal, X } from "lucide-react";
+import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
@@ -34,8 +34,6 @@ type CategoryInfo = {
 type FeaturedRankingsResponse = {
   rankings?: Record<string, Record<string, number>>;
 };
-
-type PriceBand = "all" | "under-250" | "250-1000" | "1000-5000" | "5000-plus";
 
 type Rule = {
   keywords: string[];
@@ -547,38 +545,6 @@ const formatPrice = (value: number | null | undefined) => {
   return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 };
 
-const PRICE_BANDS: { value: PriceBand; label: string }[] = [
-  { value: "all", label: "All prices" },
-  { value: "under-250", label: "Under $250" },
-  { value: "250-1000", label: "$250-$1,000" },
-  { value: "1000-5000", label: "$1,000-$5,000" },
-  { value: "5000-plus", label: "$5,000+" },
-];
-
-const matchesPriceBand = (price: number | null, band: PriceBand) => {
-  if (band === "all") {
-    return true;
-  }
-
-  if (price === null) {
-    return false;
-  }
-
-  if (band === "under-250") {
-    return price < 250;
-  }
-
-  if (band === "250-1000") {
-    return price >= 250 && price < 1000;
-  }
-
-  if (band === "1000-5000") {
-    return price >= 1000 && price < 5000;
-  }
-
-  return price >= 5000;
-};
-
 const getCardSummary = (product: CatalogProduct) => {
   const text = String(product.longDescription || product.description || "").trim();
   if (!text) {
@@ -587,7 +553,7 @@ const getCardSummary = (product: CatalogProduct) => {
 
   const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
   const summary = sentences[1] || sentences[0] || text;
-  return summary.length > 170 ? `${summary.slice(0, 167).trimEnd()}...` : summary;
+  return summary.length > 110 ? `${summary.slice(0, 107).trimEnd()}...` : summary;
 };
 
 const getCardHighlights = (product: CatalogProduct) => {
@@ -629,7 +595,8 @@ const ProductCategory = () => {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
-  const [priceBand, setPriceBand] = useState<PriceBand>("all");
+  const [minPrice, setMinPrice] = useState("");
+  const [maxPrice, setMaxPrice] = useState("");
   const [pricedOnly, setPricedOnly] = useState(false);
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
@@ -790,7 +757,14 @@ const ProductCategory = () => {
         return false;
       }
 
-      if (!matchesPriceBand(product.price, priceBand)) {
+      const parsedMin = Number(minPrice);
+      const parsedMax = Number(maxPrice);
+
+      if (!Number.isNaN(parsedMin) && minPrice.trim() !== "" && (product.price === null || product.price < parsedMin)) {
+        return false;
+      }
+
+      if (!Number.isNaN(parsedMax) && maxPrice.trim() !== "" && (product.price === null || product.price > parsedMax)) {
         return false;
       }
 
@@ -862,8 +836,9 @@ const ProductCategory = () => {
     activeCategory,
     categoryProducts,
     featuredRankings,
+    maxPrice,
+    minPrice,
     normalizedSelectedBrands,
-    priceBand,
     pricedOnly,
     query,
     sort,
@@ -878,7 +853,7 @@ const ProductCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [priceBand, pricedOnly, query, selectedBrands, sort]);
+  }, [maxPrice, minPrice, pricedOnly, query, selectedBrands, sort]);
 
   const pricedCount = useMemo(
     () => categoryProducts.filter((product) => product.price !== null).length,
@@ -904,11 +879,14 @@ const ProductCategory = () => {
       });
     });
 
-    if (priceBand !== "all") {
+    if (minPrice.trim() || maxPrice.trim()) {
       chips.push({
         key: "price",
-        label: PRICE_BANDS.find((item) => item.value === priceBand)?.label || "Price",
-        onRemove: () => setPriceBand("all"),
+        label: `${minPrice.trim() ? `$${minPrice.trim()}` : "$0"} - ${maxPrice.trim() ? `$${maxPrice.trim()}` : "Any"}`,
+        onRemove: () => {
+          setMinPrice("");
+          setMaxPrice("");
+        },
       });
     }
 
@@ -921,12 +899,13 @@ const ProductCategory = () => {
     }
 
     return chips;
-  }, [priceBand, pricedOnly, query, selectedBrands]);
+  }, [maxPrice, minPrice, pricedOnly, query, selectedBrands]);
 
   const clearAllFilters = () => {
     setQuery("");
     setSelectedBrands([]);
-    setPriceBand("all");
+    setMinPrice("");
+    setMaxPrice("");
     setPricedOnly(false);
     setSort("featured");
   };
@@ -1014,6 +993,45 @@ const ProductCategory = () => {
                     );
                   })}
                 </div>
+
+                <div className="mt-6 border-t border-border/60 pt-6">
+                  <h4 className="font-semibold text-foreground mb-3">Price Range</h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        Min
+                      </label>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="0"
+                        value={minPrice}
+                        onChange={(event) => setMinPrice(event.target.value.replace(/[^\d]/g, ""))}
+                        className="bg-secondary border-0"
+                      />
+                    </div>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                        Max
+                      </label>
+                      <Input
+                        inputMode="numeric"
+                        placeholder="Any"
+                        value={maxPrice}
+                        onChange={(event) => setMaxPrice(event.target.value.replace(/[^\d]/g, ""))}
+                        className="bg-secondary border-0"
+                      />
+                    </div>
+                  </div>
+                  <label className="mt-4 flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
+                    <input
+                      type="checkbox"
+                      checked={pricedOnly}
+                      onChange={() => setPricedOnly((value) => !value)}
+                      className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                    />
+                    <span className={pricedOnly ? "text-accent font-semibold" : ""}>Priced items only</span>
+                  </label>
+                </div>
               </div>
             </aside>
 
@@ -1028,48 +1046,9 @@ const ProductCategory = () => {
                       className="bg-secondary border-0"
                     />
                   </div>
-                  <div className="flex flex-col sm:flex-row gap-3">
-                    <details className="relative min-w-[220px]">
-                      <summary className="list-none bg-secondary rounded-md px-3 py-2 text-sm cursor-pointer flex items-center justify-between gap-3 text-foreground">
-                        <span>
-                          {selectedBrands.length === 0
-                            ? "All Brands"
-                            : `${selectedBrands.length} brand${selectedBrands.length === 1 ? "" : "s"} selected`}
-                        </span>
-                        <Check className="h-4 w-4 text-muted-foreground" />
-                      </summary>
-                      <div className="absolute z-20 mt-2 w-full min-w-[240px] rounded-xl border border-border/70 bg-card p-3 shadow-elevated">
-                        <div className="max-h-72 overflow-auto space-y-2">
-                          <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={selectedBrands.length === 0}
-                              onChange={() => setSelectedBrands([])}
-                              className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                            />
-                            <span className={selectedBrands.length === 0 ? "text-accent font-semibold" : ""}>
-                              All Brands
-                            </span>
-                          </label>
-                          {manufacturers.map((value) => {
-                            const checked = normalizedSelectedBrands.has(normalizeKey(value));
-                            return (
-                              <label key={value} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
-                                <input
-                                  type="checkbox"
-                                  checked={checked}
-                                  onChange={() => toggleBrand(value)}
-                                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                                />
-                                <span className={checked ? "text-accent font-semibold" : ""}>{value}</span>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </details>
+                  <div className="flex sm:justify-end">
                     <select
-                      className="bg-secondary border-0 rounded-md px-3 py-2 text-sm"
+                      className="min-w-[180px] bg-secondary border-0 rounded-md px-3 py-2 text-sm"
                       value={sort}
                       onChange={(event) => setSort(event.target.value)}
                     >
@@ -1079,48 +1058,6 @@ const ProductCategory = () => {
                       <option value="price-asc">Price Low-High</option>
                       <option value="price-desc">Price High-Low</option>
                     </select>
-                  </div>
-                </div>
-
-                <div className="mt-5 rounded-2xl border border-border/60 bg-secondary/40 p-4">
-                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
-                    <div>
-                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-                        <SlidersHorizontal className="h-4 w-4 text-accent" />
-                        Refine this category
-                      </div>
-                      <p className="mt-1 text-sm text-muted-foreground">
-                        Narrow the list by pricing, ready-to-quote items, and brand combinations.
-                      </p>
-                    </div>
-
-                    <div className="flex flex-wrap gap-2">
-                      {PRICE_BANDS.map((band) => (
-                        <button
-                          key={band.value}
-                          type="button"
-                          onClick={() => setPriceBand(band.value)}
-                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                            priceBand === band.value
-                              ? "border-accent bg-accent/10 text-accent"
-                              : "border-border/70 bg-card text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                          }`}
-                        >
-                          {band.label}
-                        </button>
-                      ))}
-                      <button
-                        type="button"
-                        onClick={() => setPricedOnly((value) => !value)}
-                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
-                          pricedOnly
-                            ? "border-accent bg-accent/10 text-accent"
-                            : "border-border/70 bg-card text-muted-foreground hover:border-accent/50 hover:text-foreground"
-                        }`}
-                      >
-                        Priced items only
-                      </button>
-                    </div>
                   </div>
                 </div>
 
@@ -1175,7 +1112,7 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid sm:grid-cols-2 gap-6">
+                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     const productImage = getPrimaryProductImage(product);
@@ -1184,12 +1121,12 @@ const ProductCategory = () => {
                     return (
                       <div
                         key={product.code}
-                        className="group relative flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-border/60 bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/25 hover:shadow-elevated"
+                        className="group relative flex h-full flex-col overflow-hidden rounded-[1.4rem] border border-border/60 bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/25 hover:shadow-elevated"
                       >
                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-accent/80 to-transparent opacity-70" />
 
-                        <div className="p-5 pb-4">
-                          <div className="mb-4 flex flex-wrap justify-center gap-2">
+                        <div className="p-4 pb-3">
+                          <div className="mb-3 flex flex-wrap justify-center gap-2">
                             <span className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
                               {product.manufacturer}
                             </span>
@@ -1198,9 +1135,9 @@ const ProductCategory = () => {
                             </span>
                           </div>
 
-                          <div className="relative aspect-[16/10] overflow-hidden rounded-[1.3rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
-                            <div className="absolute inset-x-6 top-0 h-10 rounded-b-full bg-white/40 blur-xl" />
-                            <div className="flex h-full items-center justify-center p-5">
+                          <div className="relative aspect-[16/10] overflow-hidden rounded-[1.15rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
+                            <div className="absolute inset-x-6 top-0 h-8 rounded-b-full bg-white/35 blur-xl" />
+                            <div className="flex h-full items-center justify-center p-4">
                               <img
                                 src={productImage}
                                 alt={product.description}
@@ -1212,16 +1149,16 @@ const ProductCategory = () => {
                           </div>
                         </div>
 
-                        <div className="flex flex-1 flex-col px-5 pb-5">
-                          <h4 className="min-h-[4.9rem] text-center text-lg font-semibold leading-snug text-foreground">
+                        <div className="flex flex-1 flex-col px-4 pb-4">
+                          <h4 className="min-h-[3.8rem] text-center text-base font-semibold leading-snug text-foreground">
                             {product.description}
                           </h4>
 
-                          <p className="mt-3 min-h-[5.4rem] text-center text-sm leading-6 text-muted-foreground">
+                          <p className="mt-2 min-h-[3.8rem] text-center text-sm leading-5 text-muted-foreground">
                             {summary}
                           </p>
 
-                          <div className="mt-4 min-h-[3rem]">
+                          <div className="mt-3 min-h-[2.4rem]">
                             {highlights.length > 0 ? (
                               <div className="flex flex-wrap justify-center gap-2">
                                 {highlights.map((highlight) => (
@@ -1238,9 +1175,9 @@ const ProductCategory = () => {
                             )}
                           </div>
 
-                          <div className="mt-5 rounded-2xl border border-border/50 bg-secondary/35 px-4 py-4">
+                          <div className="mt-4 rounded-xl border border-border/50 bg-secondary/35 px-3 py-3">
                             <div className="flex items-end justify-between gap-3">
-                              <span className="text-2xl font-bold leading-none text-foreground">
+                              <span className="text-xl font-bold leading-none text-foreground">
                                 {priceLabel}
                               </span>
                               {product.rrp ? (
@@ -1255,7 +1192,7 @@ const ProductCategory = () => {
                             </div>
                           </div>
 
-                          <div className="mt-4 grid grid-cols-1 gap-2">
+                          <div className="mt-3 grid grid-cols-1 gap-2">
                             <Button
                               variant="outline"
                               size="sm"

@@ -103,7 +103,6 @@ const categories = [
       { label: "TVs & Commercial Panels", href: "/products/tvs-panels" },
       { label: "Interactive Panels", href: "/products/interactive-panels" },
       { label: "Mounts & Brackets", href: "/products/mounts-brackets" },
-      { label: "Collaboration Solutions", href: "/products/collaboration" },
     ],
   },
   {
@@ -113,7 +112,6 @@ const categories = [
       "Consumer and professional imaging solutions including still and video cameras and accessories",
     items: [
       { label: "Consumer Cameras", href: "/products/consumer-cameras" },
-      { label: "Professional Cameras", href: "/products/professional-cameras" },
       { label: "Imaging Accessories", href: "/products/imaging-accessories" },
     ],
   },
@@ -124,7 +122,6 @@ const categories = [
     items: [
       { label: "IP Cameras", href: "/products/ip-cameras" },
       { label: "NVRs & Recorders", href: "/products/nvrs-recorders" },
-      { label: "Surveillance Kits", href: "/products/surveillance-kits" },
       { label: "Surveillance Accessories", href: "/products/surveillance-accessories" },
     ],
   },
@@ -136,7 +133,6 @@ const categories = [
       { label: "Printers", href: "/products/printers" },
       { label: "Multifunction Devices", href: "/products/multifunction" },
       { label: "Scanners", href: "/products/scanners" },
-      { label: "Shredders", href: "/products/shredders" },
       { label: "Office Technology", href: "/products/office-technology" },
     ],
   },
@@ -146,15 +142,8 @@ const categories = [
     desc:
       "Desktop to production printers including laser, inkjet, large format and speciality machines",
     items: [
-      { label: "A4 Printers", href: "/products/a4-printers" },
-      { label: "A3 Printers", href: "/products/a3-printers" },
-      { label: "Inkjet Printers", href: "/products/inkjet" },
-      { label: "Laser Printers", href: "/products/laser" },
-      { label: "Large Format Printers", href: "/products/large-format" },
       { label: "3D Printers", href: "/products/3d-printers" },
-      { label: "Dot Matrix Printers", href: "/products/dot-matrix" },
       { label: "Printer Warranties", href: "/products/printer-warranties" },
-      { label: "Printer Accessories", href: "/products/printer-accessories" },
     ],
   },
   {
@@ -181,11 +170,6 @@ const categories = [
       "From portable scanners to high-speed production units plus imaging accessories",
     items: [
       { label: "A4 Office Scanners", href: "/products/a4-scanners" },
-      { label: "A3 Office Scanners", href: "/products/a3-scanners" },
-      { label: "Portable Scanners", href: "/products/portable-scanners" },
-      { label: "Imaging & Archiving", href: "/products/imaging" },
-      { label: "Scanner Accessories", href: "/products/scanner-accessories" },
-      { label: "Scanner Warranties", href: "/products/scanner-warranties" },
     ],
   },
   {
@@ -208,11 +192,8 @@ const categories = [
     desc:
       "Network recorders, storage devices, switches, routers, access points and cabling",
     items: [
-      { label: "Network Video Recorders", href: "/products/nvrs" },
-      { label: "HDD & Storage", href: "/products/storage" },
       { label: "Switches", href: "/products/switches" },
       { label: "Routers", href: "/products/routers" },
-      { label: "Access Points", href: "/products/access-points" },
       { label: "Networking Accessories", href: "/products/networking-accessories" },
     ],
   },
@@ -223,9 +204,6 @@ const categories = [
       "Headsets, conferencing hardware, VOIP, video collaboration and UC accessories",
     items: [
       { label: "Headsets", href: "/products/headsets" },
-      { label: "Conference Equipment", href: "/products/conference" },
-      { label: "VOIP Phones", href: "/products/voip" },
-      { label: "Video Collaboration", href: "/products/video-collab" },
       { label: "UC Accessories", href: "/products/uc-accessories" },
     ],
   },
