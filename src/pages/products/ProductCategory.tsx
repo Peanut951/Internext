@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useParams } from "react-router-dom";
-import { Check, Phone } from "lucide-react";
+import { Check, Phone, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
@@ -35,9 +35,17 @@ type FeaturedRankingsResponse = {
   rankings?: Record<string, Record<string, number>>;
 };
 
+type PriceBand = "all" | "under-250" | "250-1000" | "1000-5000" | "5000-plus";
+
 type Rule = {
   keywords: string[];
   manufacturers: string[];
+};
+
+type FilterChip = {
+  key: string;
+  label: string;
+  onRemove: () => void;
 };
 
 const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -539,6 +547,38 @@ const formatPrice = (value: number | null | undefined) => {
   return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 };
 
+const PRICE_BANDS: { value: PriceBand; label: string }[] = [
+  { value: "all", label: "All prices" },
+  { value: "under-250", label: "Under $250" },
+  { value: "250-1000", label: "$250-$1,000" },
+  { value: "1000-5000", label: "$1,000-$5,000" },
+  { value: "5000-plus", label: "$5,000+" },
+];
+
+const matchesPriceBand = (price: number | null, band: PriceBand) => {
+  if (band === "all") {
+    return true;
+  }
+
+  if (price === null) {
+    return false;
+  }
+
+  if (band === "under-250") {
+    return price < 250;
+  }
+
+  if (band === "250-1000") {
+    return price >= 250 && price < 1000;
+  }
+
+  if (band === "1000-5000") {
+    return price >= 1000 && price < 5000;
+  }
+
+  return price >= 5000;
+};
+
 const getCardSummary = (product: CatalogProduct) => {
   const text = String(product.longDescription || product.description || "").trim();
   if (!text) {
@@ -589,6 +629,8 @@ const ProductCategory = () => {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [priceBand, setPriceBand] = useState<PriceBand>("all");
+  const [pricedOnly, setPricedOnly] = useState(false);
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -689,21 +731,20 @@ const ProductCategory = () => {
       const value = product.manufacturer?.trim() || "Unbranded";
       values.add(value);
     });
-    return ["All", ...Array.from(values).sort((a, b) => a.localeCompare(b))];
+    return Array.from(values).sort((a, b) => a.localeCompare(b));
   }, [categoryProducts]);
 
   const keyBrands = useMemo(() => {
-    const available = manufacturers.filter((value) => value !== "All");
-    if (available.length === 0) {
+    if (manufacturers.length === 0) {
       return [];
     }
 
-    const normalizedAvailable = new Set(available.map((brand) => normalizeKey(brand)));
+    const normalizedAvailable = new Set(manufacturers.map((brand) => normalizeKey(brand)));
     const preferredBrands = data.brands.filter((brand) =>
       normalizedAvailable.has(normalizeKey(brand)),
     );
 
-    const remainingBrands = available.filter(
+    const remainingBrands = manufacturers.filter(
       (brand) => !preferredBrands.some((preferred) => normalizeKey(preferred) === normalizeKey(brand)),
     );
 
@@ -742,6 +783,14 @@ const ProductCategory = () => {
         normalizedSelectedBrands.size > 0 &&
         !normalizedSelectedBrands.has(normalizeKey(productManufacturer))
       ) {
+        return false;
+      }
+
+      if (pricedOnly && product.price === null) {
+        return false;
+      }
+
+      if (!matchesPriceBand(product.price, priceBand)) {
         return false;
       }
 
@@ -809,7 +858,16 @@ const ProductCategory = () => {
     }
 
     return filtered;
-  }, [activeCategory, categoryProducts, featuredRankings, normalizedSelectedBrands, query, sort]);
+  }, [
+    activeCategory,
+    categoryProducts,
+    featuredRankings,
+    normalizedSelectedBrands,
+    priceBand,
+    pricedOnly,
+    query,
+    sort,
+  ]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
@@ -820,7 +878,58 @@ const ProductCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [query, selectedBrands, sort]);
+  }, [priceBand, pricedOnly, query, selectedBrands, sort]);
+
+  const pricedCount = useMemo(
+    () => categoryProducts.filter((product) => product.price !== null).length,
+    [categoryProducts],
+  );
+
+  const activeFilterChips = useMemo<FilterChip[]>(() => {
+    const chips: FilterChip[] = [];
+
+    if (query.trim()) {
+      chips.push({
+        key: "query",
+        label: `Search: ${query.trim()}`,
+        onRemove: () => setQuery(""),
+      });
+    }
+
+    selectedBrands.forEach((brand) => {
+      chips.push({
+        key: `brand-${brand}`,
+        label: brand,
+        onRemove: () => toggleBrand(brand),
+      });
+    });
+
+    if (priceBand !== "all") {
+      chips.push({
+        key: "price",
+        label: PRICE_BANDS.find((item) => item.value === priceBand)?.label || "Price",
+        onRemove: () => setPriceBand("all"),
+      });
+    }
+
+    if (pricedOnly) {
+      chips.push({
+        key: "priced-only",
+        label: "Priced items only",
+        onRemove: () => setPricedOnly(false),
+      });
+    }
+
+    return chips;
+  }, [priceBand, pricedOnly, query, selectedBrands]);
+
+  const clearAllFilters = () => {
+    setQuery("");
+    setSelectedBrands([]);
+    setPriceBand("all");
+    setPricedOnly(false);
+    setSort("featured");
+  };
 
   const addToCart = (product: CatalogProduct) => {
     setCartItems((prev) => {
@@ -942,22 +1051,20 @@ const ProductCategory = () => {
                               All Brands
                             </span>
                           </label>
-                          {manufacturers
-                            .filter((value) => value !== "All")
-                            .map((value) => {
-                              const checked = normalizedSelectedBrands.has(normalizeKey(value));
-                              return (
-                                <label key={value} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
-                                  <input
-                                    type="checkbox"
-                                    checked={checked}
-                                    onChange={() => toggleBrand(value)}
-                                    className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                                  />
-                                  <span className={checked ? "text-accent font-semibold" : ""}>{value}</span>
-                                </label>
-                              );
-                            })}
+                          {manufacturers.map((value) => {
+                            const checked = normalizedSelectedBrands.has(normalizeKey(value));
+                            return (
+                              <label key={value} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
+                                <input
+                                  type="checkbox"
+                                  checked={checked}
+                                  onChange={() => toggleBrand(value)}
+                                  className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                                />
+                                <span className={checked ? "text-accent font-semibold" : ""}>{value}</span>
+                              </label>
+                            );
+                          })}
                         </div>
                       </div>
                     </details>
@@ -974,8 +1081,75 @@ const ProductCategory = () => {
                     </select>
                   </div>
                 </div>
+
+                <div className="mt-5 rounded-2xl border border-border/60 bg-secondary/40 p-4">
+                  <div className="flex flex-col gap-4 xl:flex-row xl:items-start xl:justify-between">
+                    <div>
+                      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                        <SlidersHorizontal className="h-4 w-4 text-accent" />
+                        Refine this category
+                      </div>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Narrow the list by pricing, ready-to-quote items, and brand combinations.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      {PRICE_BANDS.map((band) => (
+                        <button
+                          key={band.value}
+                          type="button"
+                          onClick={() => setPriceBand(band.value)}
+                          className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                            priceBand === band.value
+                              ? "border-accent bg-accent/10 text-accent"
+                              : "border-border/70 bg-card text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                          }`}
+                        >
+                          {band.label}
+                        </button>
+                      ))}
+                      <button
+                        type="button"
+                        onClick={() => setPricedOnly((value) => !value)}
+                        className={`rounded-full border px-3 py-1.5 text-xs font-medium transition-colors ${
+                          pricedOnly
+                            ? "border-accent bg-accent/10 text-accent"
+                            : "border-border/70 bg-card text-muted-foreground hover:border-accent/50 hover:text-foreground"
+                        }`}
+                      >
+                        Priced items only
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {activeFilterChips.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap items-center gap-2">
+                    {activeFilterChips.map((chip) => (
+                      <button
+                        key={chip.key}
+                        type="button"
+                        onClick={chip.onRemove}
+                        className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                      >
+                        <span>{chip.label}</span>
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={clearAllFilters}
+                      className="text-xs font-semibold text-accent hover:underline"
+                    >
+                      Clear all
+                    </button>
+                  </div>
+                ) : null}
+
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   <span>{filteredProducts.length} products</span>
+                  <span>{pricedCount} priced and ready to quote</span>
                   <span>
                     Page {currentPage} of {totalPages}
                   </span>

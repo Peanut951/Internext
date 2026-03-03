@@ -44,8 +44,17 @@ type SearchMatch = {
   score: number;
 };
 
+const RECENT_SEARCHES_KEY = "internext-recent-searches";
 const MIN_SEARCH_LENGTH = 2;
 const SEARCH_RESULTS_PER_PAGE = 8;
+const QUICK_SEARCHES = [
+  "Grandstream router",
+  "Akuvox intercom",
+  "Ricoh toner",
+  "Samsung signage",
+  "Axis camera",
+  "Hisense display",
+];
 
 const normalizeText = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
@@ -230,6 +239,7 @@ const ProductsIndex = () => {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
     let isMounted = true;
@@ -260,6 +270,21 @@ const ProductsIndex = () => {
     return () => {
       isMounted = false;
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    try {
+      const stored = window.localStorage.getItem(RECENT_SEARCHES_KEY);
+      if (stored) {
+        setRecentSearches(JSON.parse(stored) as string[]);
+      }
+    } catch {
+      setRecentSearches([]);
+    }
   }, []);
 
   const indexedProducts = useMemo<IndexedProduct[]>(() => {
@@ -323,8 +348,35 @@ const ProductsIndex = () => {
     setSearchPage(1);
   }, [query]);
 
+  const persistRecentSearch = (value: string) => {
+    const cleaned = value.trim();
+    if (!cleaned || typeof window === "undefined") {
+      return;
+    }
+
+    setRecentSearches((prev) => {
+      const next = [
+        cleaned,
+        ...prev.filter((item) => normalizeText(item) !== normalizeText(cleaned)),
+      ].slice(0, 6);
+      window.localStorage.setItem(RECENT_SEARCHES_KEY, JSON.stringify(next));
+      return next;
+    });
+  };
+
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    if (canSearch) {
+      persistRecentSearch(searchQuery);
+    }
+  };
+
+  const applySuggestedSearch = (value: string) => {
+    setSearchQuery(value);
+    persistRecentSearch(value);
+  };
+
+  const openBestMatch = () => {
     if (searchMatches[0]) {
       navigate(`/products/item/${encodeURIComponent(searchMatches[0].product.code)}`);
     }
@@ -388,8 +440,54 @@ const ProductsIndex = () => {
             </form>
 
             <p className="mt-3 text-sm text-muted-foreground">
-              You can combine brand, model, and code in one search, for example "ricoh g31k" or "akuvox ak a02".
+              Combine brand, model, and code in one search, for example "ricoh g31k" or "akuvox ak a02".
             </p>
+
+            {!hasQuery ? (
+              <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
+                <div className="rounded-xl border border-border/60 bg-background p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                    Quick Searches
+                  </p>
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {QUICK_SEARCHES.map((suggestion) => (
+                      <button
+                        key={suggestion}
+                        type="button"
+                        onClick={() => applySuggestedSearch(suggestion)}
+                        className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                      >
+                        {suggestion}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-xl border border-border/60 bg-background p-4">
+                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                    Recent Searches
+                  </p>
+                  {recentSearches.length > 0 ? (
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      {recentSearches.map((item) => (
+                        <button
+                          key={item}
+                          type="button"
+                          onClick={() => applySuggestedSearch(item)}
+                          className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
+                        >
+                          {item}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="mt-3 text-sm text-muted-foreground">
+                      Your recent searches will appear here.
+                    </p>
+                  )}
+                </div>
+              </div>
+            ) : null}
 
             {hasQuery ? (
               <div className="mt-4 rounded-xl border border-border/60 bg-background overflow-hidden">
@@ -407,6 +505,19 @@ const ProductsIndex = () => {
                   </p>
                 ) : (
                   <>
+                    <div className="flex flex-col gap-3 border-b border-border/40 bg-secondary/35 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          {searchMatches.length} matches for "{searchQuery}"
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Search looks across product name, brand, code, and supplier code.
+                        </p>
+                      </div>
+                      <Button type="button" variant="outline" size="sm" onClick={openBestMatch}>
+                        Open Best Match
+                      </Button>
+                    </div>
                     {pagedSearchItems.map((product, index) => {
                       const image = getPrimaryProductImage(product);
                       const price = formatPrice(product.price) ?? product.priceText ?? "POA";
