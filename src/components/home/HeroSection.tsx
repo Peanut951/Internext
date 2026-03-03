@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, ShieldCheck, Truck, ChevronRight } from "lucide-react";
+import { ArrowRight, Users, ShieldCheck, Truck, ChevronRight, Package, MapPinned } from "lucide-react";
 
 const operationalPillars = [
   "Product sourcing",
@@ -10,9 +10,24 @@ const operationalPillars = [
 ];
 
 const spotlightStats = [
-  { value: "7,500+", label: "Products live in catalogue" },
-  { value: "500+", label: "Australian reseller partners" },
-  { value: "Statewide", label: "Coverage across government and business" },
+  {
+    value: "7,500+",
+    label: "Products live in catalogue",
+    icon: Package,
+    valueClassName: "text-[1.9rem] md:text-[2.1rem]",
+  },
+  {
+    value: "500+",
+    label: "Australian reseller partners",
+    icon: Users,
+    valueClassName: "text-[1.9rem] md:text-[2.1rem]",
+  },
+  {
+    value: "Statewide",
+    label: "Coverage across government and business",
+    icon: MapPinned,
+    valueClassName: "text-[1.35rem] md:text-[1.55rem] leading-tight",
+  },
 ];
 
 const HeroSection = () => {
@@ -122,9 +137,21 @@ const HeroSection = () => {
 
               <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {spotlightStats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl bg-primary-foreground/95 px-4 py-4 text-navy min-w-0">
-                    <p className="text-[1.9rem] font-bold leading-none break-words">{stat.value}</p>
-                    <p className="mt-2 text-sm leading-6 text-navy/70 break-words">{stat.label}</p>
+                  <div
+                    key={stat.label}
+                    className="min-w-0 rounded-2xl border border-primary-foreground/12 bg-primary-foreground/10 px-4 py-4 text-primary-foreground backdrop-blur-sm"
+                  >
+                    <div className="mb-4 flex items-center justify-between gap-3">
+                      <p className={`font-bold tracking-tight text-primary-foreground ${stat.valueClassName}`}>
+                        {stat.value}
+                      </p>
+                      <div className="shrink-0 rounded-xl bg-accent/12 p-2 text-accent">
+                        <stat.icon className="h-4 w-4" />
+                      </div>
+                    </div>
+                    <p className="text-sm leading-6 text-primary-foreground/78">
+                      {stat.label}
+                    </p>
                   </div>
                 ))}
               </div>
