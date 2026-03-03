@@ -597,7 +597,6 @@ const ProductCategory = () => {
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const [pricedOnly, setPricedOnly] = useState(false);
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -753,10 +752,6 @@ const ProductCategory = () => {
         return false;
       }
 
-      if (pricedOnly && product.price === null) {
-        return false;
-      }
-
       const parsedMin = Number(minPrice);
       const parsedMax = Number(maxPrice);
 
@@ -839,7 +834,6 @@ const ProductCategory = () => {
     maxPrice,
     minPrice,
     normalizedSelectedBrands,
-    pricedOnly,
     query,
     sort,
   ]);
@@ -853,7 +847,7 @@ const ProductCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [maxPrice, minPrice, pricedOnly, query, selectedBrands, sort]);
+  }, [maxPrice, minPrice, query, selectedBrands, sort]);
 
   const pricedCount = useMemo(
     () => categoryProducts.filter((product) => product.price !== null).length,
@@ -890,23 +884,14 @@ const ProductCategory = () => {
       });
     }
 
-    if (pricedOnly) {
-      chips.push({
-        key: "priced-only",
-        label: "Priced items only",
-        onRemove: () => setPricedOnly(false),
-      });
-    }
-
     return chips;
-  }, [maxPrice, minPrice, pricedOnly, query, selectedBrands]);
+  }, [maxPrice, minPrice, query, selectedBrands]);
 
   const clearAllFilters = () => {
     setQuery("");
     setSelectedBrands([]);
     setMinPrice("");
     setMaxPrice("");
-    setPricedOnly(false);
     setSort("featured");
   };
 
@@ -1022,15 +1007,6 @@ const ProductCategory = () => {
                       />
                     </div>
                   </div>
-                  <label className="mt-4 flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
-                    <input
-                      type="checkbox"
-                      checked={pricedOnly}
-                      onChange={() => setPricedOnly((value) => !value)}
-                      className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                    />
-                    <span className={pricedOnly ? "text-accent font-semibold" : ""}>Priced items only</span>
-                  </label>
                 </div>
               </div>
             </aside>
@@ -1112,7 +1088,7 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="grid gap-5 sm:grid-cols-2 2xl:grid-cols-3">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     const productImage = getPrimaryProductImage(product);
@@ -1135,7 +1111,7 @@ const ProductCategory = () => {
                             </span>
                           </div>
 
-                          <div className="relative aspect-[16/10] overflow-hidden rounded-[1.15rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
+                          <div className="relative aspect-square overflow-hidden rounded-[1.15rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
                             <div className="absolute inset-x-6 top-0 h-8 rounded-b-full bg-white/35 blur-xl" />
                             <div className="flex h-full items-center justify-center p-4">
                               <img
@@ -1150,15 +1126,15 @@ const ProductCategory = () => {
                         </div>
 
                         <div className="flex flex-1 flex-col px-4 pb-4">
-                          <h4 className="min-h-[3.8rem] text-center text-base font-semibold leading-snug text-foreground">
+                          <h4 className="min-h-[3.2rem] text-center text-[15px] font-semibold leading-snug text-foreground">
                             {product.description}
                           </h4>
 
-                          <p className="mt-2 min-h-[3.8rem] text-center text-sm leading-5 text-muted-foreground">
+                          <p className="mt-2 min-h-[3.2rem] text-center text-sm leading-5 text-muted-foreground">
                             {summary}
                           </p>
 
-                          <div className="mt-3 min-h-[2.4rem]">
+                          <div className="mt-3 min-h-[2.2rem]">
                             {highlights.length > 0 ? (
                               <div className="flex flex-wrap justify-center gap-2">
                                 {highlights.map((highlight) => (
