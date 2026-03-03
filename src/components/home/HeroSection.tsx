@@ -26,7 +26,7 @@ const HeroSection = () => {
       </div>
 
       <div className="container-wide relative py-20 md:py-28 lg:py-32">
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.15fr)_420px]">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(420px,480px)] xl:gap-16">
           <div className="max-w-4xl">
             <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-2 text-sm text-primary-foreground/85 animate-fade-in-up">
               <span className="h-2 w-2 rounded-full bg-accent" />
@@ -82,7 +82,7 @@ const HeroSection = () => {
 
           <div className="animate-fade-in-up" style={{ animationDelay: "0.18s" }}>
             <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/8 p-5 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.45)] backdrop-blur-md">
-              <div className="rounded-2xl border border-primary-foreground/12 bg-navy-dark/45 p-5">
+              <div className="rounded-2xl border border-primary-foreground/18 bg-navy-dark/60 p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm uppercase tracking-[0.18em] text-accent/90">Why Internext</p>
@@ -94,11 +94,11 @@ const HeroSection = () => {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  <div className="rounded-xl bg-primary-foreground/6 p-4">
+                  <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-primary-foreground">Own the customer relationship</p>
-                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/72">
+                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/82">
                           Present a clean Internext experience while we support product supply behind the scenes.
                         </p>
                       </div>
@@ -106,11 +106,11 @@ const HeroSection = () => {
                     </div>
                   </div>
 
-                  <div className="rounded-xl bg-primary-foreground/6 p-4">
+                  <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-primary-foreground">Operational support that feels practical</p>
-                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/72">
+                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/82">
                           Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
                         </p>
                       </div>
@@ -120,11 +120,11 @@ const HeroSection = () => {
                 </div>
               </div>
 
-              <div className="mt-4 grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
                 {spotlightStats.map((stat) => (
-                  <div key={stat.label} className="rounded-2xl bg-primary-foreground/95 px-4 py-4 text-navy">
-                    <p className="text-2xl font-bold leading-none">{stat.value}</p>
-                    <p className="mt-2 text-sm text-navy/70">{stat.label}</p>
+                  <div key={stat.label} className="rounded-2xl bg-primary-foreground/95 px-4 py-4 text-navy min-w-0">
+                    <p className="text-[1.9rem] font-bold leading-none break-words">{stat.value}</p>
+                    <p className="mt-2 text-sm leading-6 text-navy/70 break-words">{stat.label}</p>
                   </div>
                 ))}
               </div>
