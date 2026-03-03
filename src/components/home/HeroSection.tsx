@@ -146,7 +146,7 @@ const HeroSection = () => {
                       {stat.eyebrow}
                     </p>
                     <div className="mt-3 mb-3 text-center">
-                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
+                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName} ${stat.value === "Statewide" ? "mx-auto max-w-[8ch] text-center" : ""}`}>
                         {stat.value}
                       </p>
                     </div>
