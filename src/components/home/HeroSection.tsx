@@ -87,7 +87,7 @@ const HeroSection = () => {
               {operationalPillars.map((pillar) => (
                 <div
                   key={pillar}
-                  className="rounded-xl border border-primary-foreground/15 bg-primary-foreground/8 px-4 py-3 text-sm font-medium text-primary-foreground/88 backdrop-blur-sm"
+                  className="rounded-xl border border-white/18 bg-white/6 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm"
                 >
                   {pillar}
                 </div>
@@ -112,24 +112,24 @@ const HeroSection = () => {
                   <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-primary-foreground">Own the customer relationship</p>
-                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/82">
+                        <p className="text-sm font-semibold text-white">Own the customer relationship</p>
+                        <p className="mt-1 text-sm leading-relaxed text-white/82">
                           Present a clean Internext experience while we support product supply behind the scenes.
                         </p>
                       </div>
-                      <ChevronRight className="mt-0.5 h-4 w-4 text-accent" />
+                      <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     </div>
                   </div>
 
                   <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
                     <div className="flex items-start justify-between gap-4">
                       <div>
-                        <p className="text-sm font-semibold text-primary-foreground">Operational support that feels practical</p>
-                        <p className="mt-1 text-sm leading-relaxed text-primary-foreground/82">
+                        <p className="text-sm font-semibold text-white">Operational support that feels practical</p>
+                        <p className="mt-1 text-sm leading-relaxed text-white/82">
                           Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
                         </p>
                       </div>
-                      <Truck className="mt-0.5 h-4 w-4 text-accent" />
+                      <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     </div>
                   </div>
                 </div>
@@ -139,17 +139,17 @@ const HeroSection = () => {
                 {spotlightStats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="min-w-0 rounded-2xl border border-primary-foreground/12 bg-primary-foreground/10 px-4 py-4 text-primary-foreground backdrop-blur-sm"
+                    className="min-w-0 rounded-2xl border border-white/18 bg-white/10 px-4 py-4 text-white backdrop-blur-sm"
                   >
-                    <div className="mb-4 flex items-center justify-between gap-3">
-                      <p className={`font-bold tracking-tight text-primary-foreground ${stat.valueClassName}`}>
+                    <div className="mb-3 flex items-start justify-between gap-3">
+                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
                         {stat.value}
                       </p>
-                      <div className="shrink-0 rounded-xl bg-accent/12 p-2 text-accent">
+                      <div className="mt-1 shrink-0 rounded-xl bg-accent/14 p-2 text-accent">
                         <stat.icon className="h-4 w-4" />
                       </div>
                     </div>
-                    <p className="text-sm leading-6 text-primary-foreground/78">
+                    <p className="text-sm leading-6 text-white/82">
                       {stat.label}
                     </p>
                   </div>
