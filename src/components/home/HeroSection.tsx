@@ -148,10 +148,10 @@ const HeroSection = () => {
                     className="group relative min-w-0 overflow-hidden rounded-2xl border border-white/16 bg-gradient-to-br from-white/14 via-white/8 to-transparent px-5 py-5 text-white backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"
                   >
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-                    <p className="min-h-[2.5rem] flex items-start justify-center text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90">
+                    <p className="min-h-[2rem] flex items-start justify-center text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90">
                       {stat.eyebrow}
                     </p>
-                    <div className="mt-2 mb-4 min-h-[4.75rem] flex items-center justify-center text-center">
+                    <div className="mt-2 mb-3 min-h-[3.5rem] flex items-center justify-center text-center">
                       <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
                         {(stat.valueDisplay || stat.value).split("\n").map((line) => (
                           <span key={line} className="block">
@@ -160,8 +160,8 @@ const HeroSection = () => {
                         ))}
                       </p>
                     </div>
-                    <div className="mx-auto flex min-h-[6rem] max-w-[11rem] items-start justify-center text-center">
-                      <p className="text-sm leading-6 text-white/82">
+                    <div className="mx-auto flex min-h-[4.5rem] max-w-[11rem] items-start justify-center text-center">
+                      <p className="text-sm leading-5 text-white/82">
                         {(stat.labelDisplay || stat.label).split("\n").map((line) => (
                           <span key={line} className="block">
                             {line}
