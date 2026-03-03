@@ -31,6 +31,10 @@ type CategoryInfo = {
   brands: string[];
 };
 
+type FeaturedRankingsResponse = {
+  rankings?: Record<string, Record<string, number>>;
+};
+
 type Rule = {
   keywords: string[];
   manufacturers: string[];
@@ -580,6 +584,7 @@ const ProductCategory = () => {
     } satisfies CategoryInfo);
 
   const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [featuredRankings, setFeaturedRankings] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -602,13 +607,21 @@ const ProductCategory = () => {
     let isMounted = true;
     const loadProducts = async () => {
       try {
-        const response = await fetch("/data/catalog-products.json");
-        if (!response.ok) {
+        const [catalogResponse, featuredResponse] = await Promise.all([
+          fetch("/data/catalog-products.json"),
+          fetch("/data/alloys-featured-rankings.json"),
+        ]);
+
+        if (!catalogResponse.ok) {
           throw new Error("Unable to load the product catalog.");
         }
-        const dataResponse = (await response.json()) as CatalogProduct[];
+        const dataResponse = (await catalogResponse.json()) as CatalogProduct[];
+        const featuredData = featuredResponse.ok
+          ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
+          : { rankings: {} };
         if (isMounted) {
           setProducts(normalizeCatalogProducts(dataResponse));
+          setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
         }
       } catch (err) {
@@ -743,6 +756,34 @@ const ProductCategory = () => {
       ).includes(search);
     });
 
+    const getFeaturedScore = (product: (typeof categoryProducts)[number]) => {
+      const candidateSlugs = Array.from(
+        new Set(
+          [activeCategory, ...(CATEGORY_GROUPS[activeCategory] ?? []), product.category || ""].filter(Boolean),
+        ),
+      );
+
+      return candidateSlugs.reduce((best, slug) => {
+        const score = featuredRankings[slug]?.[product.code] ?? 0;
+        return Math.max(best, score);
+      }, 0);
+    };
+
+    if (sort === "featured") {
+      return [...filtered].sort((a, b) => {
+        const scoreDiff = getFeaturedScore(b) - getFeaturedScore(a);
+        if (scoreDiff !== 0) {
+          return scoreDiff;
+        }
+
+        if (a.price !== null && b.price !== null && a.price !== b.price) {
+          return a.price - b.price;
+        }
+
+        return a.description.localeCompare(b.description);
+      });
+    }
+
     if (sort === "name-asc") {
       return [...filtered].sort((a, b) => a.description.localeCompare(b.description));
     }
@@ -768,7 +809,7 @@ const ProductCategory = () => {
     }
 
     return filtered;
-  }, [categoryProducts, normalizedSelectedBrands, query, sort]);
+  }, [activeCategory, categoryProducts, featuredRankings, normalizedSelectedBrands, query, sort]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / ITEMS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
