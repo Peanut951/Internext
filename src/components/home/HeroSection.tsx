@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, ShieldCheck, Truck, ChevronRight, Package, MapPinned } from "lucide-react";
+import { ArrowRight, Users, ShieldCheck, Truck, ChevronRight } from "lucide-react";
 
 const operationalPillars = [
   "Product sourcing",
@@ -13,19 +13,16 @@ const spotlightStats = [
   {
     value: "7,500+",
     label: "Products live in catalogue",
-    icon: Package,
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
   },
   {
     value: "500+",
     label: "Australian reseller partners",
-    icon: Users,
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
   },
   {
     value: "Statewide",
     label: "Coverage across government and business",
-    icon: MapPinned,
     valueClassName: "text-[1.35rem] md:text-[1.55rem] leading-tight",
   },
 ];
@@ -113,7 +110,7 @@ const HeroSection = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-white">Own the customer relationship</p>
-                        <p className="mt-1 text-sm leading-relaxed text-white/82">
+                        <p className="mt-1 text-sm leading-relaxed !text-white/82">
                           Present a clean Internext experience while we support product supply behind the scenes.
                         </p>
                       </div>
@@ -125,7 +122,7 @@ const HeroSection = () => {
                     <div className="flex items-start justify-between gap-4">
                       <div>
                         <p className="text-sm font-semibold text-white">Operational support that feels practical</p>
-                        <p className="mt-1 text-sm leading-relaxed text-white/82">
+                        <p className="mt-1 text-sm leading-relaxed !text-white/82">
                           Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
                         </p>
                       </div>
@@ -139,15 +136,12 @@ const HeroSection = () => {
                 {spotlightStats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="min-w-0 rounded-2xl border border-white/18 bg-white/10 px-4 py-4 text-white backdrop-blur-sm"
+                    className="min-w-0 rounded-2xl border border-white/18 bg-white/10 px-4 py-5 text-white backdrop-blur-sm text-center"
                   >
-                    <div className="mb-3 flex items-start justify-between gap-3">
+                    <div className="mb-3">
                       <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
                         {stat.value}
                       </p>
-                      <div className="mt-1 shrink-0 rounded-xl bg-accent/14 p-2 text-accent">
-                        <stat.icon className="h-4 w-4" />
-                      </div>
                     </div>
                     <p className="text-sm leading-6 text-white/82">
                       {stat.label}
