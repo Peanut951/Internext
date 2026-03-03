@@ -15,18 +15,24 @@ const spotlightStats = [
     label: "Products live in catalogue",
     eyebrow: "Live Range",
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
+    valueDisplay: "7,500+",
+    labelDisplay: "Products live\nin catalogue",
   },
   {
     value: "500+",
     label: "Australian reseller partners",
     eyebrow: "Channel Reach",
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
+    valueDisplay: "500+",
+    labelDisplay: "Australian\nreseller partners",
   },
   {
     value: "Statewide",
     label: "Coverage across government and business",
     eyebrow: "Trusted Footprint",
     valueClassName: "text-[1.35rem] md:text-[1.55rem] leading-tight",
+    valueDisplay: "Statewide",
+    labelDisplay: "Coverage across\ngovernment and\nbusiness",
   },
 ];
 
@@ -142,17 +148,27 @@ const HeroSection = () => {
                     className="group relative min-w-0 overflow-hidden rounded-2xl border border-white/16 bg-gradient-to-br from-white/14 via-white/8 to-transparent px-5 py-5 text-white backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"
                   >
                     <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90 text-center">
+                    <p className="min-h-[2.5rem] flex items-start justify-center text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90">
                       {stat.eyebrow}
                     </p>
-                    <div className="mt-3 mb-3 text-center">
-                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName} ${stat.value === "Statewide" ? "mx-auto max-w-[8ch] text-center" : ""}`}>
-                        {stat.value}
+                    <div className="mt-2 mb-4 min-h-[4.75rem] flex items-center justify-center text-center">
+                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
+                        {(stat.valueDisplay || stat.value).split("\n").map((line) => (
+                          <span key={line} className="block">
+                            {line}
+                          </span>
+                        ))}
                       </p>
                     </div>
-                    <p className="mx-auto max-w-[11rem] text-sm leading-6 text-white/82 text-center">
-                      {stat.label}
-                    </p>
+                    <div className="mx-auto flex min-h-[6rem] max-w-[11rem] items-start justify-center text-center">
+                      <p className="text-sm leading-6 text-white/82">
+                        {(stat.labelDisplay || stat.label).split("\n").map((line) => (
+                          <span key={line} className="block">
+                            {line}
+                          </span>
+                        ))}
+                      </p>
+                    </div>
                     <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-70" />
                   </div>
                 ))}
