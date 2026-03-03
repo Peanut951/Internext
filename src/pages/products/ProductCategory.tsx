@@ -1184,72 +1184,97 @@ const ProductCategory = () => {
                     return (
                       <div
                         key={product.code}
-                        className="bg-card rounded-2xl p-5 shadow-card border border-border/50 hover:shadow-elevated hover:-translate-y-0.5 transition-all flex flex-col h-full"
+                        className="group relative flex h-full flex-col overflow-hidden rounded-[1.6rem] border border-border/60 bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/25 hover:shadow-elevated"
                       >
-                        <div className="aspect-[16/10] rounded-xl mb-4 bg-secondary/55 flex items-center justify-center overflow-hidden">
-                          <img
-                            src={productImage}
-                            alt={product.description}
-                            loading="lazy"
-                            onError={handleProductImageError}
-                            className="h-full w-full object-contain"
-                          />
-                        </div>
-                        <div className="flex-1 flex flex-col">
-                          <div className="flex flex-wrap justify-center gap-2 mb-3">
-                            <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
+                        <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-accent/80 to-transparent opacity-70" />
+
+                        <div className="p-5 pb-4">
+                          <div className="mb-4 flex flex-wrap justify-center gap-2">
+                            <span className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
                               {product.manufacturer}
                             </span>
-                            <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+                            <span className="inline-flex items-center rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground">
                               {product.code}
                             </span>
                           </div>
-                          <h4 className="font-semibold text-foreground mb-3 leading-snug break-words text-center">
+
+                          <div className="relative aspect-[16/10] overflow-hidden rounded-[1.3rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
+                            <div className="absolute inset-x-6 top-0 h-10 rounded-b-full bg-white/40 blur-xl" />
+                            <div className="flex h-full items-center justify-center p-5">
+                              <img
+                                src={productImage}
+                                alt={product.description}
+                                loading="lazy"
+                                onError={handleProductImageError}
+                                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                              />
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex flex-1 flex-col px-5 pb-5">
+                          <h4 className="min-h-[4.9rem] text-center text-lg font-semibold leading-snug text-foreground">
                             {product.description}
                           </h4>
-                          <p className="text-sm text-muted-foreground text-center leading-6 mb-4">
+
+                          <p className="mt-3 min-h-[5.4rem] text-center text-sm leading-6 text-muted-foreground">
                             {summary}
                           </p>
-                          {highlights.length > 0 ? (
-                            <div className="flex flex-wrap justify-center gap-2 mb-4">
-                              {highlights.map((highlight) => (
-                                <span
-                                  key={highlight}
-                                  className="rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] font-medium text-foreground"
-                                >
-                                  {highlight}
+
+                          <div className="mt-4 min-h-[3rem]">
+                            {highlights.length > 0 ? (
+                              <div className="flex flex-wrap justify-center gap-2">
+                                {highlights.map((highlight) => (
+                                  <span
+                                    key={highlight}
+                                    className="rounded-full border border-border/60 bg-secondary/40 px-3 py-1 text-[11px] font-medium text-foreground"
+                                  >
+                                    {highlight}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : (
+                              <div className="h-full" />
+                            )}
+                          </div>
+
+                          <div className="mt-5 rounded-2xl border border-border/50 bg-secondary/35 px-4 py-4">
+                            <div className="flex items-end justify-between gap-3">
+                              <span className="text-2xl font-bold leading-none text-foreground">
+                                {priceLabel}
+                              </span>
+                              {product.rrp ? (
+                                <span className="text-xs text-right text-muted-foreground">
+                                  RRP {formatPrice(product.rrp)}
                                 </span>
-                              ))}
+                              ) : (
+                                <span className="text-xs text-right text-muted-foreground">
+                                  Reseller pricing
+                                </span>
+                              )}
                             </div>
-                          ) : null}
-                        </div>
-                        <div className="flex items-end justify-between gap-3 mb-4 pt-4 border-t border-border/50">
-                          <span className="text-2xl font-bold text-foreground leading-none">{priceLabel}</span>
-                          {product.rrp ? (
-                            <span className="text-xs text-muted-foreground text-right">
-                              RRP {formatPrice(product.rrp)}
-                            </span>
-                          ) : null}
-                        </div>
-                        <div className="grid grid-cols-1 gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full min-w-0 whitespace-normal text-center leading-tight px-2"
-                            asChild
-                          >
-                            <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
-                              View Details
-                            </Link>
-                          </Button>
-                          <Button
-                            variant="default"
-                            size="sm"
-                            className="w-full min-w-0 whitespace-normal text-center leading-tight px-2"
-                            onClick={() => addToCart(product)}
-                          >
-                            Add to Cart
-                          </Button>
+                          </div>
+
+                          <div className="mt-4 grid grid-cols-1 gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full min-w-0 rounded-xl border-border/70 bg-background whitespace-normal px-3 text-center leading-tight"
+                              asChild
+                            >
+                              <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
+                                View Details
+                              </Link>
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
+                              onClick={() => addToCart(product)}
+                            >
+                              Add to Cart
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     );
