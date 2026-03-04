@@ -5,7 +5,7 @@ import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
-import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -197,15 +197,15 @@ const CATEGORY_GROUPS: Record<string, string[]> = {
 };
 const CATEGORY_RULES: Record<string, Rule> = {
   "printer-warranties": makeRule(
-    ["printer warranty", "printer support", "printer service", "onsite", "on site", "advance exchange"],
+    ["printer warranty", "printer support", "printer service", "onsite service", "care pack", "advance exchange", "extended warranty"],
     [],
   ),
   "scanner-warranties": makeRule(
-    ["scanner warranty", "scanner support", "scanner service", "scanner maintenance"],
+    ["scanner warranty", "scanner support", "scanner service", "scanner maintenance", "scanner extended warranty"],
     [],
   ),
   "inkjet-consumables": makeRule(
-    ["ink", "inkjet", "printhead", "ink tank", "maintenance box"],
+    ["ink cartridge", "ink bottle", "ink pack", "printhead", "maintenance box", "waste ink"],
     ["hp", "canon", "epson", "brother", "fujifilm"],
   ),
   "laser-consumables": makeRule(
@@ -213,7 +213,7 @@ const CATEGORY_RULES: Record<string, Rule> = {
     ["lexmark", "hp", "canon", "brother", "kyocera", "ricoh", "xerox", "konica minolta"],
   ),
   "large-format-consumables": makeRule(
-    ["large format", "latex", "designjet", "imageprograf", "surecolor", "ink tank"],
+    ["large format ink", "latex ink", "designjet ink", "imageprograf ink", "surecolor ink", "plotter paper"],
     ["hp", "canon", "epson"],
   ),
   "ribbon-tape": makeRule(
@@ -226,40 +226,40 @@ const CATEGORY_RULES: Record<string, Rule> = {
   ),
   "other-consumables": makeRule(["paper", "media", "cleaning kit", "maintenance kit", "staple"], []),
   "a4-scanners": makeRule(
-    ["a4 scanner", "document scanner", "desktop scanner"],
-    ["fujitsu", "canon", "epson", "brother", "kodak", "panasonic"],
+    ["a4 scanner", "document scanner", "desktop scanner", "sheetfed scanner", "duplex scanner"],
+    [],
   ),
   "a3-scanners": makeRule(
-    ["a3 scanner", "large format scanner"],
-    ["fujitsu", "canon", "epson", "panasonic"],
+    ["a3 scanner", "large format scanner", "a3 flatbed", "bookedge scanner"],
+    [],
   ),
   "portable-scanners": makeRule(
-    ["portable scanner", "mobile scanner", "handheld scanner"],
-    ["brother", "epson", "fujitsu", "canon"],
+    ["portable scanner", "mobile scanner", "handheld scanner", "receipt scanner"],
+    [],
   ),
-  imaging: makeRule(["imaging", "archiving", "microfilm"], []),
-  "scanner-accessories": makeRule(["scanner roller", "scanner pad", "scanner kit", "scanner accessory"], []),
+  imaging: makeRule(["archiving", "microfilm", "book scanner", "capture software"], []),
+  "scanner-accessories": makeRule(["scanner roller", "scanner pad", "scanner kit", "scanner accessory", "carrier sheet"], []),
   "a4-printers": makeRule(
-    ["a4 printer", "a4 mono", "a4 colour"],
-    ["lexmark", "hp", "canon", "brother", "kyocera"],
+    ["a4 printer", "a4 mono", "a4 colour", "a4 duplex", "a4 wireless printer"],
+    [],
   ),
   "a3-printers": makeRule(
-    ["a3 printer", "a3 colour", "a3 mono", "tabloid"],
-    ["ricoh", "xerox", "konica minolta", "kyocera"],
+    ["a3 printer", "a3 colour", "a3 mono", "a3 multifunction", "a3 photo printer", "a3 inkjet printer", "tabloid"],
+    [],
   ),
   inkjet: makeRule(
-    ["inkjet printer", "ink tank printer", "inkjet mfp"],
-    ["epson", "canon", "hp", "brother"],
+    ["inkjet printer", "ink tank printer", "inkjet mfp", "ecotank", "inkvestment", "pixma", "officejet", "workforce"],
+    [],
   ),
   laser: makeRule(
-    ["laser printer", "laser mfp", "mono laser", "color laser"],
-    ["hp", "lexmark", "brother", "kyocera", "ricoh", "xerox"],
+    ["laser printer", "laser mfp", "mono laser", "color laser", "colour laser", "isensys", "ecosys", "apeosprint"],
+    [],
   ),
   "large-format": makeRule(
-    ["large format printer", "designjet", "imageprograf", "surecolor", "latex printer"],
-    ["hp", "canon", "epson"],
+    ["large format printer", "designjet", "imageprograf", "surecolor", "latex printer", "plotter", "wide format"],
+    [],
   ),
-  "dot-matrix": makeRule(["dot matrix", "impact printer"], ["epson", "oki", "printronix"]),
+  "dot-matrix": makeRule(["dot matrix", "impact printer"], []),
   "3d-printers": makeRule(
     ["3d printer", "additive", "fused deposition", "sls"],
     ["makerbot", "ultimaker", "formlabs", "raise3d"],
@@ -293,16 +293,16 @@ const CATEGORY_RULES: Record<string, Rule> = {
     ["vogels mounts", "vogel s mounts", "atdec", "chief", "b tech", "ergotron", "peerless"],
   ),
   collaboration: makeRule(
-    ["collaboration", "conference camera", "wireless presentation", "room kit", "meeting"],
-    ["logitech", "poly", "barco", "mersive", "kramer", "crestron"],
+    ["wireless presentation", "room scheduler", "presentation hub", "meeting board", "collaboration bar"],
+    [],
   ),
   "consumer-cameras": makeRule(
     ["camera", "dslr", "mirrorless", "compact camera"],
     ["canon", "nikon", "sony", "fujifilm", "panasonic"],
   ),
   "professional-cameras": makeRule(
-    ["broadcast", "cinema camera", "camcorder", "ptz"],
-    ["sony", "panasonic", "canon", "blackmagic", "jvc"],
+    ["broadcast", "cinema camera", "camcorder", "ptz", "pro video", "video production"],
+    [],
   ),
   "imaging-accessories": makeRule(
     ["lens", "battery", "memory card", "charger", "tripod", "flash", "gimbal"],
@@ -333,7 +333,7 @@ const CATEGORY_RULES: Record<string, Rule> = {
     ["akuvox", "aiphone", "2n", "grandstream"],
   ),
   "ip-communications": makeRule(
-    ["sip", "ip communicator", "paging"],
+    ["ip communicator", "paging", "ip paging", "sip speaker", "sip horn", "paging adapter"],
     ["grandstream", "algo", "fanvil", "yealink"],
   ),
   "ups-power": makeRule(
@@ -349,50 +349,50 @@ const CATEGORY_RULES: Record<string, Rule> = {
     ["shelly", "schneider", "honeywell"],
   ),
   nvrs: makeRule(
-    ["nvr", "dvr", "video recorder"],
-    ["hikvision", "dahua", "milestone", "synology", "uniview"],
+    ["nas recorder", "surveillance storage", "video storage server"],
+    [],
   ),
   storage: makeRule(
-    ["nas", "storage", "hard drive", "hdd", "ssd", "backup", "raid"],
-    ["synology", "qnap", "seagate", "western digital", "wd", "kingston"],
+    ["nas", "hard drive", "hdd", "ssd", "backup appliance", "raid storage", "expansion unit"],
+    [],
   ),
   switches: makeRule(
-    ["switch", "managed switch", "poe switch"],
-    ["cisco", "ubiquiti", "netgear", "aruba", "tp link", "d link", "ruckus"],
+    ["switch", "managed switch", "poe switch", "gigabit switch", "ethernet switch"],
+    [],
   ),
   routers: makeRule(
-    ["router", "gateway", "firewall"],
-    ["cisco", "ubiquiti", "mikrotik", "netgear", "tp link"],
+    ["router", "gateway", "vpn router", "multi wan", "firewall appliance"],
+    [],
   ),
   "access-points": makeRule(
-    ["access point", "wifi", "wireless ap"],
-    ["ubiquiti", "ruckus", "aruba", "cisco", "tp link"],
+    ["access point", "wireless ap", "wifi 6 ap", "wi fi 6 ap", "ceiling ap", "indoor ap", "outdoor ap"],
+    [],
   ),
   "networking-accessories": makeRule(
-    ["patch lead", "cable", "cat6", "cat5", "keystone", "patch panel", "rack"],
-    ["commscope", "belkin", "dynamix", "4cabling"],
+    ["patch lead", "cable", "cat6", "cat5", "keystone", "patch panel", "rack", "sfp", "transceiver"],
+    [],
   ),
   headsets: makeRule(
-    ["headset", "headphones"],
-    ["jabra", "poly", "logitech", "epos", "plantronics"],
+    ["headset", "headphones", "mono headset", "stereo headset", "dect headset"],
+    [],
   ),
   conference: makeRule(
-    ["conference", "speakerphone"],
-    ["poly", "logitech", "jabra", "yealink"],
+    ["conference phone", "speakerphone", "meeting bar", "conference camera"],
+    [],
   ),
   voip: makeRule(
-    ["voip", "ip phone", "sip phone", "desk phone"],
-    ["yealink", "cisco", "poly", "grandstream", "avaya"],
+    ["voip", "ip phone", "sip phone", "desk phone", "cordless ip phone", "dect base", "expansion module"],
+    [],
   ),
   "video-collab": makeRule(
-    ["video collaboration", "video conference", "room kit", "webcam"],
-    ["logitech", "poly", "microsoft", "zoom"],
+    ["video collaboration", "video conference", "room kit", "webcam", "teams room", "zoom room", "usb camera"],
+    [],
   ),
   "uc-accessories": makeRule(
-    ["uc accessory", "usb adapter", "dongle", "speaker", "hub"],
-    ["poly", "logitech", "jabra", "yealink"],
+    ["uc accessory", "usb adapter", "dongle", "speaker", "hub", "headset stand", "busy light"],
+    [],
   ),
-  shredders: makeRule(["shredder"], ["fellowes", "rexel", "hsm", "kobra"]),
+  shredders: makeRule(["shredder"], []),
   "office-technology": makeRule(
     ["laminator", "binding", "presenter", "whiteboard", "office equipment"],
     ["fellowes", "gbc", "rexel", "3m"],
@@ -454,6 +454,115 @@ const CATEGORY_PRIORITY: string[] = [
   "shredders",
   "office-technology",
 ];
+
+const inferDocumentCategory = (searchText: string) => {
+  const hasPrinter = /(printer|print\b|mfp|multifunction|laserjet|officejet|ecotank|imageprograf|designjet|surecolor|pixma|workforce|ecosys|isensys|apeosprint)/i.test(searchText);
+  const hasScanner = /scanner|scan snap|scansnap|document scanner|flatbed/i.test(searchText);
+
+  if (/(printer warranty|printer support|printer service|care pack|extended warranty|advance exchange)/i.test(searchText)) {
+    return "printer-warranties";
+  }
+  if (/(scanner warranty|scanner support|scanner maintenance|scanner extended warranty)/i.test(searchText)) {
+    return "scanner-warranties";
+  }
+  if (/(ink cartridge|ink bottle|ink pack|printhead|maintenance box|waste ink)/i.test(searchText)) {
+    return "inkjet-consumables";
+  }
+  if (/(toner|drum|fuser|developer|imaging unit|transfer belt|waste toner)/i.test(searchText)) {
+    return "laser-consumables";
+  }
+  if (/(large format ink|latex ink|designjet ink|imageprograf ink|surecolor ink|plotter paper)/i.test(searchText)) {
+    return "large-format-consumables";
+  }
+  if (/(ribbon|label tape|thermal transfer)/i.test(searchText)) {
+    return "ribbon-tape";
+  }
+  if (/(filament|pla|abs|petg|resin)/i.test(searchText)) {
+    return "3d-filament";
+  }
+  if (/(scanner roller|scanner pad|carrier sheet|scanner accessory)/i.test(searchText)) {
+    return "scanner-accessories";
+  }
+  if (hasScanner) {
+    if (/(portable scanner|mobile scanner|handheld scanner|receipt scanner)/i.test(searchText)) {
+      return "portable-scanners";
+    }
+    if (/(a3|large format|bookedge|flatbed)/i.test(searchText)) {
+      return "a3-scanners";
+    }
+    return "a4-scanners";
+  }
+  if (/(microfilm|archiving|capture software|book scanner)/i.test(searchText)) {
+    return "imaging";
+  }
+  if (/(3d printer|additive|fused deposition|sls)/i.test(searchText)) {
+    return "3d-printers";
+  }
+  if (/(dot matrix|impact printer)/i.test(searchText)) {
+    return "dot-matrix";
+  }
+  if (/(printer tray|printer stand|feeder|duplexer|maintenance kit)/i.test(searchText)) {
+    return "printer-accessories";
+  }
+  if (hasPrinter) {
+    if (/(designjet|imageprograf|surecolor|large format|wide format|plotter|technical printer)/i.test(searchText)) {
+      return "large-format";
+    }
+    if (/(mfp|multifunction|all in one|copy scan)/i.test(searchText)) {
+      return "multifunction";
+    }
+    if (/(inkjet|ecotank|ink tank|inkvestment|pixma|officejet|workforce)/i.test(searchText)) {
+      return "inkjet";
+    }
+    if (/(laser|laserjet|mono printer|colour printer|color printer|isensys|ecosys|apeosprint)/i.test(searchText)) {
+      return "laser";
+    }
+    if (/\ba3\b|a3\+|tabloid/i.test(searchText)) {
+      return "a3-printers";
+    }
+    return "a4-printers";
+  }
+
+  return "";
+};
+
+const inferUnifiedCommsCategory = (searchText: string) => {
+  if (/(headset|headphones|mono headset|stereo headset|dect headset)/i.test(searchText)) {
+    return "headsets";
+  }
+  if (/(conference phone|speakerphone|meeting bar|conference camera)/i.test(searchText)) {
+    return "conference";
+  }
+  if (/(video collaboration|video conference|room kit|webcam|teams room|zoom room|usb camera)/i.test(searchText)) {
+    return "video-collab";
+  }
+  if (/(voip|ip phone|sip phone|desk phone|cordless ip phone|dect base|expansion module)/i.test(searchText)) {
+    return "voip";
+  }
+  if (/(uc accessory|usb adapter|dongle|busy light|headset stand)/i.test(searchText)) {
+    return "uc-accessories";
+  }
+  return "";
+};
+
+const inferNetworkingCategory = (searchText: string) => {
+  if (/(managed switch|poe switch|gigabit switch|ethernet switch)/i.test(searchText)) {
+    return "switches";
+  }
+  if (/(vpn router|multi wan|firewall appliance|router|gateway)/i.test(searchText)) {
+    return "routers";
+  }
+  if (/(access point|wireless ap|wifi 6 ap|wi fi 6 ap|ceiling ap|outdoor ap|indoor ap)/i.test(searchText)) {
+    return "access-points";
+  }
+  if (/(nas|hard drive|ssd|hdd|backup appliance|raid storage|expansion unit)/i.test(searchText)) {
+    return "storage";
+  }
+  if (/(patch lead|cat6|cat5|keystone|patch panel|sfp|transceiver|rack accessory)/i.test(searchText)) {
+    return "networking-accessories";
+  }
+  return "";
+};
 
 const TOP_LEVEL_MANUFACTURERS = {
   printers: ["hp", "canon", "epson", "lexmark", "brother", "ricoh", "xerox", "kyocera"],
@@ -546,14 +655,7 @@ const formatPrice = (value: number | null | undefined) => {
 };
 
 const getCardSummary = (product: CatalogProduct) => {
-  const text = String(product.longDescription || product.description || "").trim();
-  if (!text) {
-    return "";
-  }
-
-  const sentences = text.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const summary = sentences[1] || sentences[0] || text;
-  return summary.length > 110 ? `${summary.slice(0, 107).trimEnd()}...` : summary;
+  return getCatalogSummaryText(product);
 };
 
 const getCardHighlights = (product: CatalogProduct) => {
@@ -660,8 +762,15 @@ const ProductCategory = () => {
           .filter(Boolean)
           .join(" "),
       );
-      let assigned = "";
+      let assigned =
+        inferDocumentCategory(searchText) ||
+        inferUnifiedCommsCategory(searchText) ||
+        inferNetworkingCategory(searchText);
+
       for (const slug of CATEGORY_PRIORITY) {
+        if (assigned) {
+          break;
+        }
         const rule = CATEGORY_RULES[slug];
         if (!rule) continue;
         const keywordMatch = rule.keywords.some((keyword) => keyword && searchText.includes(keyword));
@@ -844,6 +953,12 @@ const ProductCategory = () => {
     (currentPage - 1) * ITEMS_PER_PAGE,
     currentPage * ITEMS_PER_PAGE,
   );
+  const visibleStart = filteredProducts.length === 0 ? 0 : (currentPage - 1) * ITEMS_PER_PAGE + 1;
+  const visibleEnd = Math.min(currentPage * ITEMS_PER_PAGE, filteredProducts.length);
+  const pageNumbers = Array.from({ length: Math.min(5, totalPages) }, (_, index) => {
+    const startPage = Math.min(Math.max(1, currentPage - 2), Math.max(1, totalPages - 4));
+    return startPage + index;
+  }).filter((value) => value <= totalPages);
 
   useEffect(() => {
     setPage(1);
@@ -950,7 +1065,10 @@ const ProductCategory = () => {
           <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
-                <h3 className="font-semibold text-foreground mb-4">Brands</h3>
+                <h3 className="font-semibold text-foreground mb-1">Brands</h3>
+                <p className="mb-4 text-sm text-muted-foreground">
+                  Select one or more brands for this category.
+                </p>
                 <div className="space-y-2">
                   <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
                     <input
@@ -1063,6 +1181,9 @@ const ProductCategory = () => {
                 <div className="mt-4 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
                   <span>{filteredProducts.length} products</span>
                   <span>{pricedCount} priced and ready to quote</span>
+                  <span>
+                    Showing {visibleStart}-{visibleEnd}
+                  </span>
                   <span>
                     Page {currentPage} of {totalPages}
                   </span>
@@ -1196,7 +1317,7 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && totalPages > 1 && (
-                <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
+                <div className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border/60 bg-card p-4 shadow-card">
                   <Button
                     variant="outline"
                     size="sm"
@@ -1205,6 +1326,22 @@ const ProductCategory = () => {
                   >
                     Previous
                   </Button>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    {pageNumbers.map((pageNumber) => (
+                      <button
+                        key={pageNumber}
+                        type="button"
+                        onClick={() => setPage(pageNumber)}
+                        className={`h-10 min-w-10 rounded-full px-3 text-sm font-medium transition-colors ${
+                          pageNumber === currentPage
+                            ? "bg-primary text-primary-foreground"
+                            : "border border-border/70 bg-background text-foreground hover:border-accent/40 hover:text-accent"
+                        }`}
+                      >
+                        {pageNumber}
+                      </button>
+                    ))}
+                  </div>
                   <Button
                     variant="outline"
                     size="sm"

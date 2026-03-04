@@ -37,6 +37,7 @@ type CatalogQualityInput = {
   manufacturer?: string;
   description?: string;
   longDescription?: string;
+  supplierCode?: string;
 };
 
 const normalizeWhitespace = (value: string) =>
@@ -165,6 +166,59 @@ const inferUseCase = (text: string) => {
   return "general professional technology deployments";
 };
 
+const extractHighlights = (text: string) => {
+  const patterns = [
+    /\b\d+(?:\.\d+)?\s?(?:"|inch|ppm|dpi|nits?|gb|tb|mp|fps|hz|w|va)\b/gi,
+    /\b(?:A3|A4|4K|UHD|FHD|Wi[- ]?Fi|PoE|RFID|Bluetooth|Android|Linux|Duplex|Touchscreen|SIP|LTE|5G|PTZ|DECT|USB|HDMI)\b/gi,
+    /\b\d+\s?(?:port|ports|user|users|channel|channels)\b/gi,
+  ];
+
+  const hits = patterns.flatMap((pattern) => text.match(pattern) || []);
+  const normalized = hits
+    .map((item) => normalizeWhitespace(item))
+    .map((item) => {
+      const lower = item.toLowerCase();
+      if (lower === "wifi" || lower === "wi fi" || lower === "wi-fi") return "Wi-Fi";
+      if (lower === "poe") return "PoE";
+      if (lower === "rfid") return "RFID";
+      if (lower === "sip") return "SIP";
+      if (lower === "lte") return "LTE";
+      if (lower === "dect") return "DECT";
+      if (lower === "ptz") return "PTZ";
+      if (lower === "uhd") return "UHD";
+      if (lower === "fhd") return "FHD";
+      if (lower === "a3") return "A3";
+      if (lower === "a4") return "A4";
+      if (lower === "4k") return "4K";
+      if (lower === "5g") return "5G";
+      if (lower === "usb") return "USB";
+      if (lower === "hdmi") return "HDMI";
+      return item;
+    })
+    .filter(Boolean);
+
+  return Array.from(new Set(normalized)).slice(0, 4);
+};
+
+const inferAudience = (text: string) => {
+  if (/(education|classroom|interactive|presentation|signage)/i.test(text)) {
+    return "education and commercial presentation spaces";
+  }
+  if (/(camera|surveillance|nvr|intercom|access control|rfid|biometric)/i.test(text)) {
+    return "security, monitoring, and controlled-access environments";
+  }
+  if (/(printer|scanner|mfp|document)/i.test(text)) {
+    return "busy office and document-workflow environments";
+  }
+  if (/(router|switch|access point|network|nas|storage|wifi)/i.test(text)) {
+    return "managed network and infrastructure deployments";
+  }
+  if (/(conference|voip|sip|headset|speakerphone|webcam)/i.test(text)) {
+    return "business communications and collaboration setups";
+  }
+  return "professional business deployments";
+};
+
 const shouldReplaceLongDescription = (value: string) => {
   const cleaned = cleanEncodingNoise(value);
   if (!cleaned) {
@@ -185,11 +239,16 @@ const shouldReplaceLongDescription = (value: string) => {
 const buildLongDescription = (manufacturer: string, description: string, code: string) => {
   const category = inferCategory(description);
   const useCase = inferUseCase(description);
+  const audience = inferAudience(description);
+  const highlights = extractHighlights(description).join(", ");
   const brandPrefix = manufacturer ? `${manufacturer} ` : "";
   const codeText = code ? ` Product code: ${code}.` : "";
+  const featureText = highlights
+    ? ` Key details include ${highlights}, which help position it for the right deployment.`
+    : "";
 
-  return `${brandPrefix}${description} is a ${category} built for business environments. ` +
-    `It is typically used for ${useCase}, with focus on reliable operation, straightforward deployment, and ongoing serviceability.${codeText}`;
+  return `${brandPrefix}${description} is a ${category} intended for ${audience}. ` +
+    `It suits teams looking for a practical option for ${useCase}, with emphasis on dependable day-to-day operation and straightforward rollout.${featureText}${codeText}`;
 };
 
 const normalizeManufacturer = (value?: string) => {
@@ -201,6 +260,18 @@ const normalizeManufacturer = (value?: string) => {
     .split(" ")
     .map((part) => (part.toUpperCase() === part && part.length <= 4 ? part : `${part[0].toUpperCase()}${part.slice(1).toLowerCase()}`))
     .join(" ");
+};
+
+export const getCatalogSummaryText = <T extends CatalogQualityInput>(product: T) => {
+  const longDescription = cleanEncodingNoise(product.longDescription || "");
+  if (longDescription) {
+    const sentences = longDescription.split(/(?<=[.!?])\s+/).filter(Boolean);
+    const summary = sentences[1] || sentences[0] || longDescription;
+    return summary.length > 120 ? `${summary.slice(0, 117).trimEnd()}...` : summary;
+  }
+
+  const cleaned = cleanEncodingNoise(product.description || "");
+  return cleaned.length > 120 ? `${cleaned.slice(0, 117).trimEnd()}...` : cleaned;
 };
 
 export const normalizeCatalogProduct = <T extends CatalogQualityInput>(product: T): T => {
