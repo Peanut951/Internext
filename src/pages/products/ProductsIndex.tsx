@@ -1,10 +1,11 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { normalizeCatalogProducts } from "@/lib/catalogQuality";
-import { MIN_CATALOG_SEARCH_LENGTH } from "@/lib/catalogSearch";
+import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import {
   Monitor,
   Camera,
@@ -25,7 +26,9 @@ type CatalogProduct = {
   manufacturer: string;
   description: string;
   price: number | null;
+  priceText?: string;
   supplierCode?: string;
+  imageUrl?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -37,6 +40,8 @@ const QUICK_SEARCHES = [
   "Axis camera",
   "Hisense display",
 ];
+
+const SEARCH_PREVIEW_LIMIT = 6;
 
 const categories = [
   {
@@ -247,7 +252,20 @@ const ProductsIndex = () => {
     setSearchQuery(value);
   };
 
+  const searchPreviewMatches = useMemo(
+    () => searchCatalogProducts(products, searchQuery).slice(0, SEARCH_PREVIEW_LIMIT),
+    [products, searchQuery],
+  );
+
   const queryTooShort = searchQuery.trim().length > 0 && searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
+  const hasSearchQuery = searchQuery.trim().length > 0;
+
+  const formatPrice = (value: number | null | undefined) => {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+  };
 
   return (
     <Layout>
@@ -314,6 +332,74 @@ const ProductsIndex = () => {
               <p className="mt-3 text-sm text-muted-foreground">
                 Type at least {MIN_CATALOG_SEARCH_LENGTH} characters to search products.
               </p>
+            ) : null}
+
+            {hasSearchQuery && !queryTooShort ? (
+              <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-background">
+                {catalogLoading ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">Loading product search...</p>
+                ) : catalogError ? (
+                  <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
+                ) : searchPreviewMatches.length === 0 ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    No products matched "{searchQuery}".
+                  </p>
+                ) : (
+                  <>
+                    <div className="flex flex-col gap-2 border-b border-border/40 bg-secondary/35 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-sm font-semibold text-foreground">
+                          Top matches for "{searchQuery}"
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          Click a product below, or press Search to open the full results page.
+                        </p>
+                      </div>
+                      <Button asChild variant="outline" size="sm">
+                        <Link to={`/products/search?q=${encodeURIComponent(searchQuery.trim())}&page=1`}>
+                          View all results
+                        </Link>
+                      </Button>
+                    </div>
+
+                    {searchPreviewMatches.map(({ product }, index) => {
+                      const image = getPrimaryProductImage(product);
+                      const price = formatPrice(product.price) ?? product.priceText ?? "POA";
+
+                      return (
+                        <Link
+                          key={`${product.code}-${index}`}
+                          to={`/products/item/${encodeURIComponent(product.code)}`}
+                          className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 ${
+                            index < searchPreviewMatches.length - 1 ? "border-b border-border/40" : ""
+                          }`}
+                        >
+                          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
+                            <img
+                              src={image}
+                              alt={product.description}
+                              loading="lazy"
+                              onError={handleProductImageError}
+                              className="h-full w-full object-contain"
+                            />
+                          </div>
+                          <div className="min-w-0">
+                            <p className="break-words font-medium leading-snug text-foreground">
+                              {product.description}
+                            </p>
+                            <p className="text-sm break-words text-muted-foreground">
+                              {product.manufacturer || "Unbranded"} - Code: {product.code}
+                            </p>
+                          </div>
+                          <p className="whitespace-nowrap text-sm font-semibold text-foreground">
+                            {price}
+                          </p>
+                        </Link>
+                      );
+                    })}
+                  </>
+                )}
+              </div>
             ) : null}
 
             <div className="mt-5 grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,320px)]">
