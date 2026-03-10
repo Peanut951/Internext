@@ -19,7 +19,7 @@ const Team = () => {
       <section className="section-padding bg-background">
         <div className="container-wide">
           <div className="mx-auto max-w-xl rounded-2xl border border-border/60 bg-card p-8 text-center shadow-card">
-            <h2 className="text-3xl font-bold text-foreground">Roxy Hudson</h2>
+            <h2 className="text-3xl font-bold text-foreground">Roxi Hudson</h2>
             <p className="mt-2 text-lg font-medium text-accent">Director</p>
           </div>
         </div>
