@@ -48,7 +48,7 @@ const TestimonialsSection = () => {
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
               Partner Feedback
             </p>
-            <h2 className="mt-3 text-3xl font-bold md:text-4xl">
+            <h2 className="mt-3 text-3xl font-bold text-primary-foreground md:text-4xl">
               Built to feel useful when the pressure is real.
             </h2>
             <p className="mt-4 text-primary-foreground/72 leading-relaxed">
