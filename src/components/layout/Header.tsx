@@ -13,7 +13,7 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { label: "About Internext", href: "/about" },
   {
-    label: "Product Range",
+    label: "Products",
     href: "/products",
     megaMenu: true,
     // Each item points to a top–level category.  The slug after `/products/`
