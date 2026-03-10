@@ -46,6 +46,12 @@ type FilterChip = {
   onRemove: () => void;
 };
 
+type FacetOption = {
+  id: string;
+  label: string;
+  match: RegExp;
+};
+
 const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const makeRule = (keywords: string[], manufacturers: string[] = []): Rule => ({
@@ -455,6 +461,74 @@ const CATEGORY_PRIORITY: string[] = [
   "office-technology",
 ];
 
+const FACET_CONFIG: Record<string, FacetOption[]> = {
+  printers: [
+    { id: "mono", label: "Mono", match: /\bmono\b/i },
+    { id: "colour", label: "Colour", match: /\bcolour\b|\bcolor\b/i },
+    { id: "mfp", label: "Multifunction", match: /\bmfp\b|multifunction|all in one/i },
+    { id: "wireless", label: "Wireless", match: /wireless|wi fi|wi-fi/i },
+    { id: "duplex", label: "Duplex", match: /duplex/i },
+  ],
+  scanners: [
+    { id: "a4", label: "A4", match: /\ba4\b/i },
+    { id: "a3", label: "A3", match: /\ba3\b/i },
+    { id: "portable", label: "Portable", match: /portable|mobile|handheld/i },
+    { id: "flatbed", label: "Flatbed", match: /flatbed|bookedge/i },
+    { id: "duplex", label: "Duplex", match: /duplex/i },
+  ],
+  "storage-networking": [
+    { id: "poe", label: "PoE", match: /\bpoe\b/i },
+    { id: "managed", label: "Managed", match: /managed/i },
+    { id: "wifi6", label: "Wi-Fi 6", match: /wi fi 6|wi-fi 6|wifi 6/i },
+    { id: "vpn", label: "VPN", match: /\bvpn\b/i },
+    { id: "gigabit", label: "Gigabit", match: /gigabit|gbe/i },
+  ],
+  "unified-communications": [
+    { id: "dect", label: "DECT", match: /\bdect\b/i },
+    { id: "speakerphone", label: "Speakerphone", match: /speakerphone|conference phone/i },
+    { id: "deskphone", label: "Desk Phone", match: /desk phone|ip phone|sip phone/i },
+    { id: "webcam", label: "Webcam", match: /webcam|usb camera/i },
+    { id: "headset", label: "Headset", match: /headset|headphones/i },
+  ],
+  "security-automation": [
+    { id: "poe", label: "PoE", match: /\bpoe\b/i },
+    { id: "rfid", label: "RFID", match: /\brfid\b/i },
+    { id: "intercom", label: "Intercom", match: /intercom|door station/i },
+    { id: "nvrdvr", label: "NVR / DVR", match: /\bnvr\b|\bdvr\b/i },
+    { id: "ptz", label: "PTZ", match: /\bptz\b/i },
+  ],
+  "ip-surveillance": [
+    { id: "poe", label: "PoE", match: /\bpoe\b/i },
+    { id: "ptz", label: "PTZ", match: /\bptz\b/i },
+    { id: "nvrdvr", label: "NVR / DVR", match: /\bnvr\b|\bdvr\b/i },
+    { id: "thermal", label: "Thermal", match: /thermal/i },
+    { id: "wireless", label: "Wireless", match: /wireless|wi fi|wi-fi/i },
+  ],
+  "audio-visual": [
+    { id: "4k", label: "4K / UHD", match: /\b4k\b|\buhd\b/i },
+    { id: "touch", label: "Touch", match: /touch|interactive/i },
+    { id: "signage", label: "Signage", match: /signage/i },
+    { id: "projector", label: "Projector", match: /projector/i },
+    { id: "mount", label: "Mount", match: /mount|bracket|wall mount/i },
+  ],
+  "print-consumables": [
+    { id: "ink", label: "Ink", match: /ink|printhead|maintenance box/i },
+    { id: "toner", label: "Toner", match: /toner|laser consumable/i },
+    { id: "drum", label: "Drum / Fuser", match: /drum|fuser|developer/i },
+    { id: "ribbon", label: "Ribbon / Tape", match: /ribbon|label tape/i },
+    { id: "filament", label: "Filament", match: /filament|pla|abs|petg/i },
+  ],
+};
+
+const getTopLevelCategory = (categorySlug: string) => {
+  if (CATEGORY_GROUPS[categorySlug]) {
+    return categorySlug;
+  }
+
+  const match = Object.entries(CATEGORY_GROUPS).find(([, slugs]) => slugs.includes(categorySlug));
+  return match?.[0] || categorySlug;
+};
+
 const inferDocumentCategory = (searchText: string) => {
   const hasPrinter = /(printer|print\b|mfp|multifunction|laserjet|officejet|ecotank|imageprograf|designjet|surecolor|pixma|workforce|ecosys|isensys|apeosprint)/i.test(searchText);
   const hasScanner = /scanner|scan snap|scansnap|document scanner|flatbed/i.test(searchText);
@@ -697,6 +771,7 @@ const ProductCategory = () => {
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
+  const [selectedFacets, setSelectedFacets] = useState<string[]>([]);
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
   const [sort, setSort] = useState("featured");
@@ -785,7 +860,7 @@ const ProductCategory = () => {
       if (!assigned) {
         assigned = inferTopLevelCategory(product, searchText);
       }
-      return { ...product, category: assigned };
+      return { ...product, category: assigned, searchText };
     });
   }, [products]);
 
@@ -826,6 +901,25 @@ const ProductCategory = () => {
     return [...preferredBrands, ...remainingBrands];
   }, [manufacturers, data.brands]);
 
+  const topLevelCategory = useMemo(
+    () => getTopLevelCategory(activeCategory),
+    [activeCategory],
+  );
+
+  const availableFacets = useMemo(() => {
+    const facets = FACET_CONFIG[topLevelCategory] || [];
+    return facets
+      .map((facet) => {
+        const count = categoryProducts.filter((product) => facet.match.test(product.searchText || "")).length;
+        return { ...facet, count };
+      })
+      .filter((facet) => facet.count > 0);
+  }, [categoryProducts, topLevelCategory]);
+
+  const facetById = useMemo(() => {
+    return new Map(availableFacets.map((facet) => [facet.id, facet]));
+  }, [availableFacets]);
+
   const normalizedSelectedBrands = useMemo(
     () => new Set(selectedBrands.map((brand) => normalizeKey(brand))),
     [selectedBrands],
@@ -850,6 +944,16 @@ const ProductCategory = () => {
     );
   }, [manufacturers]);
 
+  useEffect(() => {
+    setSelectedFacets((prev) => prev.filter((id) => facetById.has(id)));
+  }, [facetById]);
+
+  const toggleFacet = (facetId: string) => {
+    setSelectedFacets((prev) =>
+      prev.includes(facetId) ? prev.filter((id) => id !== facetId) : [...prev, facetId],
+    );
+  };
+
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
@@ -869,6 +973,13 @@ const ProductCategory = () => {
       }
 
       if (!Number.isNaN(parsedMax) && maxPrice.trim() !== "" && (product.price === null || product.price > parsedMax)) {
+        return false;
+      }
+
+      if (
+        selectedFacets.length > 0 &&
+        !selectedFacets.some((facetId) => facetById.get(facetId)?.match.test(product.searchText || ""))
+      ) {
         return false;
       }
 
@@ -939,11 +1050,13 @@ const ProductCategory = () => {
   }, [
     activeCategory,
     categoryProducts,
+    facetById,
     featuredRankings,
     maxPrice,
     minPrice,
     normalizedSelectedBrands,
     query,
+    selectedFacets,
     sort,
   ]);
 
@@ -962,7 +1075,7 @@ const ProductCategory = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [maxPrice, minPrice, query, selectedBrands, sort]);
+  }, [maxPrice, minPrice, query, selectedBrands, selectedFacets, sort]);
 
   const pricedCount = useMemo(
     () => categoryProducts.filter((product) => product.price !== null).length,
@@ -988,6 +1101,18 @@ const ProductCategory = () => {
       });
     });
 
+    selectedFacets.forEach((facetId) => {
+      const facet = facetById.get(facetId);
+      if (!facet) {
+        return;
+      }
+      chips.push({
+        key: `facet-${facetId}`,
+        label: facet.label,
+        onRemove: () => toggleFacet(facetId),
+      });
+    });
+
     if (minPrice.trim() || maxPrice.trim()) {
       chips.push({
         key: "price",
@@ -1000,11 +1125,12 @@ const ProductCategory = () => {
     }
 
     return chips;
-  }, [maxPrice, minPrice, query, selectedBrands]);
+  }, [facetById, maxPrice, minPrice, query, selectedBrands, selectedFacets]);
 
   const clearAllFilters = () => {
     setQuery("");
     setSelectedBrands([]);
+    setSelectedFacets([]);
     setMinPrice("");
     setMaxPrice("");
     setSort("featured");
@@ -1096,6 +1222,39 @@ const ProductCategory = () => {
                     );
                   })}
                 </div>
+
+                {availableFacets.length > 0 ? (
+                  <div className="mt-6 border-t border-border/60 pt-6">
+                    <h4 className="font-semibold text-foreground mb-1">Product Features</h4>
+                    <p className="mb-3 text-xs text-muted-foreground">
+                      Filter by features relevant to this category.
+                    </p>
+                    <div className="space-y-2">
+                      {availableFacets.map((facet) => {
+                        const checked = selectedFacets.includes(facet.id);
+                        return (
+                          <label
+                            key={facet.id}
+                            className="flex items-center justify-between gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent"
+                          >
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                checked={checked}
+                                onChange={() => toggleFacet(facet.id)}
+                                className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                              />
+                              <span className={checked ? "text-accent font-semibold" : ""}>
+                                {facet.label}
+                              </span>
+                            </div>
+                            <span className="text-xs text-muted-foreground">{facet.count}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
 
                 <div className="mt-6 border-t border-border/60 pt-6">
                   <h4 className="font-semibold text-foreground mb-3">Price Range</h4>
