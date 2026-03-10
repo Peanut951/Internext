@@ -1,144 +1,141 @@
-import Layout from "@/components/layout/Layout";
 import { Link } from "react-router-dom";
-import { Users, Award, Target, Heart, ArrowRight } from "lucide-react";
+import { ArrowRight, Building2, Gauge, Handshake, ShieldCheck, Users } from "lucide-react";
+import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+
+const valueCards = [
+  {
+    icon: Handshake,
+    title: "Reseller First",
+    text: "We help partners keep customer ownership while scaling product access and fulfilment confidence.",
+  },
+  {
+    icon: Gauge,
+    title: "Operationally Practical",
+    text: "Faster quoting, cleaner product coverage, and support that is useful in real commercial pressure.",
+  },
+  {
+    icon: ShieldCheck,
+    title: "Dependable Delivery",
+    text: "A stable supply model focused on consistency, responsiveness, and professional execution.",
+  },
+];
+
+const stats = [
+  { value: "7,500+", label: "Products in catalogue" },
+  { value: "500+", label: "Australian reseller partners" },
+  { value: "Statewide", label: "Coverage across business and government" },
+];
 
 const AboutIndex = () => {
   return (
     <Layout>
-      {/* Hero */}
-      <section className="bg-gradient-hero py-20 md:py-28">
-        <div className="container-wide">
-          <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-6">
-              About Internext
-            </h1>
-            <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              We're Australia's trusted technology distributor, dedicated to empowering 
-              resellers with the products, services, and support they need to succeed.
-            </p>
-          </div>
-        </div>
-      </section>
+      <section className="relative overflow-hidden bg-gradient-hero py-20 md:py-28">
+        <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="container-wide relative">
+          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] xl:items-end">
+            <div className="max-w-4xl">
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent/90">
+                About Internext
+              </p>
+              <h1 className="mt-4 text-4xl font-bold leading-tight text-primary-foreground md:text-6xl">
+                Built to help Australian resellers move faster with less friction.
+              </h1>
+              <p className="mt-6 max-w-3xl text-lg leading-relaxed text-primary-foreground/80 md:text-xl">
+                Internext supports technology resellers with stronger product access, practical commercial support, and reliable fulfilment
+                execution while keeping your customer experience under your own brand.
+              </p>
 
-      {/* Mission & Vision */}
-      <section className="section-padding bg-background">
-        <div className="container-wide">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div>
-              <h2 className="text-3xl font-bold text-foreground mb-6">Our Mission</h2>
-              <p className="text-muted-foreground text-lg leading-relaxed mb-6">
-                Internext was founded with a simple mission: to be the distributor that 
-                truly understands what resellers need. We bridge the gap between global 
-                technology brands and Australian businesses, providing not just products, 
-                but complete solutions.
-              </p>
-              <p className="text-muted-foreground leading-relaxed">
-                From our state-of-the-art warehouse facilities to our dedicated account 
-                management team, every aspect of our operation is designed to make your 
-                business more successful.
-              </p>
-            </div>
-            <div className="bg-secondary rounded-2xl p-8">
-              <div className="aspect-video bg-muted rounded-xl flex items-center justify-center">
-                <span className="text-muted-foreground">Company Video</span>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                <Button asChild size="lg" variant="hero" className="gap-2">
+                  <Link to="/about/why-partner">
+                    Why Partner With Us
+                    <ArrowRight className="h-5 w-5" />
+                  </Link>
+                </Button>
+                <Button asChild size="lg" variant="hero-outline" className="gap-2">
+                  <Link to="/about/customers">
+                    Who We Support
+                    <Users className="h-5 w-5" />
+                  </Link>
+                </Button>
               </div>
             </div>
-          </div>
-        </div>
-      </section>
 
-      {/* Values */}
-      <section className="section-padding bg-secondary">
-        <div className="container-wide">
-          <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Our Core Values
-            </h2>
-            <p className="text-muted-foreground max-w-2xl mx-auto">
-              These principles guide everything we do at Internext
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { icon: Users, title: "Partnership First", desc: "We succeed when our partners succeed. Your growth is our priority." },
-              { icon: Award, title: "Excellence", desc: "We strive for excellence in every interaction, every delivery, every day." },
-              { icon: Target, title: "Reliability", desc: "Count on us for accurate information, timely delivery, and consistent service." },
-              { icon: Heart, title: "Integrity", desc: "Honest communication and transparent business practices in all we do." },
-            ].map((value) => (
-              <div key={value.title} className="bg-card rounded-xl p-6 shadow-card">
-                <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mb-4">
-                  <value.icon className="h-6 w-6 text-accent" />
+            <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/10 p-6 backdrop-blur-sm">
+              <div className="rounded-2xl border border-primary-foreground/15 bg-navy-dark/55 p-5">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-xl bg-accent/15 p-2 text-accent">
+                    <Building2 className="h-5 w-5" />
+                  </div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent/90">
+                    Internext Snapshot
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-foreground mb-2">{value.title}</h3>
-                <p className="text-muted-foreground text-sm">{value.desc}</p>
+                <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                  {stats.map((item) => (
+                    <div key={item.value} className="rounded-xl border border-primary-foreground/15 bg-primary-foreground/8 px-4 py-3">
+                      <p className="text-2xl font-bold text-primary-foreground">{item.value}</p>
+                      <p className="mt-1 text-sm leading-relaxed text-primary-foreground/75">{item.label}</p>
+                    </div>
+                  ))}
+                </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Stats */}
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {[
-              { number: "15+", label: "Years in Business" },
-              { number: "500+", label: "Active Resellers" },
-              { number: "50+", label: "Brand Partners" },
-              { number: "10K+", label: "Products Available" },
-            ].map((stat) => (
-              <div key={stat.label} className="text-center">
-                <div className="text-4xl md:text-5xl font-bold text-accent mb-2">{stat.number}</div>
-                <div className="text-muted-foreground">{stat.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Quick Links */}
-      <section className="section-padding bg-secondary">
-        <div className="container-wide">
-          <h2 className="text-2xl font-bold text-foreground mb-8 text-center">Learn More About Us</h2>
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {[
-              { title: "Why Partner With Us", desc: "Discover the benefits of becoming an Internext partner", href: "/about/why-partner" },
-              { title: "Meet the Team", desc: "Get to know the people behind Internext", href: "/about/team" },
-              { title: "Join Our Team", desc: "Explore career opportunities with us", href: "/contact" },
-              { title: "Our Customers", desc: "See the industries and businesses we serve", href: "/about/customers" },
-            ].map((link) => (
-              <Link
-                key={link.title}
-                to={link.href}
-                className="bg-card rounded-xl p-6 shadow-card hover:shadow-elevated transition-shadow group"
+          <div className="grid gap-6 lg:grid-cols-3">
+            {valueCards.map((card, index) => (
+              <article
+                key={card.title}
+                className="group rounded-[1.5rem] border border-border/60 bg-card p-7 shadow-card transition-all duration-300 hover:-translate-y-1 hover:shadow-elevated animate-fade-in-up"
+                style={{ animationDelay: `${index * 0.08}s` }}
               >
-                <h3 className="text-lg font-semibold text-foreground mb-2 group-hover:text-accent transition-colors">
-                  {link.title}
-                </h3>
-                <p className="text-muted-foreground text-sm mb-4">{link.desc}</p>
-                <span className="inline-flex items-center text-accent text-sm font-medium">
-                  Learn more <ArrowRight className="ml-1 h-4 w-4" />
-                </span>
-              </Link>
+                <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+                  <card.icon className="h-6 w-6" />
+                </div>
+                <h2 className="mt-5 text-2xl font-semibold text-foreground">{card.title}</h2>
+                <p className="mt-3 leading-relaxed text-muted-foreground">{card.text}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-16 bg-primary">
-        <div className="container-wide text-center">
-          <h2 className="text-2xl md:text-3xl font-bold text-primary-foreground mb-4">
-            Ready to Partner With Us?
-          </h2>
-          <p className="text-primary-foreground/80 mb-6 max-w-xl mx-auto">
-            Join hundreds of successful Australian resellers who trust Internext for their technology distribution needs.
-          </p>
-          <Button variant="hero" asChild>
-            <Link to="/login/register">Become a Reseller</Link>
-          </Button>
+      <section className="bg-secondary py-16 md:py-20">
+        <div className="container-wide">
+          <div className="rounded-[1.75rem] border border-border/60 bg-card p-8 shadow-card md:p-10">
+            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+              <div className="max-w-3xl">
+                <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">Next Steps</p>
+                <h2 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
+                  Learn more about the people, customers, and partner model behind Internext.
+                </h2>
+                <p className="mt-4 text-muted-foreground leading-relaxed">
+                  Explore how we work, where we support partners, and the practical model we use to help reseller businesses grow.
+                </p>
+              </div>
+
+              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
+                <Button asChild variant="outline" className="justify-between">
+                  <Link to="/about/team">
+                    Meet The Team
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+                <Button asChild variant="default" className="justify-between">
+                  <Link to="/contact">
+                    Contact Internext
+                    <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </Layout>
