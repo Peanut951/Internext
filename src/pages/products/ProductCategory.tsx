@@ -1190,7 +1190,7 @@ const ProductCategory = () => {
         <div className="container-wide">
           <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
-              <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24">
+              <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
                 <h3 className="font-semibold text-foreground mb-1">Brands</h3>
                 <p className="mb-4 text-sm text-muted-foreground">
                   Select one or more brands for this category.
