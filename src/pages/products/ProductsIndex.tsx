@@ -41,7 +41,7 @@ const QUICK_SEARCHES = [
   "Hisense display",
 ];
 
-const SEARCH_PREVIEW_LIMIT = 6;
+const SEARCH_PREVIEW_LIMIT = 24;
 
 const categories = [
   {
@@ -252,9 +252,13 @@ const ProductsIndex = () => {
     setSearchQuery(value);
   };
 
-  const searchPreviewMatches = useMemo(
-    () => searchCatalogProducts(products, searchQuery).slice(0, SEARCH_PREVIEW_LIMIT),
+  const allSearchMatches = useMemo(
+    () => searchCatalogProducts(products, searchQuery),
     [products, searchQuery],
+  );
+  const searchPreviewMatches = useMemo(
+    () => allSearchMatches.slice(0, SEARCH_PREVIEW_LIMIT),
+    [allSearchMatches],
   );
 
   const queryTooShort = searchQuery.trim().length > 0 && searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
@@ -352,7 +356,7 @@ const ProductsIndex = () => {
                           Top matches for "{searchQuery}"
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Click a product below, or press Search to open the full results page.
+                          Showing {searchPreviewMatches.length} of {allSearchMatches.length} matches while you type.
                         </p>
                       </div>
                       <Button asChild variant="outline" size="sm">
@@ -362,41 +366,43 @@ const ProductsIndex = () => {
                       </Button>
                     </div>
 
-                    {searchPreviewMatches.map(({ product }, index) => {
-                      const image = getPrimaryProductImage(product);
-                      const price = formatPrice(product.price) ?? product.priceText ?? "POA";
+                    <div className="max-h-[520px] overflow-y-auto">
+                      {searchPreviewMatches.map(({ product }, index) => {
+                        const image = getPrimaryProductImage(product);
+                        const price = formatPrice(product.price) ?? product.priceText ?? "POA";
 
-                      return (
-                        <Link
-                          key={`${product.code}-${index}`}
-                          to={`/products/item/${encodeURIComponent(product.code)}`}
-                          className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 ${
-                            index < searchPreviewMatches.length - 1 ? "border-b border-border/40" : ""
-                          }`}
-                        >
-                          <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
-                            <img
-                              src={image}
-                              alt={product.description}
-                              loading="lazy"
-                              onError={handleProductImageError}
-                              className="h-full w-full object-contain"
-                            />
-                          </div>
-                          <div className="min-w-0">
-                            <p className="break-words font-medium leading-snug text-foreground">
-                              {product.description}
+                        return (
+                          <Link
+                            key={`${product.code}-${index}`}
+                            to={`/products/item/${encodeURIComponent(product.code)}`}
+                            className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 ${
+                              index < searchPreviewMatches.length - 1 ? "border-b border-border/40" : ""
+                            }`}
+                          >
+                            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
+                              <img
+                                src={image}
+                                alt={product.description}
+                                loading="lazy"
+                                onError={handleProductImageError}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="break-words font-medium leading-snug text-foreground">
+                                {product.description}
+                              </p>
+                              <p className="text-sm break-words text-muted-foreground">
+                                {product.manufacturer || "Unbranded"} - Code: {product.code}
+                              </p>
+                            </div>
+                            <p className="whitespace-nowrap text-sm font-semibold text-foreground">
+                              {price}
                             </p>
-                            <p className="text-sm break-words text-muted-foreground">
-                              {product.manufacturer || "Unbranded"} - Code: {product.code}
-                            </p>
-                          </div>
-                          <p className="whitespace-nowrap text-sm font-semibold text-foreground">
-                            {price}
-                          </p>
-                        </Link>
-                      );
-                    })}
+                          </Link>
+                        );
+                      })}
+                    </div>
                   </>
                 )}
               </div>
