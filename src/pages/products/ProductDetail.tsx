@@ -52,36 +52,78 @@ const saveStoredCart = (items: CartItem[]) => {
   window.localStorage.setItem("internext-cart", JSON.stringify(items));
 };
 
+const normalizeHighlight = (value: string) => {
+  const cleaned = value.replace(/\s+/g, " ").trim();
+  const lower = cleaned.toLowerCase();
+
+  const replacements: Record<string, string> = {
+    wifi: "Wi-Fi",
+    "wi-fi": "Wi-Fi",
+    "wi fi": "Wi-Fi",
+    poe: "PoE",
+    "poe+": "PoE+",
+    "poe++": "PoE++",
+    rfid: "RFID",
+    sip: "SIP",
+    lte: "LTE",
+    dect: "DECT",
+    ptz: "PTZ",
+    uhd: "UHD",
+    fhd: "FHD",
+    a3: "A3",
+    a4: "A4",
+    "4k": "4K",
+    "5g": "5G",
+    hdmi: "HDMI",
+    usb: "USB",
+  };
+
+  return replacements[lower] || cleaned;
+};
+
 const extractSpecHighlights = (product: CatalogProduct) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
+  const source = `${product.description} ${product.longDescription || ""} ${product.code} ${product.supplierCode || ""}`;
   const patterns = [
     /\b\d+(?:\.\d+)?\s?(?:"|inch)\b/gi,
+    /\b(?:hd|full hd|fhd|uhd|4k)\b/gi,
     /\b\d+(?:\.\d+)?\s?(?:ppm|dpi|nit|nits|gb|tb|mp|fps|hz|w|va)\b/gi,
-    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE|RFID|Bluetooth|Android|Linux|Duplex|Touchscreen|SIP|LTE|5G)\b/gi,
+    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE\+\+|PoE\+|PoE|RFID|Bluetooth|Android(?:\s?\d+)?|Linux(?:\sBased)?|Duplex|Touchscreen|SIP|LTE|5G|DECT|PTZ|HDMI|USB)\b/gi,
     /\b\d+\s?(?:port|ports|user|users|channel|channels)\b/gi,
+    /\b(?:indoor|outdoor|on-wall|flush mount|surface mount|wall mount|ceiling mount)\b/gi,
+    /\b(?:white|black|silver|grey|gray)\b/gi,
+    /\b(?:camera|monitor|intercom|router|switch|gateway|access point|speakerphone|headset|projector|display)\b/gi,
+    /\b\d+\s?wire\b/gi,
   ];
 
   const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
-  const cleaned = matches
-    .map((item) => item.replace(/\s+/g, " ").trim())
-    .map((item) => {
-      const lower = item.toLowerCase();
-      if (lower === "wifi" || lower === "wi-fi") return "Wi-Fi";
-      if (lower === "poe") return "PoE";
-      if (lower === "rfid") return "RFID";
-      if (lower === "sip") return "SIP";
-      if (lower === "lte") return "LTE";
-      if (lower === "uhd") return "UHD";
-      if (lower === "fhd") return "FHD";
-      if (lower === "a3") return "A3";
-      if (lower === "a4") return "A4";
-      if (lower === "4k") return "4K";
-      if (lower === "5g") return "5G";
-      return item;
-    })
+  const titlePhrasePatterns = [
+    /\b(?:indoor unit|outdoor station|door station|ip phone|video monitor|touch monitor|access point|wall mount|surface mount|flush mount)\b/gi,
+    /\b(?:android version|linux based|wifi 6|wifi 6e|gigabit vpn|line interactive|digital signage)\b/gi,
+  ];
+  const titlePhrases = titlePhrasePatterns.flatMap((pattern) => product.description.match(pattern) || []);
+
+  const cleaned = [...matches, ...titlePhrases]
+    .map(normalizeHighlight)
     .filter(Boolean);
 
   return Array.from(new Set(cleaned)).slice(0, 8);
+};
+
+const getFullDescriptionParagraphs = (product: CatalogProduct) => {
+  const text = String(product.longDescription || product.description || "").trim();
+  if (!text) {
+    return [];
+  }
+
+  const normalized = text.replace(/\s+/g, " ").trim();
+  const sentences = normalized.split(/(?<=[.!?])\s+/).filter(Boolean);
+  const paragraphs: string[] = [];
+
+  for (let index = 0; index < sentences.length; index += 2) {
+    paragraphs.push(sentences.slice(index, index + 2).join(" "));
+  }
+
+  return paragraphs.length > 0 ? paragraphs : [normalized];
 };
 
 const inferBestFor = (product: CatalogProduct, highlights: string[]) => {
@@ -221,6 +263,13 @@ const ProductDetail = () => {
     return getCatalogSummaryText(product);
   }, [product]);
 
+  const fullDescriptionParagraphs = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+    return getFullDescriptionParagraphs(product);
+  }, [product]);
+
   const productNotes = useMemo(() => {
     if (!product) {
       return [];
@@ -357,7 +406,7 @@ const ProductDetail = () => {
                       </h1>
 
                       <p className="mb-6 text-base leading-7 text-muted-foreground">
-                        {summaryText || product.longDescription || product.description}
+                        {summaryText || product.description}
                       </p>
 
                       {specHighlights.length > 0 ? (
@@ -395,6 +444,21 @@ const ProductDetail = () => {
                     </div>
                   </div>
                 </div>
+
+                {fullDescriptionParagraphs.length > 0 ? (
+                  <div className="bg-card rounded-2xl border border-border/50 p-5 shadow-card md:p-6">
+                    <h2 className="text-sm font-semibold tracking-[0.18em] text-accent uppercase mb-4">
+                      Full Description
+                    </h2>
+                    <div className="space-y-4">
+                      {fullDescriptionParagraphs.map((paragraph, index) => (
+                        <p key={`${product.code}-desc-${index}`} className="text-base leading-7 text-muted-foreground">
+                          {paragraph}
+                        </p>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
               </div>
 
               <aside className="h-fit rounded-2xl border border-border/50 bg-card p-5 shadow-card lg:sticky lg:top-24 md:p-6">
