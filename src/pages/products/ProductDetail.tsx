@@ -84,8 +84,9 @@ const extractSpecHighlights = (product: CatalogProduct) => {
   return Array.from(new Set(cleaned)).slice(0, 8);
 };
 
-const inferBestFor = (product: CatalogProduct) => {
+const inferBestFor = (product: CatalogProduct, highlights: string[]) => {
   const source = `${product.description} ${product.longDescription || ""}`;
+  const highlightText = highlights.length > 0 ? `around ${highlights.slice(0, 2).join(" and ")}` : "around the stated product requirements";
 
   if (/(intercom|access control|door station|rfid|biometric|camera|surveillance|nvr|dvr)/i.test(source)) {
     return "Security, monitoring, and controlled-access environments";
@@ -103,11 +104,12 @@ const inferBestFor = (product: CatalogProduct) => {
     return "Commercial presentation, signage, and AV installations";
   }
 
-  return "Professional commercial and reseller-led installations";
+  return `Commercial environments evaluating solutions ${highlightText}`;
 };
 
-const inferDeploymentNote = (product: CatalogProduct) => {
+const inferDeploymentNote = (product: CatalogProduct, highlights: string[]) => {
   const source = `${product.description} ${product.longDescription || ""}`;
+  const firstHighlight = highlights[0];
 
   if (/(poe|wired|ethernet)/i.test(source)) {
     return "Designed for straightforward deployment into structured, wired environments.";
@@ -121,8 +123,34 @@ const inferDeploymentNote = (product: CatalogProduct) => {
   if (/(4k|uhd|display|panel|projector)/i.test(source)) {
     return "Best presented with clear visual messaging and room-fit planning.";
   }
+  if (firstHighlight) {
+    return `Useful where ${firstHighlight} is part of the specification and the rollout needs a practical, low-friction option.`;
+  }
 
   return "Best positioned as a dependable, practical option inside a broader project solution.";
+};
+
+const inferCommercialNote = (product: CatalogProduct, highlights: string[]) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+  const specLead = highlights.length > 0 ? `with ${highlights.slice(0, 2).join(" and ")}` : "with the listed product specification";
+
+  if (product.price === null) {
+    return "Priced on application. Use this where quoting depends on project scope, supply timing, or final configuration.";
+  }
+  if (/(toner|ink|drum|fuser|consumable|filament)/i.test(source)) {
+    return `Visible pricing makes this easy to position as a repeat-purchase line item ${specLead}.`;
+  }
+  if (/(printer|scanner|mfp|document)/i.test(source)) {
+    return `Visible pricing makes this straightforward to compare during shortlist and quote work ${specLead}.`;
+  }
+  if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
+    return `Commercially, this works best as an infrastructure option when comparing capability and rollout value ${specLead}.`;
+  }
+  if (/(display|panel|signage|projector|mount)/i.test(source)) {
+    return `Commercially, this is easiest to position when the visual spec and install context are being compared side by side ${specLead}.`;
+  }
+
+  return `Visible pricing makes this straightforward to position for quoting and fast comparison ${specLead}.`;
 };
 
 const ProductDetail = () => {
@@ -201,24 +229,21 @@ const ProductDetail = () => {
     return [
       {
         title: "Best Fit",
-        text: inferBestFor(product),
+        text: inferBestFor(product, specHighlights),
         icon: ShieldCheck,
       },
       {
         title: "Deployment Note",
-        text: inferDeploymentNote(product),
+        text: inferDeploymentNote(product, specHighlights),
         icon: Sparkles,
       },
       {
         title: "Commercial View",
-        text:
-          product.price === null
-            ? "Priced on application. Use this where quoting usually depends on project scope or supply conditions."
-            : "Visible pricing makes this straightforward to position for quoting and fast comparison.",
+        text: inferCommercialNote(product, specHighlights),
         icon: ShoppingBag,
       },
     ];
-  }, [product]);
+  }, [product, specHighlights]);
 
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
@@ -353,7 +378,7 @@ const ProductDetail = () => {
                         </div>
                       ) : null}
 
-                      <div className="grid gap-3 md:grid-cols-3">
+                      <div className="grid gap-3 lg:grid-cols-3">
                         {productNotes.map((note) => (
                           <div
                             key={note.title}
