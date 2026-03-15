@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles } from "lucide-react";
 import {
   getProductImageCandidates,
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 type CatalogProduct = {
   code: string;
@@ -84,6 +84,47 @@ const extractSpecHighlights = (product: CatalogProduct) => {
   return Array.from(new Set(cleaned)).slice(0, 8);
 };
 
+const inferBestFor = (product: CatalogProduct) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+
+  if (/(intercom|access control|door station|rfid|biometric|camera|surveillance|nvr|dvr)/i.test(source)) {
+    return "Security, monitoring, and controlled-access environments";
+  }
+  if (/(printer|scanner|mfp|document|toner|ink)/i.test(source)) {
+    return "Office print, scanning, and document workflow environments";
+  }
+  if (/(router|switch|access point|network|storage|nas|vpn)/i.test(source)) {
+    return "Managed network, infrastructure, and business connectivity deployments";
+  }
+  if (/(headset|conference|voip|sip|speakerphone|webcam)/i.test(source)) {
+    return "Business communications and collaboration setups";
+  }
+  if (/(display|panel|signage|projector|interactive|mount)/i.test(source)) {
+    return "Commercial presentation, signage, and AV installations";
+  }
+
+  return "Professional commercial and reseller-led installations";
+};
+
+const inferDeploymentNote = (product: CatalogProduct) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+
+  if (/(poe|wired|ethernet)/i.test(source)) {
+    return "Designed for straightforward deployment into structured, wired environments.";
+  }
+  if (/(wireless|wifi|wi-fi|bluetooth|dect)/i.test(source)) {
+    return "Useful where flexibility and reduced cabling matter during rollout.";
+  }
+  if (/(duplex|ppm|scan|document)/i.test(source)) {
+    return "Built for repeatable day-to-day document throughput rather than occasional use.";
+  }
+  if (/(4k|uhd|display|panel|projector)/i.test(source)) {
+    return "Best presented with clear visual messaging and room-fit planning.";
+  }
+
+  return "Best positioned as a dependable, practical option inside a broader project solution.";
+};
+
 const ProductDetail = () => {
   const { code } = useParams();
   const productCode = code || "";
@@ -145,6 +186,40 @@ const ProductDetail = () => {
     return extractSpecHighlights(product);
   }, [product]);
 
+  const summaryText = useMemo(() => {
+    if (!product) {
+      return "";
+    }
+    return getCatalogSummaryText(product);
+  }, [product]);
+
+  const productNotes = useMemo(() => {
+    if (!product) {
+      return [];
+    }
+
+    return [
+      {
+        title: "Best Fit",
+        text: inferBestFor(product),
+        icon: ShieldCheck,
+      },
+      {
+        title: "Deployment Note",
+        text: inferDeploymentNote(product),
+        icon: Sparkles,
+      },
+      {
+        title: "Commercial View",
+        text:
+          product.price === null
+            ? "Priced on application. Use this where quoting usually depends on project scope or supply conditions."
+            : "Visible pricing makes this straightforward to position for quoting and fast comparison.",
+        icon: ShoppingBag,
+      },
+    ];
+  }, [product]);
+
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
   }, [galleryImages]);
@@ -195,12 +270,12 @@ const ProductDetail = () => {
           )}
 
           {!loading && !error && product && (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_420px]">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] xl:gap-8">
               <div className="space-y-6">
-                <div className="bg-card rounded-2xl p-6 shadow-card border border-border/50">
+                <div className="bg-card rounded-2xl border border-border/50 p-5 shadow-card md:p-6">
                   <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
                     <div>
-                      <div className="aspect-square rounded-2xl bg-secondary/60 flex items-center justify-center overflow-hidden mb-4">
+                      <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
                         {activeImage ? (
                           <img
                             src={activeImage}
@@ -214,7 +289,7 @@ const ProductDetail = () => {
                         )}
                       </div>
                       {galleryImages.length > 1 ? (
-                        <div className="grid grid-cols-5 gap-2">
+                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
                           {galleryImages.map((img) => (
                             <button
                               key={img}
@@ -238,7 +313,7 @@ const ProductDetail = () => {
                     </div>
 
                     <div className="flex flex-col">
-                      <div className="flex flex-wrap gap-2 mb-4">
+                      <div className="mb-4 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
                           {product.manufacturer || "Unbranded"}
                         </span>
@@ -252,12 +327,12 @@ const ProductDetail = () => {
                         ) : null}
                       </div>
 
-                      <h1 className="text-3xl font-bold leading-tight text-foreground mb-4">
+                      <h1 className="mb-4 text-3xl font-bold leading-tight text-foreground md:text-4xl">
                         {product.description}
                       </h1>
 
-                      <p className="text-base leading-7 text-muted-foreground mb-6">
-                        {product.longDescription || product.description}
+                      <p className="mb-6 text-base leading-7 text-muted-foreground">
+                        {summaryText || product.longDescription || product.description}
                       </p>
 
                       {specHighlights.length > 0 ? (
@@ -277,12 +352,27 @@ const ProductDetail = () => {
                           </div>
                         </div>
                       ) : null}
+
+                      <div className="grid gap-3 md:grid-cols-3">
+                        {productNotes.map((note) => (
+                          <div
+                            key={note.title}
+                            className="rounded-2xl border border-border/60 bg-secondary/40 p-4"
+                          >
+                            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
+                              <note.icon className="h-5 w-5" />
+                            </div>
+                            <p className="text-sm font-semibold text-foreground">{note.title}</p>
+                            <p className="mt-2 text-sm leading-6 text-muted-foreground">{note.text}</p>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
 
-              <aside className="bg-card rounded-2xl p-6 shadow-card border border-border/50 h-fit lg:sticky lg:top-24">
+              <aside className="h-fit rounded-2xl border border-border/50 bg-card p-5 shadow-card lg:sticky lg:top-24 md:p-6">
                 <p className="text-sm text-muted-foreground mb-2">Price</p>
                 <p className="text-3xl font-bold text-foreground mb-2">{displayPrice}</p>
                 {product.rrp ? (
@@ -295,11 +385,11 @@ const ProductDetail = () => {
 
                 <div className="mb-5">
                   <p className="text-sm font-medium text-foreground mb-2">Quantity</p>
-                  <div className="inline-flex items-center gap-2">
+                  <div className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/35 p-1">
                     <button
                       type="button"
                       onClick={() => setQty((value) => Math.max(1, value - 1))}
-                      className="h-9 w-9 border border-border rounded-md flex items-center justify-center hover:bg-secondary"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
@@ -307,7 +397,7 @@ const ProductDetail = () => {
                     <button
                       type="button"
                       onClick={() => setQty((value) => value + 1)}
-                      className="h-9 w-9 border border-border rounded-md flex items-center justify-center hover:bg-secondary"
+                      className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
                     >
                       <Plus className="h-4 w-4" />
                     </button>
@@ -325,6 +415,13 @@ const ProductDetail = () => {
                 <Button variant="outline" className="w-full mt-3" asChild>
                   <Link to="/products">Browse More Products</Link>
                 </Button>
+
+                <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">
+                  <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Use the product code <span className="font-medium text-foreground">{product.code}</span> when discussing this item with sales or comparing options across your shortlist.
+                  </p>
+                </div>
               </aside>
             </div>
           )}

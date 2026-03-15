@@ -300,7 +300,7 @@ const ProductSearch = () => {
                         className="group rounded-2xl border border-border/60 bg-background p-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-card"
                       >
                         <div className="grid gap-4 sm:grid-cols-[112px_minmax(0,1fr)]">
-                          <div className="aspect-square overflow-hidden rounded-xl border border-border/50 bg-white">
+                          <div className="aspect-square overflow-hidden rounded-xl border border-border/50 bg-white max-sm:max-w-[112px]">
                             <img
                               src={image}
                               alt={product.description}
@@ -326,7 +326,7 @@ const ProductSearch = () => {
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">
                               {getCatalogSummaryText(product)}
                             </p>
-                            <div className="mt-4 flex items-center justify-between gap-3">
+                            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <span className="text-xl font-bold text-foreground">
                                 {formatPrice(product.price) ?? product.priceText ?? "POA"}
                               </span>

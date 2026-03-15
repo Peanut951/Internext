@@ -1171,6 +1171,105 @@ const ProductCategory = () => {
     }, 0);
   }, [cartItems]);
 
+  const filterPanelContent = (
+    <>
+      <h3 className="font-semibold text-foreground mb-1">Brands</h3>
+      <p className="mb-4 text-sm text-muted-foreground">
+        Select one or more brands for this category.
+      </p>
+      <div className="space-y-2">
+        <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
+          <input
+            type="checkbox"
+            checked={selectedBrands.length === 0}
+            onChange={() => setSelectedBrands([])}
+            className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+          />
+          <span className={selectedBrands.length === 0 ? "text-accent font-semibold" : ""}>
+            All Brands
+          </span>
+        </label>
+        {keyBrands.map((brand) => {
+          const checked = normalizedSelectedBrands.has(normalizeKey(brand));
+          return (
+            <label key={brand} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
+              <input
+                type="checkbox"
+                checked={checked}
+                onChange={() => toggleBrand(brand)}
+                className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+              />
+              <span className={checked ? "text-accent font-semibold" : ""}>{brand}</span>
+            </label>
+          );
+        })}
+      </div>
+
+      {availableFacets.length > 0 ? (
+        <div className="mt-6 border-t border-border/60 pt-6">
+          <h4 className="font-semibold text-foreground mb-1">Product Features</h4>
+          <p className="mb-3 text-xs text-muted-foreground">
+            Filter by features relevant to this category.
+          </p>
+          <div className="space-y-2">
+            {availableFacets.map((facet) => {
+              const checked = selectedFacets.includes(facet.id);
+              return (
+                <label
+                  key={facet.id}
+                  className="flex items-center justify-between gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent"
+                >
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={checked}
+                      onChange={() => toggleFacet(facet.id)}
+                      className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+                    />
+                    <span className={checked ? "text-accent font-semibold" : ""}>
+                      {facet.label}
+                    </span>
+                  </div>
+                  <span className="text-xs text-muted-foreground">{facet.count}</span>
+                </label>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="mt-6 border-t border-border/60 pt-6">
+        <h4 className="font-semibold text-foreground mb-3">Price Range</h4>
+        <div className="grid grid-cols-2 gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Min
+            </label>
+            <Input
+              inputMode="numeric"
+              placeholder="0"
+              value={minPrice}
+              onChange={(event) => setMinPrice(event.target.value.replace(/[^\d]/g, ""))}
+              className="bg-secondary border-0"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
+              Max
+            </label>
+            <Input
+              inputMode="numeric"
+              placeholder="Any"
+              value={maxPrice}
+              onChange={(event) => setMaxPrice(event.target.value.replace(/[^\d]/g, ""))}
+              className="bg-secondary border-0"
+            />
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <Layout>
       <section className="bg-gradient-hero py-16 md:py-24">
@@ -1190,101 +1289,17 @@ const ProductCategory = () => {
         <div className="container-wide">
           <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
-              <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
-                <h3 className="font-semibold text-foreground mb-1">Brands</h3>
-                <p className="mb-4 text-sm text-muted-foreground">
-                  Select one or more brands for this category.
-                </p>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-3 text-sm text-foreground cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={selectedBrands.length === 0}
-                      onChange={() => setSelectedBrands([])}
-                      className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                    />
-                    <span className={selectedBrands.length === 0 ? "text-accent font-semibold" : ""}>
-                      All Brands
-                    </span>
-                  </label>
-                  {keyBrands.map((brand) => {
-                    const checked = normalizedSelectedBrands.has(normalizeKey(brand));
-                    return (
-                      <label key={brand} className="flex items-center gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent">
-                        <input
-                          type="checkbox"
-                          checked={checked}
-                          onChange={() => toggleBrand(brand)}
-                          className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                        />
-                        <span className={checked ? "text-accent font-semibold" : ""}>{brand}</span>
-                      </label>
-                    );
-                  })}
+              <details className="lg:hidden rounded-xl border border-border/50 bg-card shadow-card" open>
+                <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-foreground">
+                  Filters
+                </summary>
+                <div className="border-t border-border/50 px-5 py-5">
+                  {filterPanelContent}
                 </div>
+              </details>
 
-                {availableFacets.length > 0 ? (
-                  <div className="mt-6 border-t border-border/60 pt-6">
-                    <h4 className="font-semibold text-foreground mb-1">Product Features</h4>
-                    <p className="mb-3 text-xs text-muted-foreground">
-                      Filter by features relevant to this category.
-                    </p>
-                    <div className="space-y-2">
-                      {availableFacets.map((facet) => {
-                        const checked = selectedFacets.includes(facet.id);
-                        return (
-                          <label
-                            key={facet.id}
-                            className="flex items-center justify-between gap-3 text-sm text-muted-foreground cursor-pointer hover:text-accent"
-                          >
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                checked={checked}
-                                onChange={() => toggleFacet(facet.id)}
-                                className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-                              />
-                              <span className={checked ? "text-accent font-semibold" : ""}>
-                                {facet.label}
-                              </span>
-                            </div>
-                            <span className="text-xs text-muted-foreground">{facet.count}</span>
-                          </label>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ) : null}
-
-                <div className="mt-6 border-t border-border/60 pt-6">
-                  <h4 className="font-semibold text-foreground mb-3">Price Range</h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        Min
-                      </label>
-                      <Input
-                        inputMode="numeric"
-                        placeholder="0"
-                        value={minPrice}
-                        onChange={(event) => setMinPrice(event.target.value.replace(/[^\d]/g, ""))}
-                        className="bg-secondary border-0"
-                      />
-                    </div>
-                    <div>
-                      <label className="mb-1 block text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                        Max
-                      </label>
-                      <Input
-                        inputMode="numeric"
-                        placeholder="Any"
-                        value={maxPrice}
-                        onChange={(event) => setMaxPrice(event.target.value.replace(/[^\d]/g, ""))}
-                        className="bg-secondary border-0"
-                      />
-                    </div>
-                  </div>
-                </div>
+              <div className="hidden lg:block bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+                {filterPanelContent}
               </div>
             </aside>
 

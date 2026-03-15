@@ -375,11 +375,11 @@ const ProductsIndex = () => {
                           <Link
                             key={`${product.code}-${index}`}
                             to={`/products/item/${encodeURIComponent(product.code)}`}
-                            className={`grid grid-cols-[64px_minmax(0,1fr)_auto] items-center gap-4 px-4 py-3 transition-colors hover:bg-secondary/60 ${
+                            className={`grid grid-cols-[56px_minmax(0,1fr)] gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:items-center sm:gap-4 ${
                               index < searchPreviewMatches.length - 1 ? "border-b border-border/40" : ""
                             }`}
                           >
-                            <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white">
+                            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white sm:h-16 sm:w-16">
                               <img
                                 src={image}
                                 alt={product.description}
@@ -396,7 +396,7 @@ const ProductsIndex = () => {
                                 {product.manufacturer || "Unbranded"} - Code: {product.code}
                               </p>
                             </div>
-                            <p className="whitespace-nowrap text-sm font-semibold text-foreground">
+                            <p className="col-start-2 whitespace-nowrap text-sm font-semibold text-foreground sm:col-start-auto">
                               {price}
                             </p>
                           </Link>
