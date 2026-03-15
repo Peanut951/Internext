@@ -384,6 +384,21 @@ const ProductDetail = () => {
                           ))}
                         </div>
                       ) : null}
+
+                      {fullDescriptionParagraphs.length > 0 ? (
+                        <div className="mt-6 rounded-2xl border border-border/50 bg-background p-5">
+                          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-accent">
+                            Full Description
+                          </h2>
+                          <div className="space-y-4">
+                            {fullDescriptionParagraphs.map((paragraph, index) => (
+                              <p key={`${product.code}-desc-${index}`} className="text-base leading-7 text-muted-foreground">
+                                {paragraph}
+                              </p>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
                     </div>
 
                     <div className="flex flex-col">
@@ -445,20 +460,6 @@ const ProductDetail = () => {
                   </div>
                 </div>
 
-                {fullDescriptionParagraphs.length > 0 ? (
-                  <div className="bg-card rounded-2xl border border-border/50 p-5 shadow-card md:p-6">
-                    <h2 className="text-sm font-semibold tracking-[0.18em] text-accent uppercase mb-4">
-                      Full Description
-                    </h2>
-                    <div className="space-y-4">
-                      {fullDescriptionParagraphs.map((paragraph, index) => (
-                        <p key={`${product.code}-desc-${index}`} className="text-base leading-7 text-muted-foreground">
-                          {paragraph}
-                        </p>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
               </div>
 
               <aside className="h-fit rounded-2xl border border-border/50 bg-card p-5 shadow-card lg:sticky lg:top-24 md:p-6">
