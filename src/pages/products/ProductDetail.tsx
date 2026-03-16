@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Minus, Plus, ShieldCheck, ShoppingBag, Sparkles } from "lucide-react";
+import { ArrowLeft, Minus, Plus } from "lucide-react";
 import {
   getProductImageCandidates,
   handleProductImageError,
@@ -206,75 +206,6 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
   return paragraphs;
 };
 
-const inferBestFor = (product: CatalogProduct, highlights: string[]) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
-  const highlightText = highlights.length > 0 ? `around ${highlights.slice(0, 2).join(" and ")}` : "around the stated product requirements";
-
-  if (/(intercom|access control|door station|rfid|biometric|camera|surveillance|nvr|dvr)/i.test(source)) {
-    return "Security, monitoring, and controlled-access environments";
-  }
-  if (/(printer|scanner|mfp|document|toner|ink)/i.test(source)) {
-    return "Office print, scanning, and document workflow environments";
-  }
-  if (/(router|switch|access point|network|storage|nas|vpn)/i.test(source)) {
-    return "Managed network, infrastructure, and business connectivity deployments";
-  }
-  if (/(headset|conference|voip|sip|speakerphone|webcam)/i.test(source)) {
-    return "Business communications and collaboration setups";
-  }
-  if (/(display|panel|signage|projector|interactive|mount)/i.test(source)) {
-    return "Commercial presentation, signage, and AV installations";
-  }
-
-  return `Commercial environments evaluating solutions ${highlightText}`;
-};
-
-const inferDeploymentNote = (product: CatalogProduct, highlights: string[]) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
-  const firstHighlight = highlights[0];
-
-  if (/(poe|wired|ethernet)/i.test(source)) {
-    return "Designed for straightforward deployment into structured, wired environments.";
-  }
-  if (/(wireless|wifi|wi-fi|bluetooth|dect)/i.test(source)) {
-    return "Useful where flexibility and reduced cabling matter during rollout.";
-  }
-  if (/(duplex|ppm|scan|document)/i.test(source)) {
-    return "Built for repeatable day-to-day document throughput rather than occasional use.";
-  }
-  if (/(4k|uhd|display|panel|projector)/i.test(source)) {
-    return "Best presented with clear visual messaging and room-fit planning.";
-  }
-  if (firstHighlight) {
-    return `Useful where ${firstHighlight} is part of the specification and the rollout needs a practical, low-friction option.`;
-  }
-
-  return "Best positioned as a dependable, practical option inside a broader project solution.";
-};
-
-const inferCommercialNote = (product: CatalogProduct, highlights: string[]) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
-  const specLead = highlights.length > 0 ? `with ${highlights.slice(0, 2).join(" and ")}` : "with the listed product specification";
-
-  if (product.price === null) {
-    return "Priced on application. Use this where quoting depends on project scope, supply timing, or final configuration.";
-  }
-  if (/(toner|ink|drum|fuser|consumable|filament)/i.test(source)) {
-    return `Visible pricing makes this easy to position as a repeat-purchase line item ${specLead}.`;
-  }
-  if (/(printer|scanner|mfp|document)/i.test(source)) {
-    return `Visible pricing makes this straightforward to compare during shortlist and quote work ${specLead}.`;
-  }
-  if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
-    return `Commercially, this works best as an infrastructure option when comparing capability and rollout value ${specLead}.`;
-  }
-  if (/(display|panel|signage|projector|mount)/i.test(source)) {
-    return `Commercially, this is easiest to position when the visual spec and install context are being compared side by side ${specLead}.`;
-  }
-
-  return `Visible pricing makes this straightforward to position for quoting and fast comparison ${specLead}.`;
-};
-
 const ProductDetail = () => {
   const { code } = useParams();
   const productCode = code || "";
@@ -336,42 +267,11 @@ const ProductDetail = () => {
     return extractSpecHighlights(product);
   }, [product]);
 
-  const summaryText = useMemo(() => {
-    if (!product) {
-      return "";
-    }
-    return buildProductIntro(product, specHighlights);
-  }, [product, specHighlights]);
-
   const fullDescriptionParagraphs = useMemo(() => {
     if (!product) {
       return [];
     }
     return buildFullDescriptionParagraphs(product, specHighlights);
-  }, [product, specHighlights]);
-
-  const productNotes = useMemo(() => {
-    if (!product) {
-      return [];
-    }
-
-    return [
-      {
-        title: "Best Fit",
-        text: inferBestFor(product, specHighlights),
-        icon: ShieldCheck,
-      },
-      {
-        title: "Deployment Note",
-        text: inferDeploymentNote(product, specHighlights),
-        icon: Sparkles,
-      },
-      {
-        title: "Commercial View",
-        text: inferCommercialNote(product, specHighlights),
-        icon: ShoppingBag,
-      },
-    ];
   }, [product, specHighlights]);
 
   useEffect(() => {
@@ -500,10 +400,6 @@ const ProductDetail = () => {
                         {product.description}
                       </h1>
 
-                      <p className="mb-6 text-base leading-7 text-muted-foreground">
-                        {summaryText || product.description}
-                      </p>
-
                       {specHighlights.length > 0 ? (
                         <div className="mb-6">
                           <h2 className="text-sm font-semibold tracking-[0.18em] text-accent uppercase mb-3">
@@ -521,21 +417,6 @@ const ProductDetail = () => {
                           </div>
                         </div>
                       ) : null}
-
-                      <div className="grid gap-3 lg:grid-cols-3">
-                        {productNotes.map((note) => (
-                          <div
-                            key={note.title}
-                            className="rounded-2xl border border-border/60 bg-secondary/40 p-4"
-                          >
-                            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                              <note.icon className="h-5 w-5" />
-                            </div>
-                            <p className="text-sm font-semibold text-foreground">{note.title}</p>
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">{note.text}</p>
-                          </div>
-                        ))}
-                      </div>
                     </div>
                   </div>
                 </div>
