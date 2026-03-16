@@ -8,7 +8,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 type CatalogProduct = {
   code: string;
@@ -81,49 +81,129 @@ const normalizeHighlight = (value: string) => {
   return replacements[lower] || cleaned;
 };
 
+const dedupeHighlights = (values: string[]) => {
+  const seen = new Set<string>();
+  return values.filter((value) => {
+    const key = value.toLowerCase();
+    if (!value || seen.has(key)) {
+      return false;
+    }
+    seen.add(key);
+    return true;
+  });
+};
+
 const extractSpecHighlights = (product: CatalogProduct) => {
   const source = `${product.description} ${product.longDescription || ""} ${product.code} ${product.supplierCode || ""}`;
-  const patterns = [
-    /\b\d+(?:\.\d+)?\s?(?:"|inch)\b/gi,
-    /\b(?:hd|full hd|fhd|uhd|4k)\b/gi,
+  const description = product.description || "";
+  const ordered: string[] = [];
+
+  const screenMatch = description.match(/\b(\d+(?:\.\d+)?)\s?(?:"|inch)\b/i);
+  if (screenMatch) {
+    if (/(monitor|display|panel|screen)/i.test(description)) {
+      ordered.push(`${screenMatch[1]}" Display`);
+    } else {
+      ordered.push(`${screenMatch[1]}"`);
+    }
+  }
+
+  const androidMatch = source.match(/\bAndroid\s?(\d+)?\b/i);
+  if (androidMatch) {
+    ordered.push(androidMatch[1] ? `Android ${androidMatch[1]}` : "Android");
+  }
+
+  if (/linux based|linux/i.test(source)) ordered.push("Linux Based");
+  if (/wi[\s-]?fi\s?6e/i.test(source)) ordered.push("Wi-Fi 6E");
+  else if (/wi[\s-]?fi\s?6/i.test(source)) ordered.push("Wi-Fi 6");
+  else if (/wi[\s-]?fi/i.test(source)) ordered.push("Wi-Fi");
+  if (/poe\+\+/i.test(source)) ordered.push("PoE++");
+  else if (/poe\+/i.test(source)) ordered.push("PoE+");
+  else if (/\bpoe\b/i.test(source)) ordered.push("PoE");
+  if (/\bsip\b/i.test(source)) ordered.push("SIP");
+  if (/\brfid\b/i.test(source)) ordered.push("RFID");
+  if (/\bbluetooth\b/i.test(source)) ordered.push("Bluetooth");
+  if (/\bdect\b/i.test(source)) ordered.push("DECT");
+  if (/\blte\b/i.test(source)) ordered.push("LTE");
+  if (/\b5g\b/i.test(source)) ordered.push("5G");
+  if (/\btouchscreen|touch display|touch monitor|touch\b/i.test(source)) ordered.push("Touchscreen");
+  if (/\bduplex\b/i.test(source)) ordered.push("Duplex");
+  if (/\bptz\b/i.test(source)) ordered.push("PTZ");
+
+  if (/indoor monitor/i.test(source)) ordered.push("Indoor Monitor");
+  else if (/indoor unit/i.test(source)) ordered.push("Indoor Unit");
+  else if (/outdoor station/i.test(source)) ordered.push("Outdoor Station");
+  else if (/door station/i.test(source)) ordered.push("Door Station");
+  else if (/access point/i.test(source)) ordered.push("Access Point");
+  else if (/managed switch/i.test(source)) ordered.push("Managed Switch");
+  else if (/router/i.test(source)) ordered.push("Router");
+  else if (/gateway/i.test(source)) ordered.push("Gateway");
+  else if (/speakerphone/i.test(source)) ordered.push("Speakerphone");
+  else if (/headset/i.test(source)) ordered.push("Headset");
+  else if (/projector/i.test(source)) ordered.push("Projector");
+  else if (/digital signage/i.test(source)) ordered.push("Digital Signage");
+  else if (/display/i.test(source)) ordered.push("Commercial Display");
+
+  const colorMatch = source.match(/\b(white|black|silver|grey|gray)\b/i);
+  if (colorMatch) {
+    ordered.push(normalizeHighlight(colorMatch[1]));
+  }
+
+  const numericPatterns = [
     /\b\d+(?:\.\d+)?\s?(?:ppm|dpi|nit|nits|gb|tb|mp|fps|hz|w|va)\b/gi,
-    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE\+\+|PoE\+|PoE|RFID|Bluetooth|Android(?:\s?\d+)?|Linux(?:\sBased)?|Duplex|Touchscreen|SIP|LTE|5G|DECT|PTZ|HDMI|USB)\b/gi,
     /\b\d+\s?(?:port|ports|user|users|channel|channels)\b/gi,
-    /\b(?:indoor|outdoor|on-wall|flush mount|surface mount|wall mount|ceiling mount)\b/gi,
-    /\b(?:white|black|silver|grey|gray)\b/gi,
-    /\b(?:camera|monitor|intercom|router|switch|gateway|access point|speakerphone|headset|projector|display)\b/gi,
     /\b\d+\s?wire\b/gi,
   ];
 
-  const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
-  const titlePhrasePatterns = [
-    /\b(?:indoor unit|outdoor station|door station|ip phone|video monitor|touch monitor|access point|wall mount|surface mount|flush mount)\b/gi,
-    /\b(?:android version|linux based|wifi 6|wifi 6e|gigabit vpn|line interactive|digital signage)\b/gi,
-  ];
-  const titlePhrases = titlePhrasePatterns.flatMap((pattern) => product.description.match(pattern) || []);
+  numericPatterns.forEach((pattern) => {
+    (source.match(pattern) || []).forEach((item) => ordered.push(normalizeHighlight(item)));
+  });
 
-  const cleaned = [...matches, ...titlePhrases]
-    .map(normalizeHighlight)
-    .filter(Boolean);
-
-  return Array.from(new Set(cleaned)).slice(0, 8);
+  return dedupeHighlights(ordered).slice(0, 6);
 };
 
-const getFullDescriptionParagraphs = (product: CatalogProduct) => {
-  const text = String(product.longDescription || product.description || "").trim();
-  if (!text) {
-    return [];
+const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+  const leadHighlights = highlights.slice(0, 3).join(", ");
+  const withHighlights = leadHighlights ? ` Key attributes include ${leadHighlights}.` : "";
+
+  if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
+    return `${product.manufacturer} ${product.description} is built for intercom, access, and controlled-entry deployments.${withHighlights}`;
+  }
+  if (/(printer|scanner|mfp|document)/i.test(source)) {
+    return `${product.manufacturer} ${product.description} is aimed at document-heavy business environments where reliability and throughput matter.${withHighlights}`;
+  }
+  if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
+    return `${product.manufacturer} ${product.description} is positioned for business networking and infrastructure rollouts.${withHighlights}`;
+  }
+  if (/(display|panel|projector|signage|interactive)/i.test(source)) {
+    return `${product.manufacturer} ${product.description} is intended for commercial AV and visual communication environments.${withHighlights}`;
   }
 
-  const normalized = text.replace(/\s+/g, " ").trim();
-  const sentences = normalized.split(/(?<=[.!?])\s+/).filter(Boolean);
-  const paragraphs: string[] = [];
+  return `${product.manufacturer} ${product.description} is designed for professional and commercial deployment.${withHighlights}`;
+};
 
-  for (let index = 0; index < sentences.length; index += 2) {
-    paragraphs.push(sentences.slice(index, index + 2).join(" "));
+const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {
+  const source = `${product.description} ${product.longDescription || ""}`;
+  const paragraphs = [buildProductIntro(product, highlights)];
+  const detailLead = highlights.length > 0 ? highlights.join(", ") : "the listed product specification";
+
+  if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
+    paragraphs.push(`This model suits sites that need a practical balance between visitor communication, internal response, and dependable day-to-day operation. It is easiest to position when the customer is comparing indoor monitoring, door interaction, and rollout simplicity around ${detailLead}.`);
+  } else if (/(printer|scanner|mfp|document)/i.test(source)) {
+    paragraphs.push(`It is best suited to workplaces comparing output speed, workflow fit, and serviceability. In commercial terms, it works well where teams want a dependable option built around ${detailLead}.`);
+  } else if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
+    paragraphs.push(`It fits network and infrastructure projects where capability, rollout clarity, and ongoing reliability are being weighed together. Commercially, it is easiest to compare when the shortlist is being narrowed by ${detailLead}.`);
+  } else if (/(display|panel|projector|signage|interactive)/i.test(source)) {
+    paragraphs.push(`It suits visual communication and presentation projects where screen format, deployment setting, and user experience all matter. It is easiest to position when customers are comparing options around ${detailLead}.`);
+  } else {
+    paragraphs.push(`It is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
   }
 
-  return paragraphs.length > 0 ? paragraphs : [normalized];
+  if (product.supplierCode) {
+    paragraphs.push(`Supplier reference ${product.supplierCode} can be used when cross-checking this item with pricing, stock, or replacement discussions.`);
+  }
+
+  return paragraphs;
 };
 
 const inferBestFor = (product: CatalogProduct, highlights: string[]) => {
@@ -260,15 +340,15 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return getCatalogSummaryText(product);
-  }, [product]);
+    return buildProductIntro(product, specHighlights);
+  }, [product, specHighlights]);
 
   const fullDescriptionParagraphs = useMemo(() => {
     if (!product) {
       return [];
     }
-    return getFullDescriptionParagraphs(product);
-  }, [product]);
+    return buildFullDescriptionParagraphs(product, specHighlights);
+  }, [product, specHighlights]);
 
   const productNotes = useMemo(() => {
     if (!product) {
