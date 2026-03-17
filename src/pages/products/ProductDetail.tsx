@@ -381,8 +381,8 @@ const ProductDetail = () => {
                       ) : null}
                     </div>
 
-                    <div className="flex flex-col">
-                      <div className="mb-4 flex flex-wrap gap-2">
+                    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-secondary/20 p-5 md:p-6">
+                      <div className="mb-5 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
                           {product.manufacturer || "Unbranded"}
                         </span>
@@ -396,20 +396,20 @@ const ProductDetail = () => {
                         ) : null}
                       </div>
 
-                      <h1 className="mb-4 text-3xl font-bold leading-tight text-foreground md:text-4xl">
+                      <h1 className="mb-6 text-3xl font-bold leading-tight text-foreground md:text-4xl xl:text-[2.7rem]">
                         {product.description}
                       </h1>
 
                       {specHighlights.length > 0 ? (
-                        <div className="mb-6">
+                        <div>
                           <h2 className="text-sm font-semibold tracking-[0.18em] text-accent uppercase mb-3">
                             Spec Highlights
                           </h2>
-                          <div className="grid gap-3 sm:grid-cols-2">
+                          <div className="flex flex-wrap gap-3">
                             {specHighlights.map((detail) => (
                               <div
                                 key={detail}
-                                className="rounded-xl border border-border/60 bg-secondary/55 px-4 py-3 text-sm font-medium text-foreground"
+                                className="inline-flex min-h-12 items-center rounded-xl border border-border/60 bg-background px-4 py-3 text-sm font-medium text-foreground"
                               >
                                 {detail}
                               </div>
