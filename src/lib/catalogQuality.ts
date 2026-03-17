@@ -1,4 +1,6 @@
-﻿const ACRONYMS = new Set([
+import { extractProductSpecHighlights } from "@/lib/productSpecs";
+
+const ACRONYMS = new Set([
   "IP",
   "POE",
   "UPS",
@@ -262,16 +264,56 @@ const normalizeManufacturer = (value?: string) => {
     .join(" ");
 };
 
-export const getCatalogSummaryText = <T extends CatalogQualityInput>(product: T) => {
-  const longDescription = cleanEncodingNoise(product.longDescription || "");
-  if (longDescription) {
-    const sentences = longDescription.split(/(?<=[.!?])\s+/).filter(Boolean);
-    const summary = sentences[1] || sentences[0] || longDescription;
-    return summary.length > 120 ? `${summary.slice(0, 117).trimEnd()}...` : summary;
+const buildCatalogSummaryLead = (text: string) => {
+  if (/(toner|cartridge|drum|ink|ribbon|filament|printhead|consumable)/i.test(text)) {
+    return "Built for ongoing print supply and fleet maintenance.";
+  }
+  if (/(scanner|archiving|document capture)/i.test(text)) {
+    return "Built for document capture and workflow digitisation.";
+  }
+  if (/(printer|mfp|multifunction|plotter|designjet|imageprograf)/i.test(text)) {
+    return "Built for daily print and document workflows.";
+  }
+  if (/(intercom|doorbell|door phone|access control|biometric|rfid)/i.test(text)) {
+    return "Built for intercom, visitor access, and controlled entry.";
+  }
+  if (/(ups|power supply|battery backup)/i.test(text)) {
+    return "Built for power continuity in critical systems.";
+  }
+  if (/(router|switch|access point|network|nas|storage)/i.test(text)) {
+    return "Built for network reliability and infrastructure rollout.";
+  }
+  if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) {
+    return "Built for monitoring, coverage, and site visibility.";
+  }
+  if (/(conference|voip|sip|headset|speakerphone|webcam)/i.test(text)) {
+    return "Built for business communications and collaboration.";
+  }
+  if (/(display|panel|projector|interactive|signage|mount)/i.test(text)) {
+    return "Built for commercial AV, presentation, and signage projects.";
   }
 
+  return "Built for practical commercial deployment.";
+};
+
+export const getCatalogSummaryText = <T extends CatalogQualityInput>(product: T) => {
   const cleaned = cleanEncodingNoise(product.description || "");
-  return cleaned.length > 120 ? `${cleaned.slice(0, 117).trimEnd()}...` : cleaned;
+  if (!cleaned) {
+    return "";
+  }
+
+  const highlights = extractProductSpecHighlights({
+    code: cleanEncodingNoise(product.code || ""),
+    description: cleaned,
+    longDescription: cleanEncodingNoise(product.longDescription || ""),
+    supplierCode: cleanEncodingNoise(product.supplierCode || ""),
+  }).slice(0, 2);
+
+  const lead = buildCatalogSummaryLead(cleaned);
+  const detail = highlights.length > 0 ? ` Key specs: ${highlights.join(", ")}.` : "";
+  const summary = `${lead}${detail}`;
+
+  return summary.length > 120 ? `${summary.slice(0, 117).trimEnd()}...` : summary;
 };
 
 export const normalizeCatalogProduct = <T extends CatalogQualityInput>(product: T): T => {
