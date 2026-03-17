@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { extractProductSpecHighlights } from "@/lib/productSpecs";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -733,19 +734,7 @@ const getCardSummary = (product: CatalogProduct) => {
 };
 
 const getCardHighlights = (product: CatalogProduct) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
-  const patterns = [
-    /\b\d+(?:\.\d+)?\s?(?:"|inch|ppm|dpi|nit|nits|gb|tb|mp|fps|hz|w|va)\b/gi,
-    /\b(?:A3|A4|4K|UHD|FHD|Wi-Fi|WiFi|PoE|RFID|Bluetooth|Android|Linux|Duplex|Touchscreen|SIP|LTE|5G)\b/gi,
-  ];
-
-  const matches = patterns.flatMap((pattern) => source.match(pattern) || []);
-  const cleaned = matches
-    .map((item) => item.replace(/\s+/g, " ").trim())
-    .map((item) => (item.toLowerCase() === "wifi" ? "Wi-Fi" : item))
-    .filter(Boolean);
-
-  return Array.from(new Set(cleaned)).slice(0, 3);
+  return extractProductSpecHighlights(product).slice(0, 3);
 };
 
 const toTitle = (slug: string) =>
