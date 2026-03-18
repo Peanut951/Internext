@@ -292,7 +292,7 @@ const ProductDetail = () => {
                         {product.description}
                       </h1>
 
-                      <div className="mt-auto rounded-2xl border border-border/50 bg-card p-5 shadow-card">
+                      <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
                         <p className="mb-2 text-sm text-muted-foreground">Price</p>
                         <p className="mb-2 text-3xl font-bold text-foreground">{displayPrice}</p>
                         {product.rrp ? (
