@@ -216,7 +216,7 @@ const ProductDetail = () => {
           )}
 
           {!loading && !error && product && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_380px] xl:gap-8">
+            <div className="space-y-6">
               <div className="space-y-6">
                 <div className="bg-card rounded-2xl border border-border/50 p-5 shadow-card md:p-6">
                   <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
@@ -273,7 +273,7 @@ const ProductDetail = () => {
                       ) : null}
                     </div>
 
-                    <div className="flex h-full flex-col justify-start rounded-2xl border border-border/50 bg-secondary/20 p-5 md:p-6">
+                    <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-secondary/20 p-5 md:p-6">
                       <div className="mb-5 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
                           {product.manufacturer || "Unbranded"}
@@ -291,63 +291,63 @@ const ProductDetail = () => {
                       <h1 className="mb-6 text-3xl font-bold leading-tight text-foreground md:text-4xl xl:text-[2.7rem]">
                         {product.description}
                       </h1>
+
+                      <div className="mt-auto rounded-2xl border border-border/50 bg-card p-5 shadow-card">
+                        <p className="mb-2 text-sm text-muted-foreground">Price</p>
+                        <p className="mb-2 text-3xl font-bold text-foreground">{displayPrice}</p>
+                        {product.rrp ? (
+                          <p className="mb-6 text-sm text-muted-foreground">
+                            RRP {formatPrice(product.rrp)}
+                          </p>
+                        ) : (
+                          <p className="mb-6 text-sm text-muted-foreground">RRP not listed</p>
+                        )}
+
+                        <div className="mb-5">
+                          <p className="mb-2 text-sm font-medium text-foreground">Quantity</p>
+                          <div className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/35 p-1">
+                            <button
+                              type="button"
+                              onClick={() => setQty((value) => Math.max(1, value - 1))}
+                              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
+                            <span className="w-8 text-center font-semibold">{qty}</span>
+                            <button
+                              type="button"
+                              onClick={() => setQty((value) => value + 1)}
+                              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                            >
+                              <Plus className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
+
+                        <Button className="w-full" onClick={addToCart}>
+                          {added ? "Added to Cart" : "Add to Cart"}
+                        </Button>
+
+                        <Button variant="outline" className="mt-3 w-full" asChild>
+                          <Link to="/cart">View Cart</Link>
+                        </Button>
+
+                        <Button variant="outline" className="mt-3 w-full" asChild>
+                          <Link to="/products">Browse More Products</Link>
+                        </Button>
+
+                        <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">
+                          <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
+                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                            Use the product code <span className="font-medium text-foreground">{product.code}</span> when discussing this item with sales or comparing options across your shortlist.
+                          </p>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
               </div>
-
-              <aside className="h-fit rounded-2xl border border-border/50 bg-card p-5 shadow-card lg:sticky lg:top-24 md:p-6">
-                <p className="text-sm text-muted-foreground mb-2">Price</p>
-                <p className="text-3xl font-bold text-foreground mb-2">{displayPrice}</p>
-                {product.rrp ? (
-                  <p className="text-sm text-muted-foreground mb-6">
-                    RRP {formatPrice(product.rrp)}
-                  </p>
-                ) : (
-                  <p className="text-sm text-muted-foreground mb-6">RRP not listed</p>
-                )}
-
-                <div className="mb-5">
-                  <p className="text-sm font-medium text-foreground mb-2">Quantity</p>
-                  <div className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/35 p-1">
-                    <button
-                      type="button"
-                      onClick={() => setQty((value) => Math.max(1, value - 1))}
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
-                    >
-                      <Minus className="h-4 w-4" />
-                    </button>
-                    <span className="w-8 text-center font-semibold">{qty}</span>
-                    <button
-                      type="button"
-                      onClick={() => setQty((value) => value + 1)}
-                      className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-
-                <Button className="w-full" onClick={addToCart}>
-                  {added ? "Added to Cart" : "Add to Cart"}
-                </Button>
-
-                <Button variant="outline" className="w-full mt-3" asChild>
-                  <Link to="/cart">View Cart</Link>
-                </Button>
-
-                <Button variant="outline" className="w-full mt-3" asChild>
-                  <Link to="/products">Browse More Products</Link>
-                </Button>
-
-                <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">
-                  <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Use the product code <span className="font-medium text-foreground">{product.code}</span> when discussing this item with sales or comparing options across your shortlist.
-                  </p>
-                </div>
-              </aside>
             </div>
           )}
         </div>
