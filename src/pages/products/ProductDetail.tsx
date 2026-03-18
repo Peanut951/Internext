@@ -53,42 +53,70 @@ const saveStoredCart = (items: CartItem[]) => {
   window.localStorage.setItem("internext-cart", JSON.stringify(items));
 };
 
+const getPlainProductName = (product: CatalogProduct) => {
+  const description = product.description.trim();
+  const manufacturer = product.manufacturer.trim();
+
+  if (!manufacturer) {
+    return description;
+  }
+
+  const escapedManufacturer = manufacturer.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return description.replace(new RegExp(`^${escapedManufacturer}\\s+`, "i"), "").trim();
+};
+
+const joinHighlights = (highlights: string[], limit = 3) => {
+  const items = highlights.slice(0, limit);
+  if (items.length === 0) {
+    return "";
+  }
+  if (items.length === 1) {
+    return items[0];
+  }
+  if (items.length === 2) {
+    return `${items[0]} and ${items[1]}`;
+  }
+  return `${items.slice(0, -1).join(", ")}, and ${items[items.length - 1]}`;
+};
+
 const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
   const source = `${product.description} ${product.longDescription || ""}`;
-  const leadHighlights = highlights.slice(0, 3).join(", ");
-  const withHighlights = leadHighlights ? ` Key attributes include ${leadHighlights}.` : "";
+  const plainName = getPlainProductName(product);
+  const leadHighlights = joinHighlights(highlights, 3);
+  const withHighlights = leadHighlights ? ` Key details include ${leadHighlights}.` : "";
 
   if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
-    return `${product.manufacturer} ${product.description} is built for intercom, access, and controlled-entry deployments.${withHighlights}`;
+    return `${plainName} is designed for intercom, access, and controlled-entry deployments.${withHighlights}`;
   }
   if (/(printer|scanner|mfp|document)/i.test(source)) {
-    return `${product.manufacturer} ${product.description} is aimed at document-heavy business environments where reliability and throughput matter.${withHighlights}`;
+    return `${plainName} is aimed at document-heavy environments where reliability and throughput matter.${withHighlights}`;
   }
   if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
-    return `${product.manufacturer} ${product.description} is positioned for business networking and infrastructure rollouts.${withHighlights}`;
+    return `${plainName} is positioned for business networking and infrastructure rollouts.${withHighlights}`;
   }
   if (/(display|panel|projector|signage|interactive)/i.test(source)) {
-    return `${product.manufacturer} ${product.description} is intended for commercial AV and visual communication environments.${withHighlights}`;
+    return `${plainName} is intended for commercial AV and visual communication environments.${withHighlights}`;
   }
 
-  return `${product.manufacturer} ${product.description} is designed for professional and commercial deployment.${withHighlights}`;
+  return `${plainName} is designed for professional and commercial deployment.${withHighlights}`;
 };
 
 const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {
   const source = `${product.description} ${product.longDescription || ""}`;
+  const plainName = getPlainProductName(product);
   const paragraphs = [buildProductIntro(product, highlights)];
-  const detailLead = highlights.length > 0 ? highlights.join(", ") : "the listed product specification";
+  const detailLead = joinHighlights(highlights, 4) || "the listed product specification";
 
   if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
-    paragraphs.push(`This model suits sites that need a practical balance between visitor communication, internal response, and dependable day-to-day operation. It is easiest to position when the customer is comparing indoor monitoring, door interaction, and rollout simplicity around ${detailLead}.`);
+    paragraphs.push(`${plainName} suits sites that need a practical balance between visitor communication, internal response, and dependable day-to-day operation. It is easiest to position when the customer is comparing indoor monitoring, door interaction, and rollout simplicity around ${detailLead}.`);
   } else if (/(printer|scanner|mfp|document)/i.test(source)) {
-    paragraphs.push(`It is best suited to workplaces comparing output speed, workflow fit, and serviceability. In commercial terms, it works well where teams want a dependable option built around ${detailLead}.`);
+    paragraphs.push(`${plainName} is best suited to workplaces comparing output speed, workflow fit, and serviceability. It works well where teams want a dependable option built around ${detailLead}.`);
   } else if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
-    paragraphs.push(`It fits network and infrastructure projects where capability, rollout clarity, and ongoing reliability are being weighed together. Commercially, it is easiest to compare when the shortlist is being narrowed by ${detailLead}.`);
+    paragraphs.push(`${plainName} fits network and infrastructure projects where capability, rollout clarity, and ongoing reliability are being weighed together. It is easiest to compare when the shortlist is being narrowed by ${detailLead}.`);
   } else if (/(display|panel|projector|signage|interactive)/i.test(source)) {
-    paragraphs.push(`It suits visual communication and presentation projects where screen format, deployment setting, and user experience all matter. It is easiest to position when customers are comparing options around ${detailLead}.`);
+    paragraphs.push(`${plainName} suits visual communication and presentation projects where screen format, deployment setting, and user experience all matter. It is easiest to position when customers are comparing options around ${detailLead}.`);
   } else {
-    paragraphs.push(`It is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
+    paragraphs.push(`${plainName} is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
   }
 
   if (product.supplierCode) {
@@ -235,25 +263,29 @@ const ProductDetail = () => {
                         )}
                       </div>
                       {galleryImages.length > 1 ? (
-                        <div className="grid grid-cols-4 gap-2 sm:grid-cols-5">
+                        <div className="rounded-2xl border border-border/50 bg-secondary/20 p-3">
+                          <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">
                           {galleryImages.map((img) => (
                             <button
                               key={img}
                               type="button"
                               onClick={() => setActiveImage(img)}
-                              className={`aspect-square rounded-lg overflow-hidden border bg-card ${
-                                activeImage === img ? "border-accent shadow-sm" : "border-border/60"
+                              className={`group aspect-square overflow-hidden rounded-xl border bg-card transition-all ${
+                                activeImage === img
+                                  ? "border-accent shadow-sm ring-2 ring-accent/15"
+                                  : "border-border/60 hover:border-accent/40 hover:bg-background"
                               }`}
                             >
                               <img
                                 src={img}
                                 alt={product.description}
-                                className="h-full w-full object-cover"
+                                className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                                 loading="lazy"
                                 onError={handleProductImageError}
                               />
                             </button>
                           ))}
+                          </div>
                         </div>
                       ) : null}
 
@@ -288,7 +320,7 @@ const ProductDetail = () => {
                         ) : null}
                       </div>
 
-                      <h1 className="mb-6 text-3xl font-bold leading-tight text-foreground md:text-4xl xl:text-[2.7rem]">
+                      <h1 className="mb-6 text-3xl font-bold leading-[0.98] text-foreground md:text-4xl xl:text-[2.7rem] xl:leading-[0.94]">
                         {product.description}
                       </h1>
 
