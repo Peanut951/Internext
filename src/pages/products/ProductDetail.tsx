@@ -290,13 +290,23 @@ const ProductDetail = () => {
                       ) : null}
 
                       {fullDescriptionParagraphs.length > 0 ? (
-                        <div className="mt-6 rounded-2xl border border-border/50 bg-background p-5">
-                          <h2 className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-                            Full Description
-                          </h2>
-                          <div className="space-y-4">
+                        <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
+                          <div className="border-b border-border/50 bg-background/80 px-5 py-4 backdrop-blur md:px-6">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                              Product Overview
+                            </p>
+                            <h2 className="mt-2 text-lg font-semibold text-foreground">
+                              Full Description
+                            </h2>
+                          </div>
+                          <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
                             {fullDescriptionParagraphs.map((paragraph, index) => (
-                              <p key={`${product.code}-desc-${index}`} className="text-base leading-7 text-muted-foreground">
+                              <p
+                                key={`${product.code}-desc-${index}`}
+                                className={`max-w-none text-base leading-8 ${
+                                  index === 0 ? "text-foreground" : "text-muted-foreground"
+                                }`}
+                              >
                                 {paragraph}
                               </p>
                             ))}
