@@ -108,15 +108,15 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
   const detailLead = joinHighlights(highlights, 4) || "the listed product specification";
 
   if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
-    paragraphs.push(`${plainName} suits sites that need a practical balance between visitor communication, internal response, and dependable day-to-day operation. It is easiest to position when the customer is comparing indoor monitoring, door interaction, and rollout simplicity around ${detailLead}.`);
+    paragraphs.push(`It suits sites that need a practical balance between visitor communication, internal response, and dependable day-to-day operation. It is easiest to position when the customer is comparing indoor monitoring, door interaction, and rollout simplicity around ${detailLead}.`);
   } else if (/(printer|scanner|mfp|document)/i.test(source)) {
-    paragraphs.push(`${plainName} is best suited to workplaces comparing output speed, workflow fit, and serviceability. It works well where teams want a dependable option built around ${detailLead}.`);
+    paragraphs.push(`It is best suited to workplaces comparing output speed, workflow fit, and serviceability. It works well where teams want a dependable option built around ${detailLead}.`);
   } else if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
-    paragraphs.push(`${plainName} fits network and infrastructure projects where capability, rollout clarity, and ongoing reliability are being weighed together. It is easiest to compare when the shortlist is being narrowed by ${detailLead}.`);
+    paragraphs.push(`It fits network and infrastructure projects where capability, rollout clarity, and ongoing reliability are being weighed together. It is easiest to compare when the shortlist is being narrowed by ${detailLead}.`);
   } else if (/(display|panel|projector|signage|interactive)/i.test(source)) {
-    paragraphs.push(`${plainName} suits visual communication and presentation projects where screen format, deployment setting, and user experience all matter. It is easiest to position when customers are comparing options around ${detailLead}.`);
+    paragraphs.push(`It suits visual communication and presentation projects where screen format, deployment setting, and user experience all matter. It is easiest to position when customers are comparing options around ${detailLead}.`);
   } else {
-    paragraphs.push(`${plainName} is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
+    paragraphs.push(`It is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
   }
 
   if (product.supplierCode) {
