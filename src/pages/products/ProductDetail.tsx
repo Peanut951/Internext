@@ -217,7 +217,7 @@ const ProductDetail = () => {
   return (
     <Layout>
       <section className="section-padding bg-background">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="mb-6">
             <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent">
               <ArrowLeft className="h-4 w-4" />

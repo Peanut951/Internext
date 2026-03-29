@@ -1262,7 +1262,7 @@ const ProductCategory = () => {
   return (
     <Layout>
       <section className="bg-gradient-hero py-16 md:py-24">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="max-w-3xl">
             <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
               {data.title}
@@ -1275,7 +1275,7 @@ const ProductCategory = () => {
       </section>
 
       <section className="section-padding bg-background">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
             <aside className="lg:w-64 flex-shrink-0">
               <details className="lg:hidden rounded-xl border border-border/50 bg-card shadow-card" open>
@@ -1602,7 +1602,7 @@ const ProductCategory = () => {
       </section>
 
       <section className="py-12 bg-secondary">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="bg-card rounded-2xl p-8 shadow-card flex flex-col md:flex-row items-center justify-between gap-6">
             <div>
               <h3 className="text-xl font-semibold text-foreground mb-2">Need Help Choosing?</h3>

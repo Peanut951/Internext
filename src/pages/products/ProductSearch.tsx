@@ -159,7 +159,7 @@ const ProductSearch = () => {
   return (
     <Layout>
       <section className="bg-gradient-hero py-16 md:py-22">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="max-w-4xl">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent/90">
               Catalog Search
@@ -175,7 +175,7 @@ const ProductSearch = () => {
       </section>
 
       <section className="section-padding bg-background">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="rounded-2xl border border-border/60 bg-card p-6 shadow-card">
             <form onSubmit={submitSearch} className="flex flex-col gap-3 md:flex-row">
               <div className="relative flex-1">

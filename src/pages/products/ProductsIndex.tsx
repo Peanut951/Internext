@@ -274,7 +274,7 @@ const ProductsIndex = () => {
   return (
     <Layout>
       <section className="bg-gradient-hero py-20 md:py-28">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="max-w-3xl">
             <h1 className="mb-6 text-4xl font-bold text-primary-foreground md:text-5xl">
               Product Range
@@ -288,7 +288,7 @@ const ProductsIndex = () => {
       </section>
 
       <section className="section-padding bg-background">
-        <div className="container-wide">
+        <div className="container-catalog">
           <div className="mb-10 rounded-2xl border border-border/50 bg-card p-6 shadow-card">
             <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
               <div>
@@ -496,7 +496,7 @@ const ProductsIndex = () => {
       </section>
 
       <section className="bg-secondary py-16">
-        <div className="container-wide text-center">
+        <div className="container-catalog text-center">
           <h2 className="mb-4 text-2xl font-bold text-foreground md:text-3xl">
             Can't Find What You're Looking For?
           </h2>

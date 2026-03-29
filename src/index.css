@@ -121,6 +121,10 @@
     @apply max-w-7xl mx-auto px-4 sm:px-6 lg:px-8;
   }
 
+  .container-catalog {
+    @apply mx-auto max-w-[96rem] px-4 sm:px-6 lg:px-8;
+  }
+
   .text-gradient {
     @apply bg-clip-text text-transparent;
     background-image: var(--gradient-accent);
