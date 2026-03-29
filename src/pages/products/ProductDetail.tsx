@@ -83,22 +83,22 @@ const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
   const source = `${product.description} ${product.longDescription || ""}`;
   const plainName = getPlainProductName(product);
   const leadHighlights = joinHighlights(highlights, 3);
-  const withHighlights = leadHighlights ? ` Key details include ${leadHighlights}.` : "";
+  const withHighlights = leadHighlights ? ` Notable details include ${leadHighlights}.` : "";
 
   if (/(intercom|monitor|door station|access control|rfid|sip)/i.test(source)) {
-    return `${plainName} is designed for intercom, access, and controlled-entry deployments.${withHighlights}`;
+    return `${plainName} is suited to intercom, access, and controlled-entry environments where clear communication and dependable day-to-day use matter.${withHighlights}`;
   }
   if (/(printer|scanner|mfp|document)/i.test(source)) {
-    return `${plainName} is aimed at document-heavy environments where reliability and throughput matter.${withHighlights}`;
+    return `${plainName} is a practical fit for document-heavy environments where reliability, workflow fit, and throughput are important.${withHighlights}`;
   }
   if (/(router|switch|access point|network|vpn|storage|nas)/i.test(source)) {
-    return `${plainName} is positioned for business networking and infrastructure rollouts.${withHighlights}`;
+    return `${plainName} is aimed at business networking and infrastructure rollouts where stable performance and straightforward deployment matter.${withHighlights}`;
   }
   if (/(display|panel|projector|signage|interactive)/i.test(source)) {
-    return `${plainName} is intended for commercial AV and visual communication environments.${withHighlights}`;
+    return `${plainName} is well suited to commercial AV and visual communication spaces where screen performance and deployment context both matter.${withHighlights}`;
   }
 
-  return `${plainName} is designed for professional and commercial deployment.${withHighlights}`;
+  return `${plainName} is positioned as a practical option for professional and commercial deployment.${withHighlights}`;
 };
 
 const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {

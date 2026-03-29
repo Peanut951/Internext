@@ -5,7 +5,7 @@ import { Lock, Mail, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { adminCredentialHint, signIn } from "@/lib/auth";
+import { signIn } from "@/lib/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -109,11 +109,6 @@ const Login = () => {
                   {submitting ? "Signing In..." : "Sign In"}
                 </Button>
               </form>
-
-              <div className="mt-4 rounded-md bg-secondary px-3 py-2 text-xs text-muted-foreground">
-                Admin account email: {adminCredentialHint.email}
-              </div>
-
               <div className="mt-6 pt-6 border-t border-border text-center">
                 <p className="text-muted-foreground text-sm mb-4">Don't have an account?</p>
                 <Button variant="outline" className="w-full" asChild>
