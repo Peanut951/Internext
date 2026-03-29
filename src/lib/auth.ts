@@ -11,6 +11,8 @@ const AUTH_STORAGE_KEY = "internext-auth-session";
 
 const ADMIN_EMAIL = String(import.meta.env.VITE_ADMIN_EMAIL || "admin@internext.com.au").toLowerCase();
 const ADMIN_PASSWORD = String(import.meta.env.VITE_ADMIN_PASSWORD || "internext-admin");
+const RESELLER_EMAIL = String(import.meta.env.VITE_RESELLER_EMAIL || "reseller@internext.com.au").toLowerCase();
+const RESELLER_PASSWORD = String(import.meta.env.VITE_RESELLER_PASSWORD || "internext-reseller");
 
 const normalizeEmail = (value: string) => value.trim().toLowerCase();
 
@@ -80,6 +82,19 @@ export const signIn = (email: string, password: string) => {
       };
     }
     role = "admin";
+  } else if (normalizedEmail === RESELLER_EMAIL) {
+    if (normalizedPassword !== RESELLER_PASSWORD) {
+      return {
+        ok: false as const,
+        message: "Invalid reseller credentials.",
+      };
+    }
+    role = "reseller";
+  } else {
+    return {
+      ok: false as const,
+      message: "Account not found.",
+    };
   }
 
   const session: AuthSession = {
@@ -99,4 +114,14 @@ export const signIn = (email: string, password: string) => {
 
 export const isAdminSession = (session: AuthSession | null) => {
   return Boolean(session && session.role === "admin");
+};
+
+export const isAuthenticatedSession = (session: AuthSession | null) => {
+  return Boolean(session);
+};
+
+export const demoPortalCredentials = {
+  resellerEmail: RESELLER_EMAIL,
+  resellerPassword: RESELLER_PASSWORD,
+  adminEmail: ADMIN_EMAIL,
 };

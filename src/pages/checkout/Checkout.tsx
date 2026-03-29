@@ -4,6 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import PortalNav from "@/components/auth/PortalNav";
 import {
   CartItem,
   CheckoutCustomer,
@@ -95,6 +96,9 @@ const Checkout = () => {
 
       <section className="section-padding bg-background">
         <div className="container-wide">
+          <div className="mb-8">
+            <PortalNav />
+          </div>
           {placedOrder ? (
             <div className="max-w-3xl bg-card border border-border/50 rounded-2xl p-8 shadow-card">
               <div className="flex items-start gap-3 mb-4">

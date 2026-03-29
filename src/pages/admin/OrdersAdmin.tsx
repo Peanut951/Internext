@@ -2,6 +2,7 @@ import { FormEvent, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, RefreshCw, ShieldCheck, Truck, Workflow } from "lucide-react";
 import Layout from "@/components/layout/Layout";
+import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -174,6 +175,8 @@ const OrdersAdmin = () => {
 
       <section className="section-padding bg-background">
         <div className="container-wide space-y-8">
+          <PortalNav />
+
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
             <form
               onSubmit={saveSettings}

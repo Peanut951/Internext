@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import PortalNav from "@/components/auth/PortalNav";
 import { CartItem, formatAud, getCartItems, saveCartItems } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
@@ -71,6 +72,9 @@ const Cart = () => {
 
       <section className="section-padding bg-background">
         <div className="container-wide">
+          <div className="mb-8">
+            <PortalNav />
+          </div>
           {items.length === 0 ? (
             <div className="max-w-3xl bg-card border border-border/60 rounded-2xl p-8 shadow-card text-center">
               <div className="flex justify-center mb-4">

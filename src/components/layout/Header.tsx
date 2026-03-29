@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { clearAuthSession, getAuthSession } from "@/lib/auth";
 
 /**
  * Navigation items for the site. The Product Range dropdown lists
@@ -49,13 +50,13 @@ const navItems = [
       { label: "Terms & Conditions", href: "/terms" },
     ],
   },
-  { label: "Login", href: "/login" },
 ];
 
 const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState(0);
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
 
   useEffect(() => {
     const readCartCount = () => {
@@ -72,16 +73,24 @@ const Header = () => {
     };
 
     const syncCart = () => setCartCount(readCartCount());
+    const syncSession = () => setSessionEmail(getAuthSession()?.email ?? null);
 
     syncCart();
+    syncSession();
     window.addEventListener("storage", syncCart);
+    window.addEventListener("storage", syncSession);
     window.addEventListener("focus", syncCart);
+    window.addEventListener("focus", syncSession);
     const intervalId = window.setInterval(syncCart, 1200);
+    const sessionIntervalId = window.setInterval(syncSession, 1200);
 
     return () => {
       window.removeEventListener("storage", syncCart);
+      window.removeEventListener("storage", syncSession);
       window.removeEventListener("focus", syncCart);
+      window.removeEventListener("focus", syncSession);
       window.clearInterval(intervalId);
+      window.clearInterval(sessionIntervalId);
     };
   }, []);
 
@@ -136,6 +145,29 @@ const Header = () => {
           </nav>
 
           <div className="flex items-center gap-2">
+            {sessionEmail ? (
+              <>
+                <Button variant="ghost" size="sm" className="hidden lg:inline-flex" asChild>
+                  <Link to="/portal">Portal</Link>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="hidden lg:inline-flex"
+                  onClick={() => {
+                    clearAuthSession();
+                    setSessionEmail(null);
+                  }}
+                >
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="ghost" size="sm" className="hidden lg:inline-flex" asChild>
+                <Link to="/login">Login</Link>
+              </Button>
+            )}
+
             <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild>
               <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
@@ -184,6 +216,36 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
+            {sessionEmail ? (
+              <>
+                <Link
+                  to="/portal"
+                  className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Portal
+                </Link>
+                <button
+                  type="button"
+                  className="block w-full rounded-md px-4 py-3 text-left text-foreground transition-colors hover:bg-secondary hover:text-accent"
+                  onClick={() => {
+                    clearAuthSession();
+                    setSessionEmail(null);
+                    setMobileMenuOpen(false);
+                  }}
+                >
+                  Sign Out
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                Login
+              </Link>
+            )}
           </nav>
         )}
       </div>

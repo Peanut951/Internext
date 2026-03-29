@@ -1,0 +1,79 @@
+import { Link, useLocation } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { clearAuthSession, getAuthSession, isAdminSession } from "@/lib/auth";
+
+const portalLinks = [
+  { label: "Portal Home", href: "/portal" },
+  { label: "Cart", href: "/cart" },
+  { label: "Checkout", href: "/checkout" },
+  { label: "Products", href: "/products" },
+];
+
+const PortalNav = () => {
+  const location = useLocation();
+  const session = getAuthSession();
+  if (!session) {
+    return null;
+  }
+  const showAdmin = isAdminSession(session);
+
+  return (
+    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-card">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+            Reseller Portal
+          </p>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Signed in as <span className="font-medium text-foreground">{session?.email ?? "guest"}</span>
+          </p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {portalLinks.map((link) => {
+            const active = location.pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                to={link.href}
+                className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                  active
+                    ? "border-accent bg-accent/10 text-accent"
+                    : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          })}
+
+          {showAdmin ? (
+            <Link
+              to="/admin/orders"
+              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                location.pathname === "/admin/orders"
+                  ? "border-accent bg-accent/10 text-accent"
+                  : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
+              }`}
+            >
+              Order Ops
+            </Link>
+          ) : null}
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              clearAuthSession();
+              window.location.hash = "#/login";
+            }}
+          >
+            Sign Out
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default PortalNav;

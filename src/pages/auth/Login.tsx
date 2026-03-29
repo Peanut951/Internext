@@ -40,7 +40,7 @@ const Login = () => {
     } else if (result.session.role === "admin") {
       navigate("/admin/orders");
     } else {
-      navigate("/products");
+      navigate("/portal");
     }
 
     setSubmitting(false);

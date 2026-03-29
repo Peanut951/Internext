@@ -19,6 +19,8 @@ import Cart from "./pages/checkout/Cart";
 import Checkout from "./pages/checkout/Checkout";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import RequireAdmin from "./components/auth/RequireAdmin";
+import RequireAuth from "./components/auth/RequireAuth";
+import PortalDashboard from "./pages/portal/Dashboard";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -65,6 +67,14 @@ const App = () => (
           <Route path="/products/:category" element={<ProductCategory />} />
           <Route path="/cart" element={<Cart />} />
           <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/portal"
+            element={
+              <RequireAuth>
+                <PortalDashboard />
+              </RequireAuth>
+            }
+          />
           <Route
             path="/admin/orders"
             element={
