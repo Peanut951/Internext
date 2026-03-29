@@ -100,7 +100,3 @@ export const signIn = (email: string, password: string) => {
 export const isAdminSession = (session: AuthSession | null) => {
   return Boolean(session && session.role === "admin");
 };
-
-export const adminCredentialHint = {
-  email: ADMIN_EMAIL,
-};
