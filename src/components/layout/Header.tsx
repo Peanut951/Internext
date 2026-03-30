@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { clearAuthSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 /**
@@ -136,33 +135,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="ml-auto hidden lg:flex flex-none items-center gap-3 border-l border-border/70 pl-5">
-            {session ? (
-              <>
-                <Link
-                  to="/portal"
-                  className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent"
-                >
-                  Portal
-                </Link>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-9 rounded-full px-4"
-                  onClick={async () => {
-                    await clearAuthSession();
-                    window.location.hash = "#/login";
-                  }}
-                >
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Button variant="ghost" size="sm" className="h-9 rounded-full px-4" asChild>
-                <Link to="/login">Login</Link>
-              </Button>
-            )}
-
+          <div className="ml-auto hidden lg:flex flex-none items-center border-l border-border/70 pl-5">
             <Button variant="outline" size="sm" className="h-9 rounded-full px-4" asChild>
               <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
@@ -213,28 +186,7 @@ const Header = () => {
                 {item.label}
               </Link>
             ))}
-            {session ? (
-              <>
-                <Link
-                  to="/portal"
-                  className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
-                  onClick={() => setMobileMenuOpen(false)}
-                >
-                  Portal
-                </Link>
-                <button
-                  type="button"
-                  className="block w-full rounded-md px-4 py-3 text-left text-foreground transition-colors hover:bg-secondary hover:text-accent"
-                  onClick={async () => {
-                    await clearAuthSession();
-                    window.location.hash = "#/login";
-                    setMobileMenuOpen(false);
-                  }}
-                >
-                  Sign Out
-                </button>
-              </>
-            ) : (
+            {session ? null : (
               <Link
                 to="/login"
                 className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
