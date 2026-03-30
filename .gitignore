@@ -6,6 +6,11 @@ dist/
 .vite/
 .vercel/
 
+# local environment
+.env
+.env.*
+!.env.example
+
 # logs
 npm-debug.log*
 yarn-debug.log*

@@ -31,13 +31,13 @@ export default async function handler(
 
   const email = String(body?.email || "");
   const password = String(body?.password || "");
-  const verified = verifyCredentials(email, password);
+  const verified = await verifyCredentials(email, password);
 
   if (!verified.ok) {
     return sendJson(res, 401, { message: "Invalid email or password." });
   }
 
-  const session = createSession(verified.email, verified.role);
+  const session = createSession(verified.userId, verified.email, verified.role);
   res.setHeader("Set-Cookie", createSessionCookie(session));
 
   return sendJson(res, 200, { session });

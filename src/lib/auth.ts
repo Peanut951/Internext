@@ -1,6 +1,7 @@
 export type UserRole = "reseller" | "admin";
 
 export type AuthSession = {
+  userId: string;
   email: string;
   role: UserRole;
   signedInAt: string;
@@ -31,7 +32,7 @@ const readCachedSession = (): AuthSession | null => {
     }
 
     const parsed = JSON.parse(raw) as AuthSession;
-    if (!parsed?.email || !parsed?.role || !parsed?.expiresAt) {
+    if (!parsed?.userId || !parsed?.email || !parsed?.role || !parsed?.expiresAt) {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
       return null;
     }
