@@ -136,7 +136,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="ml-auto hidden lg:flex flex-none items-center gap-3">
+          <div className="ml-auto hidden lg:flex flex-none items-center gap-3 border-l border-border/70 pl-5">
             {session ? (
               <>
                 <Link
