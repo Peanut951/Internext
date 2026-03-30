@@ -47,44 +47,48 @@ const PortalShell = ({
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                     {eyebrow}
                   </p>
-                  <p className="text-sm text-primary-foreground/70">Internext Reseller Portal</p>
+                  <p className="text-sm text-white">Internext Reseller Portal</p>
                 </div>
               </div>
 
-              <h1 className="max-w-2xl text-4xl font-bold leading-[0.95] md:text-5xl">
+              <h1 className="max-w-2xl text-4xl font-bold leading-[0.95] text-white md:text-5xl">
                 {title}
               </h1>
-              <p className="mt-5 max-w-2xl text-base leading-7 text-primary-foreground/80 md:text-lg">
+              <p className="mt-5 max-w-2xl text-base leading-7 text-white md:text-lg">
                 {description}
               </p>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                {stats.map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="rounded-2xl border border-white/15 bg-white/8 px-5 py-4"
-                  >
-                    <p className="text-3xl font-bold text-primary-foreground">{stat.value}</p>
-                    <p className="mt-2 text-sm leading-6 text-primary-foreground/70">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
+              {stats.length > 0 ? (
+                <div className="mt-8 grid gap-4 md:grid-cols-3">
+                  {stats.map((stat) => (
+                    <div
+                      key={stat.label}
+                      className="rounded-2xl border border-white/15 bg-white/8 px-5 py-4"
+                    >
+                      <p className="text-3xl font-bold text-white">{stat.value}</p>
+                      <p className="mt-2 text-sm leading-6 text-white">{stat.label}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
 
-              <div className="mt-8 grid gap-4 md:grid-cols-2">
-                {features.map((feature) => (
-                  <div
-                    key={feature.title}
-                    className="rounded-2xl border border-white/12 bg-slate-950/10 px-5 py-4"
-                  >
-                    <p className="text-base font-semibold text-primary-foreground">
-                      {feature.title}
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-primary-foreground/72">
-                      {feature.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
+              {features.length > 0 ? (
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                  {features.map((feature) => (
+                    <div
+                      key={feature.title}
+                      className="rounded-2xl border border-white/12 bg-slate-950/10 px-5 py-4"
+                    >
+                      <p className="text-base font-semibold text-white">
+                        {feature.title}
+                      </p>
+                      <p className="mt-2 text-sm leading-6 text-white">
+                        {feature.description}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
             </div>
 
             <div className="self-center">{children}</div>

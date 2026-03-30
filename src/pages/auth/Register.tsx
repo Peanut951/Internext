@@ -1,13 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
-import {
-  ArrowRight,
-  Building2,
-  DollarSign,
-  Globe,
-  ShieldCheck,
-  User,
-} from "lucide-react";
+import { ArrowRight, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -41,21 +33,8 @@ const Register = () => {
       eyebrow="Partner Application"
       title="Apply once, then use the same portal for pricing, ordering, and account operations."
       description="Tell us about your business, reseller model, and expected volume so we can review your application against the right commercial workflow."
-      stats={[
-        { value: "2 Days", label: "typical review window for reseller applications" },
-        { value: "50+", label: "vendor brands available through the reseller channel" },
-        { value: "1", label: "single portal for catalog access, ordering, and account support" },
-      ]}
-      features={[
-        {
-          title: "Commercial fit first",
-          description: "We review your business profile, channel focus, and expected purchasing needs before activating reseller access.",
-        },
-        {
-          title: "Straightforward onboarding",
-          description: "The application collects only the information needed to qualify your account and route you to the right team.",
-        },
-      ]}
+      stats={[]}
+      features={[]}
     >
       <div className="space-y-6">
         <div className="rounded-[2rem] border border-border/60 bg-card p-7 shadow-elevated md:p-8">
@@ -219,53 +198,6 @@ const Register = () => {
           </form>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-3">
-          {[
-            {
-              icon: DollarSign,
-              title: "Trade pricing",
-              description: "Approved reseller accounts can access commercial pricing and account-level quoting workflows.",
-            },
-            {
-              icon: User,
-              title: "Account support",
-              description: "Your onboarding path can be aligned to the right account-management and sales-support structure.",
-            },
-            {
-              icon: Globe,
-              title: "Portal access",
-              description: "Use one portal for product access, ordering flow, and account visibility after approval.",
-            },
-          ].map((item) => (
-            <div
-              key={item.title}
-              className="rounded-2xl border border-border/60 bg-card p-5 shadow-card"
-            >
-              <div className="mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <item.icon className="h-5 w-5" />
-              </div>
-              <p className="text-base font-semibold text-foreground">{item.title}</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
-            </div>
-          ))}
-        </div>
-
-        <div className="rounded-2xl border border-border/60 bg-card p-5 shadow-card">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <div className="mb-3 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-accent/10 text-accent">
-                <ShieldCheck className="h-5 w-5" />
-              </div>
-              <p className="text-lg font-semibold text-foreground">Already a partner?</p>
-              <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                Sign in to access reseller pricing, stock visibility, ordering, and order operations.
-              </p>
-            </div>
-            <Button variant="outline" className="h-12 md:min-w-[180px]" asChild>
-              <Link to="/login">Sign In</Link>
-            </Button>
-          </div>
-        </div>
       </div>
     </PortalShell>
   );
