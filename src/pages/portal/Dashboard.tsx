@@ -19,15 +19,35 @@ const PortalDashboard = () => {
     <Layout>
       <section className="bg-gradient-hero py-14 md:py-20">
         <div className="container-wide">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-            Portal Home
-          </p>
-          <h1 className="mt-4 text-4xl font-bold text-primary-foreground md:text-5xl">
-            Welcome to the reseller portal.
-          </h1>
-          <p className="mt-4 max-w-3xl text-lg leading-7 text-primary-foreground/80">
-            Use this workspace to move between quoting, ordering, checkout, and operational visibility without leaving the portal flow.
-          </p>
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
+            <div className="rounded-[2rem] border border-white/15 bg-white/6 p-6 shadow-elevated backdrop-blur md:p-8">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                Portal Home
+              </p>
+              <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[0.95] text-white md:text-5xl">
+                A reseller workspace for pricing access, cart flow, and order visibility.
+              </h1>
+              <p className="mt-5 max-w-3xl text-lg leading-7 text-white/80">
+                Move between catalog browsing, quoting, cart review, checkout, and operational tracking without dropping out of the portal workflow.
+              </p>
+            </div>
+
+            <div className="rounded-[2rem] border border-white/15 bg-slate-950/35 p-6 text-white shadow-elevated backdrop-blur md:p-7">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                Account Session
+              </p>
+              <p className="mt-4 text-lg font-semibold text-white">{session?.email}</p>
+              <p className="mt-2 text-sm leading-6 text-white/72">
+                Signed in with <span className="font-medium capitalize text-white">{session?.role ?? "reseller"}</span> access across catalog, cart, checkout, and portal workflow.
+              </p>
+
+              <Button className="mt-6 h-11 w-full rounded-full" asChild>
+                <Link to="/products">
+                  Open Catalog <BarChart3 className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -126,8 +146,8 @@ const PortalDashboard = () => {
               </div>
 
               <Button className="mt-6 h-12 w-full" asChild>
-                <Link to="/products">
-                  Open Catalog <BarChart3 className="ml-2 h-4 w-4" />
+                <Link to="/checkout">
+                  Continue to Checkout <BarChart3 className="ml-2 h-4 w-4" />
                 </Link>
               </Button>
             </div>

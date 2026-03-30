@@ -19,18 +19,19 @@ const PortalNav = () => {
   const showAdmin = isAdminSession(session);
 
   return (
-    <div className="rounded-2xl border border-border/60 bg-card p-4 shadow-card">
-      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="rounded-[1.75rem] border border-border/60 bg-card/95 p-5 shadow-card backdrop-blur">
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
             Reseller Portal
           </p>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Signed in as <span className="font-medium text-foreground">{session?.email ?? "guest"}</span>
+          <p className="mt-2 text-sm leading-6 text-muted-foreground">
+            Signed in as <span className="font-medium text-foreground">{session?.email ?? "guest"}</span> with{" "}
+            <span className="font-medium capitalize text-foreground">{session.role}</span> access.
           </p>
         </div>
 
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-2.5">
           {portalLinks.map((link) => {
             const active = location.pathname === link.href;
             return (
@@ -39,7 +40,7 @@ const PortalNav = () => {
                 to={link.href}
                 className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                   active
-                    ? "border-accent bg-accent/10 text-accent"
+                    ? "border-accent bg-accent text-accent-foreground shadow-sm"
                     : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
                 }`}
               >
@@ -53,7 +54,7 @@ const PortalNav = () => {
               to="/admin/orders"
               className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
                 location.pathname === "/admin/orders"
-                  ? "border-accent bg-accent/10 text-accent"
+                  ? "border-accent bg-accent text-accent-foreground shadow-sm"
                   : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
               }`}
             >

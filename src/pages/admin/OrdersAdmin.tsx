@@ -1,6 +1,14 @@
 import { FormEvent, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowRight, RefreshCw, ShieldCheck, Truck, Workflow } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  Boxes,
+  RefreshCw,
+  ShieldCheck,
+  ShoppingCart,
+  Truck,
+  Workflow,
+} from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
@@ -96,78 +104,138 @@ const OrdersAdmin = () => {
 
   return (
     <Layout>
-      <section className="relative overflow-hidden bg-gradient-hero py-14 md:py-20">
+      <section className="relative overflow-hidden bg-gradient-hero py-10 md:py-14">
         <div className="absolute inset-0 opacity-20">
           <div className="h-full w-full bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:34px_34px]" />
         </div>
-        <div className="container-wide relative">
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_360px]">
-            <div className="rounded-[2rem] border border-white/15 bg-primary/35 p-6 text-primary-foreground shadow-elevated backdrop-blur md:p-8">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
-                Reseller Operations
-              </p>
-              <h1 className="mt-4 text-4xl font-bold leading-[0.96] md:text-5xl">
-                Manage supplier submissions, fulfillment updates, and order operations in one place.
-              </h1>
-              <p className="mt-5 max-w-3xl text-base leading-7 text-primary-foreground/80 md:text-lg">
-                This dashboard is the operational side of the reseller portal. Use it to control supplier handoff, review customer order detail, and keep fulfillment activity current.
-              </p>
+        <div className="container-wide relative space-y-6">
+          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
+            <div className="space-y-5">
+              <div className="rounded-[2rem] border border-white/15 bg-white/6 p-6 shadow-elevated backdrop-blur md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
+                  Reseller Operations
+                </p>
+                <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[0.95] text-white md:text-5xl">
+                  Supplier handoff, fulfillment control, and order visibility in one reseller workspace.
+                </h1>
+                <p className="mt-5 max-w-3xl text-base leading-7 text-white/80 md:text-lg">
+                  Use this portal to move between customer order review, supplier submission, and fulfillment updates without jumping between disconnected tools.
+                </p>
 
-              <div className="mt-8 grid gap-4 md:grid-cols-3">
-                <div className="rounded-2xl border border-white/15 bg-white/8 px-5 py-4">
-                  <p className="text-3xl font-bold text-primary-foreground">{summary.total}</p>
-                  <p className="mt-2 text-sm text-primary-foreground/72">orders tracked</p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Button className="h-11 rounded-full px-5" asChild>
+                    <Link to="/products">
+                      Open Catalog <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </Button>
+                  <Button variant="outline" className="h-11 rounded-full border-white/20 bg-white/5 px-5 text-white hover:bg-white/10 hover:text-white" asChild>
+                    <Link to="/portal">Portal Home</Link>
+                  </Button>
                 </div>
-                <div className="rounded-2xl border border-white/15 bg-white/8 px-5 py-4">
-                  <p className="text-3xl font-bold text-primary-foreground">{summary.open}</p>
-                  <p className="mt-2 text-sm text-primary-foreground/72">orders in active fulfillment</p>
-                </div>
-                <div className="rounded-2xl border border-white/15 bg-white/8 px-5 py-4">
-                  <p className="text-3xl font-bold text-primary-foreground">{summary.submitted}</p>
-                  <p className="mt-2 text-sm text-primary-foreground/72">already sent to supplier</p>
-                </div>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                {[
+                  {
+                    label: "Orders tracked",
+                    value: summary.total,
+                    note: "all logged orders",
+                    icon: Boxes,
+                  },
+                  {
+                    label: "Active fulfillment",
+                    value: summary.open,
+                    note: "still moving through workflow",
+                    icon: Truck,
+                  },
+                  {
+                    label: "Sent to supplier",
+                    value: summary.submitted,
+                    note: "already handed off",
+                    icon: Workflow,
+                  },
+                  {
+                    label: "Needs attention",
+                    value: summary.needsSupplierAttention,
+                    note: "awaiting supplier action",
+                    icon: ShieldCheck,
+                  },
+                ].map((item) => (
+                  <div
+                    key={item.label}
+                    className="rounded-[1.5rem] border border-white/14 bg-white/7 p-5 shadow-card backdrop-blur"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/15 text-accent">
+                        <item.icon className="h-5 w-5" />
+                      </div>
+                      <p className="text-3xl font-bold text-white">{item.value}</p>
+                    </div>
+                    <p className="mt-5 text-sm font-semibold text-white">{item.label}</p>
+                    <p className="mt-1 text-sm text-white/62">{item.note}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-border/40 bg-card p-6 shadow-elevated md:p-7">
+            <div className="rounded-[2rem] border border-white/15 bg-slate-950/35 p-6 text-white shadow-elevated backdrop-blur md:p-7">
               <div className="flex items-center justify-between gap-3">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                   <Workflow className="h-6 w-6" />
                 </div>
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="border-white/20 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+                  onClick={handleSignOut}
+                >
                   Sign Out
                 </Button>
               </div>
 
-              <p className="mt-5 text-lg font-semibold text-foreground">Portal Session</p>
-              <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Signed in as <span className="font-medium text-foreground">{session?.email ?? "admin"}</span>.
+              <p className="mt-5 text-lg font-semibold text-white">Portal Session</p>
+              <p className="mt-2 text-sm leading-6 text-white/76">
+                Signed in as <span className="font-medium text-white">{session?.email ?? "admin"}</span>.
               </p>
 
               <div className="mt-6 space-y-4">
                 {[
                   {
-                    icon: ShieldCheck,
-                    title: "Supplier controls",
-                    description: "Switch between queued manual handling and webhook submission without leaving the portal.",
+                    icon: Boxes,
+                    title: "Operational scope",
+                    description: "Review orders, move fulfillment states, and keep the supplier handoff visible in one place.",
+                  },
+                  {
+                    icon: ShoppingCart,
+                    title: "Commercial context",
+                    description: "Jump back into product browsing, cart, and checkout without leaving the reseller workflow.",
                   },
                   {
                     icon: Truck,
                     title: "Fulfillment actions",
-                    description: "Move orders through processing, shipped, and delivered states and add tracking when required.",
+                    description: "Add tracking, update delivery status, and intervene when supplier submission needs attention.",
                   },
                 ].map((item) => (
                   <div
                     key={item.title}
-                    className="rounded-2xl border border-border/60 bg-secondary/30 p-4"
+                    className="rounded-2xl border border-white/12 bg-white/6 p-4"
                   >
                     <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-accent/10 text-accent">
                       <item.icon className="h-5 w-5" />
                     </div>
-                    <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-muted-foreground">{item.description}</p>
+                    <p className="text-sm font-semibold text-white">{item.title}</p>
+                    <p className="mt-2 text-sm leading-6 text-white/72">{item.description}</p>
                   </div>
                 ))}
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-white/12 bg-white/6 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+                  Current focus
+                </p>
+                <p className="mt-3 text-sm leading-6 text-white/78">
+                  {summary.needsSupplierAttention} order{summary.needsSupplierAttention === 1 ? "" : "s"} currently need supplier action and {summary.open} remain active in fulfillment.
+                </p>
               </div>
             </div>
           </div>
