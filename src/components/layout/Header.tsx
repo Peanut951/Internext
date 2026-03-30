@@ -90,7 +90,7 @@ const Header = () => {
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container-wide py-4">
-        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 xl:gap-8">
+        <div className="flex items-center justify-between gap-8 xl:gap-10">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <div className="flex items-center pr-4 xl:pr-6">
@@ -103,7 +103,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex min-w-0 items-center justify-center gap-0.5 px-3 xl:gap-1 xl:px-6">
+          <nav className="hidden lg:flex flex-1 items-center justify-center gap-2 px-6 xl:gap-4 xl:px-10">
             {navItems.map((item) => (
               <div
                 key={item.label}
@@ -113,7 +113,7 @@ const Header = () => {
               >
                 <Link
                   to={item.href}
-                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent xl:px-4"
+                  className="flex items-center gap-1 px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent xl:px-3"
                 >
                   {item.label}
                   {item.megaMenu && <ChevronDown className="h-4 w-4" />}
@@ -136,7 +136,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="hidden lg:flex flex-none items-center gap-3 border-l border-border/70 pl-4 xl:pl-6">
+          <div className="hidden lg:flex flex-none items-center gap-3 border-l border-border/70 pl-5 xl:pl-6">
             {session ? (
               <>
                 <Link
