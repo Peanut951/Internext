@@ -90,7 +90,7 @@ const Header = () => {
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container-wide py-4">
-        <div className="flex items-center justify-between gap-8 xl:gap-10">
+        <div className="flex items-center gap-6 xl:gap-8">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
             <div className="flex items-center pr-4 xl:pr-6">
@@ -103,7 +103,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex flex-1 items-center justify-center gap-2 px-6 xl:gap-4 xl:px-10">
+          <nav className="hidden lg:flex items-center gap-2 xl:gap-3">
             {navItems.map((item) => (
               <div
                 key={item.label}
@@ -136,7 +136,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="hidden lg:flex flex-none items-center gap-3 border-l border-border/70 pl-5 xl:pl-6">
+          <div className="ml-auto hidden lg:flex flex-none items-center gap-3">
             {session ? (
               <>
                 <Link
