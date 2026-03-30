@@ -86,7 +86,7 @@ const getSupabaseConfig = (): SupabaseConfig | null => {
   const adminEmail = (
     readEnv("ADMIN_EMAIL") ||
     readEnv("VITE_ADMIN_EMAIL") ||
-    "admin@internext.com.au"
+    "pranit.singh@jortel.com.au"
   ).toLowerCase();
   const resellerEmail = (
     readEnv("RESELLER_EMAIL") ||

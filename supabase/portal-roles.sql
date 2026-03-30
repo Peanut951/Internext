@@ -17,7 +17,7 @@ using (auth.uid() = id);
 insert into public.profiles (id, email, role)
 select id, email, 'admin'
 from auth.users
-where email = 'admin@internext.com.au'
+where email = 'pranit.singh@jortel.com.au'
 on conflict (id) do update
 set email = excluded.email,
     role = excluded.role,
