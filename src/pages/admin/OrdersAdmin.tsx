@@ -118,7 +118,7 @@ const OrdersAdmin = () => {
                 <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-[0.96] text-white md:text-[2.6rem]">
                   Supplier handoff and order visibility in one reseller workspace.
                 </h1>
-                <p className="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-[1.05rem]">
+                <p className="mt-4 max-w-3xl text-base leading-7 text-white md:text-[1.05rem]">
                   Use this portal to move between customer order review, supplier submission, and fulfillment updates without jumping between disconnected tools.
                 </p>
 
@@ -172,7 +172,7 @@ const OrdersAdmin = () => {
                       <p className="text-3xl font-bold text-white">{item.value}</p>
                     </div>
                     <p className="mt-4 text-sm font-semibold text-white">{item.label}</p>
-                    <p className="mt-1 text-sm leading-5 text-white/72">{item.note}</p>
+                    <p className="mt-1 text-sm leading-5 text-white">{item.note}</p>
                   </div>
                 ))}
               </div>
