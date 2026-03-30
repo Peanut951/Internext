@@ -16,7 +16,8 @@ import {
   saveSupplierIntegrationSettings,
   updateOrderFulfillment,
 } from "@/lib/orderManagement";
-import { clearAuthSession, getAuthSession } from "@/lib/auth";
+import { clearAuthSession } from "@/lib/auth";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const supplierStatusClass: Record<SupplierSubmissionStatus, string> = {
   submitted: "bg-emerald-100 text-emerald-800",
@@ -41,7 +42,7 @@ const OrdersAdmin = () => {
   );
   const [savingSettings, setSavingSettings] = useState(false);
   const [actioningOrderId, setActioningOrderId] = useState<string | null>(null);
-  const session = getAuthSession();
+  const { session } = useAuthSession();
 
   const refreshOrders = () => {
     setOrders(getOrders());
@@ -88,8 +89,8 @@ const OrdersAdmin = () => {
     });
   };
 
-  const handleSignOut = () => {
-    clearAuthSession();
+  const handleSignOut = async () => {
+    await clearAuthSession();
     navigate("/login");
   };
 

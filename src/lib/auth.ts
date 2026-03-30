@@ -7,16 +7,19 @@ export type AuthSession = {
   expiresAt: string;
 };
 
+type SignInResult =
+  | {
+      ok: true;
+      session: AuthSession;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
 const AUTH_STORAGE_KEY = "internext-auth-session";
 
-const ADMIN_EMAIL = String(import.meta.env.VITE_ADMIN_EMAIL || "admin@internext.com.au").toLowerCase();
-const ADMIN_PASSWORD = String(import.meta.env.VITE_ADMIN_PASSWORD || "internext-admin");
-const RESELLER_EMAIL = String(import.meta.env.VITE_RESELLER_EMAIL || "reseller@internext.com.au").toLowerCase();
-const RESELLER_PASSWORD = String(import.meta.env.VITE_RESELLER_PASSWORD || "internext-reseller");
-
-const normalizeEmail = (value: string) => value.trim().toLowerCase();
-
-export const getAuthSession = (): AuthSession | null => {
+const readCachedSession = (): AuthSession | null => {
   if (typeof window === "undefined") {
     return null;
   }
@@ -26,90 +29,128 @@ export const getAuthSession = (): AuthSession | null => {
     if (!raw) {
       return null;
     }
+
     const parsed = JSON.parse(raw) as AuthSession;
     if (!parsed?.email || !parsed?.role || !parsed?.expiresAt) {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
       return null;
     }
 
-    if (Number.isNaN(Date.parse(parsed.expiresAt))) {
+    if (Number.isNaN(Date.parse(parsed.expiresAt)) || Date.parse(parsed.expiresAt) <= Date.now()) {
       window.localStorage.removeItem(AUTH_STORAGE_KEY);
       return null;
     }
 
-    if (Date.parse(parsed.expiresAt) <= Date.now()) {
-      window.localStorage.removeItem(AUTH_STORAGE_KEY);
-      return null;
-    }
     return parsed;
   } catch {
     return null;
   }
 };
 
-const saveAuthSession = (session: AuthSession) => {
+const saveCachedSession = (session: AuthSession | null) => {
   if (typeof window === "undefined") {
     return;
   }
+
+  if (!session) {
+    window.localStorage.removeItem(AUTH_STORAGE_KEY);
+    return;
+  }
+
   window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
 };
 
-export const clearAuthSession = () => {
+export const getAuthSession = () => readCachedSession();
+
+export const clearAuthSession = async () => {
+  saveCachedSession(null);
+
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.removeItem(AUTH_STORAGE_KEY);
+
+  try {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      credentials: "include",
+    });
+  } catch {
+    // Best effort only; local cache is already cleared.
+  }
 };
 
-export const signIn = (email: string, password: string) => {
-  const normalizedEmail = normalizeEmail(email);
+export const signIn = async (email: string, password: string): Promise<SignInResult> => {
+  const normalizedEmail = email.trim().toLowerCase();
   const normalizedPassword = password.trim();
 
   if (!normalizedEmail || !normalizedPassword) {
     return {
-      ok: false as const,
+      ok: false,
       message: "Email and password are required.",
     };
   }
 
-  let role: UserRole = "reseller";
+  try {
+    const response = await fetch("/api/auth/login", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        password: normalizedPassword,
+      }),
+    });
 
-  if (normalizedEmail === ADMIN_EMAIL) {
-    if (normalizedPassword !== ADMIN_PASSWORD) {
+    const payload = (await response.json()) as { session?: AuthSession; message?: string };
+
+    if (!response.ok || !payload.session) {
       return {
-        ok: false as const,
-        message: "Invalid admin credentials.",
+        ok: false,
+        message: payload.message || "Unable to sign in.",
       };
     }
-    role = "admin";
-  } else if (normalizedEmail === RESELLER_EMAIL) {
-    if (normalizedPassword !== RESELLER_PASSWORD) {
-      return {
-        ok: false as const,
-        message: "Invalid reseller credentials.",
-      };
-    }
-    role = "reseller";
-  } else {
+
+    saveCachedSession(payload.session);
     return {
-      ok: false as const,
-      message: "Account not found.",
+      ok: true,
+      session: payload.session,
+    };
+  } catch {
+    return {
+      ok: false,
+      message: "Unable to reach the sign-in service.",
     };
   }
+};
 
-  const session: AuthSession = {
-    email: normalizedEmail,
-    role,
-    signedInAt: new Date().toISOString(),
-    expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 12).toISOString(),
-  };
+export const syncAuthSession = async (): Promise<AuthSession | null> => {
+  if (typeof window === "undefined") {
+    return null;
+  }
 
-  saveAuthSession(session);
+  try {
+    const response = await fetch("/api/auth/session", {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
 
-  return {
-    ok: true as const,
-    session,
-  };
+    if (!response.ok) {
+      saveCachedSession(null);
+      return null;
+    }
+
+    const payload = (await response.json()) as { session?: AuthSession | null };
+    const session = payload.session ?? null;
+    saveCachedSession(session);
+    return session;
+  } catch {
+    return readCachedSession();
+  }
 };
 
 export const isAdminSession = (session: AuthSession | null) => {
@@ -118,10 +159,4 @@ export const isAdminSession = (session: AuthSession | null) => {
 
 export const isAuthenticatedSession = (session: AuthSession | null) => {
   return Boolean(session);
-};
-
-export const demoPortalCredentials = {
-  resellerEmail: RESELLER_EMAIL,
-  resellerPassword: RESELLER_PASSWORD,
-  adminEmail: ADMIN_EMAIL,
 };

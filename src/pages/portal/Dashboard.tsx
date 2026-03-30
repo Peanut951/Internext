@@ -3,11 +3,12 @@ import { BarChart3, Box, CreditCard, ShoppingCart, Truck } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
-import { getAuthSession, isAdminSession } from "@/lib/auth";
+import { isAdminSession } from "@/lib/auth";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartItems, getOrders } from "@/lib/orderManagement";
 
 const PortalDashboard = () => {
-  const session = getAuthSession();
+  const { session } = useAuthSession();
   const orders = getOrders();
   const cartItems = getCartItems();
   const totalKnownValue = orders.reduce((sum, order) => sum + order.totalKnownValue, 0);

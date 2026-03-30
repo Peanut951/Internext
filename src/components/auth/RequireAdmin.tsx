@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getAuthSession, isAdminSession } from "@/lib/auth";
+import { isAdminSession } from "@/lib/auth";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 type RequireAdminProps = {
   children: ReactNode;
@@ -8,7 +9,11 @@ type RequireAdminProps = {
 
 const RequireAdmin = ({ children }: RequireAdminProps) => {
   const location = useLocation();
-  const session = getAuthSession();
+  const { session, loading } = useAuthSession();
+
+  if (loading) {
+    return <div className="min-h-[40vh] bg-background" />;
+  }
 
   if (!isAdminSession(session)) {
     const redirect = `${location.pathname}${location.search}${location.hash}`;

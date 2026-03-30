@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getAuthSession } from "@/lib/auth";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 type RequireAuthProps = {
   children: ReactNode;
@@ -8,7 +8,11 @@ type RequireAuthProps = {
 
 const RequireAuth = ({ children }: RequireAuthProps) => {
   const location = useLocation();
-  const session = getAuthSession();
+  const { session, loading } = useAuthSession();
+
+  if (loading) {
+    return <div className="min-h-[40vh] bg-background" />;
+  }
 
   if (!session) {
     const redirect = `${location.pathname}${location.search}${location.hash}`;

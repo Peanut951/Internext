@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { clearAuthSession, getAuthSession, isAdminSession } from "@/lib/auth";
+import { clearAuthSession, isAdminSession } from "@/lib/auth";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const portalLinks = [
   { label: "Portal Home", href: "/portal" },
@@ -11,8 +12,8 @@ const portalLinks = [
 
 const PortalNav = () => {
   const location = useLocation();
-  const session = getAuthSession();
-  if (!session) {
+  const { session, loading } = useAuthSession();
+  if (loading || !session) {
     return null;
   }
   const showAdmin = isAdminSession(session);
@@ -63,8 +64,8 @@ const PortalNav = () => {
           <Button
             variant="outline"
             size="sm"
-            onClick={() => {
-              clearAuthSession();
+            onClick={async () => {
+              await clearAuthSession();
               window.location.hash = "#/login";
             }}
           >
