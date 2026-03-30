@@ -6,26 +6,55 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import PortalShell from "@/components/auth/PortalShell";
 
+const emptyForm = {
+  businessName: "",
+  abn: "",
+  contactName: "",
+  email: "",
+  phone: "",
+  website: "",
+  industry: "",
+  monthlyVolume: "",
+  additionalInfo: "",
+};
+
 const Register = () => {
   const { toast } = useToast();
-  const [formData, setFormData] = useState({
-    businessName: "",
-    abn: "",
-    contactName: "",
-    email: "",
-    phone: "",
-    website: "",
-    industry: "",
-    monthlyVolume: "",
-    additionalInfo: "",
-  });
+  const [submitting, setSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [formData, setFormData] = useState(emptyForm);
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
-    toast({
-      title: "Application Submitted",
-      description: "We'll review your application and contact you within 2 business days.",
-    });
+    setSubmitError(null);
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/reseller-application", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const payload = (await response.json()) as { message?: string };
+      if (!response.ok) {
+        setSubmitError(payload.message || "Unable to submit the application.");
+        setSubmitting(false);
+        return;
+      }
+
+      setFormData(emptyForm);
+      toast({
+        title: "Application Submitted",
+        description: "We'll review your application and contact you within 2 business days.",
+      });
+    } catch {
+      setSubmitError("Unable to send the application right now.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -41,11 +70,13 @@ const Register = () => {
       features={[
         {
           title: "Commercial fit first",
-          description: "We review your business profile, channel focus, and expected purchasing needs before activating reseller access.",
+          description:
+            "We review your business profile, channel focus, and expected purchasing needs before activating reseller access.",
         },
         {
           title: "Straightforward onboarding",
-          description: "The application collects only the information needed to qualify your account and route you to the right team.",
+          description:
+            "The application collects only the information needed to qualify your account and route you to the right team.",
         },
       ]}
     >
@@ -201,16 +232,22 @@ const Register = () => {
             </div>
 
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <Button type="submit" className="h-12 sm:px-6">
-                Submit Application <ArrowRight className="ml-2 h-4 w-4" />
+              <Button type="submit" className="h-12 sm:px-6" disabled={submitting}>
+                {submitting ? "Submitting..." : "Submit Application"}
+                <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
               <p className="text-sm text-muted-foreground">
-                We’ll review your application and reply within 2 business days.
+                We&apos;ll review your application and reply within 2 business days.
               </p>
             </div>
+
+            {submitError ? (
+              <div className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                {submitError}
+              </div>
+            ) : null}
           </form>
         </div>
-
       </div>
     </PortalShell>
   );

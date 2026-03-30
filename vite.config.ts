@@ -4,6 +4,7 @@ import path from "path";
 import loginHandler from "./api/auth/login";
 import sessionHandler from "./api/auth/session";
 import logoutHandler from "./api/auth/logout";
+import resellerApplicationHandler from "./api/reseller-application";
 
 const readRequestBody = async (req: NodeJS.ReadableStream) => {
   const chunks: Buffer[] = [];
@@ -20,6 +21,7 @@ const devAuthApiPlugin = (): Plugin => {
     "/api/auth/login": loginHandler,
     "/api/auth/session": sessionHandler,
     "/api/auth/logout": logoutHandler,
+    "/api/reseller-application": resellerApplicationHandler,
   } as const;
 
   return {
