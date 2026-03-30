@@ -33,8 +33,21 @@ const Register = () => {
       eyebrow="Partner Application"
       title="Apply once, then use the same portal for pricing, ordering, and account operations."
       description="Tell us about your business, reseller model, and expected volume so we can review your application against the right commercial workflow."
-      stats={[]}
-      features={[]}
+      stats={[
+        { value: "2 Days", label: "typical review window for reseller applications" },
+        { value: "50+", label: "vendor brands available through the reseller channel" },
+        { value: "1", label: "single portal for catalog access, ordering, and account support" },
+      ]}
+      features={[
+        {
+          title: "Commercial fit first",
+          description: "We review your business profile, channel focus, and expected purchasing needs before activating reseller access.",
+        },
+        {
+          title: "Straightforward onboarding",
+          description: "The application collects only the information needed to qualify your account and route you to the right team.",
+        },
+      ]}
     >
       <div className="space-y-6">
         <div className="rounded-[2rem] border border-border/60 bg-card p-7 shadow-elevated md:p-8">
