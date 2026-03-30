@@ -104,25 +104,25 @@ const OrdersAdmin = () => {
 
   return (
     <Layout>
-      <section className="relative overflow-hidden bg-gradient-hero py-10 md:py-14">
+      <section className="relative overflow-hidden bg-gradient-hero py-8 md:py-10">
         <div className="absolute inset-0 opacity-20">
           <div className="h-full w-full bg-[linear-gradient(rgba(255,255,255,0.08)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.08)_1px,transparent_1px)] bg-[size:34px_34px]" />
         </div>
-        <div className="container-wide relative space-y-6">
+        <div className="container-wide relative space-y-5">
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
-            <div className="space-y-5">
-              <div className="rounded-[2rem] border border-white/15 bg-white/6 p-6 shadow-elevated backdrop-blur md:p-8">
+            <div className="space-y-4">
+              <div className="rounded-[2rem] border border-white/15 bg-white/6 p-6 shadow-elevated backdrop-blur md:p-7">
                 <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
                   Reseller Operations
                 </p>
-                <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[0.95] text-white md:text-5xl">
-                  Supplier handoff, fulfillment control, and order visibility in one reseller workspace.
+                <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-[0.96] text-white md:text-[2.6rem]">
+                  Supplier handoff and order visibility in one reseller workspace.
                 </h1>
-                <p className="mt-5 max-w-3xl text-base leading-7 text-white/80 md:text-lg">
+                <p className="mt-4 max-w-3xl text-base leading-7 text-white/82 md:text-[1.05rem]">
                   Use this portal to move between customer order review, supplier submission, and fulfillment updates without jumping between disconnected tools.
                 </p>
 
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div className="mt-5 flex flex-wrap gap-3">
                   <Button className="h-11 rounded-full px-5" asChild>
                     <Link to="/products">
                       Open Catalog <ArrowRight className="ml-2 h-4 w-4" />
@@ -163,7 +163,7 @@ const OrdersAdmin = () => {
                 ].map((item) => (
                   <div
                     key={item.label}
-                    className="rounded-[1.5rem] border border-white/14 bg-white/7 p-5 shadow-card backdrop-blur"
+                    className="rounded-[1.5rem] border border-white/14 bg-white/7 p-4 shadow-card backdrop-blur"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="inline-flex h-11 w-11 items-center justify-center rounded-2xl bg-accent/15 text-accent">
@@ -171,14 +171,14 @@ const OrdersAdmin = () => {
                       </div>
                       <p className="text-3xl font-bold text-white">{item.value}</p>
                     </div>
-                    <p className="mt-5 text-sm font-semibold text-white">{item.label}</p>
-                    <p className="mt-1 text-sm text-white/62">{item.note}</p>
+                    <p className="mt-4 text-sm font-semibold text-white">{item.label}</p>
+                    <p className="mt-1 text-sm leading-5 text-white/72">{item.note}</p>
                   </div>
                 ))}
               </div>
             </div>
 
-            <div className="rounded-[2rem] border border-white/15 bg-slate-950/35 p-6 text-white shadow-elevated backdrop-blur md:p-7">
+            <div className="rounded-[2rem] border border-white/15 bg-slate-950/35 p-6 text-white shadow-elevated backdrop-blur md:p-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-accent/10 text-accent">
                   <Workflow className="h-6 w-6" />
@@ -198,22 +198,17 @@ const OrdersAdmin = () => {
                 Signed in as <span className="font-medium text-white">{session?.email ?? "admin"}</span>.
               </p>
 
-              <div className="mt-6 space-y-4">
+              <div className="mt-5 space-y-3">
                 {[
                   {
                     icon: Boxes,
                     title: "Operational scope",
-                    description: "Review orders, move fulfillment states, and keep the supplier handoff visible in one place.",
+                    description: "Review orders and move fulfillment states from one portal view.",
                   },
                   {
                     icon: ShoppingCart,
                     title: "Commercial context",
-                    description: "Jump back into product browsing, cart, and checkout without leaving the reseller workflow.",
-                  },
-                  {
-                    icon: Truck,
-                    title: "Fulfillment actions",
-                    description: "Add tracking, update delivery status, and intervene when supplier submission needs attention.",
+                    description: "Jump back into product browsing, cart, and checkout when needed.",
                   },
                 ].map((item) => (
                   <div
@@ -224,16 +219,26 @@ const OrdersAdmin = () => {
                       <item.icon className="h-5 w-5" />
                     </div>
                     <p className="text-sm font-semibold text-white">{item.title}</p>
-                    <p className="mt-2 text-sm leading-6 text-white/72">{item.description}</p>
+                    <p className="mt-2 text-sm leading-6 text-white/78">{item.description}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="mt-6 rounded-2xl border border-white/12 bg-white/6 p-4">
+              <div className="mt-4 rounded-2xl border border-white/12 bg-white/6 p-4">
                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
                   Current focus
                 </p>
-                <p className="mt-3 text-sm leading-6 text-white/78">
+                <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <div className="rounded-xl border border-white/10 bg-slate-950/20 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-white/55">Supplier action</p>
+                    <p className="mt-1 text-lg font-semibold text-white">{summary.needsSupplierAttention}</p>
+                  </div>
+                  <div className="rounded-xl border border-white/10 bg-slate-950/20 px-3 py-3">
+                    <p className="text-xs uppercase tracking-[0.16em] text-white/55">Active orders</p>
+                    <p className="mt-1 text-lg font-semibold text-white">{summary.open}</p>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm leading-6 text-white/80">
                   {summary.needsSupplierAttention} order{summary.needsSupplierAttention === 1 ? "" : "s"} currently need supplier action and {summary.open} remain active in fulfillment.
                 </p>
               </div>

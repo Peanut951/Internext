@@ -90,21 +90,20 @@ const Header = () => {
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
       <div className="container-wide py-4">
-        <div className="flex items-center justify-between gap-8">
+        <div className="flex items-center justify-between gap-4 xl:gap-6">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-<div className="flex items-center pr-6">
-  <img
-    src="/internext-logo.png"
-    alt="Internext Logo"
-    className="h-12 w-auto object-contain"
-  />
-</div>
-
+            <div className="flex items-center pr-4 xl:pr-6">
+              <img
+                src="/internext-logo.png"
+                alt="Internext Logo"
+                className="h-12 w-auto object-contain"
+              />
+            </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav className="hidden lg:flex flex-1 items-center justify-center gap-0.5 xl:gap-1">
             {navItems.map((item) => (
               <div
                 key={item.label}
@@ -114,7 +113,7 @@ const Header = () => {
               >
                 <Link
                   to={item.href}
-                  className="flex items-center gap-1 px-4 py-2 text-sm font-medium text-foreground hover:text-accent transition-colors"
+                  className="flex items-center gap-1 px-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent xl:px-4"
                 >
                   {item.label}
                   {item.megaMenu && <ChevronDown className="h-4 w-4" />}
@@ -137,16 +136,19 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="hidden lg:flex flex-none items-center gap-2.5 pl-3 xl:pl-5">
             {session ? (
               <>
-                <Button variant="ghost" size="sm" className="hidden lg:inline-flex" asChild>
-                  <Link to="/portal">Portal</Link>
-                </Button>
+                <Link
+                  to="/portal"
+                  className="inline-flex items-center rounded-full px-3 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent"
+                >
+                  Portal
+                </Link>
                 <Button
                   variant="outline"
                   size="sm"
-                  className="hidden lg:inline-flex"
+                  className="h-9 rounded-full px-4"
                   onClick={async () => {
                     await clearAuthSession();
                     window.location.hash = "#/login";
@@ -156,12 +158,12 @@ const Header = () => {
                 </Button>
               </>
             ) : (
-              <Button variant="ghost" size="sm" className="hidden lg:inline-flex" asChild>
+              <Button variant="ghost" size="sm" className="h-9 rounded-full px-4" asChild>
                 <Link to="/login">Login</Link>
               </Button>
             )}
 
-            <Button variant="outline" size="sm" className="hidden lg:inline-flex" asChild>
+            <Button variant="outline" size="sm" className="h-9 rounded-full px-4" asChild>
               <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
                 Cart
@@ -170,7 +172,9 @@ const Header = () => {
                 </span>
               </Link>
             </Button>
+          </div>
 
+          <div className="flex items-center gap-2 lg:hidden">
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
