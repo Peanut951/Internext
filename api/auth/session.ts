@@ -1,4 +1,4 @@
-import { getSessionFromRequest, sendJson } from "./_shared";
+import { getSessionFromRequest, sendJson } from "./_shared.js";
 
 export default function handler(
   req: {

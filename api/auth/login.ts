@@ -3,7 +3,7 @@ import {
   createSessionCookie,
   sendJson,
   verifyCredentials,
-} from "./_shared";
+} from "./_shared.js";
 
 export default async function handler(
   req: {
@@ -20,13 +20,15 @@ export default async function handler(
     return sendJson(res, 405, { message: "Method not allowed." });
   }
 
-  let body = req.body;
-  if (typeof body === "string") {
+  let body: { email?: string; password?: string } | undefined;
+  if (typeof req.body === "string") {
     try {
-      body = JSON.parse(body);
+      body = JSON.parse(req.body) as { email?: string; password?: string };
     } catch {
       return sendJson(res, 400, { message: "Invalid request body." });
     }
+  } else {
+    body = req.body;
   }
 
   const email = String(body?.email || "");

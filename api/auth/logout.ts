@@ -1,4 +1,4 @@
-import { createClearedSessionCookie, sendJson } from "./_shared";
+import { createClearedSessionCookie, sendJson } from "./_shared.js";
 
 export default function handler(
   req: { method?: string },
