@@ -35,45 +35,90 @@ const defaultCustomer: CheckoutCustomer = {
 
 type AddressLookupResult = {
   place_id: number;
-  display_name: string;
-  address?: {
-    house_number?: string;
-    road?: string;
-    suburb?: string;
-    neighbourhood?: string;
-    quarter?: string;
-    city?: string;
-    town?: string;
-    village?: string;
-    hamlet?: string;
-    municipality?: string;
-    state?: string;
-    postcode?: string;
-    country?: string;
-  };
+  formatted: string;
+  address_line1?: string;
+  address_line2?: string;
+  housenumber?: string;
+  street?: string;
+  suburb?: string;
+  city?: string;
+  state?: string;
+  state_code?: string;
+  postcode?: string;
+  country?: string;
 };
 
 const getLineOneFromLookup = (result: AddressLookupResult) => {
-  const houseNumber = result.address?.house_number?.trim();
-  const road = result.address?.road?.trim();
+  const addressLine1 = result.address_line1?.trim();
+  if (addressLine1) {
+    return addressLine1;
+  }
+
+  const houseNumber = result.housenumber?.trim();
+  const road = result.street?.trim();
 
   if (houseNumber && road) {
     return `${houseNumber} ${road}`;
   }
 
-  return road || result.display_name.split(",")[0]?.trim() || "";
+  return road || result.formatted.split(",")[0]?.trim() || "";
 };
 
 const getSuburbFromLookup = (result: AddressLookupResult) =>
-  result.address?.suburb?.trim() ||
-  result.address?.neighbourhood?.trim() ||
-  result.address?.quarter?.trim() ||
-  result.address?.city?.trim() ||
-  result.address?.town?.trim() ||
-  result.address?.village?.trim() ||
-  result.address?.hamlet?.trim() ||
-  result.address?.municipality?.trim() ||
+  result.suburb?.trim() ||
+  result.city?.trim() ||
   "";
+
+const getFormattedParts = (result: AddressLookupResult) =>
+  result.formatted
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+const getAddressLineTwoFromLookup = (result: AddressLookupResult, suburb: string) => {
+  const addressLine2 = result.address_line2?.trim();
+  if (addressLine2) {
+    return addressLine2;
+  }
+
+  const parts = getFormattedParts(result);
+  const lineOne = getLineOneFromLookup(result).toLowerCase();
+  const suburbLower = suburb.toLowerCase();
+
+  return (
+    parts.find((part) => {
+      const normalized = part.toLowerCase();
+      return normalized !== lineOne && normalized !== suburbLower;
+    }) || ""
+  );
+};
+
+const getStateFromLookup = (result: AddressLookupResult) => {
+  const stateCode = result.state_code?.trim();
+  if (stateCode) {
+    return stateCode.toUpperCase();
+  }
+
+  const state = result.state?.trim();
+  if (!state) {
+    return "";
+  }
+
+  const stateMap: Record<string, string> = {
+    "New South Wales": "NSW",
+    Victoria: "VIC",
+    Queensland: "QLD",
+    Tasmania: "TAS",
+    "South Australia": "SA",
+    "Western Australia": "WA",
+    "Northern Territory": "NT",
+    "Australian Capital Territory": "ACT",
+  };
+
+  return stateMap[state] || state;
+};
+
+const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | undefined)?.trim() || "";
 
 const Checkout = () => {
   const [customer, setCustomer] = useState<CheckoutCustomer>(defaultCustomer);
@@ -108,6 +153,13 @@ const Checkout = () => {
   useEffect(() => {
     const query = customer.address1.trim();
 
+    if (!GEOAPIFY_API_KEY) {
+      setAddressSuggestions([]);
+      setAddressLoading(false);
+      setAddressLookupMessage(null);
+      return;
+    }
+
     if (query.length < 5 || query === selectedAddressLabel) {
       setAddressSuggestions([]);
       setAddressLoading(false);
@@ -122,17 +174,16 @@ const Checkout = () => {
 
       try {
         const params = new URLSearchParams({
-          format: "jsonv2",
-          addressdetails: "1",
-          limit: "5",
-          countrycodes: "au",
-          dedupe: "1",
-          q: query,
-          email: "orders@internext.com.au",
+          format: "json",
+          limit: "7",
+          filter: "countrycode:au",
+          text: query,
+          lang: "en",
+          apiKey: GEOAPIFY_API_KEY,
         });
 
         const response = await fetch(
-          `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+          `https://api.geoapify.com/v1/geocode/autocomplete?${params.toString()}`,
           {
             signal: controller.signal,
             headers: {
@@ -145,7 +196,8 @@ const Checkout = () => {
           throw new Error("Address lookup is currently unavailable.");
         }
 
-        const results = (await response.json()) as AddressLookupResult[];
+        const payload = (await response.json()) as { results?: AddressLookupResult[] };
+        const results = payload.results ?? [];
         setAddressSuggestions(results);
         setShowAddressSuggestions(true);
         setAddressLookupMessage(results.length === 0 ? "No matching addresses found." : null);
@@ -174,13 +226,15 @@ const Checkout = () => {
   const applyAddressSuggestion = (result: AddressLookupResult) => {
     const address1 = getLineOneFromLookup(result);
     const suburb = getSuburbFromLookup(result);
-    const state = result.address?.state?.trim() || "";
+    const address2 = getAddressLineTwoFromLookup(result, suburb);
+    const state = getStateFromLookup(result);
     const postcode = result.address?.postcode?.trim() || "";
     const country = result.address?.country?.trim() || "Australia";
 
     setCustomer((prev) => ({
       ...prev,
       address1,
+      address2: address2 || prev.address2,
       suburb: suburb || prev.suburb,
       state: state || prev.state,
       postcode: postcode || prev.postcode,
@@ -408,7 +462,7 @@ const Checkout = () => {
                                   {getLineOneFromLookup(result)}
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  {result.display_name}
+                                  {result.formatted}
                                 </p>
                               </button>
                             ))}
@@ -420,10 +474,6 @@ const Checkout = () => {
                             {addressLookupMessage}
                           </div>
                         ) : null}
-
-                        <div className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
-                          Address suggestions powered by OpenStreetMap.
-                        </div>
                       </div>
                     ) : null}
                   </div>
