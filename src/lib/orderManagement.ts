@@ -288,6 +288,18 @@ export const getOrders = () =>
     [],
   ).map(normalizeOrderRecord);
 
+export const getOrdersForReseller = (reseller: Pick<OrderReseller, "userId" | "email">) => {
+  const normalizedEmail = reseller.email.trim().toLowerCase();
+
+  return getOrders().filter((order) => {
+    if (reseller.userId && order.reseller.userId) {
+      return order.reseller.userId === reseller.userId;
+    }
+
+    return order.reseller.email.trim().toLowerCase() === normalizedEmail;
+  });
+};
+
 const saveOrders = (orders: OrderRecord[]) => writeJson(ORDERS_STORAGE_KEY, orders);
 
 export const getSupplierIntegrationSettings = () => {

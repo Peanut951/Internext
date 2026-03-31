@@ -5,6 +5,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 
 const portalLinks = [
   { label: "Portal Home", href: "/portal" },
+  { label: "My Orders", href: "/portal/orders" },
   { label: "Cart", href: "/cart" },
   { label: "Checkout", href: "/checkout" },
   { label: "Products", href: "/products" },

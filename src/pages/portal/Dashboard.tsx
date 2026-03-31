@@ -5,15 +5,18 @@ import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { isAdminSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatAud, getCartItems, getOrders } from "@/lib/orderManagement";
+import { formatAud, getCartItems, getOrders, getOrdersForReseller } from "@/lib/orderManagement";
 
 const PortalDashboard = () => {
   const { session } = useAuthSession();
-  const orders = getOrders();
+  const adminView = isAdminSession(session);
+  const orders =
+    session && !adminView
+      ? getOrdersForReseller({ userId: session.userId, email: session.email })
+      : getOrders();
   const cartItems = getCartItems();
   const totalKnownValue = orders.reduce((sum, order) => sum + order.totalKnownValue, 0);
   const openOrders = orders.filter((order) => order.fulfillmentStatus !== "delivered").length;
-  const adminView = isAdminSession(session);
 
   return (
     <Layout>
@@ -93,6 +96,11 @@ const PortalDashboard = () => {
                     title: "Open Cart",
                     description: "Adjust quantities, remove products, and prepare the current order.",
                     href: "/cart",
+                  },
+                  {
+                    title: "Order History",
+                    description: "Review your submitted reseller orders, statuses, and tracking.",
+                    href: "/portal/orders",
                   },
                   {
                     title: "Proceed to Checkout",

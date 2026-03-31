@@ -21,6 +21,7 @@ import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import RequireAuth from "./components/auth/RequireAuth";
 import PortalDashboard from "./pages/portal/Dashboard";
+import PortalOrders from "./pages/portal/Orders";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
@@ -72,6 +73,14 @@ const App = () => (
             element={
               <RequireAuth>
                 <PortalDashboard />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/portal/orders"
+            element={
+              <RequireAuth>
+                <PortalOrders />
               </RequireAuth>
             }
           />
