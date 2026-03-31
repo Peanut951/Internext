@@ -139,9 +139,11 @@ const Checkout = () => {
                 <Button asChild>
                   <Link to="/products">Continue Shopping</Link>
                 </Button>
-                <Button asChild variant="outline">
-                  <Link to="/admin/orders">Open Admin Orders</Link>
-                </Button>
+                {session?.role === "admin" ? (
+                  <Button asChild variant="outline">
+                    <Link to="/admin/orders">Open Admin Orders</Link>
+                  </Button>
+                ) : null}
               </div>
             </div>
           ) : (

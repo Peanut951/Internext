@@ -564,20 +564,20 @@ const OrdersAdmin = () => {
                     </div>
                   </div>
 
-                  <div className="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1.35fr)_320px]">
+                  <div className="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1.5fr)_292px]">
                     <div className="space-y-5">
-                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                      <div className="grid gap-3 md:grid-cols-2">
                         <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
                             Reseller
                           </p>
-                          <p className="mt-3 text-base font-semibold text-foreground">
+                          <p className="mt-3 break-all text-base font-semibold leading-6 text-foreground">
                             {order.reseller.email}
                           </p>
-                          <p className="mt-1 text-sm text-muted-foreground">
+                          <p className="mt-2 text-sm text-muted-foreground">
                             Role: {formatStatusLabel(order.reseller.role)}
                           </p>
-                          <p className="mt-3 text-sm text-muted-foreground">
+                          <p className="mt-3 text-xs uppercase tracking-[0.12em] text-muted-foreground">
                             {order.reseller.userId
                               ? `User ID ${order.reseller.userId.slice(0, 8)}...`
                               : "Legacy order without account ID"}
@@ -588,13 +588,13 @@ const OrdersAdmin = () => {
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
                             Customer
                           </p>
-                          <p className="mt-3 text-base font-semibold text-foreground">
+                          <p className="mt-3 text-base font-semibold leading-6 text-foreground">
                             {order.customer.firstName} {order.customer.lastName}
                           </p>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {order.customer.company || "No company supplied"}
                           </p>
-                          <p className="mt-3 text-sm text-muted-foreground">
+                          <p className="mt-3 break-all text-sm text-muted-foreground">
                             {order.customer.email}
                           </p>
                           <p className="text-sm text-muted-foreground">{order.customer.phone}</p>
@@ -632,7 +632,7 @@ const OrdersAdmin = () => {
                         </div>
                       </div>
 
-                      <div className="rounded-2xl border border-border/60 bg-background">
+                      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background">
                         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-4 py-3">
                           <div>
                             <p className="text-sm font-semibold text-foreground">Order lines</p>
@@ -649,10 +649,10 @@ const OrdersAdmin = () => {
                           {order.items.slice(0, 4).map((item) => (
                             <div
                               key={`${order.id}-${item.code}`}
-                              className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_80px_120px]"
+                              className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_72px_120px]"
                             >
                               <div className="min-w-0">
-                                <p className="truncate text-sm font-semibold text-foreground">
+                                <p className="text-sm font-semibold leading-6 text-foreground">
                                   {item.description}
                                 </p>
                                 <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
@@ -729,7 +729,7 @@ const OrdersAdmin = () => {
                                 })
                               }
                               disabled={actioningOrderId === order.id}
-                              className="justify-center xl:justify-between"
+                              className="w-full justify-center"
                             >
                               {actioningOrderId === order.id ? "Sending..." : "Send to Supplier"}
                             </Button>
@@ -740,7 +740,7 @@ const OrdersAdmin = () => {
                             variant="outline"
                             onClick={() => markFulfillment(order.id, "processing")}
                             disabled={actioningOrderId === order.id}
-                            className="justify-center xl:justify-between"
+                            className="w-full justify-center"
                           >
                             Mark Processing
                           </Button>
@@ -749,7 +749,7 @@ const OrdersAdmin = () => {
                             variant="outline"
                             onClick={() => markFulfillment(order.id, "shipped")}
                             disabled={actioningOrderId === order.id}
-                            className="justify-center xl:justify-between"
+                            className="w-full justify-center"
                           >
                             Mark Shipped
                           </Button>
@@ -758,7 +758,7 @@ const OrdersAdmin = () => {
                             variant="outline"
                             onClick={() => markFulfillment(order.id, "delivered")}
                             disabled={actioningOrderId === order.id}
-                            className="justify-center xl:justify-between"
+                            className="w-full justify-center"
                           >
                             Mark Delivered
                           </Button>
