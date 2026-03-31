@@ -33,12 +33,59 @@ const defaultCustomer: CheckoutCustomer = {
   notes: "",
 };
 
+type AddressLookupResult = {
+  place_id: number;
+  display_name: string;
+  address?: {
+    house_number?: string;
+    road?: string;
+    suburb?: string;
+    neighbourhood?: string;
+    quarter?: string;
+    city?: string;
+    town?: string;
+    village?: string;
+    hamlet?: string;
+    municipality?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
+  };
+};
+
+const getLineOneFromLookup = (result: AddressLookupResult) => {
+  const houseNumber = result.address?.house_number?.trim();
+  const road = result.address?.road?.trim();
+
+  if (houseNumber && road) {
+    return `${houseNumber} ${road}`;
+  }
+
+  return road || result.display_name.split(",")[0]?.trim() || "";
+};
+
+const getSuburbFromLookup = (result: AddressLookupResult) =>
+  result.address?.suburb?.trim() ||
+  result.address?.neighbourhood?.trim() ||
+  result.address?.quarter?.trim() ||
+  result.address?.city?.trim() ||
+  result.address?.town?.trim() ||
+  result.address?.village?.trim() ||
+  result.address?.hamlet?.trim() ||
+  result.address?.municipality?.trim() ||
+  "";
+
 const Checkout = () => {
   const [customer, setCustomer] = useState<CheckoutCustomer>(defaultCustomer);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<OrderRecord | null>(null);
+  const [addressSuggestions, setAddressSuggestions] = useState<AddressLookupResult[]>([]);
+  const [addressLoading, setAddressLoading] = useState(false);
+  const [addressLookupMessage, setAddressLookupMessage] = useState<string | null>(null);
+  const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
+  const [selectedAddressLabel, setSelectedAddressLabel] = useState<string | null>(null);
   const { session } = useAuthSession();
 
   useEffect(() => {
@@ -57,6 +104,93 @@ const Checkout = () => {
   const poaLines = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + (item.price === null ? item.qty : 0), 0);
   }, [cartItems]);
+
+  useEffect(() => {
+    const query = customer.address1.trim();
+
+    if (query.length < 5 || query === selectedAddressLabel) {
+      setAddressSuggestions([]);
+      setAddressLoading(false);
+      setAddressLookupMessage(null);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timeout = window.setTimeout(async () => {
+      setAddressLoading(true);
+      setAddressLookupMessage(null);
+
+      try {
+        const params = new URLSearchParams({
+          format: "jsonv2",
+          addressdetails: "1",
+          limit: "5",
+          countrycodes: "au",
+          dedupe: "1",
+          q: query,
+          email: "orders@internext.com.au",
+        });
+
+        const response = await fetch(
+          `https://nominatim.openstreetmap.org/search?${params.toString()}`,
+          {
+            signal: controller.signal,
+            headers: {
+              Accept: "application/json",
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("Address lookup is currently unavailable.");
+        }
+
+        const results = (await response.json()) as AddressLookupResult[];
+        setAddressSuggestions(results);
+        setShowAddressSuggestions(true);
+        setAddressLookupMessage(results.length === 0 ? "No matching addresses found." : null);
+      } catch (lookupError) {
+        if (lookupError instanceof Error && lookupError.name === "AbortError") {
+          return;
+        }
+
+        setAddressSuggestions([]);
+        setAddressLookupMessage(
+          lookupError instanceof Error
+            ? lookupError.message
+            : "Address lookup is currently unavailable.",
+        );
+      } finally {
+        setAddressLoading(false);
+      }
+    }, 1100);
+
+    return () => {
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [customer.address1, selectedAddressLabel]);
+
+  const applyAddressSuggestion = (result: AddressLookupResult) => {
+    const address1 = getLineOneFromLookup(result);
+    const suburb = getSuburbFromLookup(result);
+    const state = result.address?.state?.trim() || "";
+    const postcode = result.address?.postcode?.trim() || "";
+    const country = result.address?.country?.trim() || "Australia";
+
+    setCustomer((prev) => ({
+      ...prev,
+      address1,
+      suburb: suburb || prev.suburb,
+      state: state || prev.state,
+      postcode: postcode || prev.postcode,
+      country,
+    }));
+    setSelectedAddressLabel(address1);
+    setShowAddressSuggestions(false);
+    setAddressSuggestions([]);
+    setAddressLookupMessage(null);
+  };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -214,6 +348,7 @@ const Checkout = () => {
                         setCustomer((prev) => ({ ...prev, phone: event.target.value }))
                       }
                       className="bg-secondary border-0"
+                      autoComplete="tel"
                     />
                   </div>
                   <div>
@@ -225,20 +360,77 @@ const Checkout = () => {
                         setCustomer((prev) => ({ ...prev, country: event.target.value }))
                       }
                       className="bg-secondary border-0"
+                      autoComplete="country-name"
                     />
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium mb-2">Address Line 1 *</label>
-                  <Input
-                    required
-                    value={customer.address1}
-                    onChange={(event) =>
-                      setCustomer((prev) => ({ ...prev, address1: event.target.value }))
-                    }
-                    className="bg-secondary border-0"
-                  />
+                  <div className="relative">
+                    <Input
+                      required
+                      value={customer.address1}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        setSelectedAddressLabel(null);
+                        setCustomer((prev) => ({ ...prev, address1: nextValue }));
+                        setShowAddressSuggestions(true);
+                      }}
+                      onFocus={() => {
+                        if (addressSuggestions.length > 0 || addressLookupMessage) {
+                          setShowAddressSuggestions(true);
+                        }
+                      }}
+                      className="bg-secondary border-0"
+                      autoComplete="address-line1"
+                    />
+
+                    {showAddressSuggestions &&
+                    (customer.address1.trim().length >= 5 || addressLoading) ? (
+                      <div className="absolute left-0 right-0 top-[calc(100%+0.4rem)] z-20 overflow-hidden rounded-xl border border-border/60 bg-card shadow-elevated">
+                        {addressLoading ? (
+                          <div className="px-4 py-3 text-sm text-muted-foreground">
+                            Looking up addresses...
+                          </div>
+                        ) : null}
+
+                        {!addressLoading && addressSuggestions.length > 0 ? (
+                          <div className="max-h-72 overflow-auto py-2">
+                            {addressSuggestions.map((result) => (
+                              <button
+                                key={result.place_id}
+                                type="button"
+                                onClick={() => applyAddressSuggestion(result)}
+                                className="block w-full px-4 py-3 text-left transition hover:bg-secondary/55"
+                              >
+                                <p className="text-sm font-medium text-foreground">
+                                  {getLineOneFromLookup(result)}
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  {result.display_name}
+                                </p>
+                              </button>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        {!addressLoading && addressLookupMessage ? (
+                          <div className="border-t border-border/60 px-4 py-3 text-sm text-muted-foreground">
+                            {addressLookupMessage}
+                          </div>
+                        ) : null}
+
+                        <div className="border-t border-border/60 px-4 py-2 text-xs text-muted-foreground">
+                          Address suggestions powered by OpenStreetMap.
+                        </div>
+                      </div>
+                    ) : null}
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Start typing the street address, then choose a suggestion to fill suburb,
+                    state, and postcode.
+                  </p>
                 </div>
 
                 <div>
@@ -249,6 +441,7 @@ const Checkout = () => {
                       setCustomer((prev) => ({ ...prev, address2: event.target.value }))
                     }
                     className="bg-secondary border-0"
+                    autoComplete="address-line2"
                   />
                 </div>
 
@@ -262,6 +455,7 @@ const Checkout = () => {
                         setCustomer((prev) => ({ ...prev, suburb: event.target.value }))
                       }
                       className="bg-secondary border-0"
+                      autoComplete="address-level2"
                     />
                   </div>
                   <div>
@@ -273,6 +467,7 @@ const Checkout = () => {
                         setCustomer((prev) => ({ ...prev, state: event.target.value }))
                       }
                       className="bg-secondary border-0"
+                      autoComplete="address-level1"
                     />
                   </div>
                   <div>
@@ -284,6 +479,7 @@ const Checkout = () => {
                         setCustomer((prev) => ({ ...prev, postcode: event.target.value }))
                       }
                       className="bg-secondary border-0"
+                      autoComplete="postal-code"
                     />
                   </div>
                 </div>
