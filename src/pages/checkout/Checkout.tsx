@@ -477,10 +477,6 @@ const Checkout = () => {
                       </div>
                     ) : null}
                   </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Start typing the street address, then choose a suggestion to fill suburb,
-                    state, and postcode.
-                  </p>
                 </div>
 
                 <div>
