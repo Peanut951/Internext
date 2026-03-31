@@ -9,12 +9,14 @@ import {
   CartItem,
   CheckoutCustomer,
   OrderRecord,
+  OrderReseller,
   formatAud,
   getCartItems,
   placeOrder,
 } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const defaultCustomer: CheckoutCustomer = {
   firstName: "",
@@ -37,6 +39,7 @@ const Checkout = () => {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<OrderRecord | null>(null);
+  const { session } = useAuthSession();
 
   useEffect(() => {
     setCartItems(getCartItems());
@@ -66,7 +69,15 @@ const Checkout = () => {
 
     setSubmitting(true);
     try {
-      const order = await placeOrder(customer);
+      const reseller: OrderReseller | undefined = session
+        ? {
+            userId: session.userId,
+            email: session.email,
+            role: session.role,
+          }
+        : undefined;
+
+      const order = await placeOrder(customer, reseller);
       setPlacedOrder(order);
       setCartItems([]);
     } catch (submitError) {

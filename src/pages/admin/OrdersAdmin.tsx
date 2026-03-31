@@ -566,7 +566,24 @@ const OrdersAdmin = () => {
 
                   <div className="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1.35fr)_320px]">
                     <div className="space-y-5">
-                      <div className="grid gap-3 md:grid-cols-3">
+                      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+                        <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
+                          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
+                            Reseller
+                          </p>
+                          <p className="mt-3 text-base font-semibold text-foreground">
+                            {order.reseller.email}
+                          </p>
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Role: {formatStatusLabel(order.reseller.role)}
+                          </p>
+                          <p className="mt-3 text-sm text-muted-foreground">
+                            {order.reseller.userId
+                              ? `User ID ${order.reseller.userId.slice(0, 8)}...`
+                              : "Legacy order without account ID"}
+                          </p>
+                        </div>
+
                         <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                           <p className="text-xs font-semibold uppercase tracking-[0.16em] text-accent">
                             Customer

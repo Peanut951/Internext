@@ -29,6 +29,12 @@ export type CheckoutCustomer = {
   notes?: string;
 };
 
+export type OrderReseller = {
+  userId?: string;
+  email: string;
+  role: "reseller" | "admin" | "guest";
+};
+
 export type SupplierIntegrationSettings = {
   mode: "manual" | "webhook";
   webhookUrl: string;
@@ -55,6 +61,8 @@ export type SupplierOrderPayload = {
   reseller: {
     businessName: string;
     website: string;
+    portalUserEmail?: string;
+    portalUserRole?: OrderReseller["role"];
   };
   customer: CheckoutCustomer;
   items: Array<{
@@ -77,6 +85,7 @@ export type OrderRecord = {
   orderNumber: string;
   createdAt: string;
   updatedAt: string;
+  reseller: OrderReseller;
   customer: CheckoutCustomer;
   items: CartItem[];
   subtotal: number;
@@ -126,6 +135,14 @@ const writeJson = (key: string, value: unknown) => {
   window.localStorage.setItem(key, JSON.stringify(value));
 };
 
+const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & { reseller?: OrderReseller }) => ({
+  ...order,
+  reseller: order.reseller ?? {
+    email: order.customer.email,
+    role: "guest" as const,
+  },
+});
+
 const nowIso = () => new Date().toISOString();
 
 const generateOrderNumber = () => {
@@ -164,6 +181,7 @@ const calculateTotals = (items: CartItem[]) => {
 const buildSupplierPayload = (
   orderNumber: string,
   createdAt: string,
+  reseller: OrderReseller,
   customer: CheckoutCustomer,
   items: CartItem[],
   totals: ReturnType<typeof calculateTotals>,
@@ -174,6 +192,8 @@ const buildSupplierPayload = (
     reseller: {
       businessName: "Internext",
       website: typeof window === "undefined" ? "https://internext.com.au" : window.location.origin,
+      portalUserEmail: reseller.email,
+      portalUserRole: reseller.role,
     },
     customer,
     items: items.map((item) => ({
@@ -262,7 +282,11 @@ export const clearCartItems = () => {
   window.localStorage.removeItem(CART_STORAGE_KEY);
 };
 
-export const getOrders = () => readJson<OrderRecord[]>(ORDERS_STORAGE_KEY, []);
+export const getOrders = () =>
+  readJson<Array<Omit<OrderRecord, "reseller"> & { reseller?: OrderReseller }>>(
+    ORDERS_STORAGE_KEY,
+    [],
+  ).map(normalizeOrderRecord);
 
 const saveOrders = (orders: OrderRecord[]) => writeJson(ORDERS_STORAGE_KEY, orders);
 
@@ -280,7 +304,10 @@ export const saveSupplierIntegrationSettings = (settings: SupplierIntegrationSet
   writeJson(INTEGRATION_STORAGE_KEY, settings);
 };
 
-export const placeOrder = async (customer: CheckoutCustomer): Promise<OrderRecord> => {
+export const placeOrder = async (
+  customer: CheckoutCustomer,
+  reseller?: OrderReseller,
+): Promise<OrderRecord> => {
   const items = getCartItems();
   if (items.length === 0) {
     throw new Error("Cart is empty.");
@@ -289,7 +316,11 @@ export const placeOrder = async (customer: CheckoutCustomer): Promise<OrderRecor
   const timestamp = nowIso();
   const orderNumber = generateOrderNumber();
   const totals = calculateTotals(items);
-  const payload = buildSupplierPayload(orderNumber, timestamp, customer, items, totals);
+  const orderReseller: OrderReseller = reseller ?? {
+    email: customer.email,
+    role: "guest",
+  };
+  const payload = buildSupplierPayload(orderNumber, timestamp, orderReseller, customer, items, totals);
 
   const settings = getSupplierIntegrationSettings();
   const submission =
@@ -305,6 +336,7 @@ export const placeOrder = async (customer: CheckoutCustomer): Promise<OrderRecor
     orderNumber,
     createdAt: timestamp,
     updatedAt: timestamp,
+    reseller: orderReseller,
     customer,
     items,
     subtotal: totals.subtotal,
