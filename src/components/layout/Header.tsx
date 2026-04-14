@@ -94,7 +94,7 @@ const Header = () => {
           <Link to="/" className="flex-shrink-0">
             <div className="flex items-center pr-4 xl:pr-6">
               <img
-                src="/internext-logo.png"
+                src="/Internext White BG.jpg"
                 alt="Internext Logo"
                 className="h-12 w-auto object-contain"
               />
