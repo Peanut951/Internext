@@ -88,7 +88,7 @@ const Header = () => {
 
   return (
     <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
-      <div className="container-wide py-4">
+      <div className="container-wide py-3">
         <div className="flex items-center gap-6 xl:gap-8">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
@@ -96,7 +96,7 @@ const Header = () => {
               <img
                 src="/internext-white-bg-cropped.png"
                 alt="Internext Logo"
-                className="h-9 w-auto object-contain xl:h-10"
+                className="h-7 w-auto max-w-[180px] object-contain xl:h-8 xl:max-w-[210px]"
               />
             </div>
           </Link>
