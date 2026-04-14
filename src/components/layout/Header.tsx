@@ -92,11 +92,11 @@ const Header = () => {
         <div className="flex items-center gap-6 xl:gap-8">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="flex items-center pr-4 xl:pr-6">
+            <div className="flex items-center pr-3 xl:pr-5">
               <img
                 src="/internext-white-bg-cropped.png"
                 alt="Internext Logo"
-                className="h-12 w-auto object-contain"
+                className="h-9 w-auto object-contain xl:h-10"
               />
             </div>
           </Link>
