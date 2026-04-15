@@ -26,9 +26,9 @@ const Footer = () => {
           <div className="space-y-4">
             <div>
               <img
-                src="/internext logo nb.png"
+                src="/Internext Transparent Logo.png"
                 alt="Internext"
-                className="h-14 w-auto rounded-md"
+                className="h-14 w-auto object-contain"
               />
             </div>
 
