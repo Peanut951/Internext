@@ -48,7 +48,7 @@ const Register = () => {
       setFormData(emptyForm);
       toast({
         title: "Application Submitted",
-        description: "We'll review your application and contact you within 2 business days.",
+        description: "Your reseller application has been submitted.",
       });
     } catch {
       setSubmitError("Unable to send the application right now.");
@@ -236,9 +236,6 @@ const Register = () => {
                 {submitting ? "Submitting..." : "Submit Application"}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <p className="text-sm text-muted-foreground">
-                We&apos;ll review your application and reply within 2 business days.
-              </p>
             </div>
 
             {submitError ? (

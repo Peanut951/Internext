@@ -1,5 +1,5 @@
 ﻿import { FormEvent, useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import {
   formatAud,
   getCartItems,
   placeOrder,
+  saveCartItems,
 } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -46,6 +47,10 @@ type AddressLookupResult = {
   state_code?: string;
   postcode?: string;
   country?: string;
+  address?: {
+    postcode?: string;
+    country?: string;
+  };
 };
 
 const getLineOneFromLookup = (result: AddressLookupResult) => {
@@ -120,10 +125,77 @@ const getStateFromLookup = (result: AddressLookupResult) => {
 
 const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | undefined)?.trim() || "";
 
+const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
+const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
+
+type CheckoutDraft = {
+  customer: CheckoutCustomer;
+  reseller?: OrderReseller;
+  items: CartItem[];
+};
+
+const readCheckoutDraft = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CHECKOUT_DRAFT_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as CheckoutDraft) : null;
+  } catch {
+    return null;
+  }
+};
+
+const saveCheckoutDraft = (draft: CheckoutDraft) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.setItem(CHECKOUT_DRAFT_STORAGE_KEY, JSON.stringify(draft));
+};
+
+const clearCheckoutDraft = () => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  window.localStorage.removeItem(CHECKOUT_DRAFT_STORAGE_KEY);
+};
+
+const getHandledSessions = () => {
+  if (typeof window === "undefined") {
+    return [] as string[];
+  }
+
+  try {
+    const raw = window.localStorage.getItem(HANDLED_PAYMENT_SESSIONS_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as string[]) : [];
+  } catch {
+    return [];
+  }
+};
+
+const markSessionHandled = (sessionId: string) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  const existing = new Set(getHandledSessions());
+  existing.add(sessionId);
+  window.localStorage.setItem(
+    HANDLED_PAYMENT_SESSIONS_STORAGE_KEY,
+    JSON.stringify(Array.from(existing)),
+  );
+};
+
 const Checkout = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [customer, setCustomer] = useState<CheckoutCustomer>(defaultCustomer);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [confirmingPayment, setConfirmingPayment] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [placedOrder, setPlacedOrder] = useState<OrderRecord | null>(null);
   const [addressSuggestions, setAddressSuggestions] = useState<AddressLookupResult[]>([]);
@@ -131,11 +203,21 @@ const Checkout = () => {
   const [addressLookupMessage, setAddressLookupMessage] = useState<string | null>(null);
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [selectedAddressLabel, setSelectedAddressLabel] = useState<string | null>(null);
+  const [paymentStateMessage, setPaymentStateMessage] = useState<string | null>(null);
   const { session } = useAuthSession();
 
   useEffect(() => {
     setCartItems(getCartItems());
+
+    const draft = readCheckoutDraft();
+    if (draft?.customer) {
+      setCustomer((prev) => ({ ...prev, ...draft.customer }));
+    }
   }, []);
+
+  const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
+  const checkoutState = searchParams.get("checkout");
+  const checkoutSessionId = searchParams.get("session_id");
 
   const subtotal = useMemo(() => {
     return cartItems.reduce((sum, item) => {
@@ -149,6 +231,8 @@ const Checkout = () => {
   const poaLines = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + (item.price === null ? item.qty : 0), 0);
   }, [cartItems]);
+
+  const hasUnpricedItems = poaLines > 0;
 
   useEffect(() => {
     const query = customer.address1.trim();
@@ -223,6 +307,106 @@ const Checkout = () => {
     };
   }, [customer.address1, selectedAddressLabel]);
 
+  useEffect(() => {
+    if (checkoutState === "cancelled") {
+      setPaymentStateMessage("Payment was cancelled. Your checkout details are still here if you want to try again.");
+    } else {
+      setPaymentStateMessage(null);
+    }
+  }, [checkoutState]);
+
+  useEffect(() => {
+    if (checkoutState !== "success" || !checkoutSessionId || confirmingPayment || placedOrder) {
+      return;
+    }
+
+    if (getHandledSessions().includes(checkoutSessionId)) {
+      setPaymentStateMessage("This payment was already confirmed on this device.");
+      navigate("/checkout", { replace: true });
+      return;
+    }
+
+    const draft = readCheckoutDraft();
+    if (!draft) {
+      setError("Payment completed, but the local checkout draft is missing. Contact us with your payment receipt.");
+      return;
+    }
+
+    let isActive = true;
+
+    const finalizePaidCheckout = async () => {
+      setConfirmingPayment(true);
+      setError(null);
+      setPaymentStateMessage("Finalising your paid order...");
+
+      try {
+        const confirmResponse = await fetch("/api/checkout/confirm", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ sessionId: checkoutSessionId }),
+        });
+
+        const confirmPayload = (await confirmResponse.json()) as { message?: string };
+        if (!confirmResponse.ok) {
+          throw new Error(confirmPayload.message || "Unable to verify the Stripe payment.");
+        }
+
+        saveCartItems(draft.items);
+        setCartItems(draft.items);
+
+        const order = await placeOrder(draft.customer, draft.reseller);
+
+        try {
+          await fetch("/api/order-notification", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              order,
+            }),
+          });
+        } catch {
+          // Order creation should not fail just because the internal notification email is unavailable.
+        }
+
+        if (!isActive) {
+          return;
+        }
+
+        markSessionHandled(checkoutSessionId);
+        clearCheckoutDraft();
+        setPlacedOrder(order);
+        setCartItems([]);
+        setPaymentStateMessage("Payment received and order recorded.");
+        navigate("/checkout", { replace: true });
+      } catch (finalizeError) {
+        if (!isActive) {
+          return;
+        }
+
+        setError(
+          finalizeError instanceof Error
+            ? finalizeError.message
+            : "Payment completed, but we could not record the order.",
+        );
+        setPaymentStateMessage(null);
+      } finally {
+        if (isActive) {
+          setConfirmingPayment(false);
+        }
+      }
+    };
+
+    void finalizePaidCheckout();
+
+    return () => {
+      isActive = false;
+    };
+  }, [checkoutSessionId, checkoutState, confirmingPayment, navigate, placedOrder]);
+
   const applyAddressSuggestion = (result: AddressLookupResult) => {
     const address1 = getLineOneFromLookup(result);
     const suburb = getSuburbFromLookup(result);
@@ -249,9 +433,15 @@ const Checkout = () => {
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
+    setPaymentStateMessage(null);
 
     if (cartItems.length === 0) {
       setError("Your cart is empty.");
+      return;
+    }
+
+    if (hasUnpricedItems) {
+      setError("Online payment is only available for priced items. Remove any POA items before checkout.");
       return;
     }
 
@@ -265,11 +455,45 @@ const Checkout = () => {
           }
         : undefined;
 
-      const order = await placeOrder(customer, reseller);
-      setPlacedOrder(order);
-      setCartItems([]);
+      saveCheckoutDraft({
+        customer,
+        reseller,
+        items: cartItems,
+      });
+
+      const response = await fetch("/api/checkout/create-session", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          origin: window.location.origin,
+          resellerEmail: reseller?.email,
+          customer: {
+            firstName: customer.firstName,
+            lastName: customer.lastName,
+            email: customer.email,
+          },
+          items: cartItems.map((item) => ({
+            code: item.code,
+            description: item.description,
+            manufacturer: item.manufacturer,
+            qty: item.qty,
+            price: item.price,
+          })),
+        }),
+      });
+
+      const payload = (await response.json()) as { message?: string; url?: string };
+      if (!response.ok || !payload.url) {
+        throw new Error(payload.message || "Unable to start secure payment.");
+      }
+
+      window.location.assign(payload.url);
     } catch (submitError) {
-      setError(submitError instanceof Error ? submitError.message : "Unable to place order.");
+      setError(
+        submitError instanceof Error ? submitError.message : "Unable to start secure payment.",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -287,8 +511,8 @@ const Checkout = () => {
           </Link>
           <h1 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-3">Checkout</h1>
           <p className="text-primary-foreground/80 max-w-2xl">
-            Complete customer details and place the order. We will capture the order and route it
-            for supplier fulfillment.
+            Complete customer details, take secure payment, and then route the paid order into your
+            supplier workflow.
           </p>
         </div>
       </section>
@@ -341,6 +565,12 @@ const Checkout = () => {
                 className="bg-card rounded-2xl p-7 shadow-card border border-border/50 space-y-5"
               >
                 <h2 className="text-2xl font-bold text-foreground">Customer Details</h2>
+
+                {paymentStateMessage ? (
+                  <div className="rounded-lg bg-accent/10 px-4 py-3 text-sm text-foreground">
+                    {paymentStateMessage}
+                  </div>
+                ) : null}
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
@@ -548,8 +778,16 @@ const Checkout = () => {
                   </div>
                 ) : null}
 
-                <Button type="submit" className="w-full md:w-auto" disabled={submitting || cartItems.length === 0}>
-                  {submitting ? "Submitting Order..." : "Place Order"}
+                <Button
+                  type="submit"
+                  className="w-full md:w-auto"
+                  disabled={submitting || confirmingPayment || cartItems.length === 0}
+                >
+                  {confirmingPayment
+                    ? "Finalising Payment..."
+                    : submitting
+                      ? "Redirecting to Payment..."
+                      : "Pay Securely"}
                 </Button>
               </form>
 
@@ -604,6 +842,11 @@ const Checkout = () => {
                       </p>
                       {poaLines > 0 ? (
                         <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>
+                      ) : null}
+                      {hasUnpricedItems ? (
+                        <p className="mt-2 text-xs text-destructive">
+                          Remove POA items before online payment. They cannot be charged through card checkout.
+                        </p>
                       ) : null}
                     </div>
                   </>

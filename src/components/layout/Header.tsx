@@ -50,6 +50,7 @@ const navItems = [
       { label: "Terms & Conditions", href: "/terms" },
     ],
   },
+  { label: "Contact Us", href: "/contact" },
 ];
 
 const Header = () => {
