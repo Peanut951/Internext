@@ -39,9 +39,9 @@ const PortalShell = ({
             <div className="rounded-[2rem] border border-white/15 bg-primary/35 p-6 text-primary-foreground shadow-elevated backdrop-blur md:p-8">
               <div className="mb-8 flex items-center gap-3">
                 <img
-                  src="/internext-white-bg-cropped.png"
+                  src="/Internext Transparent Logo.png"
                   alt="Internext"
-                  className="h-12 w-auto rounded-xl object-contain ring-1 ring-white/20"
+                  className="h-12 w-auto object-contain"
                 />
                 <div>
                   <p className="text-xs font-semibold uppercase tracking-[0.22em] text-accent">
