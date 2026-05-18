@@ -473,6 +473,8 @@ const Checkout = () => {
             firstName: customer.firstName,
             lastName: customer.lastName,
             email: customer.email,
+            phone: customer.phone,
+            company: customer.company,
           },
           items: cartItems.map((item) => ({
             code: item.code,

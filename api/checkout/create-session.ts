@@ -1,6 +1,8 @@
 import {
   buildStripeCheckoutParams,
   createStripeCheckoutSession,
+  getRequestOrigin,
+  isValidCheckoutOrigin,
   parseJsonBody,
   sendJson,
   validateCheckoutPayload,
@@ -13,6 +15,8 @@ type RequestBody = {
     firstName?: string;
     lastName?: string;
     email?: string;
+    phone?: string;
+    company?: string;
   };
   items?: Array<{
     code: string;
@@ -27,6 +31,7 @@ export default async function handler(
   req: {
     method?: string;
     body?: string | RequestBody;
+    headers?: Record<string, string | string[] | undefined>;
   },
   res: {
     statusCode?: number;
@@ -43,9 +48,9 @@ export default async function handler(
     return sendJson(res, 400, { message: "Invalid request body." });
   }
 
-  const origin = String(body.origin || "").trim();
-  if (!origin) {
-    return sendJson(res, 400, { message: "A checkout origin is required." });
+  const origin = getRequestOrigin(req.headers, String(body.origin || "").trim());
+  if (!isValidCheckoutOrigin(origin)) {
+    return sendJson(res, 400, { message: "A valid checkout origin is required." });
   }
 
   const validationError = validateCheckoutPayload(body.customer, body.items);
@@ -59,6 +64,8 @@ export default async function handler(
       firstName: String(body.customer?.firstName || ""),
       lastName: String(body.customer?.lastName || ""),
       email: String(body.customer?.email || ""),
+      phone: String(body.customer?.phone || ""),
+      company: String(body.customer?.company || ""),
     },
     items: body.items || [],
     resellerEmail: body.resellerEmail,
@@ -69,5 +76,5 @@ export default async function handler(
     return sendJson(res, 500, { message: session.message });
   }
 
-  return sendJson(res, 200, { url: session.url });
+  return sendJson(res, 200, { sessionId: session.id, url: session.url });
 }

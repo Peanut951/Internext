@@ -10,11 +10,49 @@ type CheckoutCustomer = {
   firstName: string;
   lastName: string;
   email: string;
+  phone?: string;
+  company?: string;
 };
+
+type RequestHeaders = Record<string, string | string[] | undefined>;
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 
 export const getStripeSecretKey = () => readEnv("STRIPE_SECRET_KEY");
+
+const getHeader = (headers: RequestHeaders | undefined, key: string) => {
+  if (!headers) {
+    return "";
+  }
+
+  const value = headers[key] ?? headers[key.toLowerCase()];
+  return Array.isArray(value) ? value[0] || "" : value || "";
+};
+
+export const getRequestOrigin = (headers: RequestHeaders | undefined, fallbackOrigin?: string) => {
+  const forwardedProto = getHeader(headers, "x-forwarded-proto");
+  const forwardedHost = getHeader(headers, "x-forwarded-host");
+  const host = forwardedHost || getHeader(headers, "host");
+
+  if (host) {
+    return `${forwardedProto || "https"}://${host}`.replace(/\/$/, "");
+  }
+
+  return (fallbackOrigin || readEnv("SITE_URL") || readEnv("VERCEL_PROJECT_PRODUCTION_URL") || "").replace(/\/$/, "");
+};
+
+export const isValidCheckoutOrigin = (origin: string) => {
+  if (!origin) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(origin);
+    return parsed.protocol === "https:" || parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+};
 
 export const sendJson = (
   res: {
@@ -58,7 +96,7 @@ const formatLineItemName = (item: CheckoutLineItem) => {
 };
 
 export const validateCheckoutPayload = (
-  customer: CheckoutCustomer | undefined,
+  customer: Partial<CheckoutCustomer> | undefined,
   items: CheckoutLineItem[] | undefined,
 ) => {
   if (!customer?.firstName?.trim() || !customer?.lastName?.trim() || !customer?.email?.trim()) {
@@ -93,13 +131,30 @@ export const buildStripeCheckoutParams = (payload: {
   params.set("billing_address_collection", "required");
   params.set("phone_number_collection[enabled]", "true");
   params.set("customer_email", payload.customer.email.trim());
+  params.set("client_reference_id", payload.customer.email.trim());
+  params.set("metadata[customer_email]", payload.customer.email.trim());
+  params.set(
+    "metadata[customer_name]",
+    `${payload.customer.firstName.trim()} ${payload.customer.lastName.trim()}`.trim(),
+  );
   params.set("payment_intent_data[metadata][customer_email]", payload.customer.email.trim());
   params.set(
     "payment_intent_data[metadata][customer_name]",
     `${payload.customer.firstName.trim()} ${payload.customer.lastName.trim()}`.trim(),
   );
 
+  if (payload.customer.phone?.trim()) {
+    params.set("metadata[customer_phone]", payload.customer.phone.trim());
+    params.set("payment_intent_data[metadata][customer_phone]", payload.customer.phone.trim());
+  }
+
+  if (payload.customer.company?.trim()) {
+    params.set("metadata[customer_company]", payload.customer.company.trim());
+    params.set("payment_intent_data[metadata][customer_company]", payload.customer.company.trim());
+  }
+
   if (payload.resellerEmail?.trim()) {
+    params.set("metadata[reseller_email]", payload.resellerEmail.trim());
     params.set("payment_intent_data[metadata][reseller_email]", payload.resellerEmail.trim());
   }
 
@@ -139,6 +194,7 @@ export const createStripeCheckoutSession = async (params: URLSearchParams) => {
     });
 
     const payload = (await response.json()) as {
+      id?: string;
       url?: string;
       error?: { message?: string };
     };
@@ -152,12 +208,16 @@ export const createStripeCheckoutSession = async (params: URLSearchParams) => {
 
     return {
       ok: true as const,
+      id: payload.id || "",
       url: payload.url,
     };
-  } catch {
+  } catch (error) {
     return {
       ok: false as const,
-      message: "Unable to reach Stripe from the checkout service.",
+      message:
+        error instanceof Error
+          ? `Unable to reach Stripe from the checkout service: ${error.message}`
+          : "Unable to reach Stripe from the checkout service.",
     };
   }
 };
@@ -217,10 +277,13 @@ export const retrieveStripeCheckoutSession = async (sessionId: string) => {
         customerEmail: payload.customer_details?.email || "",
       },
     };
-  } catch {
+  } catch (error) {
     return {
       ok: false as const,
-      message: "Unable to reach Stripe from the checkout service.",
+      message:
+        error instanceof Error
+          ? `Unable to reach Stripe from the checkout service: ${error.message}`
+          : "Unable to reach Stripe from the checkout service.",
     };
   }
 };
