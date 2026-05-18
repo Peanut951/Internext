@@ -16,9 +16,24 @@ type CheckoutCustomer = {
 
 type RequestHeaders = Record<string, string | string[] | undefined>;
 
-const readEnv = (key: string) => process.env[key]?.trim() || "";
+export const readEnv = (key: string) => process.env[key]?.trim() || "";
 
-export const getStripeSecretKey = () => readEnv("STRIPE_SECRET_KEY");
+export const getStripeSecretKey = () =>
+  readEnv("STRIPE_SECRET_KEY") || readEnv("STRIPE_API_KEY") || readEnv("STRIPE_PRIVATE_KEY");
+
+export const getStripeConfigStatus = () => {
+  const configuredNames = ["STRIPE_SECRET_KEY", "STRIPE_API_KEY", "STRIPE_PRIVATE_KEY"].filter((key) =>
+    Boolean(readEnv(key)),
+  );
+
+  return {
+    configured: configuredNames.length > 0,
+    configuredNames,
+    checkedNames: ["STRIPE_SECRET_KEY", "STRIPE_API_KEY", "STRIPE_PRIVATE_KEY"],
+    vercelEnv: readEnv("VERCEL_ENV") || "unknown",
+    vercelUrlPresent: Boolean(readEnv("VERCEL_URL")),
+  };
+};
 
 export const getMissingStripeConfigMessage = () =>
   "Stripe checkout is not configured on the server. Add STRIPE_SECRET_KEY to the Vercel environment for this deployment and redeploy.";
