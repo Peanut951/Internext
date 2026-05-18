@@ -111,7 +111,15 @@ const Footer = () => {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-primary-foreground/20 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="border-t border-primary-foreground/20 mt-12 pt-8 space-y-6">
+          <p className="max-w-4xl text-primary-foreground/60 text-sm leading-relaxed">
+            Internext acknowledges the Traditional Custodians of the land upon which we work, live and blend.
+            <br />
+            We pay our respect to their Elders past and present and extend that respect to all Aboriginal and Torres
+            Strait Islander peoples today.
+          </p>
+
+          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
             &copy; {new Date().getFullYear()} Internext. All rights reserved.
           </p>
@@ -122,6 +130,7 @@ const Footer = () => {
             <a href="#" className="text-primary-foreground/50 hover:text-accent transition-colors">
               Terms of Service
             </a>
+          </div>
           </div>
         </div>
       </div>
