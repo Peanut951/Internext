@@ -13,7 +13,6 @@ const supportLinks = [
   { label: "Reseller Portal", path: "/login" },
   { label: "Partner Program", path: "/contact" },
   { label: "Technical Support", path: "/faq" },
-  { label: "RMA Process", path: "/rma" },
   { label: "Contact Us", path: "/contact" },
 ];
 
