@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { Phone, Mail, MapPin, Linkedin, Twitter } from "lucide-react";
+import { Phone, Mail, MapPin } from "lucide-react";
 
 const quickLinks = [
   { label: "About Us", path: "/about" },
@@ -36,15 +36,6 @@ const Footer = () => {
               Empowering Australian technology resellers with smarter distribution,
               better service, and stronger partnerships.
             </p>
-
-            <div className="flex gap-4">
-              <a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">
-                <Linkedin className="h-5 w-5" />
-              </a>
-              <a href="#" className="text-primary-foreground/70 hover:text-accent transition-colors">
-                <Twitter className="h-5 w-5" />
-              </a>
-            </div>
           </div>
 
           {/* Quick Links */}
