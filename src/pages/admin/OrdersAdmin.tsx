@@ -58,6 +58,13 @@ const OrdersAdmin = () => {
   const [savingSettings, setSavingSettings] = useState(false);
   const [actioningOrderId, setActioningOrderId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<OrderView>("all");
+  const [orderSearch, setOrderSearch] = useState("");
+  const [resellerFilter, setResellerFilter] = useState("all");
+  const [customerFilter, setCustomerFilter] = useState("all");
+  const [supplierFilter, setSupplierFilter] = useState<SupplierSubmissionStatus | "all">("all");
+  const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentStatus | "all">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const { session } = useAuthSession();
 
   const refreshOrders = () => {
@@ -101,20 +108,140 @@ const OrdersAdmin = () => {
     [orders],
   );
 
+  const resellerOptions = useMemo(
+    () =>
+      Array.from(new Set(orders.map((order) => order.reseller.email).filter(Boolean))).sort(
+        (a, b) => a.localeCompare(b),
+      ),
+    [orders],
+  );
+
+  const customerOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          orders
+            .map((order) =>
+              `${order.customer.firstName} ${order.customer.lastName}`.trim() ||
+              order.customer.email,
+            )
+            .filter(Boolean),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [orders],
+  );
+
+  const hasOrderFilters = Boolean(
+    orderSearch.trim() ||
+      resellerFilter !== "all" ||
+      customerFilter !== "all" ||
+      supplierFilter !== "all" ||
+      fulfillmentFilter !== "all" ||
+      dateFrom ||
+      dateTo,
+  );
+
   const filteredOrders = useMemo(() => {
+    let nextOrders = orders;
+
     switch (activeView) {
       case "needs_supplier":
-        return orders.filter((order) => order.supplierStatus !== "submitted");
+        nextOrders = orders.filter((order) => order.supplierStatus !== "submitted");
+        break;
       case "active":
-        return orders.filter((order) =>
+        nextOrders = orders.filter((order) =>
           ["new", "processing", "shipped"].includes(order.fulfillmentStatus),
         );
+        break;
       case "completed":
-        return orders.filter((order) => order.fulfillmentStatus === "delivered");
+        nextOrders = orders.filter((order) => order.fulfillmentStatus === "delivered");
+        break;
       default:
-        return orders;
+        nextOrders = orders;
     }
-  }, [activeView, orders]);
+
+    const normalizedSearch = orderSearch.trim().toLowerCase();
+    const fromTime = dateFrom ? new Date(`${dateFrom}T00:00:00`).getTime() : null;
+    const toTime = dateTo ? new Date(`${dateTo}T23:59:59`).getTime() : null;
+
+    return nextOrders.filter((order) => {
+      const createdTime = new Date(order.createdAt).getTime();
+      const customerName = `${order.customer.firstName} ${order.customer.lastName}`.trim();
+
+      if (fromTime !== null && createdTime < fromTime) {
+        return false;
+      }
+
+      if (toTime !== null && createdTime > toTime) {
+        return false;
+      }
+
+      if (resellerFilter !== "all" && order.reseller.email !== resellerFilter) {
+        return false;
+      }
+
+      if (customerFilter !== "all" && customerName !== customerFilter) {
+        return false;
+      }
+
+      if (supplierFilter !== "all" && order.supplierStatus !== supplierFilter) {
+        return false;
+      }
+
+      if (fulfillmentFilter !== "all" && order.fulfillmentStatus !== fulfillmentFilter) {
+        return false;
+      }
+
+      if (!normalizedSearch) {
+        return true;
+      }
+
+      const searchableText = [
+        order.orderNumber,
+        order.reseller.email,
+        order.customer.email,
+        order.customer.phone,
+        order.customer.company,
+        customerName,
+        order.customer.suburb,
+        order.customer.state,
+        order.customer.postcode,
+        order.supplierStatus,
+        order.fulfillmentStatus,
+        ...order.items.flatMap((item) => [
+          item.code,
+          item.supplierCode,
+          item.manufacturer,
+          item.description,
+        ]),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+
+      return searchableText.includes(normalizedSearch);
+    });
+  }, [
+    activeView,
+    customerFilter,
+    dateFrom,
+    dateTo,
+    fulfillmentFilter,
+    orderSearch,
+    orders,
+    resellerFilter,
+    supplierFilter,
+  ]);
+
+  const clearOrderFilters = () => {
+    setOrderSearch("");
+    setResellerFilter("all");
+    setCustomerFilter("all");
+    setSupplierFilter("all");
+    setFulfillmentFilter("all");
+    setDateFrom("");
+    setDateTo("");
+  };
 
   const saveSettings = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -502,6 +629,146 @@ const OrdersAdmin = () => {
                     </button>
                   );
                 })}
+              </div>
+
+              <div className="mt-6 rounded-2xl border border-border/60 bg-secondary/20 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Order filters</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Showing {filteredOrders.length} of {orders.length} order
+                      {orders.length === 1 ? "" : "s"}.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={clearOrderFilters}
+                    disabled={!hasOrderFilters}
+                  >
+                    Clear filters
+                  </Button>
+                </div>
+
+                <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                  <div className="xl:col-span-2">
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Search
+                    </label>
+                    <Input
+                      value={orderSearch}
+                      onChange={(event) => setOrderSearch(event.target.value)}
+                      placeholder="Order, customer, reseller, SKU, suburb..."
+                      className="h-11 border-border/70 bg-background"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Date from
+                    </label>
+                    <Input
+                      type="date"
+                      value={dateFrom}
+                      onChange={(event) => setDateFrom(event.target.value)}
+                      className="h-11 border-border/70 bg-background"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Date to
+                    </label>
+                    <Input
+                      type="date"
+                      value={dateTo}
+                      min={dateFrom || undefined}
+                      onChange={(event) => setDateTo(event.target.value)}
+                      className="h-11 border-border/70 bg-background"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Reseller
+                    </label>
+                    <select
+                      value={resellerFilter}
+                      onChange={(event) => setResellerFilter(event.target.value)}
+                      className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
+                    >
+                      <option value="all">All resellers</option>
+                      {resellerOptions.map((email) => (
+                        <option key={email} value={email}>
+                          {email}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Customer
+                    </label>
+                    <select
+                      value={customerFilter}
+                      onChange={(event) => setCustomerFilter(event.target.value)}
+                      className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
+                    >
+                      <option value="all">All customers</option>
+                      {customerOptions.map((name) => (
+                        <option key={name} value={name}>
+                          {name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Supplier status
+                    </label>
+                    <select
+                      value={supplierFilter}
+                      onChange={(event) =>
+                        setSupplierFilter(event.target.value as SupplierSubmissionStatus | "all")
+                      }
+                      className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
+                    >
+                      <option value="all">All supplier statuses</option>
+                      {(["queued", "submitted", "not_configured", "failed"] as const).map(
+                        (status) => (
+                          <option key={status} value={status}>
+                            {formatStatusLabel(status)}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="mb-2 block text-sm font-medium text-foreground">
+                      Fulfillment
+                    </label>
+                    <select
+                      value={fulfillmentFilter}
+                      onChange={(event) =>
+                        setFulfillmentFilter(event.target.value as FulfillmentStatus | "all")
+                      }
+                      className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
+                    >
+                      <option value="all">All fulfillment statuses</option>
+                      {(["new", "processing", "shipped", "delivered", "cancelled"] as const).map(
+                        (status) => (
+                          <option key={status} value={status}>
+                            {formatStatusLabel(status)}
+                          </option>
+                        ),
+                      )}
+                    </select>
+                  </div>
+                </div>
               </div>
 
               <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
