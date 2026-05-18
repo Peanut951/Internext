@@ -20,6 +20,9 @@ const readEnv = (key: string) => process.env[key]?.trim() || "";
 
 export const getStripeSecretKey = () => readEnv("STRIPE_SECRET_KEY");
 
+export const getMissingStripeConfigMessage = () =>
+  "Stripe checkout is not configured on the server. Add STRIPE_SECRET_KEY to the Vercel environment for this deployment and redeploy.";
+
 const getHeader = (headers: RequestHeaders | undefined, key: string) => {
   if (!headers) {
     return "";
@@ -179,7 +182,7 @@ export const createStripeCheckoutSession = async (params: URLSearchParams) => {
   if (!stripeSecretKey) {
     return {
       ok: false as const,
-      message: "Stripe checkout is not configured on the server yet.",
+      message: getMissingStripeConfigMessage(),
     };
   }
 
@@ -227,7 +230,7 @@ export const retrieveStripeCheckoutSession = async (sessionId: string) => {
   if (!stripeSecretKey) {
     return {
       ok: false as const,
-      message: "Stripe checkout is not configured on the server yet.",
+      message: getMissingStripeConfigMessage(),
     };
   }
 
