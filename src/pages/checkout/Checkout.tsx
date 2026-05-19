@@ -955,13 +955,6 @@ const Checkout = () => {
                               : "Enter postcode"}
                         </span>
                       </p>
-                      {shippingQuote ? (
-                        <p className="mb-2 text-xs text-muted-foreground">
-                          {shippingQuote.service.name} from Dural NSW 2158. Parcel estimate{" "}
-                          {shippingQuote.parcel.weightKg}kg, {shippingQuote.parcel.lengthCm} x{" "}
-                          {shippingQuote.parcel.widthCm} x {shippingQuote.parcel.heightCm}cm.
-                        </p>
-                      ) : null}
                       {shippingError ? (
                         <p className="mb-2 text-xs text-destructive">{shippingError}</p>
                       ) : null}
