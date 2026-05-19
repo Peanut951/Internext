@@ -26,6 +26,12 @@ type CatalogProduct = {
   supplierCode?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  stockByWarehouse?: {
+    adl: number;
+    bne: number;
+    mel: number;
+    syd: number;
+  };
   stockRecordUpdated?: string;
   weightKg?: number | null;
   heightCm?: number | null;
@@ -148,6 +154,34 @@ const getMeasurementRows = (product: CatalogProduct) => [
   { label: "Width", value: formatMeasurement(product.widthCm, "cm") },
   { label: "Depth", value: formatMeasurement(product.depthCm, "cm") },
 ].filter((row): row is { label: string; value: string } => Boolean(row.value));
+
+const getAvailabilityRows = (product: CatalogProduct) => {
+  const rows = [
+    product.availabilityText
+      ? { label: "Status", value: product.availabilityText }
+      : null,
+    typeof product.stockQuantity === "number"
+      ? { label: "Total Available", value: product.stockQuantity.toLocaleString("en-AU") }
+      : null,
+    product.stockByWarehouse
+      ? { label: "Adelaide", value: product.stockByWarehouse.adl.toLocaleString("en-AU") }
+      : null,
+    product.stockByWarehouse
+      ? { label: "Brisbane", value: product.stockByWarehouse.bne.toLocaleString("en-AU") }
+      : null,
+    product.stockByWarehouse
+      ? { label: "Melbourne", value: product.stockByWarehouse.mel.toLocaleString("en-AU") }
+      : null,
+    product.stockByWarehouse
+      ? { label: "Sydney", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
+      : null,
+    product.stockRecordUpdated
+      ? { label: "Stock Updated", value: product.stockRecordUpdated }
+      : null,
+  ];
+
+  return rows.filter((row): row is { label: string; value: string } => Boolean(row));
+};
 
 const ProductDetail = () => {
   const { code } = useParams();
@@ -322,12 +356,15 @@ const ProductDetail = () => {
                       <Tabs defaultValue="overview" className="mt-6">
                         <div className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
                           <div className="border-b border-border/50 bg-background/80 px-5 py-4 backdrop-blur md:px-6">
-                            <TabsList className="grid h-auto w-full max-w-sm grid-cols-2 rounded-xl bg-secondary/50 p-1">
+                            <TabsList className="grid h-auto w-full max-w-lg grid-cols-3 rounded-xl bg-secondary/50 p-1">
                               <TabsTrigger value="overview" className="rounded-lg">
                                 Overview
                               </TabsTrigger>
                               <TabsTrigger value="size" className="rounded-lg">
                                 Size
+                              </TabsTrigger>
+                              <TabsTrigger value="availability" className="rounded-lg">
+                                Availability
                               </TabsTrigger>
                             </TabsList>
                           </div>
@@ -383,6 +420,38 @@ const ProductDetail = () => {
                             ) : (
                               <p className="px-5 py-5 text-sm text-muted-foreground md:px-6 md:py-6">
                                 Product measurements are not available.
+                              </p>
+                            )}
+                          </TabsContent>
+
+                          <TabsContent value="availability" className="m-0">
+                            <div className="border-b border-border/50 bg-background/55 px-5 py-4 md:px-6">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                                Live Availability
+                              </p>
+                              <h2 className="mt-2 text-lg font-semibold text-foreground">
+                                Stock by Location
+                              </h2>
+                            </div>
+                            {getAvailabilityRows(product).length > 0 ? (
+                              <div className="grid gap-3 px-5 py-5 sm:grid-cols-2 md:px-6 md:py-6">
+                                {getAvailabilityRows(product).map((row) => (
+                                  <div
+                                    key={row.label}
+                                    className="rounded-xl border border-border/60 bg-background px-4 py-3"
+                                  >
+                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                      {row.label}
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold text-foreground">
+                                      {row.value}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="px-5 py-5 text-sm text-muted-foreground md:px-6 md:py-6">
+                                Live availability is not available for this product.
                               </p>
                             )}
                           </TabsContent>

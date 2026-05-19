@@ -108,6 +108,69 @@ const parseLiveCatalog = (csv: string) => {
     .filter((item): item is LiveCatalogItem => Boolean(item));
 };
 
+const decodeXmlText = (value: string) =>
+  value
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, "\"")
+    .replace(/&apos;/g, "'");
+
+const getXmlTag = (row: string, tag: string) => {
+  const match = row.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
+  return match ? decodeXmlText(match[1].trim()) : "";
+};
+
+const parseLiveCatalogXml = (xml: string) => {
+  const rows = Array.from(xml.matchAll(/<row>([\s\S]*?)<\/row>/gi), (match) => match[1]);
+
+  return rows
+    .map((row): LiveCatalogItem | null => {
+      const code = getXmlTag(row, "PartNumber");
+
+      if (!code) {
+        return null;
+      }
+
+      const costExGst = parseNumber(getXmlTag(row, "PriceCostEx"));
+      const price = applyMarkup(costExGst);
+      const rrpExGst = parseNumber(getXmlTag(row, "PriceRetailEx"));
+      const taxRate = parseNumber(getXmlTag(row, "TaxRate")) ?? 0;
+      const rrp = applyTax(rrpExGst, taxRate);
+      const stockQuantity = parseNumber(getXmlTag(row, "Quantity")) ?? 0;
+
+      return {
+        code,
+        supplierCode: getXmlTag(row, "SupplierPartNumber") || code,
+        manufacturer: getXmlTag(row, "Manufacturer"),
+        name: getXmlTag(row, "Name"),
+        price,
+        priceText: formatAud(price),
+        rrp,
+        rrpText: formatAud(rrp),
+        costExGst,
+        markupRate: SELL_PRICE_MARKUP_RATE,
+        priceExGst: price,
+        rrpExGst,
+        taxRate,
+        availabilityText: getXmlTag(row, "ETAStatus") || (stockQuantity > 0 ? "In Stock" : "Check availability"),
+        stockQuantity,
+        stockByWarehouse: {
+          adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
+          bne: parseNumber(getXmlTag(row, "Qty_BNE")) ?? 0,
+          mel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
+          syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
+        },
+        stockRecordUpdated: getXmlTag(row, "StockRecordUpdated"),
+        weightKg: parseNumber(getXmlTag(row, "Weight")),
+        heightCm: metresToCentimetres(parseNumber(getXmlTag(row, "Height"))),
+        widthCm: metresToCentimetres(parseNumber(getXmlTag(row, "Width"))),
+        depthCm: metresToCentimetres(parseNumber(getXmlTag(row, "Depth"))),
+      };
+    })
+    .filter((item): item is LiveCatalogItem => Boolean(item));
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -122,17 +185,17 @@ export default async function handler(
     return sendJson(res, 405, { message: "Method not allowed." });
   }
 
-  const feedUrl = readEnv("ALLOYS_CATALOG_FEED_URL");
+  const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
   if (!feedUrl) {
     return sendJson(res, 500, {
-      message: "Alloys catalog feed is not configured. Add ALLOYS_CATALOG_FEED_URL to the server environment.",
+      message: "Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.",
     });
   }
 
   try {
     const response = await fetch(feedUrl, {
       headers: {
-        Accept: "text/csv,text/plain,*/*",
+        Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
       },
     });
 
@@ -140,13 +203,16 @@ export default async function handler(
       return sendJson(res, 502, { message: `Alloys feed returned ${response.status}.` });
     }
 
-    const csv = await response.text();
-    const items = parseLiveCatalog(csv);
+    const feedText = await response.text();
+    const items = feedText.trim().startsWith("<")
+      ? parseLiveCatalogXml(feedText)
+      : parseLiveCatalog(feedText);
 
     res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
     return sendJson(res, 200, {
       updatedAt: new Date().toISOString(),
       count: items.length,
+      source: feedText.trim().startsWith("<") ? "xml" : "csv",
       items,
     });
   } catch (error) {
