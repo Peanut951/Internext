@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProductImageCandidates,
   handleProductImageError,
@@ -132,6 +133,21 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
 
   return paragraphs;
 };
+
+const formatMeasurement = (value: number | null | undefined, unit: string) => {
+  if (value === null || value === undefined || Number.isNaN(value)) {
+    return "Not listed";
+  }
+
+  return `${value.toLocaleString("en-AU", { maximumFractionDigits: 2 })}${unit}`;
+};
+
+const getMeasurementRows = (product: CatalogProduct) => [
+  { label: "Weight", value: formatMeasurement(product.weightKg, "kg") },
+  { label: "Height", value: formatMeasurement(product.heightCm, "cm") },
+  { label: "Width", value: formatMeasurement(product.widthCm, "cm") },
+  { label: "Depth", value: formatMeasurement(product.depthCm, "cm") },
+];
 
 const ProductDetail = () => {
   const { code } = useParams();
@@ -303,30 +319,69 @@ const ProductDetail = () => {
                         </div>
                       ) : null}
 
-                      {fullDescriptionParagraphs.length > 0 ? (
-                        <div className="mt-6 overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
+                      <Tabs defaultValue="overview" className="mt-6">
+                        <div className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
                           <div className="border-b border-border/50 bg-background/80 px-5 py-4 backdrop-blur md:px-6">
-                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-                              Product Overview
-                            </p>
-                            <h2 className="mt-2 text-lg font-semibold text-foreground">
-                              Full Description
-                            </h2>
+                            <TabsList className="grid h-auto w-full max-w-sm grid-cols-2 rounded-xl bg-secondary/50 p-1">
+                              <TabsTrigger value="overview" className="rounded-lg">
+                                Overview
+                              </TabsTrigger>
+                              <TabsTrigger value="size" className="rounded-lg">
+                                Size
+                              </TabsTrigger>
+                            </TabsList>
                           </div>
-                          <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
-                            {fullDescriptionParagraphs.map((paragraph, index) => (
-                              <p
-                                key={`${product.code}-desc-${index}`}
-                                className={`max-w-none text-base leading-8 ${
-                                  index === 0 ? "text-foreground" : "text-muted-foreground"
-                                }`}
-                              >
-                                {paragraph}
+
+                          <TabsContent value="overview" className="m-0">
+                            <div className="border-b border-border/50 bg-background/55 px-5 py-4 md:px-6">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                                Product Overview
                               </p>
-                            ))}
-                          </div>
+                              <h2 className="mt-2 text-lg font-semibold text-foreground">
+                                Full Description
+                              </h2>
+                            </div>
+                            <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
+                              {fullDescriptionParagraphs.map((paragraph, index) => (
+                                <p
+                                  key={`${product.code}-desc-${index}`}
+                                  className={`max-w-none text-base leading-8 ${
+                                    index === 0 ? "text-foreground" : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {paragraph}
+                                </p>
+                              ))}
+                            </div>
+                          </TabsContent>
+
+                          <TabsContent value="size" className="m-0">
+                            <div className="border-b border-border/50 bg-background/55 px-5 py-4 md:px-6">
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                                Product Size
+                              </p>
+                              <h2 className="mt-2 text-lg font-semibold text-foreground">
+                                Measurements
+                              </h2>
+                            </div>
+                            <div className="grid gap-3 px-5 py-5 sm:grid-cols-2 md:px-6 md:py-6">
+                              {getMeasurementRows(product).map((row) => (
+                                <div
+                                  key={row.label}
+                                  className="rounded-xl border border-border/60 bg-background px-4 py-3"
+                                >
+                                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                    {row.label}
+                                  </p>
+                                  <p className="mt-2 text-lg font-semibold text-foreground">
+                                    {row.value}
+                                  </p>
+                                </div>
+                              ))}
+                            </div>
+                          </TabsContent>
                         </div>
-                      ) : null}
+                      </Tabs>
                     </div>
 
                     <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-secondary/20 p-5 md:p-6">
