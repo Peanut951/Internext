@@ -9,6 +9,8 @@ type LiveCatalogItem = {
   priceText: string;
   rrp: number | null;
   rrpText: string;
+  costExGst: number | null;
+  markupRate: number;
   priceExGst: number | null;
   rrpExGst: number | null;
   taxRate: number;
@@ -34,6 +36,11 @@ const formatAud = (value: number | null) =>
 const applyTax = (value: number | null, taxRate: number) =>
   value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
 
+const SELL_PRICE_MARKUP_RATE = 0.2;
+
+const applyMarkup = (value: number | null) =>
+  value === null ? null : Math.round(value * (1 + SELL_PRICE_MARKUP_RATE) * 100) / 100;
+
 const splitFeedRows = (csv: string) =>
   csv
     .replace(/^\uFEFF/, "")
@@ -53,7 +60,8 @@ const parseLiveCatalog = (csv: string) => {
         return null;
       }
 
-      const price = parseNumber(parts[8]);
+      const costExGst = parseNumber(parts[8]);
+      const price = applyMarkup(costExGst);
       const rrpExGst = parseNumber(parts[9]);
       const taxRate = parseNumber(parts[11]) ?? 0;
       const rrp = applyTax(rrpExGst, taxRate);
@@ -70,6 +78,8 @@ const parseLiveCatalog = (csv: string) => {
         priceText: formatAud(price),
         rrp,
         rrpText: formatAud(rrp),
+        costExGst,
+        markupRate: SELL_PRICE_MARKUP_RATE,
         priceExGst: price,
         rrpExGst,
         taxRate,
