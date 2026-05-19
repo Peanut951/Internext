@@ -8,7 +8,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 
 type CatalogProduct = {
@@ -23,6 +23,9 @@ type CatalogProduct = {
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  availabilityText?: string;
+  stockQuantity?: number;
+  stockRecordUpdated?: string;
 };
 
 type CartItem = CatalogProduct & { qty: number };
@@ -141,11 +144,7 @@ const ProductDetail = () => {
     let isMounted = true;
     const loadProduct = async () => {
       try {
-        const response = await fetch("/data/catalog-products.json");
-        if (!response.ok) {
-          throw new Error("Unable to load product data.");
-        }
-        const data = normalizeCatalogProducts((await response.json()) as CatalogProduct[]);
+        const data = (await loadCatalogProducts()) as CatalogProduct[];
         const found = data.find((item) => item.code === productCode) || null;
         if (isMounted) {
           setProduct(found);
@@ -170,6 +169,17 @@ const ProductDetail = () => {
       return "";
     }
     return formatPrice(product.price) ?? product.priceText ?? "POA";
+  }, [product]);
+
+  const availability = useMemo(() => {
+    if (!product) {
+      return "";
+    }
+
+    return (
+      product.availabilityText ||
+      (typeof product.stockQuantity === "number" ? `${product.stockQuantity} available` : "")
+    );
   }, [product]);
 
   const galleryImages = useMemo(() => {
@@ -337,6 +347,9 @@ const ProductDetail = () => {
                       <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
                         <p className="mb-2 text-sm text-muted-foreground">Price</p>
                         <p className="mb-2 text-3xl font-bold text-foreground">{displayPrice}</p>
+                        {availability ? (
+                          <p className="mb-2 text-sm font-semibold text-accent">{availability}</p>
+                        ) : null}
                         {product.rrp ? (
                           <p className="mb-6 text-sm text-muted-foreground">
                             RRP {formatPrice(product.rrp)}

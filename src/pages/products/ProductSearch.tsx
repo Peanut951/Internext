@@ -5,7 +5,8 @@ import { Search, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
-import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { getCatalogSummaryText } from "@/lib/catalogQuality";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
@@ -20,6 +21,8 @@ type CatalogProduct = {
   priceText?: string;
   supplierCode?: string;
   imageUrl?: string;
+  availabilityText?: string;
+  stockQuantity?: number;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -59,12 +62,7 @@ const ProductSearch = () => {
 
     const loadProducts = async () => {
       try {
-        const response = await fetch("/data/catalog-products.json");
-        if (!response.ok) {
-          throw new Error("Unable to load product catalog.");
-        }
-
-        const data = normalizeCatalogProducts((await response.json()) as CatalogProduct[]);
+        const data = (await loadCatalogProducts()) as CatalogProduct[];
         if (mounted) {
           setProducts(data);
           setLoading(false);
@@ -293,6 +291,11 @@ const ProductSearch = () => {
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   {currentItems.map(({ product }) => {
                     const image = getPrimaryProductImage(product);
+                    const availability =
+                      product.availabilityText ||
+                      (typeof product.stockQuantity === "number"
+                        ? `${product.stockQuantity} available`
+                        : "");
                     return (
                       <Link
                         key={product.code}
@@ -330,6 +333,9 @@ const ProductSearch = () => {
                               <span className="text-xl font-bold text-foreground">
                                 {formatPrice(product.price) ?? product.priceText ?? "POA"}
                               </span>
+                              {availability ? (
+                                <span className="text-sm text-muted-foreground">{availability}</span>
+                              ) : null}
                               <span className="inline-flex items-center gap-1 text-sm font-medium text-accent">
                                 View details <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
                               </span>

@@ -5,7 +5,8 @@ import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
-import { getCatalogSummaryText, normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { getCatalogSummaryText } from "@/lib/catalogQuality";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 
 const ITEMS_PER_PAGE = 24;
@@ -22,6 +23,8 @@ type CatalogProduct = {
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  availabilityText?: string;
+  stockQuantity?: number;
 };
 
 type CartItem = CatalogProduct & { qty: number };
@@ -781,20 +784,16 @@ const ProductCategory = () => {
     let isMounted = true;
     const loadProducts = async () => {
       try {
-        const [catalogResponse, featuredResponse] = await Promise.all([
-          fetch("/data/catalog-products.json"),
+        const [catalogProducts, featuredResponse] = await Promise.all([
+          loadCatalogProducts() as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
         ]);
 
-        if (!catalogResponse.ok) {
-          throw new Error("Unable to load the product catalog.");
-        }
-        const dataResponse = (await catalogResponse.json()) as CatalogProduct[];
         const featuredData = featuredResponse.ok
           ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
           : { rankings: {} };
         if (isMounted) {
-          setProducts(normalizeCatalogProducts(dataResponse));
+          setProducts(catalogProducts);
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
         }
@@ -1378,6 +1377,11 @@ const ProductCategory = () => {
                     const productImage = getPrimaryProductImage(product);
                     const summary = getCardSummary(product);
                     const highlights = getCardHighlights(product);
+                    const availability =
+                      product.availabilityText ||
+                      (typeof product.stockQuantity === "number"
+                        ? `${product.stockQuantity} available`
+                        : "");
                     return (
                       <div
                         key={product.code}
@@ -1450,6 +1454,11 @@ const ProductCategory = () => {
                                 </span>
                               )}
                             </div>
+                            {availability ? (
+                              <p className="mt-3 text-sm font-medium text-accent">
+                                {availability}
+                              </p>
+                            ) : null}
                           </div>
 
                           <div className="mt-4 grid grid-cols-1 gap-2">

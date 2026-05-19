@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import {
@@ -29,6 +29,8 @@ type CatalogProduct = {
   priceText?: string;
   supplierCode?: string;
   imageUrl?: string;
+  availabilityText?: string;
+  stockQuantity?: number;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -183,11 +185,7 @@ const ProductsIndex = () => {
 
     const loadProducts = async () => {
       try {
-        const response = await fetch("/data/catalog-products.json");
-        if (!response.ok) {
-          throw new Error("Unable to load product catalog.");
-        }
-        const data = normalizeCatalogProducts((await response.json()) as CatalogProduct[]);
+        const data = (await loadCatalogProducts()) as CatalogProduct[];
         if (isMounted) {
           setProducts(data);
           setCatalogLoading(false);
@@ -370,6 +368,11 @@ const ProductsIndex = () => {
                       {searchPreviewMatches.map(({ product }, index) => {
                         const image = getPrimaryProductImage(product);
                         const price = formatPrice(product.price) ?? product.priceText ?? "POA";
+                        const availability =
+                          product.availabilityText ||
+                          (typeof product.stockQuantity === "number"
+                            ? `${product.stockQuantity} available`
+                            : "");
 
                         return (
                           <Link
@@ -396,9 +399,14 @@ const ProductsIndex = () => {
                                 {product.manufacturer || "Unbranded"} - Code: {product.code}
                               </p>
                             </div>
-                            <p className="col-start-2 whitespace-nowrap text-sm font-semibold text-foreground sm:col-start-auto">
-                              {price}
-                            </p>
+                            <div className="col-start-2 text-sm sm:col-start-auto sm:text-right">
+                              <p className="whitespace-nowrap font-semibold text-foreground">{price}</p>
+                              {availability ? (
+                                <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">
+                                  {availability}
+                                </p>
+                              ) : null}
+                            </div>
                           </Link>
                         );
                       })}
