@@ -23,6 +23,10 @@ type LiveCatalogItem = {
     syd: number;
   };
   stockRecordUpdated: string;
+  weightKg: number | null;
+  heightCm: number | null;
+  widthCm: number | null;
+  depthCm: number | null;
 };
 
 const parseNumber = (value: string | undefined) => {
@@ -40,6 +44,9 @@ const SELL_PRICE_MARKUP_RATE = 0.2;
 
 const applyMarkup = (value: number | null) =>
   value === null ? null : Math.round(value * (1 + SELL_PRICE_MARKUP_RATE) * 100) / 100;
+
+const metresToCentimetres = (value: number | null) =>
+  value === null ? null : Math.round(value * 100 * 10) / 10;
 
 const splitFeedRows = (csv: string) =>
   csv
@@ -92,6 +99,10 @@ const parseLiveCatalog = (csv: string) => {
           syd: parseNumber(qtySyd) ?? 0,
         },
         stockRecordUpdated: stockRecordUpdated?.trim() || "",
+        weightKg: parseNumber(parts[17]),
+        heightCm: metresToCentimetres(parseNumber(parts[18])),
+        widthCm: metresToCentimetres(parseNumber(parts[19])),
+        depthCm: metresToCentimetres(parseNumber(parts[20])),
       };
     })
     .filter((item): item is LiveCatalogItem => Boolean(item));

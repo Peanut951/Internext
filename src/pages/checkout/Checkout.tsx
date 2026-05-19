@@ -134,6 +134,21 @@ type CheckoutDraft = {
   items: CartItem[];
 };
 
+type ShippingQuote = {
+  service: {
+    code: string;
+    name: string;
+    price: number;
+    priceText: string;
+  };
+  parcel: {
+    weightKg: number;
+    lengthCm: number;
+    widthCm: number;
+    heightCm: number;
+  };
+};
+
 const readCheckoutDraft = () => {
   if (typeof window === "undefined") {
     return null;
@@ -204,6 +219,9 @@ const Checkout = () => {
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [selectedAddressLabel, setSelectedAddressLabel] = useState<string | null>(null);
   const [paymentStateMessage, setPaymentStateMessage] = useState<string | null>(null);
+  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
+  const [shippingError, setShippingError] = useState<string | null>(null);
   const { session } = useAuthSession();
 
   useEffect(() => {
@@ -233,6 +251,11 @@ const Checkout = () => {
   }, [cartItems]);
 
   const hasUnpricedItems = poaLines > 0;
+
+  const orderTotal = useMemo(
+    () => subtotal + (shippingQuote?.service.price || 0),
+    [shippingQuote, subtotal],
+  );
 
   useEffect(() => {
     const query = customer.address1.trim();
@@ -306,6 +329,79 @@ const Checkout = () => {
       controller.abort();
     };
   }, [customer.address1, selectedAddressLabel]);
+
+  useEffect(() => {
+    const postcode = customer.postcode.trim();
+    const isAustralianAddress = customer.country.trim().toLowerCase() === "australia";
+
+    if (!/^\d{4}$/.test(postcode) || !isAustralianAddress || cartItems.length === 0) {
+      setShippingQuote(null);
+      setShippingError(null);
+      setShippingLoading(false);
+      return;
+    }
+
+    let isActive = true;
+    const controller = new AbortController();
+
+    const quoteShipping = async () => {
+      setShippingLoading(true);
+      setShippingError(null);
+
+      try {
+        const response = await fetch("/api/shipping/quote", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+          body: JSON.stringify({
+            destinationPostcode: postcode,
+            items: cartItems.map((item) => ({
+              code: item.code,
+              qty: item.qty,
+              weightKg: item.weightKg,
+              heightCm: item.heightCm,
+              widthCm: item.widthCm,
+              depthCm: item.depthCm,
+            })),
+          }),
+        });
+
+        const payload = (await response.json()) as ShippingQuote & { message?: string };
+        if (!response.ok) {
+          throw new Error(payload.message || "Unable to calculate shipping.");
+        }
+
+        if (isActive) {
+          setShippingQuote(payload);
+        }
+      } catch (quoteError) {
+        if (!isActive || (quoteError instanceof Error && quoteError.name === "AbortError")) {
+          return;
+        }
+
+        setShippingQuote(null);
+        setShippingError(
+          quoteError instanceof Error ? quoteError.message : "Unable to calculate shipping.",
+        );
+      } finally {
+        if (isActive) {
+          setShippingLoading(false);
+        }
+      }
+    };
+
+    const timeout = window.setTimeout(() => {
+      void quoteShipping();
+    }, 500);
+
+    return () => {
+      isActive = false;
+      window.clearTimeout(timeout);
+      controller.abort();
+    };
+  }, [cartItems, customer.country, customer.postcode]);
 
   useEffect(() => {
     if (checkoutState === "cancelled") {
@@ -483,6 +579,13 @@ const Checkout = () => {
             qty: item.qty,
             price: item.price,
           })),
+          shipping:
+            shippingQuote && shippingQuote.service.price > 0
+              ? {
+                  name: shippingQuote.service.name,
+                  price: shippingQuote.service.price,
+                }
+              : undefined,
         }),
       });
 
@@ -841,6 +944,30 @@ const Checkout = () => {
                       <p className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Known subtotal</span>
                         <span className="font-semibold text-foreground">{formatAud(subtotal)}</span>
+                      </p>
+                      <p className="flex items-center justify-between mb-2">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span className="font-semibold text-foreground">
+                          {shippingLoading
+                            ? "Calculating..."
+                            : shippingQuote
+                              ? shippingQuote.service.priceText
+                              : "Enter postcode"}
+                        </span>
+                      </p>
+                      {shippingQuote ? (
+                        <p className="mb-2 text-xs text-muted-foreground">
+                          {shippingQuote.service.name} from Dural NSW 2158. Parcel estimate{" "}
+                          {shippingQuote.parcel.weightKg}kg, {shippingQuote.parcel.lengthCm} x{" "}
+                          {shippingQuote.parcel.widthCm} x {shippingQuote.parcel.heightCm}cm.
+                        </p>
+                      ) : null}
+                      {shippingError ? (
+                        <p className="mb-2 text-xs text-destructive">{shippingError}</p>
+                      ) : null}
+                      <p className="flex items-center justify-between border-t border-border pt-3 font-semibold">
+                        <span className="text-foreground">Estimated total</span>
+                        <span className="text-foreground">{formatAud(orderTotal)}</span>
                       </p>
                       {poaLines > 0 ? (
                         <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>

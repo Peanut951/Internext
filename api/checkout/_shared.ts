@@ -14,6 +14,11 @@ type CheckoutCustomer = {
   company?: string;
 };
 
+type CheckoutShipping = {
+  name: string;
+  price: number;
+};
+
 type RequestHeaders = Record<string, string | string[] | undefined>;
 
 export const readEnv = (key: string) => process.env[key]?.trim() || "";
@@ -141,6 +146,7 @@ export const buildStripeCheckoutParams = (payload: {
   customer: CheckoutCustomer;
   items: CheckoutLineItem[];
   resellerEmail?: string;
+  shipping?: CheckoutShipping;
 }) => {
   const params = new URLSearchParams();
   params.set("mode", "payment");
@@ -188,6 +194,21 @@ export const buildStripeCheckoutParams = (payload: {
     );
     params.set(`line_items[${index}][price_data][product_data][metadata][code]`, item.code);
   });
+
+  if (payload.shipping && payload.shipping.price > 0) {
+    const index = payload.items.length;
+    params.set(`line_items[${index}][quantity]`, "1");
+    params.set(`line_items[${index}][price_data][currency]`, "aud");
+    params.set(
+      `line_items[${index}][price_data][unit_amount]`,
+      String(Math.round(payload.shipping.price * 100)),
+    );
+    params.set(
+      `line_items[${index}][price_data][product_data][name]`,
+      payload.shipping.name || "Shipping",
+    );
+    params.set(`line_items[${index}][price_data][product_data][metadata][code]`, "SHIPPING");
+  }
 
   return params;
 };

@@ -10,6 +10,10 @@
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  widthCm?: number | null;
+  depthCm?: number | null;
 };
 
 export type CartItem = CatalogProductLite & { qty: number };

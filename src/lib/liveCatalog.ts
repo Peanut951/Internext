@@ -21,6 +21,10 @@ export type CatalogProductWithLive = {
     syd: number;
   };
   stockRecordUpdated?: string;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  widthCm?: number | null;
+  depthCm?: number | null;
   liveUpdatedAt?: string;
 };
 
@@ -45,6 +49,10 @@ type LiveCatalogItem = {
     syd: number;
   };
   stockRecordUpdated: string;
+  weightKg: number | null;
+  heightCm: number | null;
+  widthCm: number | null;
+  depthCm: number | null;
 };
 
 type LiveCatalogResponse = {
@@ -110,6 +118,10 @@ export const loadCatalogProducts = async () => {
         stockQuantity: live.stockQuantity,
         stockByWarehouse: live.stockByWarehouse,
         stockRecordUpdated: live.stockRecordUpdated,
+        weightKg: live.weightKg,
+        heightCm: live.heightCm,
+        widthCm: live.widthCm,
+        depthCm: live.depthCm,
         liveUpdatedAt: liveData.updatedAt,
       };
     });

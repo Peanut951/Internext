@@ -26,6 +26,10 @@ type CatalogProduct = {
   availabilityText?: string;
   stockQuantity?: number;
   stockRecordUpdated?: string;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  widthCm?: number | null;
+  depthCm?: number | null;
 };
 
 type CartItem = CatalogProduct & { qty: number };

@@ -25,6 +25,10 @@ type RequestBody = {
     qty: number;
     price: number | null;
   }>;
+  shipping?: {
+    name?: string;
+    price?: number;
+  };
 };
 
 export default async function handler(
@@ -69,6 +73,13 @@ export default async function handler(
     },
     items: body.items || [],
     resellerEmail: body.resellerEmail,
+    shipping:
+      typeof body.shipping?.price === "number" && body.shipping.price > 0
+        ? {
+            name: String(body.shipping.name || "Shipping"),
+            price: body.shipping.price,
+          }
+        : undefined,
   });
 
   const session = await createStripeCheckoutSession(params);
