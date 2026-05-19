@@ -164,16 +164,16 @@ const getAvailabilityRows = (product: CatalogProduct) => {
     typeof product.stockQuantity === "number"
       ? { label: "Total Available", value: product.stockQuantity.toLocaleString("en-AU") }
       : null,
-    product.stockByWarehouse
+    product.stockByWarehouse && product.stockByWarehouse.adl > 0
       ? { label: "Adelaide", value: product.stockByWarehouse.adl.toLocaleString("en-AU") }
       : null,
-    product.stockByWarehouse
+    product.stockByWarehouse && product.stockByWarehouse.bne > 0
       ? { label: "Brisbane", value: product.stockByWarehouse.bne.toLocaleString("en-AU") }
       : null,
-    product.stockByWarehouse
+    product.stockByWarehouse && product.stockByWarehouse.mel > 0
       ? { label: "Melbourne", value: product.stockByWarehouse.mel.toLocaleString("en-AU") }
       : null,
-    product.stockByWarehouse
+    product.stockByWarehouse && product.stockByWarehouse.syd > 0
       ? { label: "Sydney", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
       : null,
     product.stockRecordUpdated

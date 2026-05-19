@@ -73,34 +73,35 @@ export const loadCatalogProducts = async () => {
     (await staticResponse.json()) as CatalogProductWithLive[],
   );
 
-  try {
-    const liveResponse = await fetch("/api/catalog/live");
-    if (!liveResponse.ok) {
-      return staticProducts.map((product) => ({
-        ...product,
-        liveCatalogError: "Live Alloys feed is unavailable.",
-      }));
-    }
+  const liveResponse = await fetch("/api/catalog/live");
+  if (!liveResponse.ok) {
+    throw new Error("Live Alloys feed is unavailable.");
+  }
 
-    const liveData = (await liveResponse.json()) as LiveCatalogResponse;
-    const liveByKey = new Map<string, LiveCatalogItem>();
+  const liveData = (await liveResponse.json()) as LiveCatalogResponse;
+  if (!Array.isArray(liveData.items) || liveData.items.length === 0) {
+    throw new Error("Live Alloys feed returned no products.");
+  }
 
-    for (const item of liveData.items || []) {
-      for (const key of [item.code, item.supplierCode]) {
-        const normalizedKey = key?.trim().toLowerCase();
-        if (normalizedKey) {
-          liveByKey.set(normalizedKey, item);
-        }
+  const liveByKey = new Map<string, LiveCatalogItem>();
+
+  for (const item of liveData.items) {
+    for (const key of [item.code, item.supplierCode]) {
+      const normalizedKey = key?.trim().toLowerCase();
+      if (normalizedKey) {
+        liveByKey.set(normalizedKey, item);
       }
     }
+  }
 
-    return staticProducts.map((product) => {
+  return staticProducts
+    .map((product) => {
       const live = getProductKeys(product)
         .map((key) => liveByKey.get(key))
         .find(Boolean);
 
       if (!live) {
-        return product;
+        return null;
       }
 
       return {
@@ -122,11 +123,6 @@ export const loadCatalogProducts = async () => {
         depthCm: live.depthCm,
         liveUpdatedAt: liveData.updatedAt,
       };
-    });
-  } catch {
-    return staticProducts.map((product) => ({
-      ...product,
-      liveCatalogError: "Live Alloys feed is unavailable.",
-    }));
-  }
+    })
+    .filter((product): product is CatalogProductWithLive => Boolean(product));
 };

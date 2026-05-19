@@ -31,6 +31,11 @@ const parseNumber = (value: string | undefined) => {
   return Number.isFinite(parsed) ? parsed : null;
 };
 
+const parsePositiveNumber = (value: string | undefined) => {
+  const parsed = parseNumber(value);
+  return parsed !== null && parsed > 0 ? parsed : null;
+};
+
 const formatAud = (value: number | null) =>
   value === null ? "P.O.A." : value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 
@@ -44,6 +49,16 @@ const applyMarkup = (value: number | null) =>
 
 const metresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
+
+const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: number) => {
+  const status = String(value || "").trim();
+
+  if (!status || /^\d{4}-\d{2}-\d{2}$/.test(status) || /^\d{1,2}-\d{1,2}-\d{4}$/.test(status)) {
+    return stockQuantity > 0 ? "In Stock" : "Check availability";
+  }
+
+  return status;
+};
 
 const splitFeedRows = (csv: string) =>
   csv
@@ -84,7 +99,7 @@ const parseLiveCatalog = (csv: string) => {
         rrpText: formatAud(rrp),
         rrpExGst,
         taxRate,
-        availabilityText: availabilityText?.trim() || (stockQuantity > 0 ? "In Stock" : "Check availability"),
+        availabilityText: normalizeAvailabilityStatus(availabilityText, stockQuantity),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(qtyAdl) ?? 0,
@@ -93,10 +108,10 @@ const parseLiveCatalog = (csv: string) => {
           syd: parseNumber(qtySyd) ?? 0,
         },
         stockRecordUpdated: stockRecordUpdated?.trim() || "",
-        weightKg: parseNumber(parts[17]),
-        heightCm: metresToCentimetres(parseNumber(parts[18])),
-        widthCm: metresToCentimetres(parseNumber(parts[19])),
-        depthCm: metresToCentimetres(parseNumber(parts[20])),
+        weightKg: parsePositiveNumber(parts[17]),
+        heightCm: metresToCentimetres(parsePositiveNumber(parts[18])),
+        widthCm: metresToCentimetres(parsePositiveNumber(parts[19])),
+        depthCm: metresToCentimetres(parsePositiveNumber(parts[20])),
       };
     })
     .filter((item): item is LiveCatalogItem => Boolean(item));
@@ -144,7 +159,7 @@ const parseLiveCatalogXml = (xml: string) => {
         rrpText: formatAud(rrp),
         rrpExGst,
         taxRate,
-        availabilityText: getXmlTag(row, "ETAStatus") || (stockQuantity > 0 ? "In Stock" : "Check availability"),
+        availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
@@ -153,10 +168,10 @@ const parseLiveCatalogXml = (xml: string) => {
           syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
         },
         stockRecordUpdated: getXmlTag(row, "StockRecordUpdated"),
-        weightKg: parseNumber(getXmlTag(row, "Weight")),
-        heightCm: metresToCentimetres(parseNumber(getXmlTag(row, "Height"))),
-        widthCm: metresToCentimetres(parseNumber(getXmlTag(row, "Width"))),
-        depthCm: metresToCentimetres(parseNumber(getXmlTag(row, "Depth"))),
+        weightKg: parsePositiveNumber(getXmlTag(row, "Weight")),
+        heightCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Height"))),
+        widthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Width"))),
+        depthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Depth"))),
       };
     })
     .filter((item): item is LiveCatalogItem => Boolean(item));
