@@ -31,6 +31,9 @@ type LiveCatalogItem = {
   priceText: string;
   rrp: number | null;
   rrpText: string;
+  priceExGst: number | null;
+  rrpExGst: number | null;
+  taxRate: number;
   availabilityText: string;
   stockQuantity: number;
   stockByWarehouse: {
@@ -95,6 +98,9 @@ export const loadCatalogProducts = async () => {
         priceText: live.priceText,
         rrp: live.rrp,
         rrpText: live.rrpText,
+        priceExGst: live.priceExGst,
+        rrpExGst: live.rrpExGst,
+        taxRate: live.taxRate,
         supplierCode: product.supplierCode || live.supplierCode,
         availabilityText: live.availabilityText,
         stockQuantity: live.stockQuantity,

@@ -9,6 +9,9 @@ type LiveCatalogItem = {
   priceText: string;
   rrp: number | null;
   rrpText: string;
+  priceExGst: number | null;
+  rrpExGst: number | null;
+  taxRate: number;
   availabilityText: string;
   stockQuantity: number;
   stockByWarehouse: {
@@ -27,6 +30,9 @@ const parseNumber = (value: string | undefined) => {
 
 const formatAud = (value: number | null) =>
   value === null ? "P.O.A." : value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+
+const applyTax = (value: number | null, taxRate: number) =>
+  value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
 
 const splitFeedRows = (csv: string) =>
   csv
@@ -48,7 +54,9 @@ const parseLiveCatalog = (csv: string) => {
       }
 
       const price = parseNumber(parts[8]);
-      const rrp = parseNumber(parts[9]);
+      const rrpExGst = parseNumber(parts[9]);
+      const taxRate = parseNumber(parts[11]) ?? 0;
+      const rrp = applyTax(rrpExGst, taxRate);
       const stockQuantity = parseNumber(parts[12]) ?? 0;
       const tail = parts.slice(-7);
       const [stockRecordUpdated, , availabilityText, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
@@ -62,6 +70,9 @@ const parseLiveCatalog = (csv: string) => {
         priceText: formatAud(price),
         rrp,
         rrpText: formatAud(rrp),
+        priceExGst: price,
+        rrpExGst,
+        taxRate,
         availabilityText: availabilityText?.trim() || (stockQuantity > 0 ? "In Stock" : "Check availability"),
         stockQuantity,
         stockByWarehouse: {
