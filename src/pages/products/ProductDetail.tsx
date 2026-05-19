@@ -136,7 +136,7 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
 
 const formatMeasurement = (value: number | null | undefined, unit: string) => {
   if (value === null || value === undefined || Number.isNaN(value)) {
-    return "Not listed";
+    return null;
   }
 
   return `${value.toLocaleString("en-AU", { maximumFractionDigits: 2 })}${unit}`;
@@ -147,7 +147,7 @@ const getMeasurementRows = (product: CatalogProduct) => [
   { label: "Height", value: formatMeasurement(product.heightCm, "cm") },
   { label: "Width", value: formatMeasurement(product.widthCm, "cm") },
   { label: "Depth", value: formatMeasurement(product.depthCm, "cm") },
-];
+].filter((row): row is { label: string; value: string } => Boolean(row.value));
 
 const ProductDetail = () => {
   const { code } = useParams();
@@ -364,21 +364,27 @@ const ProductDetail = () => {
                                 Measurements
                               </h2>
                             </div>
-                            <div className="grid gap-3 px-5 py-5 sm:grid-cols-2 md:px-6 md:py-6">
-                              {getMeasurementRows(product).map((row) => (
-                                <div
-                                  key={row.label}
-                                  className="rounded-xl border border-border/60 bg-background px-4 py-3"
-                                >
-                                  <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
-                                    {row.label}
-                                  </p>
-                                  <p className="mt-2 text-lg font-semibold text-foreground">
-                                    {row.value}
-                                  </p>
-                                </div>
-                              ))}
-                            </div>
+                            {getMeasurementRows(product).length > 0 ? (
+                              <div className="grid gap-3 px-5 py-5 sm:grid-cols-2 md:px-6 md:py-6">
+                                {getMeasurementRows(product).map((row) => (
+                                  <div
+                                    key={row.label}
+                                    className="rounded-xl border border-border/60 bg-background px-4 py-3"
+                                  >
+                                    <p className="text-xs font-semibold uppercase tracking-[0.16em] text-muted-foreground">
+                                      {row.label}
+                                    </p>
+                                    <p className="mt-2 text-lg font-semibold text-foreground">
+                                      {row.value}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="px-5 py-5 text-sm text-muted-foreground md:px-6 md:py-6">
+                                Product measurements are not available.
+                              </p>
+                            )}
                           </TabsContent>
                         </div>
                       </Tabs>
