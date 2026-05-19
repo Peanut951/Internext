@@ -13,6 +13,7 @@ export type CatalogProductWithLive = {
   imageUrls?: string[];
   supplierCode?: string;
   availabilityText?: string;
+  liveCatalogError?: string;
   stockQuantity?: number;
   stockByWarehouse?: {
     adl: number;
@@ -35,9 +36,6 @@ type LiveCatalogItem = {
   priceText: string;
   rrp: number | null;
   rrpText: string;
-  costExGst: number | null;
-  markupRate: number;
-  priceExGst: number | null;
   rrpExGst: number | null;
   taxRate: number;
   availabilityText: string;
@@ -78,7 +76,10 @@ export const loadCatalogProducts = async () => {
   try {
     const liveResponse = await fetch("/api/catalog/live");
     if (!liveResponse.ok) {
-      return staticProducts;
+      return staticProducts.map((product) => ({
+        ...product,
+        liveCatalogError: "Live Alloys feed is unavailable.",
+      }));
     }
 
     const liveData = (await liveResponse.json()) as LiveCatalogResponse;
@@ -108,9 +109,6 @@ export const loadCatalogProducts = async () => {
         priceText: live.priceText,
         rrp: live.rrp,
         rrpText: live.rrpText,
-        costExGst: live.costExGst,
-        markupRate: live.markupRate,
-        priceExGst: live.priceExGst,
         rrpExGst: live.rrpExGst,
         taxRate: live.taxRate,
         supplierCode: product.supplierCode || live.supplierCode,
@@ -126,6 +124,9 @@ export const loadCatalogProducts = async () => {
       };
     });
   } catch {
-    return staticProducts;
+    return staticProducts.map((product) => ({
+      ...product,
+      liveCatalogError: "Live Alloys feed is unavailable.",
+    }));
   }
 };

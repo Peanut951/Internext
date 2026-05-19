@@ -25,6 +25,7 @@ type CatalogProduct = {
   imageUrls?: string[];
   supplierCode?: string;
   availabilityText?: string;
+  liveCatalogError?: string;
   stockQuantity?: number;
   stockByWarehouse?: {
     adl: number;
@@ -477,6 +478,12 @@ const ProductDetail = () => {
                       <h1 className="mb-6 text-3xl font-bold leading-[0.98] text-foreground md:text-4xl xl:text-[2.7rem] xl:leading-[0.94]">
                         {product.description}
                       </h1>
+
+                      {product.liveCatalogError ? (
+                        <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+                          {product.liveCatalogError} Check the Alloys feed environment variable and redeploy.
+                        </div>
+                      ) : null}
 
                       <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
                         <p className="mb-2 text-sm text-muted-foreground">Price</p>

@@ -9,9 +9,6 @@ type LiveCatalogItem = {
   priceText: string;
   rrp: number | null;
   rrpText: string;
-  costExGst: number | null;
-  markupRate: number;
-  priceExGst: number | null;
   rrpExGst: number | null;
   taxRate: number;
   availabilityText: string;
@@ -85,9 +82,6 @@ const parseLiveCatalog = (csv: string) => {
         priceText: formatAud(price),
         rrp,
         rrpText: formatAud(rrp),
-        costExGst,
-        markupRate: SELL_PRICE_MARKUP_RATE,
-        priceExGst: price,
         rrpExGst,
         taxRate,
         availabilityText: availabilityText?.trim() || (stockQuantity > 0 ? "In Stock" : "Check availability"),
@@ -148,9 +142,6 @@ const parseLiveCatalogXml = (xml: string) => {
         priceText: formatAud(price),
         rrp,
         rrpText: formatAud(rrp),
-        costExGst,
-        markupRate: SELL_PRICE_MARKUP_RATE,
-        priceExGst: price,
         rrpExGst,
         taxRate,
         availabilityText: getXmlTag(row, "ETAStatus") || (stockQuantity > 0 ? "In Stock" : "Check availability"),
