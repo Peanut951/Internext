@@ -26,6 +26,13 @@ type LiveCatalogItem = {
   depthCm: number | null;
 };
 
+type LiveCatalogCache = {
+  expiresAt: number;
+  updatedAt: string;
+  source: "xml" | "csv";
+  items: LiveCatalogItem[];
+};
+
 const parseNumber = (value: string | undefined) => {
   const parsed = Number(String(value || "").replace(/[^0-9.-]/g, ""));
   return Number.isFinite(parsed) ? parsed : null;
@@ -177,6 +184,10 @@ const parseLiveCatalogXml = (xml: string) => {
     .filter((item): item is LiveCatalogItem => Boolean(item));
 };
 
+const globalCatalogCache = globalThis as typeof globalThis & {
+  __internextLiveCatalogCache?: LiveCatalogCache;
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -199,6 +210,18 @@ export default async function handler(
   }
 
   try {
+    const cached = globalCatalogCache.__internextLiveCatalogCache;
+    if (cached && cached.expiresAt > Date.now()) {
+      res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
+      return sendJson(res, 200, {
+        updatedAt: cached.updatedAt,
+        count: cached.items.length,
+        source: cached.source,
+        cached: true,
+        items: cached.items,
+      });
+    }
+
     const response = await fetch(feedUrl, {
       headers: {
         Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
@@ -213,12 +236,22 @@ export default async function handler(
     const items = feedText.trim().startsWith("<")
       ? parseLiveCatalogXml(feedText)
       : parseLiveCatalog(feedText);
+    const updatedAt = new Date().toISOString();
+    const source = feedText.trim().startsWith("<") ? "xml" : "csv";
+
+    globalCatalogCache.__internextLiveCatalogCache = {
+      expiresAt: Date.now() + 15 * 60 * 1000,
+      updatedAt,
+      source,
+      items,
+    };
 
     res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
     return sendJson(res, 200, {
-      updatedAt: new Date().toISOString(),
+      updatedAt,
       count: items.length,
-      source: feedText.trim().startsWith("<") ? "xml" : "csv",
+      source,
+      cached: false,
       items,
     });
   } catch (error) {

@@ -58,12 +58,14 @@ type LiveCatalogResponse = {
   items?: LiveCatalogItem[];
 };
 
+let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
+
 const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
   [product.code, product.supplierCode]
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
-export const loadCatalogProducts = async () => {
+const loadCatalogProductsInternal = async () => {
   const staticResponse = await fetch("/data/catalog-products.json");
   if (!staticResponse.ok) {
     throw new Error("Unable to load product catalog.");
@@ -125,4 +127,15 @@ export const loadCatalogProducts = async () => {
       };
     })
     .filter((product): product is CatalogProductWithLive => Boolean(product));
+};
+
+export const loadCatalogProducts = async () => {
+  if (!catalogProductsPromise) {
+    catalogProductsPromise = loadCatalogProductsInternal().catch((error) => {
+      catalogProductsPromise = null;
+      throw error;
+    });
+  }
+
+  return catalogProductsPromise;
 };
