@@ -17,6 +17,7 @@ const officeMapUrl =
 
 const Contact = () => {
   const { toast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,12 +27,46 @@ const Contact = () => {
     message: "",
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    toast({
-      title: "Message Sent",
-      description: "Thank you for contacting us. We'll respond within 1 business day.",
-    });
+    setSubmitting(true);
+
+    try {
+      const response = await fetch("/api/contact", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const payload = (await response.json()) as { message?: string };
+      if (!response.ok) {
+        throw new Error(payload.message || "Unable to send your message.");
+      }
+
+      setFormData({
+        name: "",
+        email: "",
+        phone: "",
+        company: "",
+        enquiryType: "",
+        message: "",
+      });
+
+      toast({
+        title: "Message Sent",
+        description: "Thank you for contacting us. We'll respond within 1 business day.",
+      });
+    } catch (error) {
+      toast({
+        title: "Message Not Sent",
+        description: error instanceof Error ? error.message : "Unable to send your message.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -164,8 +199,9 @@ const Contact = () => {
                     />
                   </div>
 
-                  <Button type="submit" className="w-full md:w-auto">
-                    <Send className="mr-2 h-4 w-4" /> Send Message
+                  <Button type="submit" className="w-full md:w-auto" disabled={submitting}>
+                    <Send className="mr-2 h-4 w-4" />
+                    {submitting ? "Sending..." : "Send Message"}
                   </Button>
                 </form>
               </div>
