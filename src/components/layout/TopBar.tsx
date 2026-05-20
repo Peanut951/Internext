@@ -6,6 +6,7 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 
 const TopBar = () => {
   const { session } = useAuthSession();
+  const canAccessResellerPortal = session?.role === "reseller" || session?.role === "admin";
 
   return (
     <div className="bg-primary text-primary-foreground py-2">
@@ -23,9 +24,11 @@ const TopBar = () => {
         <div className="flex items-center gap-4">
           {session ? (
             <>
-              <Link to="/portal" className="hidden sm:inline text-primary-foreground/80 hover:text-accent transition-colors">
-                Reseller Portal
-              </Link>
+              {canAccessResellerPortal ? (
+                <Link to="/portal" className="hidden sm:inline text-primary-foreground/80 hover:text-accent transition-colors">
+                  Reseller Portal
+                </Link>
+              ) : null}
               <Button
                 variant="accent"
                 size="sm"
@@ -41,7 +44,6 @@ const TopBar = () => {
             </>
           ) : (
             <>
-              <span className="text-primary-foreground/70 hidden sm:inline">Reseller Portal</span>
               <Link to="/login">
                 <Button variant="accent" size="sm" className="gap-2">
                   <User className="h-4 w-4" />
