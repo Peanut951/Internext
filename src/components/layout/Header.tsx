@@ -162,7 +162,7 @@ const Header = () => {
         </div>
       </div>
 
-      <div className="hidden bg-accent xl:block">
+      <div className="hidden bg-primary xl:block">
         <div className="container-wide">
           <nav className="flex items-center gap-2">
             {navItems.map((item) => (
@@ -174,7 +174,7 @@ const Header = () => {
               >
                 <Link
                   to={item.href}
-                  className="flex h-12 items-center gap-2 px-4 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-foreground/12"
+                  className="flex h-12 items-center gap-2 px-4 text-sm font-semibold text-primary-foreground transition-colors hover:bg-navy-light"
                 >
                   {item.label}
                   {item.megaMenu && <ChevronDown className="h-4 w-4" />}
