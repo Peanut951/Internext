@@ -36,7 +36,7 @@ export type CheckoutCustomer = {
 export type OrderReseller = {
   userId?: string;
   email: string;
-  role: "reseller" | "admin" | "guest";
+  role: "user" | "reseller" | "admin" | "guest";
 };
 
 export type SupplierIntegrationSettings = {

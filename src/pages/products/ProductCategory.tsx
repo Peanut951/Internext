@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,7 @@ import { getPrimaryProductImage, handleProductImageError } from "@/lib/productIm
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -752,7 +753,9 @@ const toTitle = (slug: string) =>
 
 const ProductCategory = () => {
   const { category } = useParams();
+  const navigate = useNavigate();
   const activeCategory = category || "";
+  const { session } = useAuthSession();
   const data =
     topLevelCategories[activeCategory] ||
     ({
@@ -1129,6 +1132,11 @@ const ProductCategory = () => {
   };
 
   const addToCart = (product: CatalogProduct) => {
+    if (!session) {
+      navigate(`/login?redirect=${encodeURIComponent(`/products/${activeCategory}`)}`);
+      return;
+    }
+
     setCartItems((prev) => {
       const existing = prev.find((item) => item.code === product.code);
       if (existing) {
@@ -1482,7 +1490,7 @@ const ProductCategory = () => {
                               className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
                               onClick={() => addToCart(product)}
                             >
-                              Add to Cart
+                              {session ? "Add to Cart" : "Sign In to Buy"}
                             </Button>
                           </div>
                         </div>

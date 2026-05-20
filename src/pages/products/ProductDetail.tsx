@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
@@ -11,6 +11,7 @@ import {
 } from "@/lib/productImages";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 type CatalogProduct = {
   code: string;
@@ -186,6 +187,7 @@ const getAvailabilityRows = (product: CatalogProduct) => {
 
 const ProductDetail = () => {
   const { code } = useParams();
+  const navigate = useNavigate();
   const productCode = code || "";
 
   const [loading, setLoading] = useState(true);
@@ -194,6 +196,7 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
   const [added, setAdded] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
+  const { session } = useAuthSession();
 
   useEffect(() => {
     let isMounted = true;
@@ -267,6 +270,12 @@ const ProductDetail = () => {
     if (!product) {
       return;
     }
+
+    if (!session) {
+      navigate(`/login?redirect=${encodeURIComponent(`/products/item/${product.code}`)}`);
+      return;
+    }
+
     const existing = getStoredCart();
     const match = existing.find((item) => item.code === product.code);
     const updated = match
@@ -521,7 +530,7 @@ const ProductDetail = () => {
                         </div>
 
                         <Button className="w-full" onClick={addToCart}>
-                          {added ? "Added to Cart" : "Add to Cart"}
+                          {added ? "Added to Cart" : session ? "Add to Cart" : "Sign In to Buy"}
                         </Button>
 
                         <Button variant="outline" className="mt-3 w-full" asChild>

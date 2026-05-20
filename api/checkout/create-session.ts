@@ -7,6 +7,7 @@ import {
   sendJson,
   validateCheckoutPayload,
 } from "./_shared.js";
+import { getSessionFromRequest } from "../auth/_shared.js";
 
 type RequestBody = {
   origin?: string;
@@ -47,6 +48,15 @@ export default async function handler(
     return sendJson(res, 405, { message: "Method not allowed." });
   }
 
+  const authSession = getSessionFromRequest({
+    headers: {
+      cookie: Array.isArray(req.headers?.cookie) ? req.headers?.cookie[0] : req.headers?.cookie,
+    },
+  });
+  if (!authSession) {
+    return sendJson(res, 401, { message: "Sign in before starting checkout." });
+  }
+
   const body = parseJsonBody<RequestBody>(req.body);
   if (!body) {
     return sendJson(res, 400, { message: "Invalid request body." });
@@ -72,7 +82,7 @@ export default async function handler(
       company: String(body.customer?.company || ""),
     },
     items: body.items || [],
-    resellerEmail: body.resellerEmail,
+    resellerEmail: authSession.email || body.resellerEmail,
     shipping:
       typeof body.shipping?.price === "number" && body.shipping.price > 0
         ? {

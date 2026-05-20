@@ -1,6 +1,6 @@
 import crypto from "node:crypto";
 
-export type UserRole = "reseller" | "admin";
+export type UserRole = "user" | "reseller" | "admin";
 
 export type AuthSession = {
   userId: string;
@@ -121,11 +121,11 @@ const normalizeRole = (value: unknown): UserRole | null => {
   }
 
   const normalized = value.trim().toLowerCase();
-  if (normalized === "admin" || normalized === "reseller") {
+  if (normalized === "admin" || normalized === "reseller" || normalized === "user") {
     return normalized;
   }
 
-  return null;
+  return "user";
 };
 
 const readResponseJson = async (response: Response) => {

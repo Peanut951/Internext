@@ -1,4 +1,4 @@
-export type UserRole = "reseller" | "admin";
+export type UserRole = "user" | "reseller" | "admin";
 
 export type AuthSession = {
   userId: string;

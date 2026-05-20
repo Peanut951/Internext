@@ -55,9 +55,9 @@ const Login = () => {
               <div className="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-card">
                 <ShieldCheck className="h-7 w-7" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground">Internext Reseller Portal</h1>
+              <h1 className="text-3xl font-bold text-foreground">Internext Account Portal</h1>
               <p className="mt-3 text-base leading-7 text-muted-foreground">
-                Sign in to access pricing, stock visibility, cart, checkout, and reseller operations.
+                Sign in to access pricing, stock visibility, cart, checkout, and account operations.
               </p>
             </div>
 
