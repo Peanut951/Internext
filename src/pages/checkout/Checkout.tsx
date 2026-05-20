@@ -16,6 +16,7 @@ import {
   saveCartItems,
 } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
@@ -204,6 +205,42 @@ const markSessionHandled = (sessionId: string) => {
   );
 };
 
+const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const liveProducts = await loadCatalogProducts();
+  const liveByCode = new Map(
+    liveProducts.flatMap((product) =>
+      [product.code, product.supplierCode]
+        .map((value) => value?.trim().toLowerCase())
+        .filter((value): value is string => Boolean(value))
+        .map((key) => [key, product] as const),
+    ),
+  );
+
+  return items.map((item) => {
+    const live = [item.code, item.supplierCode]
+      .map((value) => value?.trim().toLowerCase())
+      .filter((value): value is string => Boolean(value))
+      .map((key) => liveByCode.get(key))
+      .find(Boolean);
+
+    if (!live) {
+      return item;
+    }
+
+    return {
+      ...item,
+      weightKg: live.weightKg,
+      heightCm: live.heightCm,
+      widthCm: live.widthCm,
+      depthCm: live.depthCm,
+    };
+  });
+};
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -225,12 +262,31 @@ const Checkout = () => {
   const { session } = useAuthSession();
 
   useEffect(() => {
-    setCartItems(getCartItems());
+    const storedItems = getCartItems();
+    setCartItems(storedItems);
+
+    let isActive = true;
+    void mergeLiveShippingMeasurements(storedItems)
+      .then((updatedItems) => {
+        if (!isActive) {
+          return;
+        }
+
+        setCartItems(updatedItems);
+        saveCartItems(updatedItems);
+      })
+      .catch(() => {
+        // Keep checkout usable if the live catalogue refresh fails.
+      });
 
     const draft = readCheckoutDraft();
     if (draft?.customer) {
       setCustomer((prev) => ({ ...prev, ...draft.customer }));
     }
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);

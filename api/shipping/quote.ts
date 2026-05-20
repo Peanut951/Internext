@@ -19,6 +19,8 @@ type ParcelEstimate = {
   lengthCm: number;
   widthCm: number;
   heightCm: number;
+  qty: number;
+  itemCode?: string;
 };
 
 const ORIGIN_POSTCODE = "2158";
@@ -48,40 +50,55 @@ const toPositiveNumber = (value: unknown) => {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 };
 
-const calculateParcel = (items: ShippingQuoteItem[] = []) => {
+const roundParcel = (parcel: ParcelEstimate): ParcelEstimate => ({
+  ...parcel,
+  weightKg: Math.max(0.1, Math.round(parcel.weightKg * 100) / 100),
+  lengthCm: Math.max(1, Math.round(parcel.lengthCm * 10) / 10),
+  widthCm: Math.max(1, Math.round(parcel.widthCm * 10) / 10),
+  heightCm: Math.max(1, Math.round(parcel.heightCm * 10) / 10),
+});
+
+const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
+  return roundParcel({
+    itemCode: item.code,
+    qty: 1,
+    weightKg: toPositiveNumber(item.weightKg) ?? DEFAULT_WEIGHT_KG,
+    lengthCm: toPositiveNumber(item.depthCm) ?? DEFAULT_LENGTH_CM,
+    widthCm: toPositiveNumber(item.widthCm) ?? DEFAULT_WIDTH_CM,
+    heightCm: toPositiveNumber(item.heightCm) ?? DEFAULT_HEIGHT_CM,
+  });
+};
+
+const calculateParcels = (items: ShippingQuoteItem[] = []) => {
   if (items.length === 0) {
-    return {
+    return [{
+      qty: 1,
       weightKg: DEFAULT_WEIGHT_KG,
       lengthCm: DEFAULT_LENGTH_CM,
       widthCm: DEFAULT_WIDTH_CM,
       heightCm: DEFAULT_HEIGHT_CM,
-    };
+    }];
   }
 
-  const parcel = items.reduce<ParcelEstimate>(
-    (acc, item) => {
-      const qty = Math.max(1, Math.floor(toPositiveNumber(item.qty) ?? 1));
-      const weightKg = toPositiveNumber(item.weightKg) ?? DEFAULT_WEIGHT_KG;
-      const lengthCm = toPositiveNumber(item.depthCm) ?? DEFAULT_LENGTH_CM;
-      const widthCm = toPositiveNumber(item.widthCm) ?? DEFAULT_WIDTH_CM;
-      const heightCm = toPositiveNumber(item.heightCm) ?? DEFAULT_HEIGHT_CM;
+  return items.map((item) => ({
+    ...buildParcelForItem(item),
+    qty: Math.max(1, Math.floor(toPositiveNumber(item.qty) ?? 1)),
+  }));
+};
 
-      return {
-        weightKg: acc.weightKg + weightKg * qty,
-        lengthCm: Math.max(acc.lengthCm, lengthCm),
-        widthCm: Math.max(acc.widthCm, widthCm),
-        heightCm: acc.heightCm + heightCm * qty,
-      };
-    },
-    { weightKg: 0, lengthCm: 0, widthCm: 0, heightCm: 0 },
+const summarizeParcels = (parcels: ParcelEstimate[]) => {
+  const summary = parcels.reduce<ParcelEstimate>(
+    (acc, parcel) => ({
+      qty: acc.qty + parcel.qty,
+      weightKg: acc.weightKg + parcel.weightKg * parcel.qty,
+      lengthCm: Math.max(acc.lengthCm, parcel.lengthCm),
+      widthCm: Math.max(acc.widthCm, parcel.widthCm),
+      heightCm: Math.max(acc.heightCm, parcel.heightCm),
+    }),
+    { qty: 0, weightKg: 0, lengthCm: 0, widthCm: 0, heightCm: 0 },
   );
 
-  return {
-    weightKg: Math.max(0.1, Math.round(parcel.weightKg * 100) / 100),
-    lengthCm: Math.max(1, Math.round(parcel.lengthCm * 10) / 10),
-    widthCm: Math.max(1, Math.round(parcel.widthCm * 10) / 10),
-    heightCm: Math.max(1, Math.round(parcel.heightCm * 10) / 10),
-  };
+  return roundParcel(summary);
 };
 
 const getServices = (payload: unknown) => {
@@ -110,6 +127,47 @@ const formatService = (service: unknown) => {
       : "Unavailable",
     maxExtraCover: item.max_extra_cover,
   };
+};
+
+const quoteParcel = async (
+  apiBaseUrl: string,
+  authKey: string,
+  destinationPostcode: string,
+  parcel: ParcelEstimate,
+) => {
+  const params = new URLSearchParams({
+    from_postcode: ORIGIN_POSTCODE,
+    to_postcode: destinationPostcode,
+    length: String(parcel.lengthCm),
+    width: String(parcel.widthCm),
+    height: String(parcel.heightCm),
+    weight: String(parcel.weightKg),
+  });
+
+  const response = await fetch(
+    `${apiBaseUrl.replace(/\/$/, "")}/postage/parcel/domestic/service.json?${params.toString()}`,
+    {
+      method: "GET",
+      headers: {
+        "AUTH-KEY": authKey,
+        Accept: "application/json",
+      },
+    },
+  );
+
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(JSON.stringify(payload));
+  }
+
+  const services = getServices(payload).map(formatService).filter((service) => service.price > 0);
+  const cheapest = services.slice().sort((a, b) => a.price - b.price)[0] || null;
+
+  if (!cheapest) {
+    throw new Error("No Australia Post shipping services were returned for this parcel.");
+  }
+
+  return { parcel, service: cheapest, services };
 };
 
 export default async function handler(
@@ -141,47 +199,36 @@ export default async function handler(
     return sendJson(res, 400, { message: "A valid Australian destination postcode is required." });
   }
 
-  const parcel = calculateParcel(body?.items || []);
+  const parcels = calculateParcels(body?.items || []);
+  const parcel = summarizeParcels(parcels);
   const apiBaseUrl = readEnv("AUSPOST_API_BASE_URL") || "https://digitalapi.auspost.com.au";
-  const params = new URLSearchParams({
-    from_postcode: ORIGIN_POSTCODE,
-    to_postcode: destinationPostcode,
-    length: String(parcel.lengthCm),
-    width: String(parcel.widthCm),
-    height: String(parcel.heightCm),
-    weight: String(parcel.weightKg),
-  });
 
   try {
-    const response = await fetch(
-      `${apiBaseUrl.replace(/\/$/, "")}/postage/parcel/domestic/service.json?${params.toString()}`,
-      {
-        method: "GET",
-        headers: {
-          "AUTH-KEY": authKey,
-          Accept: "application/json",
-        },
-      },
+    const parcelQuotes = await Promise.all(
+      parcels.map((currentParcel) => quoteParcel(apiBaseUrl, authKey, destinationPostcode, currentParcel)),
     );
-
-    const payload = await response.json();
-    if (!response.ok) {
-      return sendJson(res, 502, { message: "Australia Post could not calculate shipping.", details: payload });
-    }
-
-    const services = getServices(payload).map(formatService).filter((service) => service.price > 0);
-    const cheapest = services.slice().sort((a, b) => a.price - b.price)[0] || null;
-
-    if (!cheapest) {
-      return sendJson(res, 404, { message: "No Australia Post shipping services were returned for this address." });
-    }
+    const totalPrice = parcelQuotes.reduce(
+      (sum, quote) => sum + quote.service.price * quote.parcel.qty,
+      0,
+    );
+    const primaryService = parcelQuotes[0].service;
+    const serviceName =
+      parcelQuotes.length === 1 && parcels[0].qty === 1
+        ? primaryService.name
+        : `${primaryService.name} (${parcel.qty} parcels)`;
 
     return sendJson(res, 200, {
       originPostcode: ORIGIN_POSTCODE,
       destinationPostcode,
       parcel,
-      service: cheapest,
-      services,
+      parcels,
+      service: {
+        ...primaryService,
+        name: serviceName,
+        price: totalPrice,
+        priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
+      },
+      parcelQuotes,
     });
   } catch (error) {
     return sendJson(res, 502, {
