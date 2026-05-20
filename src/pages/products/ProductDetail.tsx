@@ -182,7 +182,7 @@ const getAvailabilityRows = (product: CatalogProduct) => {
     product.etaDate
       ? { label: "Next ETA", value: product.etaDate }
       : null,
-    product.etaStatus && product.etaStatus !== product.availabilityText
+    product.etaStatus && product.etaStatus !== product.availabilityText && product.etaStatus !== product.etaDate
       ? { label: "ETA Status", value: product.etaStatus }
       : null,
     product.stockRecordUpdated

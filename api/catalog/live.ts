@@ -59,10 +59,27 @@ const applyMarkup = (value: number | null) =>
 const metresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
 
+const formatDateDmy = (value: string | undefined) => {
+  const trimmed = String(value || "").trim();
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (isoMatch) {
+    const [, year, month, day] = isoMatch;
+    return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+  }
+
+  const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+  if (dmyMatch) {
+    const [, day, month, year] = dmyMatch;
+    return `${day.padStart(2, "0")}/${month.padStart(2, "0")}/${year}`;
+  }
+
+  return trimmed;
+};
+
 const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: number) => {
   const status = String(value || "").trim();
 
-  if (!status || /^\d{4}-\d{2}-\d{2}$/.test(status) || /^\d{1,2}-\d{1,2}-\d{4}$/.test(status)) {
+  if (!status || /^\d{4}-\d{2}-\d{2}$/.test(status) || /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(status)) {
     return stockQuantity > 0 ? "In Stock" : "Check availability";
   }
 
@@ -109,8 +126,8 @@ const parseLiveCatalog = (csv: string) => {
         rrpExGst,
         taxRate,
         availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
-        etaDate: etaDate?.trim() || "",
-        etaStatus: etaStatus?.trim() || "",
+        etaDate: formatDateDmy(etaDate),
+        etaStatus: formatDateDmy(etaStatus),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(qtyAdl) ?? 0,
@@ -118,7 +135,7 @@ const parseLiveCatalog = (csv: string) => {
           mel: parseNumber(qtyMel) ?? 0,
           syd: parseNumber(qtySyd) ?? 0,
         },
-        stockRecordUpdated: stockRecordUpdated?.trim() || "",
+        stockRecordUpdated: formatDateDmy(stockRecordUpdated),
         weightKg: parsePositiveNumber(parts[17]),
         heightCm: metresToCentimetres(parsePositiveNumber(parts[18])),
         widthCm: metresToCentimetres(parsePositiveNumber(parts[19])),
@@ -171,8 +188,8 @@ const parseLiveCatalogXml = (xml: string) => {
         rrpExGst,
         taxRate,
         availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
-        etaDate: getXmlTag(row, "ETADate"),
-        etaStatus: getXmlTag(row, "ETAStatus"),
+        etaDate: formatDateDmy(getXmlTag(row, "ETADate")),
+        etaStatus: formatDateDmy(getXmlTag(row, "ETAStatus")),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
@@ -180,7 +197,7 @@ const parseLiveCatalogXml = (xml: string) => {
           mel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
           syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
         },
-        stockRecordUpdated: getXmlTag(row, "StockRecordUpdated"),
+        stockRecordUpdated: formatDateDmy(getXmlTag(row, "StockRecordUpdated")),
         weightKg: parsePositiveNumber(getXmlTag(row, "Weight")),
         heightCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Height"))),
         widthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Width"))),
