@@ -12,6 +12,9 @@ const contactTypes = [
   { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 567 835" },
 ];
 
+const officeMapUrl =
+  "https://www.google.com/maps?q=7B%2F256%20New%20Line%20Rd%2C%20Dural%20NSW%202158%2C%20Australia&output=embed";
+
 const Contact = () => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
@@ -172,8 +175,15 @@ const Contact = () => {
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-6">Our Office</h2>
               
-              <div className="bg-muted rounded-2xl aspect-video mb-6 flex items-center justify-center">
-                <span className="text-muted-foreground">Map</span>
+              <div className="mb-6 aspect-video overflow-hidden rounded-2xl border border-border/50 bg-muted shadow-card">
+                <iframe
+                  title="Internext office map"
+                  src={officeMapUrl}
+                  className="h-full w-full"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  allowFullScreen
+                />
               </div>
 
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
