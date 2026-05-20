@@ -49,7 +49,7 @@ export default async function handler(
     company: String(body?.company || ""),
   });
 
-  if (!result.ok) {
+  if (result.ok === false) {
     return sendJson(res, 400, { message: result.message });
   }
 
