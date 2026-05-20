@@ -36,7 +36,6 @@ const navItems = [
     ],
   },
   { label: "Brands", href: "/brands" },
-  { label: "Sales Tools", href: "/tools" },
   { label: "Technical Services", href: "/services" },
   {
     label: "Support",

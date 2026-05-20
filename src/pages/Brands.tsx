@@ -1,5 +1,6 @@
 import Layout from "@/components/layout/Layout";
 import { ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const brandCategories = [
   {
@@ -49,6 +50,9 @@ const getTierColor = (tier: string) => {
   }
 };
 
+const getBrandProductSearchPath = (brandName: string) =>
+  `/products/search?q=${encodeURIComponent(brandName)}&page=1`;
+
 const Brands = () => {
   return (
     <Layout>
@@ -92,13 +96,13 @@ const Brands = () => {
                     <p className="text-muted-foreground mb-4">
                       {brand.description}
                     </p>
-                    <a
-                      href="#"
+                    <Link
+                      to={getBrandProductSearchPath(brand.name)}
                       className="inline-flex items-center gap-2 text-accent hover:text-teal-dark transition-colors text-sm font-medium"
                     >
                       View Products
                       <ExternalLink className="h-4 w-4" />
-                    </a>
+                    </Link>
                   </div>
                 ))}
               </div>
@@ -116,12 +120,12 @@ const Brands = () => {
           <p className="text-muted-foreground mb-6 max-w-xl mx-auto">
             We're always looking for innovative technology vendors to expand our portfolio.
           </p>
-          <a
-            href="/contact"
+          <Link
+            to="/contact"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground px-6 py-3 rounded-lg font-semibold hover:bg-navy-light transition-colors"
           >
             Contact Our Vendor Team
-          </a>
+          </Link>
         </div>
       </section>
     </Layout>

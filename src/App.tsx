@@ -25,11 +25,6 @@ import PortalOrders from "./pages/portal/Orders";
 // Brands
 import Brands from "./pages/Brands";
 import BrandsDetail from "./pages/BrandsDetail";
-// Tools
-import ToolsIndex from "./pages/tools/ToolsIndex";
-import Blog from "./pages/tools/Blog";
-import ConsumablesFinder from "./pages/tools/ConsumablesFinder";
-import ProductGuide from "./pages/tools/ProductGuide";
 // Services
 import ServicesIndex from "./pages/services/ServicesIndex";
 import Installation from "./pages/services/Installation";
@@ -109,11 +104,6 @@ const App = () => (
           {/* Brands */}
           <Route path="/brands" element={<Brands />} />
           <Route path="/brands/:brand" element={<BrandsDetail />} />
-          {/* Tools */}
-          <Route path="/tools" element={<ToolsIndex />} />
-          <Route path="/tools/blog" element={<Blog />} />
-          <Route path="/tools/consumables-finder" element={<ConsumablesFinder />} />
-          <Route path="/tools/product-guide" element={<ProductGuide />} />
           {/* Services */}
           <Route path="/services" element={<ServicesIndex />} />
           <Route path="/services/installation" element={<Installation />} />
