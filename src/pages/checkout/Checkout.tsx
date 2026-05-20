@@ -664,7 +664,7 @@ const Checkout = () => {
               </div>
             </div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]">
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_360px]">
               <form
                 onSubmit={onSubmit}
                 className="bg-card rounded-2xl p-7 shadow-card border border-border/50 space-y-5"
@@ -896,7 +896,7 @@ const Checkout = () => {
                 </Button>
               </form>
 
-              <aside className="bg-card rounded-2xl p-6 shadow-card border border-border/50 h-fit lg:sticky lg:top-24">
+              <aside className="bg-card rounded-2xl p-6 shadow-card border border-border/50 h-fit xl:sticky xl:top-24">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <h3 className="text-lg font-semibold text-foreground">Order Summary</h3>
                   <Link to="/cart" className="text-xs text-accent hover:underline">

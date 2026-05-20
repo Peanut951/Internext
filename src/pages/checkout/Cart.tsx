@@ -89,7 +89,7 @@ const Cart = () => {
               </Button>
             </div>
           ) : (
-            <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_340px]">
+            <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_340px]">
               <div className="space-y-4">
                 <div className="flex items-center justify-between gap-3">
                   <h2 className="text-xl font-semibold text-foreground">{items.length} item(s)</h2>
@@ -160,7 +160,7 @@ const Cart = () => {
                 })}
               </div>
 
-              <aside className="bg-card border border-border/60 rounded-2xl p-6 shadow-card h-fit lg:sticky lg:top-24">
+              <aside className="bg-card border border-border/60 rounded-2xl p-6 shadow-card h-fit xl:sticky xl:top-24">
                 <h3 className="text-lg font-semibold text-foreground mb-4">Summary</h3>
                 <div className="space-y-2 text-sm mb-5">
                   <p className="flex items-center justify-between">

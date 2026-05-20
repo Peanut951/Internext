@@ -103,7 +103,7 @@ const Header = () => {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden lg:flex items-center gap-2 xl:gap-3">
+          <nav className="hidden xl:flex items-center gap-2 xl:gap-3">
             {navItems.map((item) => (
               <div
                 key={item.label}
@@ -136,7 +136,7 @@ const Header = () => {
             ))}
           </nav>
 
-          <div className="ml-auto hidden lg:flex flex-none items-center border-l border-border/70 pl-5">
+          <div className="ml-auto hidden xl:flex flex-none items-center border-l border-border/70 pl-5">
             <Button variant="outline" size="sm" className="h-9 rounded-full px-4" asChild>
               <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
@@ -148,12 +148,12 @@ const Header = () => {
             </Button>
           </div>
 
-          <div className="flex items-center justify-end gap-2 lg:hidden">
+          <div className="ml-auto flex items-center justify-end gap-2 xl:hidden">
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
               size="icon"
-              className="lg:hidden"
+              className="xl:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -163,7 +163,7 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {mobileMenuOpen && (
-          <nav className="lg:hidden mt-4 pb-4 border-t border-border pt-4 animate-fade-in">
+          <nav className="xl:hidden mt-4 max-h-[calc(100vh-5rem)] overflow-y-auto pb-4 border-t border-border pt-4 animate-fade-in">
             <Link
               to="/cart"
               className="flex items-center justify-between px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"

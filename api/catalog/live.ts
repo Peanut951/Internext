@@ -12,6 +12,8 @@ type LiveCatalogItem = {
   rrpExGst: number | null;
   taxRate: number;
   availabilityText: string;
+  etaDate: string;
+  etaStatus: string;
   stockQuantity: number;
   stockByWarehouse: {
     adl: number;
@@ -93,7 +95,7 @@ const parseLiveCatalog = (csv: string) => {
       const rrp = applyTax(rrpExGst, taxRate);
       const stockQuantity = parseNumber(parts[12]) ?? 0;
       const tail = parts.slice(-7);
-      const [stockRecordUpdated, , availabilityText, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
+      const [stockRecordUpdated, etaDate, etaStatus, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
 
       return {
         code,
@@ -106,7 +108,9 @@ const parseLiveCatalog = (csv: string) => {
         rrpText: formatAud(rrp),
         rrpExGst,
         taxRate,
-        availabilityText: normalizeAvailabilityStatus(availabilityText, stockQuantity),
+        availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
+        etaDate: etaDate?.trim() || "",
+        etaStatus: etaStatus?.trim() || "",
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(qtyAdl) ?? 0,
@@ -167,6 +171,8 @@ const parseLiveCatalogXml = (xml: string) => {
         rrpExGst,
         taxRate,
         availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
+        etaDate: getXmlTag(row, "ETADate"),
+        etaStatus: getXmlTag(row, "ETAStatus"),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,

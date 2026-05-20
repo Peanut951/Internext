@@ -26,6 +26,8 @@ type CatalogProduct = {
   imageUrls?: string[];
   supplierCode?: string;
   availabilityText?: string;
+  etaDate?: string;
+  etaStatus?: string;
   liveCatalogError?: string;
   stockQuantity?: number;
   stockByWarehouse?: {
@@ -177,6 +179,12 @@ const getAvailabilityRows = (product: CatalogProduct) => {
     product.stockByWarehouse && product.stockByWarehouse.syd > 0
       ? { label: "Sydney", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
       : null,
+    product.etaDate
+      ? { label: "Next ETA", value: product.etaDate }
+      : null,
+    product.etaStatus && product.etaStatus !== product.availabilityText
+      ? { label: "ETA Status", value: product.etaStatus }
+      : null,
     product.stockRecordUpdated
       ? { label: "Stock Updated", value: product.stockRecordUpdated }
       : null,
@@ -320,7 +328,7 @@ const ProductDetail = () => {
           {!loading && !error && product && (
             <div className="space-y-6">
               <div className="space-y-6">
-                <div className="bg-card rounded-2xl border border-border/50 p-5 shadow-card md:p-6">
+                <div className="bg-card rounded-2xl border border-border/50 p-4 shadow-card sm:p-5 md:p-6">
                   <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
                     <div>
                       <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
@@ -367,13 +375,13 @@ const ProductDetail = () => {
                         <div className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
                           <div className="border-b border-border/50 bg-background/80 px-5 py-4 backdrop-blur md:px-6">
                             <TabsList className="grid h-auto w-full max-w-lg grid-cols-3 rounded-xl bg-secondary/50 p-1">
-                              <TabsTrigger value="overview" className="rounded-lg">
+                              <TabsTrigger value="overview" className="rounded-lg px-2 text-xs sm:text-sm">
                                 Overview
                               </TabsTrigger>
-                              <TabsTrigger value="size" className="rounded-lg">
+                              <TabsTrigger value="size" className="rounded-lg px-2 text-xs sm:text-sm">
                                 Size
                               </TabsTrigger>
-                              <TabsTrigger value="availability" className="rounded-lg">
+                              <TabsTrigger value="availability" className="rounded-lg px-2 text-xs sm:text-sm">
                                 Availability
                               </TabsTrigger>
                             </TabsList>
@@ -484,7 +492,7 @@ const ProductDetail = () => {
                         ) : null}
                       </div>
 
-                      <h1 className="mb-6 text-3xl font-bold leading-[0.98] text-foreground md:text-4xl xl:text-[2.7rem] xl:leading-[0.94]">
+                      <h1 className="mb-6 break-words text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl xl:text-[2.5rem] xl:leading-tight">
                         {product.description}
                       </h1>
 

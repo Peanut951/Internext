@@ -13,6 +13,8 @@ export type CatalogProductWithLive = {
   imageUrls?: string[];
   supplierCode?: string;
   availabilityText?: string;
+  etaDate?: string;
+  etaStatus?: string;
   liveCatalogError?: string;
   stockQuantity?: number;
   stockByWarehouse?: {
@@ -39,6 +41,8 @@ type LiveCatalogItem = {
   rrpExGst: number | null;
   taxRate: number;
   availabilityText: string;
+  etaDate: string;
+  etaStatus: string;
   stockQuantity: number;
   stockByWarehouse: {
     adl: number;
@@ -116,6 +120,8 @@ const loadCatalogProductsInternal = async () => {
         taxRate: live.taxRate,
         supplierCode: product.supplierCode || live.supplierCode,
         availabilityText: live.availabilityText,
+        etaDate: live.etaDate,
+        etaStatus: live.etaStatus,
         stockQuantity: live.stockQuantity,
         stockByWarehouse: live.stockByWarehouse,
         stockRecordUpdated: live.stockRecordUpdated,

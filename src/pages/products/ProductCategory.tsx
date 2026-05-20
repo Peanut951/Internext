@@ -1287,9 +1287,9 @@ const ProductCategory = () => {
 
       <section className="section-padding bg-background">
         <div className="container-catalog">
-          <div className="grid gap-8 lg:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
-            <aside className="lg:w-64 flex-shrink-0">
-              <details className="lg:hidden rounded-xl border border-border/50 bg-card shadow-card" open>
+          <div className="grid gap-8 xl:grid-cols-[260px_minmax(0,1fr)] 2xl:grid-cols-[260px_minmax(0,1fr)_320px]">
+            <aside className="xl:w-64 flex-shrink-0">
+              <details className="xl:hidden rounded-xl border border-border/50 bg-card shadow-card" open>
                 <summary className="cursor-pointer list-none px-5 py-4 text-sm font-semibold text-foreground">
                   Filters
                 </summary>
@@ -1298,7 +1298,7 @@ const ProductCategory = () => {
                 </div>
               </details>
 
-              <div className="hidden lg:block bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
+              <div className="hidden xl:block bg-card rounded-xl p-6 shadow-card border border-border/50 sticky top-24 xl:max-h-[calc(100vh-7rem)] xl:overflow-y-auto">
                 {filterPanelContent}
               </div>
             </aside>
@@ -1383,7 +1383,7 @@ const ProductCategory = () => {
               )}
 
               {!loading && !error && pageItems.length > 0 && (
-                <div className="grid gap-6 md:grid-cols-2">
+                <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                   {pageItems.map((product) => {
                     const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
                     const productImage = getPrimaryProductImage(product);
