@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { Menu, X, ChevronDown, ShoppingCart } from "lucide-react";
+import { FormEvent, useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { Menu, X, ChevronDown, ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
@@ -54,9 +54,11 @@ const navItems = [
 ];
 
 const Header = () => {
+  const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
   const { session } = useAuthSession();
 
   useEffect(() => {
@@ -87,56 +89,54 @@ const Header = () => {
     };
   }, []);
 
+  const submitSearch = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const query = searchQuery.trim();
+    if (!query) {
+      navigate("/products");
+      return;
+    }
+
+    navigate(`/products/search?q=${encodeURIComponent(query)}&page=1`);
+    setMobileMenuOpen(false);
+  };
+
   return (
-    <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm">
+    <header className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
       <div className="container-wide py-3">
-        <div className="flex items-center gap-6 xl:gap-8">
+        <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 md:gap-5">
           {/* Logo */}
           <Link to="/" className="flex-shrink-0">
-            <div className="flex items-center pr-3 xl:pr-5">
-              <img
-                src="/internext-white-bg-cropped.png"
-                alt="Internext Logo"
-                className="h-7 w-auto max-w-[180px] object-contain xl:h-8 xl:max-w-[210px]"
-              />
-            </div>
+            <img
+              src="/internext-white-bg-cropped.png"
+              alt="Internext Logo"
+              className="h-8 w-auto max-w-[145px] object-contain sm:max-w-[180px] xl:h-10 xl:max-w-[220px]"
+            />
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center gap-2 xl:gap-3">
-            {navItems.map((item) => (
-              <div
-                key={item.label}
-                className="relative"
-                onMouseEnter={() => item.megaMenu && setActiveDropdown(item.label)}
-                onMouseLeave={() => setActiveDropdown(null)}
-              >
-                <Link
-                  to={item.href}
-                  className="flex items-center gap-1 px-2 py-2 text-sm font-medium text-foreground transition-colors hover:text-accent xl:px-3"
-                >
-                  {item.label}
-                  {item.megaMenu && <ChevronDown className="h-4 w-4" />}
-                </Link>
-                
-                {item.megaMenu && activeDropdown === item.label && (
-                  <div className="absolute top-full left-0 bg-card border border-border rounded-lg shadow-elevated p-4 min-w-[200px] animate-fade-in">
-                    {item.items?.map((subItem) => (
-                      <Link
-                        key={subItem.label}
-                        to={subItem.href}
-                        className="block px-4 py-2 text-sm text-muted-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
-                      >
-                        {subItem.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+          <form
+            onSubmit={submitSearch}
+            className="hidden min-w-0 items-stretch md:flex"
+            role="search"
+          >
+            <input
+              type="search"
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Product Search"
+              className="h-11 min-w-0 flex-1 rounded-l-none border border-r-0 border-border bg-background px-4 text-sm outline-none transition focus:border-accent"
+              aria-label="Product search"
+            />
+            <button
+              type="submit"
+              className="flex h-11 w-16 items-center justify-center border border-border bg-background text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+              aria-label="Search products"
+            >
+              <Search className="h-5 w-5" />
+            </button>
+          </form>
 
-          <div className="ml-auto hidden xl:flex flex-none items-center border-l border-border/70 pl-5">
+          <div className="hidden flex-none items-center justify-end xl:flex">
             <Button variant="outline" size="sm" className="h-9 rounded-full px-4" asChild>
               <Link to="/cart" className="gap-2">
                 <ShoppingCart className="h-4 w-4" />
@@ -148,7 +148,7 @@ const Header = () => {
             </Button>
           </div>
 
-          <div className="ml-auto flex items-center justify-end gap-2 xl:hidden">
+          <div className="flex items-center justify-end gap-2 xl:hidden">
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
@@ -160,10 +160,65 @@ const Header = () => {
             </Button>
           </div>
         </div>
+      </div>
 
-        {/* Mobile Navigation */}
+      <div className="hidden bg-accent xl:block">
+        <div className="container-wide">
+          <nav className="flex items-center gap-2">
+            {navItems.map((item) => (
+              <div
+                key={item.label}
+                className="relative"
+                onMouseEnter={() => item.megaMenu && setActiveDropdown(item.label)}
+                onMouseLeave={() => setActiveDropdown(null)}
+              >
+                <Link
+                  to={item.href}
+                  className="flex h-12 items-center gap-2 px-4 text-sm font-semibold text-accent-foreground transition-colors hover:bg-accent-foreground/12"
+                >
+                  {item.label}
+                  {item.megaMenu && <ChevronDown className="h-4 w-4" />}
+                </Link>
+
+                {item.megaMenu && activeDropdown === item.label && (
+                  <div className="absolute left-0 top-full z-50 min-w-[230px] rounded-b-lg border border-border bg-card p-3 shadow-elevated animate-fade-in">
+                    {item.items?.map((subItem) => (
+                      <Link
+                        key={subItem.label}
+                        to={subItem.href}
+                        className="block rounded-md px-4 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-accent"
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </nav>
+        </div>
+      </div>
+
+      <div className="container-wide">
         {mobileMenuOpen && (
           <nav className="xl:hidden mt-4 max-h-[calc(100vh-5rem)] overflow-y-auto pb-4 border-t border-border pt-4 animate-fade-in">
+            <form onSubmit={submitSearch} className="mb-3 flex items-stretch px-4" role="search">
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Product Search"
+                className="h-11 min-w-0 flex-1 border border-r-0 border-border bg-background px-3 text-sm outline-none focus:border-accent"
+                aria-label="Product search"
+              />
+              <button
+                type="submit"
+                className="flex h-11 w-12 items-center justify-center border border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground"
+                aria-label="Search products"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </form>
             <Link
               to="/cart"
               className="flex items-center justify-between px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
