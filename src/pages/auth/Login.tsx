@@ -114,6 +114,18 @@ const Login = () => {
             </form>
 
             <div className="mt-8 rounded-2xl border border-border/60 bg-secondary/30 p-4">
+              <p className="text-sm font-semibold text-foreground">Need an account?</p>
+              <p className="mt-1 text-sm leading-6 text-muted-foreground">
+                Create a standard customer account to checkout and view your orders.
+              </p>
+              <Button variant="outline" className="mt-4 w-full" asChild>
+                <Link to={`/signup${searchParams.get("redirect") ? `?redirect=${encodeURIComponent(searchParams.get("redirect") || "")}` : ""}`}>
+                  Create Customer Account <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </Button>
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-border/60 bg-secondary/30 p-4">
               <p className="text-sm font-semibold text-foreground">Need reseller access first?</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Submit your reseller application and we’ll review your business details before access is enabled.

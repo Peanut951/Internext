@@ -29,6 +29,27 @@ type VerifyCredentialsResult =
       message: string;
     };
 
+type CreateUserAccountInput = {
+  email: string;
+  password: string;
+  firstName: string;
+  lastName: string;
+  phone?: string;
+  company?: string;
+};
+
+type CreateUserAccountResult =
+  | {
+      ok: true;
+      email: string;
+      userId: string;
+      role: UserRole;
+    }
+  | {
+      ok: false;
+      message: string;
+    };
+
 type SupabaseConfig = {
   supabaseUrl: string;
   anonKey: string;
@@ -183,7 +204,7 @@ const resolvePortalRole = async (
     return "reseller";
   }
 
-  return null;
+  return "user";
 };
 
 export const createSession = (userId: string, email: string, role: UserRole): AuthSession => ({
@@ -320,6 +341,102 @@ export const verifyCredentials = async (
     return {
       ok: false,
       message: "Unable to reach Supabase from the auth service.",
+    };
+  }
+};
+
+export const createUserAccount = async (
+  input: CreateUserAccountInput,
+): Promise<CreateUserAccountResult> => {
+  const normalizedEmail = input.email.trim().toLowerCase();
+  const password = input.password.trim();
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+  const phone = input.phone?.trim() || "";
+  const company = input.company?.trim() || "";
+
+  if (!normalizedEmail || !password || !firstName || !lastName) {
+    return {
+      ok: false,
+      message: "First name, last name, email, and password are required.",
+    };
+  }
+
+  if (password.length < 8) {
+    return {
+      ok: false,
+      message: "Password must be at least 8 characters.",
+    };
+  }
+
+  const config = getSupabaseConfig();
+  if (!config?.serviceRoleKey) {
+    return {
+      ok: false,
+      message: "Supabase user creation is not configured on the server.",
+    };
+  }
+
+  try {
+    const response = await fetch(`${config.supabaseUrl}/auth/v1/admin/users`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+      },
+      body: JSON.stringify({
+        email: normalizedEmail,
+        password,
+        email_confirm: true,
+        app_metadata: {
+          role: "user",
+        },
+        user_metadata: {
+          firstName,
+          lastName,
+          phone,
+          company,
+          role: "user",
+        },
+      }),
+    });
+
+    const payload = await readResponseJson(response);
+
+    if (!response.ok) {
+      const message = String(
+        payload.error_description ||
+          payload.msg ||
+          payload.message ||
+          "Unable to create account.",
+      );
+      return {
+        ok: false,
+        message: /already registered|already exists|duplicate/i.test(message)
+          ? "An account with this email already exists."
+          : message,
+      };
+    }
+
+    const user = payload as SupabaseUser;
+    if (!user.id) {
+      return {
+        ok: false,
+        message: "Supabase created the account, but did not return a user id.",
+      };
+    }
+
+    return {
+      ok: true,
+      email: user.email?.trim().toLowerCase() || normalizedEmail,
+      userId: user.id,
+      role: "user",
+    };
+  } catch {
+    return {
+      ok: false,
+      message: "Unable to reach Supabase from the signup service.",
     };
   }
 };

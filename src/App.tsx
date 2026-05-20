@@ -32,6 +32,7 @@ import ServiceRequest from "./pages/services/ServiceRequest";
 // Auth
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
+import Signup from "./pages/auth/Signup";
 // Support
 import FAQ from "./pages/support/FAQ";
 import Shipping from "./pages/support/Shipping";
@@ -110,6 +111,7 @@ const App = () => (
           <Route path="/services/request" element={<ServiceRequest />} />
           {/* Auth */}
           <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
           <Route path="/login/register" element={<Register />} />
           {/* Support */}
           <Route path="/support/faq" element={<FAQ />} />

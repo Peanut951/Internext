@@ -18,6 +18,15 @@ type SignInResult =
       message: string;
     };
 
+type SignUpInput = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+  phone?: string;
+  company?: string;
+};
+
 const AUTH_STORAGE_KEY = "internext-auth-session";
 
 const readCachedSession = (): AuthSession | null => {
@@ -122,6 +131,39 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
     return {
       ok: false,
       message: "Unable to reach the sign-in service.",
+    };
+  }
+};
+
+export const signUp = async (input: SignUpInput): Promise<SignInResult> => {
+  try {
+    const response = await fetch("/api/auth/signup", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(input),
+    });
+
+    const payload = (await response.json()) as { session?: AuthSession; message?: string };
+
+    if (!response.ok || !payload.session) {
+      return {
+        ok: false,
+        message: payload.message || "Unable to create account.",
+      };
+    }
+
+    saveCachedSession(payload.session);
+    return {
+      ok: true,
+      session: payload.session,
+    };
+  } catch {
+    return {
+      ok: false,
+      message: "Unable to reach the signup service.",
     };
   }
 };
