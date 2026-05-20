@@ -1,9 +1,7 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import loginHandler from "./api/auth/login";
-import sessionHandler from "./api/auth/session";
-import logoutHandler from "./api/auth/logout";
+import authHandler from "./api/auth";
 import resellerApplicationHandler from "./api/reseller-application";
 
 const readRequestBody = async (req: NodeJS.ReadableStream) => {
@@ -18,9 +16,7 @@ const readRequestBody = async (req: NodeJS.ReadableStream) => {
 
 const devAuthApiPlugin = (): Plugin => {
   const handlers = {
-    "/api/auth/login": loginHandler,
-    "/api/auth/session": sessionHandler,
-    "/api/auth/logout": logoutHandler,
+    "/api/auth": authHandler,
     "/api/reseller-application": resellerApplicationHandler,
   } as const;
 
@@ -29,7 +25,8 @@ const devAuthApiPlugin = (): Plugin => {
     apply: "serve",
     configureServer(server) {
       server.middlewares.use(async (req, res, next) => {
-        const pathname = req.url ? req.url.split("?")[0] : "";
+        const requestUrl = new URL(req.url || "", "http://localhost");
+        const pathname = requestUrl.pathname;
         const handler = handlers[pathname as keyof typeof handlers];
 
         if (!handler) {
@@ -48,6 +45,7 @@ const devAuthApiPlugin = (): Plugin => {
               headers: {
                 cookie: req.headers.cookie,
               },
+              query: Object.fromEntries(requestUrl.searchParams.entries()),
               body,
             },
             res,
