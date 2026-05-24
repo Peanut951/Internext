@@ -1,7 +1,7 @@
 import { defineConfig, loadEnv, type Plugin } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
-import authHandler from "./api/auth";
+import authHandler from "./api/auth/[action]";
 import resellerApplicationHandler from "./api/reseller-application";
 
 const readRequestBody = async (req: NodeJS.ReadableStream) => {
@@ -16,7 +16,6 @@ const readRequestBody = async (req: NodeJS.ReadableStream) => {
 
 const devAuthApiPlugin = (): Plugin => {
   const handlers = {
-    "/api/auth": authHandler,
     "/api/reseller-application": resellerApplicationHandler,
   } as const;
 
@@ -27,7 +26,8 @@ const devAuthApiPlugin = (): Plugin => {
       server.middlewares.use(async (req, res, next) => {
         const requestUrl = new URL(req.url || "", "http://localhost");
         const pathname = requestUrl.pathname;
-        const handler = handlers[pathname as keyof typeof handlers];
+        const authMatch = pathname.match(/^\/api\/auth\/([^/]+)$/);
+        const handler = authMatch ? authHandler : handlers[pathname as keyof typeof handlers];
 
         if (!handler) {
           return next();
@@ -45,7 +45,9 @@ const devAuthApiPlugin = (): Plugin => {
               headers: {
                 cookie: req.headers.cookie,
               },
-              query: Object.fromEntries(requestUrl.searchParams.entries()),
+              query: authMatch
+                ? { action: authMatch[1] }
+                : Object.fromEntries(requestUrl.searchParams.entries()),
               body,
             },
             res,

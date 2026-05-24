@@ -6,7 +6,7 @@ import {
   getSessionFromRequest,
   sendJson,
   verifyCredentials,
-} from "./auth/_shared.js";
+} from "./_shared.js";
 
 type AuthBody = {
   email?: string;

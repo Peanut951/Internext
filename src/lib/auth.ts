@@ -80,7 +80,7 @@ export const clearAuthSession = async () => {
   }
 
   try {
-    await fetch("/api/auth?action=logout", {
+    await fetch("/api/auth/logout", {
       method: "POST",
       credentials: "include",
     });
@@ -101,7 +101,7 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
   }
 
   try {
-    const response = await fetch("/api/auth?action=login", {
+    const response = await fetch("/api/auth/login", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -137,7 +137,7 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
 
 export const signUp = async (input: SignUpInput): Promise<SignInResult> => {
   try {
-    const response = await fetch("/api/auth?action=signup", {
+    const response = await fetch("/api/auth/signup", {
       method: "POST",
       credentials: "include",
       headers: {
@@ -174,7 +174,7 @@ export const syncAuthSession = async (): Promise<AuthSession | null> => {
   }
 
   try {
-    const response = await fetch("/api/auth?action=session", {
+    const response = await fetch("/api/auth/session", {
       method: "GET",
       credentials: "include",
       headers: {
