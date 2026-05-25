@@ -5,6 +5,8 @@ export const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.svg";
 const INVALID_IMAGE_PATTERNS = [/\/controls\/bit\.gif(?:\?.*)?$/i, /\/bit\.gif(?:\?.*)?$/i];
 
 type ProductImageSource = {
+  code?: string;
+  supplierCode?: string;
   imageUrl?: string;
   imageUrls?: string[];
 };
@@ -30,10 +32,42 @@ const sanitizeProductImageUrl = (value?: string | null) => {
   }
 };
 
+const normalizeImageToken = (value?: string | null) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const getImageComparableText = (value: string) => {
+  try {
+    const url = new URL(value);
+    return normalizeImageToken(decodeURIComponent(url.pathname));
+  } catch {
+    return normalizeImageToken(value);
+  }
+};
+
+const isExactProductImage = (url: string, product: ProductImageSource) => {
+  const tokens = [product.code, product.supplierCode]
+    .map((value) => normalizeImageToken(value))
+    .filter((value) => value.length >= 3);
+
+  if (tokens.length === 0) {
+    return false;
+  }
+
+  const comparable = getImageComparableText(url);
+  return tokens.some((token) => comparable.includes(token));
+};
+
 export const getProductImageCandidates = (product: ProductImageSource) => {
-  const candidates = [...(product.imageUrls ?? []), product.imageUrl ?? ""]
+  const primary = sanitizeProductImageUrl(product.imageUrl);
+  const alternates = (product.imageUrls ?? [])
     .map((value) => sanitizeProductImageUrl(value))
-    .filter((value): value is string => Boolean(value));
+    .filter((value): value is string => Boolean(value))
+    .filter((value) => value === primary || isExactProductImage(value, product));
+
+  const candidates = [primary, ...alternates].filter((value): value is string => Boolean(value));
 
   return Array.from(new Set(candidates));
 };
