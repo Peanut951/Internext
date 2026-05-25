@@ -87,7 +87,7 @@ const PortalOrders = () => {
 
           {orders.length === 0 ? (
             <div className="rounded-[1.75rem] border border-border/60 bg-card p-8 shadow-card">
-              <p className="text-lg font-semibold text-foreground">No reseller orders yet</p>
+              <p className="text-lg font-semibold text-foreground">No orders yet</p>
               <p className="mt-2 max-w-2xl text-sm leading-6 text-muted-foreground">
                 Once you place an order while signed in, it will show here with customer detail,
                 fulfillment progress, and tracking updates.
