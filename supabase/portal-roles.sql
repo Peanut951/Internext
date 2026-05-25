@@ -1,10 +1,17 @@
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   email text not null unique,
-  role text not null check (role in ('admin', 'reseller')),
+  role text not null check (role in ('user', 'reseller', 'admin')),
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.profiles
+drop constraint if exists profiles_role_check;
+
+alter table public.profiles
+add constraint profiles_role_check
+check (role in ('user', 'reseller', 'admin'));
 
 alter table public.profiles enable row level security;
 

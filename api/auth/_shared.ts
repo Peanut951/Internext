@@ -365,6 +365,10 @@ export const verifyCredentials = async (
       };
     }
 
+    if (role === "user" && config.serviceRoleKey) {
+      await upsertUserProfile(config, user.id, userEmail);
+    }
+
     return {
       ok: true,
       email: userEmail,
