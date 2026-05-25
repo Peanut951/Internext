@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { type SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -290,6 +290,18 @@ const ProductDetail = () => {
     window.setTimeout(() => setAdded(false), 1500);
   };
 
+  const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
+    const currentIndex = galleryImages.indexOf(activeImage);
+    const nextImage = currentIndex >= 0 ? galleryImages[currentIndex + 1] : galleryImages[0];
+
+    if (nextImage && nextImage !== activeImage) {
+      setActiveImage(nextImage);
+      return;
+    }
+
+    handleProductImageError(event);
+  };
+
   return (
     <Layout>
       <section className="section-padding bg-background">
@@ -332,7 +344,7 @@ const ProductDetail = () => {
                             alt={product.description}
                             className="h-full w-full object-contain"
                             loading="eager"
-                            onError={handleProductImageError}
+                            onError={handleActiveImageError}
                           />
                         ) : (
                           <span className="text-muted-foreground text-sm">No image</span>

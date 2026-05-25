@@ -60,19 +60,50 @@ const isExactProductImage = (url: string, product: ProductImageSource) => {
   return tokens.some((token) => comparable.includes(token));
 };
 
+const getHigherResolutionVariants = (url: string) => {
+  const variants = [
+    url.replace(/\/Images\/ProductImages\/Small\//i, "/Images/ProductImages/Original/"),
+    url.replace(/\/Images\/ProductImages\/Small\//i, "/Images/ProductImages/Large/"),
+    url.replace(/\/images\/ProductImages\/Small\//i, "/images/ProductImages/Original/"),
+    url.replace(/\/images\/ProductImages\/Small\//i, "/images/ProductImages/Large/"),
+    url,
+  ];
+
+  return Array.from(new Set(variants));
+};
+
+const getImageQualityScore = (url: string) => {
+  if (/\/ProductImages\/Original\//i.test(url)) {
+    return 4;
+  }
+  if (/\/ProductImages\/Large\//i.test(url)) {
+    return 3;
+  }
+  if (/\/ProductImages\/Medium\//i.test(url)) {
+    return 2;
+  }
+  if (/\/ProductImages\/Small\//i.test(url)) {
+    return 1;
+  }
+  return 2.5;
+};
+
+const sortByImageQuality = (images: string[]) =>
+  [...images].sort((a, b) => getImageQualityScore(b) - getImageQualityScore(a));
+
 export const getProductImageCandidates = (product: ProductImageSource) => {
   const sanitized = [...(product.imageUrls ?? []), product.imageUrl ?? ""]
     .map((value) => sanitizeProductImageUrl(value))
     .filter((value): value is string => Boolean(value));
-  const uniqueImages = Array.from(new Set(sanitized));
+  const uniqueImages = Array.from(new Set(sanitized.flatMap((value) => getHigherResolutionVariants(value))));
   const exactMatches = uniqueImages.filter((value) => isExactProductImage(value, product));
 
   if (exactMatches.length > 0) {
-    return exactMatches;
+    return sortByImageQuality(exactMatches);
   }
 
   const primary = sanitizeProductImageUrl(product.imageUrl);
-  return primary ? [primary] : uniqueImages.slice(0, 1);
+  return primary ? sortByImageQuality(getHigherResolutionVariants(primary)) : uniqueImages.slice(0, 1);
 };
 
 export const getPrimaryProductImage = (product: ProductImageSource) => {
