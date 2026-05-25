@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
+import { formatCustomerPrice } from "@/lib/pricing";
 import {
   Monitor,
   Camera,
@@ -262,13 +263,6 @@ const ProductsIndex = () => {
   const queryTooShort = searchQuery.trim().length > 0 && searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
   const hasSearchQuery = searchQuery.trim().length > 0;
 
-  const formatPrice = (value: number | null | undefined) => {
-    if (value === null || value === undefined) {
-      return null;
-    }
-    return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
-  };
-
   return (
     <Layout>
       <section className="bg-gradient-hero py-20 md:py-28">
@@ -367,7 +361,7 @@ const ProductsIndex = () => {
                     <div className="max-h-[520px] overflow-y-auto">
                       {searchPreviewMatches.map(({ product }, index) => {
                         const image = getPrimaryProductImage(product);
-                        const price = formatPrice(product.price) ?? product.priceText ?? "POA";
+                        const price = formatCustomerPrice(product.price, product.priceText) ?? "POA";
                         const availability =
                           product.availabilityText ||
                           (typeof product.stockQuantity === "number"

@@ -48,13 +48,19 @@ const parsePositiveNumber = (value: string | undefined) => {
 const formatAud = (value: number | null) =>
   value === null ? "P.O.A." : value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 
+const formatCustomerAud = (value: number | null) =>
+  value === null ? "P.O.A." : `${formatAud(value)} Inc GST`;
+
 const applyTax = (value: number | null, taxRate: number) =>
   value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
 
-const SELL_PRICE_MARKUP_RATE = 0.2;
+const CUSTOMER_MARGIN_RATE = 0.1;
+const CUSTOMER_GST_RATE = 0.1;
 
-const applyMarkup = (value: number | null) =>
-  value === null ? null : Math.round(value * (1 + SELL_PRICE_MARKUP_RATE) * 100) / 100;
+const applyCustomerPrice = (value: number | null) =>
+  value === null
+    ? null
+    : Math.round(value * (1 + CUSTOMER_MARGIN_RATE) * (1 + CUSTOMER_GST_RATE) * 100) / 100;
 
 const metresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
@@ -106,7 +112,7 @@ const parseLiveCatalog = (csv: string) => {
       }
 
       const costExGst = parseNumber(parts[8]);
-      const price = applyMarkup(costExGst);
+      const price = applyCustomerPrice(costExGst);
       const rrpExGst = parseNumber(parts[9]);
       const taxRate = parseNumber(parts[11]) ?? 0;
       const rrp = applyTax(rrpExGst, taxRate);
@@ -120,7 +126,7 @@ const parseLiveCatalog = (csv: string) => {
         manufacturer: parts[3]?.trim() || "",
         name: parts[1]?.trim() || "",
         price,
-        priceText: formatAud(price),
+        priceText: formatCustomerAud(price),
         rrp,
         rrpText: formatAud(rrp),
         rrpExGst,
@@ -170,7 +176,7 @@ const parseLiveCatalogXml = (xml: string) => {
       }
 
       const costExGst = parseNumber(getXmlTag(row, "PriceCostEx"));
-      const price = applyMarkup(costExGst);
+      const price = applyCustomerPrice(costExGst);
       const rrpExGst = parseNumber(getXmlTag(row, "PriceRetailEx"));
       const taxRate = parseNumber(getXmlTag(row, "TaxRate")) ?? 0;
       const rrp = applyTax(rrpExGst, taxRate);
@@ -182,7 +188,7 @@ const parseLiveCatalogXml = (xml: string) => {
         manufacturer: getXmlTag(row, "Manufacturer"),
         name: getXmlTag(row, "Name"),
         price,
-        priceText: formatAud(price),
+        priceText: formatCustomerAud(price),
         rrp,
         rrpText: formatAud(rrp),
         rrpExGst,

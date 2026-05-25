@@ -3,8 +3,9 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import PortalNav from "@/components/auth/PortalNav";
-import { CartItem, formatAud, getCartItems, saveCartItems } from "@/lib/orderManagement";
+import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { formatCustomerPrice } from "@/lib/pricing";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
 
 const Cart = () => {
@@ -119,7 +120,7 @@ const Cart = () => {
                           <p className="text-sm text-muted-foreground mt-1">{item.manufacturer}</p>
                           <p className="text-xs text-muted-foreground mt-1">Code: {item.code}</p>
                           <p className="text-sm text-muted-foreground mt-2">
-                            Unit price: {item.price === null ? item.priceText || "POA" : formatAud(item.price)}
+                            Unit price: {formatCustomerPrice(item.price, item.priceText) ?? "POA"}
                           </p>
                         </div>
 
@@ -151,7 +152,7 @@ const Cart = () => {
                           </div>
 
                           <p className="text-sm font-semibold text-foreground">
-                            {lineTotal === null ? item.priceText || "POA" : formatAud(lineTotal)}
+                            {formatCustomerPrice(lineTotal, item.priceText) ?? "POA"}
                           </p>
                         </div>
                       </div>
@@ -165,7 +166,7 @@ const Cart = () => {
                 <div className="space-y-2 text-sm mb-5">
                   <p className="flex items-center justify-between">
                     <span className="text-muted-foreground">Known subtotal</span>
-                    <span className="font-semibold text-foreground">{formatAud(subtotal)}</span>
+                    <span className="font-semibold text-foreground">{formatCustomerPrice(subtotal)}</span>
                   </p>
                   {poaLines > 0 ? (
                     <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>

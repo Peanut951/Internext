@@ -9,6 +9,7 @@ import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { formatCustomerPrice } from "@/lib/pricing";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -1385,7 +1386,7 @@ const ProductCategory = () => {
               {!loading && !error && pageItems.length > 0 && (
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                   {pageItems.map((product) => {
-                    const priceLabel = formatPrice(product.price) ?? product.priceText ?? "POA";
+                    const priceLabel = formatCustomerPrice(product.price, product.priceText) ?? "POA";
                     const productImage = getPrimaryProductImage(product);
                     const summary = getCardSummary(product);
                     const highlights = getCardHighlights(product);
@@ -1587,7 +1588,7 @@ const ProductCategory = () => {
                             </button>
                           </div>
                           <span className="text-sm font-semibold text-foreground">
-                            {formatPrice(item.price) ?? item.priceText ?? "POA"}
+                            {formatCustomerPrice(item.price, item.priceText) ?? "POA"}
                           </span>
                         </div>
                       </div>
@@ -1597,7 +1598,7 @@ const ProductCategory = () => {
                       <p className="flex items-center justify-between">
                         <span>Subtotal</span>
                         <span className="text-foreground font-semibold">
-                          {formatPrice(cartTotal) ?? "N/A"}
+                          {formatCustomerPrice(cartTotal) ?? "N/A"}
                         </span>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">

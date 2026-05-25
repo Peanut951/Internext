@@ -11,6 +11,7 @@ import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
 } from "@/lib/catalogSearch";
+import { formatCustomerPrice } from "@/lib/pricing";
 
 type CatalogProduct = {
   code: string;
@@ -35,13 +36,6 @@ const QUICK_SEARCHES = [
   "Axis camera",
   "Hisense display",
 ];
-
-const formatPrice = (value: number | null | undefined) => {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
-};
 
 const ProductSearch = () => {
   const navigate = useNavigate();
@@ -331,7 +325,7 @@ const ProductSearch = () => {
                             </p>
                             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <span className="text-xl font-bold text-foreground">
-                                {formatPrice(product.price) ?? product.priceText ?? "POA"}
+                                {formatCustomerPrice(product.price, product.priceText) ?? "POA"}
                               </span>
                               {availability ? (
                                 <span className="text-sm text-muted-foreground">{availability}</span>

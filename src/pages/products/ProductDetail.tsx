@@ -12,6 +12,7 @@ import {
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { formatAud, formatCustomerPrice } from "@/lib/pricing";
 
 type CatalogProduct = {
   code: string;
@@ -44,13 +45,6 @@ type CatalogProduct = {
 };
 
 type CartItem = CatalogProduct & { qty: number };
-
-const formatPrice = (value: number | null | undefined) => {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
-};
 
 const getStoredCart = (): CartItem[] => {
   if (typeof window === "undefined") {
@@ -234,7 +228,7 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return formatPrice(product.price) ?? product.priceText ?? "POA";
+    return formatCustomerPrice(product.price, product.priceText) ?? "POA";
   }, [product]);
 
   const availability = useMemo(() => {
@@ -510,7 +504,7 @@ const ProductDetail = () => {
                         ) : null}
                         {product.rrp ? (
                           <p className="mb-6 text-sm text-muted-foreground">
-                            RRP {formatPrice(product.rrp)}
+                            RRP {formatAud(product.rrp)}
                           </p>
                         ) : (
                           <p className="mb-6 text-sm text-muted-foreground">RRP not listed</p>

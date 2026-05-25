@@ -17,6 +17,7 @@ import {
 } from "@/lib/orderManagement";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { formatCustomerPrice } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
@@ -988,7 +989,7 @@ const Checkout = () => {
                                 {item.code} · Qty {item.qty}
                               </p>
                               <p className="text-xs text-muted-foreground mt-1">
-                                {item.price === null ? item.priceText || "POA" : formatAud(item.price)}
+                                {formatCustomerPrice(item.price, item.priceText) ?? "POA"}
                               </p>
                             </div>
                           </div>
@@ -999,7 +1000,7 @@ const Checkout = () => {
                     <div className="border-t border-border mt-4 pt-4 text-sm">
                       <p className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Known subtotal</span>
-                        <span className="font-semibold text-foreground">{formatAud(subtotal)}</span>
+                        <span className="font-semibold text-foreground">{formatCustomerPrice(subtotal)}</span>
                       </p>
                       <p className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Shipping</span>
@@ -1016,7 +1017,7 @@ const Checkout = () => {
                       ) : null}
                       <p className="flex items-center justify-between border-t border-border pt-3 font-semibold">
                         <span className="text-foreground">Estimated total</span>
-                        <span className="text-foreground">{formatAud(orderTotal)}</span>
+                        <span className="text-foreground">{formatCustomerPrice(orderTotal)}</span>
                       </p>
                       {poaLines > 0 ? (
                         <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>
