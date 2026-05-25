@@ -7,6 +7,8 @@ type LiveCatalogItem = {
   name: string;
   price: number | null;
   priceText: string;
+  resellerPrice: number | null;
+  resellerPriceText: string;
   rrp: number | null;
   rrpText: string;
   rrpExGst: number | null;
@@ -51,16 +53,23 @@ const formatAud = (value: number | null) =>
 const formatCustomerAud = (value: number | null) =>
   value === null ? "P.O.A." : `${formatAud(value)} Inc GST`;
 
+const formatResellerAud = (value: number | null) =>
+  value === null ? "P.O.A." : `${formatAud(value)} Ex GST`;
+
 const applyTax = (value: number | null, taxRate: number) =>
   value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
 
 const CUSTOMER_MARGIN_RATE = 0.1;
 const CUSTOMER_GST_RATE = 0.1;
+const RESELLER_MARGIN_RATE = 0.1;
 
 const applyCustomerPrice = (value: number | null) =>
   value === null
     ? null
     : Math.round(value * (1 + CUSTOMER_MARGIN_RATE) * (1 + CUSTOMER_GST_RATE) * 100) / 100;
+
+const applyResellerPrice = (value: number | null) =>
+  value === null ? null : Math.round(value * (1 + RESELLER_MARGIN_RATE) * 100) / 100;
 
 const metresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
@@ -113,6 +122,7 @@ const parseLiveCatalog = (csv: string) => {
 
       const costExGst = parseNumber(parts[8]);
       const price = applyCustomerPrice(costExGst);
+      const resellerPrice = applyResellerPrice(costExGst);
       const rrpExGst = parseNumber(parts[9]);
       const taxRate = parseNumber(parts[11]) ?? 0;
       const rrp = applyTax(rrpExGst, taxRate);
@@ -127,6 +137,8 @@ const parseLiveCatalog = (csv: string) => {
         name: parts[1]?.trim() || "",
         price,
         priceText: formatCustomerAud(price),
+        resellerPrice,
+        resellerPriceText: formatResellerAud(resellerPrice),
         rrp,
         rrpText: formatAud(rrp),
         rrpExGst,
@@ -177,6 +189,7 @@ const parseLiveCatalogXml = (xml: string) => {
 
       const costExGst = parseNumber(getXmlTag(row, "PriceCostEx"));
       const price = applyCustomerPrice(costExGst);
+      const resellerPrice = applyResellerPrice(costExGst);
       const rrpExGst = parseNumber(getXmlTag(row, "PriceRetailEx"));
       const taxRate = parseNumber(getXmlTag(row, "TaxRate")) ?? 0;
       const rrp = applyTax(rrpExGst, taxRate);
@@ -189,6 +202,8 @@ const parseLiveCatalogXml = (xml: string) => {
         name: getXmlTag(row, "Name"),
         price,
         priceText: formatCustomerAud(price),
+        resellerPrice,
+        resellerPriceText: formatResellerAud(resellerPrice),
         rrp,
         rrpText: formatAud(rrp),
         rrpExGst,

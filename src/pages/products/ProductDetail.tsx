@@ -12,7 +12,7 @@ import {
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatAud, formatCustomerPrice } from "@/lib/pricing";
+import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
 
 type CatalogProduct = {
   code: string;
@@ -21,6 +21,8 @@ type CatalogProduct = {
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   rrp: number | null;
   rrpText?: string;
   imageUrl?: string;
@@ -228,8 +230,8 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return formatCustomerPrice(product.price, product.priceText) ?? "POA";
-  }, [product]);
+    return getDisplayPrice(product, session?.role);
+  }, [product, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -280,11 +282,12 @@ const ProductDetail = () => {
 
     const existing = getStoredCart();
     const match = existing.find((item) => item.code === product.code);
+    const pricedProduct = getCartPricedProduct(product, session.role);
     const updated = match
       ? existing.map((item) =>
           item.code === product.code ? { ...item, qty: item.qty + qty } : item,
         )
-      : [...existing, { ...product, qty }];
+      : [...existing, { ...pricedProduct, qty }];
     saveStoredCart(updated);
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);

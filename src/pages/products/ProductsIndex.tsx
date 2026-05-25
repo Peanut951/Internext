@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
-import { formatCustomerPrice } from "@/lib/pricing";
+import { getDisplayPrice } from "@/lib/pricing";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   Monitor,
   Camera,
@@ -28,6 +29,8 @@ type CatalogProduct = {
   description: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   supplierCode?: string;
   imageUrl?: string;
   availabilityText?: string;
@@ -175,6 +178,7 @@ const categories = [
 
 const ProductsIndex = () => {
   const navigate = useNavigate();
+  const { session } = useAuthSession();
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
@@ -361,7 +365,7 @@ const ProductsIndex = () => {
                     <div className="max-h-[520px] overflow-y-auto">
                       {searchPreviewMatches.map(({ product }, index) => {
                         const image = getPrimaryProductImage(product);
-                        const price = formatCustomerPrice(product.price, product.priceText) ?? "POA";
+                        const price = getDisplayPrice(product, session?.role);
                         const availability =
                           product.availabilityText ||
                           (typeof product.stockQuantity === "number"

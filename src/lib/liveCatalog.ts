@@ -7,6 +7,8 @@ export type CatalogProductWithLive = {
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   rrp?: number | null;
   rrpText?: string;
   imageUrl?: string;
@@ -36,6 +38,8 @@ type LiveCatalogItem = {
   supplierCode: string;
   price: number | null;
   priceText: string;
+  resellerPrice: number | null;
+  resellerPriceText: string;
   rrp: number | null;
   rrpText: string;
   rrpExGst: number | null;
@@ -114,6 +118,8 @@ const loadCatalogProductsInternal = async () => {
         ...product,
         price: live.price,
         priceText: live.priceText,
+        resellerPrice: live.resellerPrice,
+        resellerPriceText: live.resellerPriceText,
         rrp: live.rrp,
         rrpText: live.rrpText,
         rrpExGst: live.rrpExGst,

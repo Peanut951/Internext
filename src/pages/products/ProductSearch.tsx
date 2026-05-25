@@ -11,7 +11,8 @@ import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
 } from "@/lib/catalogSearch";
-import { formatCustomerPrice } from "@/lib/pricing";
+import { getDisplayPrice } from "@/lib/pricing";
+import { useAuthSession } from "@/hooks/use-auth-session";
 
 type CatalogProduct = {
   code: string;
@@ -20,6 +21,8 @@ type CatalogProduct = {
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   supplierCode?: string;
   imageUrl?: string;
   availabilityText?: string;
@@ -46,6 +49,7 @@ const ProductSearch = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const { session } = useAuthSession();
 
   useEffect(() => {
     setInputValue(currentQuery);
@@ -325,7 +329,7 @@ const ProductSearch = () => {
                             </p>
                             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                               <span className="text-xl font-bold text-foreground">
-                                {formatCustomerPrice(product.price, product.priceText) ?? "POA"}
+                                {getDisplayPrice(product, session?.role)}
                               </span>
                               {availability ? (
                                 <span className="text-sm text-muted-foreground">{availability}</span>

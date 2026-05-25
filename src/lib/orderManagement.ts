@@ -5,6 +5,8 @@
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   rrp: number | null;
   rrpText?: string;
   imageUrl?: string;

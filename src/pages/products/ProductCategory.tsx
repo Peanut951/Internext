@@ -9,7 +9,13 @@ import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatCustomerPrice } from "@/lib/pricing";
+import {
+  formatStoredPrice,
+  formatStoredTotal,
+  getCartPricedProduct,
+  getDisplayPrice,
+  getPriceRole,
+} from "@/lib/pricing";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -20,6 +26,8 @@ type CatalogProduct = {
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  resellerPrice?: number | null;
+  resellerPriceText?: string;
   rrp: number | null;
   rrpText?: string;
   imageUrl?: string;
@@ -950,6 +958,10 @@ const ProductCategory = () => {
     );
   };
 
+  const priceRole = getPriceRole(session?.role);
+  const getVisiblePrice = (product: CatalogProduct) =>
+    priceRole === "reseller" ? product.resellerPrice ?? null : product.price;
+
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
@@ -963,12 +975,13 @@ const ProductCategory = () => {
 
       const parsedMin = Number(minPrice);
       const parsedMax = Number(maxPrice);
+      const visiblePrice = getVisiblePrice(product);
 
-      if (!Number.isNaN(parsedMin) && minPrice.trim() !== "" && (product.price === null || product.price < parsedMin)) {
+      if (!Number.isNaN(parsedMin) && minPrice.trim() !== "" && (visiblePrice === null || visiblePrice < parsedMin)) {
         return false;
       }
 
-      if (!Number.isNaN(parsedMax) && maxPrice.trim() !== "" && (product.price === null || product.price > parsedMax)) {
+      if (!Number.isNaN(parsedMax) && maxPrice.trim() !== "" && (visiblePrice === null || visiblePrice > parsedMax)) {
         return false;
       }
 
@@ -1010,8 +1023,10 @@ const ProductCategory = () => {
           return scoreDiff;
         }
 
-        if (a.price !== null && b.price !== null && a.price !== b.price) {
-          return a.price - b.price;
+        const aPrice = getVisiblePrice(a);
+        const bPrice = getVisiblePrice(b);
+        if (aPrice !== null && bPrice !== null && aPrice !== bPrice) {
+          return aPrice - bPrice;
         }
 
         return a.description.localeCompare(b.description);
@@ -1028,17 +1043,21 @@ const ProductCategory = () => {
 
     if (sort === "price-asc") {
       return [...filtered].sort((a, b) => {
-        if (a.price === null) return 1;
-        if (b.price === null) return -1;
-        return a.price - b.price;
+        const aPrice = getVisiblePrice(a);
+        const bPrice = getVisiblePrice(b);
+        if (aPrice === null) return 1;
+        if (bPrice === null) return -1;
+        return aPrice - bPrice;
       });
     }
 
     if (sort === "price-desc") {
       return [...filtered].sort((a, b) => {
-        if (a.price === null) return 1;
-        if (b.price === null) return -1;
-        return b.price - a.price;
+        const aPrice = getVisiblePrice(a);
+        const bPrice = getVisiblePrice(b);
+        if (aPrice === null) return 1;
+        if (bPrice === null) return -1;
+        return bPrice - aPrice;
       });
     }
 
@@ -1051,6 +1070,7 @@ const ProductCategory = () => {
     maxPrice,
     minPrice,
     normalizedSelectedBrands,
+    priceRole,
     query,
     selectedFacets,
     sort,
@@ -1145,7 +1165,7 @@ const ProductCategory = () => {
           item.code === product.code ? { ...item, qty: item.qty + 1 } : item,
         );
       }
-      return [...prev, { ...product, qty: 1 }];
+      return [...prev, { ...getCartPricedProduct(product, session.role), qty: 1 }];
     });
   };
 
@@ -1386,7 +1406,7 @@ const ProductCategory = () => {
               {!loading && !error && pageItems.length > 0 && (
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                   {pageItems.map((product) => {
-                    const priceLabel = formatCustomerPrice(product.price, product.priceText) ?? "POA";
+                    const priceLabel = getDisplayPrice(product, session?.role);
                     const productImage = getPrimaryProductImage(product);
                     const summary = getCardSummary(product);
                     const highlights = getCardHighlights(product);
@@ -1588,7 +1608,7 @@ const ProductCategory = () => {
                             </button>
                           </div>
                           <span className="text-sm font-semibold text-foreground">
-                            {formatCustomerPrice(item.price, item.priceText) ?? "POA"}
+                            {formatStoredPrice(item.price, item.priceText) ?? "POA"}
                           </span>
                         </div>
                       </div>
@@ -1598,7 +1618,7 @@ const ProductCategory = () => {
                       <p className="flex items-center justify-between">
                         <span>Subtotal</span>
                         <span className="text-foreground font-semibold">
-                          {formatCustomerPrice(cartTotal) ?? "N/A"}
+                          {formatStoredTotal(cartTotal, cartItems) ?? "N/A"}
                         </span>
                       </p>
                       <p className="mt-1 text-xs text-muted-foreground">
