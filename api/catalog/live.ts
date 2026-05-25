@@ -1,6 +1,6 @@
 import { readEnv, sendJson } from "../checkout/_shared.js";
 
-type LiveCatalogItem = {
+export type LiveCatalogItem = {
   code: string;
   supplierCode: string;
   manufacturer: string;
@@ -232,6 +232,56 @@ const globalCatalogCache = globalThis as typeof globalThis & {
   __internextLiveCatalogCache?: LiveCatalogCache;
 };
 
+export const loadLiveCatalogItems = async () => {
+  const cached = globalCatalogCache.__internextLiveCatalogCache;
+  if (cached && cached.expiresAt > Date.now()) {
+    return {
+      updatedAt: cached.updatedAt,
+      count: cached.items.length,
+      source: cached.source,
+      cached: true,
+      items: cached.items,
+    };
+  }
+
+  const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
+  if (!feedUrl) {
+    throw new Error("Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.");
+  }
+
+  const response = await fetch(feedUrl, {
+    headers: {
+      Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error(`Alloys feed returned ${response.status}.`);
+  }
+
+  const feedText = await response.text();
+  const items = feedText.trim().startsWith("<")
+    ? parseLiveCatalogXml(feedText)
+    : parseLiveCatalog(feedText);
+  const updatedAt = new Date().toISOString();
+  const source = feedText.trim().startsWith("<") ? "xml" : "csv";
+
+  globalCatalogCache.__internextLiveCatalogCache = {
+    expiresAt: Date.now() + 15 * 60 * 1000,
+    updatedAt,
+    source,
+    items,
+  };
+
+  return {
+    updatedAt,
+    count: items.length,
+    source,
+    cached: false,
+    items,
+  };
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -246,60 +296,13 @@ export default async function handler(
     return sendJson(res, 405, { message: "Method not allowed." });
   }
 
-  const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
-  if (!feedUrl) {
-    return sendJson(res, 500, {
-      message: "Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.",
-    });
-  }
-
   try {
-    const cached = globalCatalogCache.__internextLiveCatalogCache;
-    if (cached && cached.expiresAt > Date.now()) {
-      res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
-      return sendJson(res, 200, {
-        updatedAt: cached.updatedAt,
-        count: cached.items.length,
-        source: cached.source,
-        cached: true,
-        items: cached.items,
-      });
-    }
-
-    const response = await fetch(feedUrl, {
-      headers: {
-        Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
-      },
-    });
-
-    if (!response.ok) {
-      return sendJson(res, 502, { message: `Alloys feed returned ${response.status}.` });
-    }
-
-    const feedText = await response.text();
-    const items = feedText.trim().startsWith("<")
-      ? parseLiveCatalogXml(feedText)
-      : parseLiveCatalog(feedText);
-    const updatedAt = new Date().toISOString();
-    const source = feedText.trim().startsWith("<") ? "xml" : "csv";
-
-    globalCatalogCache.__internextLiveCatalogCache = {
-      expiresAt: Date.now() + 15 * 60 * 1000,
-      updatedAt,
-      source,
-      items,
-    };
-
+    const catalog = await loadLiveCatalogItems();
     res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
-    return sendJson(res, 200, {
-      updatedAt,
-      count: items.length,
-      source,
-      cached: false,
-      items,
-    });
+    return sendJson(res, 200, catalog);
   } catch (error) {
-    return sendJson(res, 502, {
+    const message = error instanceof Error ? error.message : "Unable to load Alloys catalog feed.";
+    return sendJson(res, message.includes("not configured") ? 500 : 502, {
       message:
         error instanceof Error
           ? `Unable to load Alloys catalog feed: ${error.message}`

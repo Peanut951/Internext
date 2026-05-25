@@ -234,6 +234,8 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
 
     return {
       ...item,
+      availabilityText: live.availabilityText,
+      stockQuantity: live.stockQuantity,
       weightKg: live.weightKg,
       heightCm: live.heightCm,
       widthCm: live.widthCm,
@@ -308,6 +310,21 @@ const Checkout = () => {
   }, [cartItems]);
 
   const hasUnpricedItems = poaLines > 0;
+  const unavailableItems = useMemo(
+    () => cartItems.filter((item) => typeof item.stockQuantity === "number" && item.stockQuantity <= 0),
+    [cartItems],
+  );
+  const stockLimitedItems = useMemo(
+    () =>
+      cartItems.filter(
+        (item) =>
+          typeof item.stockQuantity === "number" &&
+          item.stockQuantity > 0 &&
+          item.qty > item.stockQuantity,
+      ),
+    [cartItems],
+  );
+  const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
 
   const orderTotal = useMemo(
     () => subtotal + (shippingQuote?.service.price || 0),
@@ -595,6 +612,24 @@ const Checkout = () => {
 
     if (hasUnpricedItems) {
       setError("Online payment is only available for priced items. Remove any POA items before checkout.");
+      return;
+    }
+
+    if (unavailableItems.length > 0) {
+      setError(
+        `Remove out-of-stock item(s) before payment: ${unavailableItems
+          .map((item) => item.code)
+          .join(", ")}.`,
+      );
+      return;
+    }
+
+    if (stockLimitedItems.length > 0) {
+      setError(
+        `Reduce quantity before payment: ${stockLimitedItems
+          .map((item) => `${item.code} has ${item.stockQuantity} available`)
+          .join(", ")}.`,
+      );
       return;
     }
 
@@ -943,7 +978,7 @@ const Checkout = () => {
                 <Button
                   type="submit"
                   className="w-full md:w-auto"
-                  disabled={submitting || confirmingPayment || cartItems.length === 0}
+                  disabled={submitting || confirmingPayment || cartItems.length === 0 || hasStockBlockingItems}
                 >
                   {confirmingPayment
                     ? "Finalising Payment..."
@@ -974,8 +1009,22 @@ const Checkout = () => {
                 ) : (
                   <>
                     <div className="space-y-3 max-h-[460px] overflow-auto pr-1">
-                      {cartItems.map((item) => (
-                        <div key={item.code} className="border border-border/60 rounded-lg p-3">
+                      {cartItems.map((item) => {
+                        const isUnavailable = typeof item.stockQuantity === "number" && item.stockQuantity <= 0;
+                        const exceedsAvailable =
+                          typeof item.stockQuantity === "number" &&
+                          item.stockQuantity > 0 &&
+                          item.qty > item.stockQuantity;
+
+                        return (
+                        <div
+                          key={item.code}
+                          className={`border rounded-lg p-3 ${
+                            isUnavailable || exceedsAvailable
+                              ? "border-destructive/40 bg-destructive/5"
+                              : "border-border/60"
+                          }`}
+                        >
                           <div className="flex gap-3">
                             <img
                               src={getPrimaryProductImage(item)}
@@ -991,10 +1040,26 @@ const Checkout = () => {
                               <p className="text-xs text-muted-foreground mt-1">
                                 {formatStoredPrice(item.price, item.priceText) ?? "POA"}
                               </p>
+                              {typeof item.stockQuantity === "number" ? (
+                                <p
+                                  className={`mt-1 text-xs ${
+                                    isUnavailable || exceedsAvailable
+                                      ? "text-destructive"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {isUnavailable
+                                    ? "Out of stock"
+                                    : exceedsAvailable
+                                      ? `Only ${item.stockQuantity.toLocaleString("en-AU")} available`
+                                      : `${item.stockQuantity.toLocaleString("en-AU")} available`}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div className="border-t border-border mt-4 pt-4 text-sm">
@@ -1025,6 +1090,16 @@ const Checkout = () => {
                       {hasUnpricedItems ? (
                         <p className="mt-2 text-xs text-destructive">
                           Remove POA items before online payment. They cannot be charged through card checkout.
+                        </p>
+                      ) : null}
+                      {unavailableItems.length > 0 ? (
+                        <p className="mt-2 text-xs text-destructive">
+                          Remove out-of-stock item(s) before payment.
+                        </p>
+                      ) : null}
+                      {stockLimitedItems.length > 0 ? (
+                        <p className="mt-2 text-xs text-destructive">
+                          Reduce item quantities to match available stock before payment.
                         </p>
                       ) : null}
                     </div>

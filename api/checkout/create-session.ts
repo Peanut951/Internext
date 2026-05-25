@@ -8,6 +8,7 @@ import {
   validateCheckoutPayload,
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
+import { loadLiveCatalogItems } from "../catalog/live.js";
 
 type RequestBody = {
   origin?: string;
@@ -30,6 +31,55 @@ type RequestBody = {
     name?: string;
     price?: number;
   };
+};
+
+const normalizeStockKey = (value: string | undefined) => value?.trim().toLowerCase() || "";
+
+const validateLiveStock = async (items: NonNullable<RequestBody["items"]>) => {
+  const catalog = await loadLiveCatalogItems();
+  const liveByCode = new Map(
+    catalog.items.flatMap((item) =>
+      [item.code, item.supplierCode]
+        .map(normalizeStockKey)
+        .filter(Boolean)
+        .map((key) => [key, item] as const),
+    ),
+  );
+
+  const unavailable: string[] = [];
+  const insufficient: string[] = [];
+  const unknown: string[] = [];
+
+  items.forEach((item) => {
+    const live = liveByCode.get(normalizeStockKey(item.code));
+    if (!live) {
+      unknown.push(item.code);
+      return;
+    }
+
+    if (live.stockQuantity <= 0) {
+      unavailable.push(item.code);
+      return;
+    }
+
+    if (item.qty > live.stockQuantity) {
+      insufficient.push(`${item.code} has ${live.stockQuantity} available`);
+    }
+  });
+
+  if (unavailable.length > 0) {
+    return `Remove out-of-stock item(s) before payment: ${unavailable.join(", ")}.`;
+  }
+
+  if (insufficient.length > 0) {
+    return `Reduce quantity before payment: ${insufficient.join(", ")}.`;
+  }
+
+  if (unknown.length > 0) {
+    return `Unable to confirm live stock for: ${unknown.join(", ")}.`;
+  }
+
+  return null;
 };
 
 export default async function handler(
@@ -70,6 +120,20 @@ export default async function handler(
   const validationError = validateCheckoutPayload(body.customer, body.items);
   if (validationError) {
     return sendJson(res, 400, { message: validationError });
+  }
+
+  try {
+    const stockError = await validateLiveStock(body.items || []);
+    if (stockError) {
+      return sendJson(res, 400, { message: stockError });
+    }
+  } catch (error) {
+    return sendJson(res, 502, {
+      message:
+        error instanceof Error
+          ? `Unable to verify live stock availability: ${error.message}`
+          : "Unable to verify live stock availability.",
+    });
   }
 
   const params = buildStripeCheckoutParams({

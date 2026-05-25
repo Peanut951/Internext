@@ -12,6 +12,8 @@
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  availabilityText?: string;
+  stockQuantity?: number;
   weightKg?: number | null;
   heightCm?: number | null;
   widthCm?: number | null;

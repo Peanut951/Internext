@@ -4,15 +4,63 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import PortalNav from "@/components/auth/PortalNav";
 import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
+
+const refreshCartStock = async (items: CartItem[]) => {
+  if (items.length === 0) {
+    return items;
+  }
+
+  const liveProducts = await loadCatalogProducts();
+  const liveByCode = new Map(
+    liveProducts.flatMap((product) =>
+      [product.code, product.supplierCode]
+        .map((value) => value?.trim().toLowerCase())
+        .filter((value): value is string => Boolean(value))
+        .map((key) => [key, product] as const),
+    ),
+  );
+
+  return items.map((item) => {
+    const live = [item.code, item.supplierCode]
+      .map((value) => value?.trim().toLowerCase())
+      .filter((value): value is string => Boolean(value))
+      .map((key) => liveByCode.get(key))
+      .find(Boolean);
+
+    return live
+      ? { ...item, availabilityText: live.availabilityText, stockQuantity: live.stockQuantity }
+      : item;
+  });
+};
 
 const Cart = () => {
   const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
-    setItems(getCartItems());
+    const storedItems = getCartItems();
+    setItems(storedItems);
+
+    let isActive = true;
+    void refreshCartStock(storedItems)
+      .then((updatedItems) => {
+        if (!isActive) {
+          return;
+        }
+
+        setItems(updatedItems);
+        saveCartItems(updatedItems);
+      })
+      .catch(() => {
+        // Keep the cart usable if the live catalogue refresh fails.
+      });
+
+    return () => {
+      isActive = false;
+    };
   }, []);
 
   const setAndPersist = (next: CartItem[]) => {
@@ -53,6 +101,21 @@ const Cart = () => {
   const poaLines = useMemo(() => {
     return items.reduce((total, item) => total + (item.price === null ? item.qty : 0), 0);
   }, [items]);
+  const unavailableItems = useMemo(
+    () => items.filter((item) => typeof item.stockQuantity === "number" && item.stockQuantity <= 0),
+    [items],
+  );
+  const stockLimitedItems = useMemo(
+    () =>
+      items.filter(
+        (item) =>
+          typeof item.stockQuantity === "number" &&
+          item.stockQuantity > 0 &&
+          item.qty > item.stockQuantity,
+      ),
+    [items],
+  );
+  const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
 
   return (
     <Layout>
@@ -101,10 +164,19 @@ const Cart = () => {
 
                 {items.map((item) => {
                   const lineTotal = item.price === null ? null : item.price * item.qty;
+                  const isUnavailable = typeof item.stockQuantity === "number" && item.stockQuantity <= 0;
+                  const exceedsAvailable =
+                    typeof item.stockQuantity === "number" &&
+                    item.stockQuantity > 0 &&
+                    item.qty > item.stockQuantity;
                   return (
                     <div
                       key={item.code}
-                      className="bg-card border border-border/60 rounded-2xl p-5 shadow-card"
+                      className={`bg-card border rounded-2xl p-5 shadow-card ${
+                        isUnavailable || exceedsAvailable
+                          ? "border-destructive/40"
+                          : "border-border/60"
+                      }`}
                     >
                       <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:items-center">
                         <img
@@ -122,6 +194,19 @@ const Cart = () => {
                           <p className="text-sm text-muted-foreground mt-2">
                             Unit price: {formatStoredPrice(item.price, item.priceText) ?? "POA"}
                           </p>
+                          {typeof item.stockQuantity === "number" ? (
+                            <p
+                              className={`mt-2 text-sm ${
+                                isUnavailable || exceedsAvailable ? "text-destructive" : "text-muted-foreground"
+                              }`}
+                            >
+                              {isUnavailable
+                                ? "Out of stock"
+                                : exceedsAvailable
+                                  ? `Only ${item.stockQuantity.toLocaleString("en-AU")} available`
+                                  : `${item.stockQuantity.toLocaleString("en-AU")} available`}
+                            </p>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-col items-start sm:items-end gap-3">
@@ -171,12 +256,26 @@ const Cart = () => {
                   {poaLines > 0 ? (
                     <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>
                   ) : null}
+                  {unavailableItems.length > 0 ? (
+                    <p className="text-xs text-destructive">Remove out-of-stock item(s) before checkout.</p>
+                  ) : null}
+                  {stockLimitedItems.length > 0 ? (
+                    <p className="text-xs text-destructive">
+                      Reduce item quantities to match available stock before checkout.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div className="space-y-2">
-                  <Button className="w-full" asChild>
-                    <Link to="/checkout">Proceed to Checkout</Link>
-                  </Button>
+                  {hasStockBlockingItems ? (
+                    <Button className="w-full" disabled>
+                      Proceed to Checkout
+                    </Button>
+                  ) : (
+                    <Button className="w-full" asChild>
+                      <Link to="/checkout">Proceed to Checkout</Link>
+                    </Button>
+                  )}
                   <Button className="w-full" variant="outline" asChild>
                     <Link to="/products">Continue Shopping</Link>
                   </Button>
