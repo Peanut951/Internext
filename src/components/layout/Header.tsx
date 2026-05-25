@@ -136,11 +136,11 @@ const Header = () => {
           </form>
 
           <div className="hidden flex-none items-center justify-end xl:flex">
-            <Button variant="outline" size="sm" className="h-9 rounded-full px-4" asChild>
-              <Link to="/cart" className="gap-2">
-                <ShoppingCart className="h-4 w-4" />
-                Cart
-                <span className="inline-flex items-center justify-center min-w-5 h-5 rounded-full bg-primary text-primary-foreground text-xs px-1">
+            <Button variant="outline" size="sm" className="h-9 rounded-full px-0" asChild>
+              <Link to="/cart" className="inline-flex h-9 items-center gap-2 px-4 leading-none">
+                <ShoppingCart className="h-4 w-4 shrink-0" />
+                <span>Cart</span>
+                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-primary-foreground">
                   {cartCount}
                 </span>
               </Link>
