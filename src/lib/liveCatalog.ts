@@ -66,6 +66,14 @@ type LiveCatalogResponse = {
   items?: LiveCatalogItem[];
 };
 
+type CachedCatalogProducts = {
+  cachedAt: number;
+  products: CatalogProductWithLive[];
+};
+
+const CATALOG_CACHE_KEY = "internext-live-catalog-products";
+const CATALOG_CACHE_MS = 15 * 60 * 1000;
+
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 
 const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
@@ -73,7 +81,59 @@ const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplier
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
+const readCachedProducts = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = window.localStorage.getItem(CATALOG_CACHE_KEY);
+    if (!raw) {
+      return null;
+    }
+
+    const cached = JSON.parse(raw) as CachedCatalogProducts;
+    if (
+      !cached ||
+      !Array.isArray(cached.products) ||
+      !Number.isFinite(cached.cachedAt) ||
+      Date.now() - cached.cachedAt > CATALOG_CACHE_MS
+    ) {
+      window.localStorage.removeItem(CATALOG_CACHE_KEY);
+      return null;
+    }
+
+    return cached.products;
+  } catch {
+    window.localStorage.removeItem(CATALOG_CACHE_KEY);
+    return null;
+  }
+};
+
+const writeCachedProducts = (products: CatalogProductWithLive[]) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      CATALOG_CACHE_KEY,
+      JSON.stringify({
+        cachedAt: Date.now(),
+        products,
+      } satisfies CachedCatalogProducts),
+    );
+  } catch {
+    // Storage quota/private mode should not stop the live catalogue from loading.
+  }
+};
+
 const loadCatalogProductsInternal = async () => {
+  const cachedProducts = readCachedProducts();
+  if (cachedProducts) {
+    return cachedProducts;
+  }
+
   const staticResponse = await fetch("/data/catalog-products.json");
   if (!staticResponse.ok) {
     throw new Error("Unable to load product catalog.");
@@ -104,7 +164,7 @@ const loadCatalogProductsInternal = async () => {
     }
   }
 
-  return staticProducts
+  const products = staticProducts
     .map((product) => {
       const live = getProductKeys(product)
         .map((key) => liveByKey.get(key))
@@ -139,6 +199,9 @@ const loadCatalogProductsInternal = async () => {
       };
     })
     .filter((product): product is CatalogProductWithLive => Boolean(product));
+
+  writeCachedProducts(products);
+  return products;
 };
 
 export const loadCatalogProducts = async () => {
