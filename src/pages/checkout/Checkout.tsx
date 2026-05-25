@@ -235,6 +235,8 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
     return {
       ...item,
       availabilityText: live.availabilityText,
+      etaDate: live.etaDate,
+      etaStatus: live.etaStatus,
       stockQuantity: live.stockQuantity,
       weightKg: live.weightKg,
       heightCm: live.heightCm,
@@ -242,6 +244,20 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
       depthCm: live.depthCm,
     };
   });
+};
+
+const getOutOfStockEtaMessage = (item: CartItem) => {
+  const etaDate = item.etaDate?.trim();
+  if (etaDate) {
+    return `Out of stock. ETA: ${etaDate}`;
+  }
+
+  const etaStatus = item.etaStatus?.trim();
+  if (etaStatus && !/^(check availability|in stock)$/i.test(etaStatus)) {
+    return `Out of stock. ETA: ${etaStatus}`;
+  }
+
+  return "Out of stock. For ETA please call 1300 567 835.";
 };
 
 const Checkout = () => {
@@ -1049,7 +1065,7 @@ const Checkout = () => {
                                   }`}
                                 >
                                   {isUnavailable
-                                    ? "Out of stock"
+                                    ? getOutOfStockEtaMessage(item)
                                     : exceedsAvailable
                                       ? `Only ${item.stockQuantity.toLocaleString("en-AU")} available`
                                       : `${item.stockQuantity.toLocaleString("en-AU")} available`}

@@ -13,6 +13,8 @@
   imageUrls?: string[];
   supplierCode?: string;
   availabilityText?: string;
+  etaDate?: string;
+  etaStatus?: string;
   stockQuantity?: number;
   weightKg?: number | null;
   heightCm?: number | null;
