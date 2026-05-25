@@ -1,4 +1,6 @@
 import { readEnv, sendJson } from "../checkout/_shared.js";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 
 export type LiveCatalogItem = {
   code: string;
@@ -35,6 +37,19 @@ type LiveCatalogCache = {
   updatedAt: string;
   source: "xml" | "csv";
   items: LiveCatalogItem[];
+};
+
+type StaticCatalogProduct = {
+  code: string;
+  supplierCode?: string;
+  [key: string]: unknown;
+};
+
+type MergedCatalogCache = {
+  expiresAt: number;
+  updatedAt: string;
+  source: "xml" | "csv";
+  items: Array<StaticCatalogProduct & LiveCatalogItem>;
 };
 
 const parseNumber = (value: string | undefined) => {
@@ -230,7 +245,13 @@ const parseLiveCatalogXml = (xml: string) => {
 
 const globalCatalogCache = globalThis as typeof globalThis & {
   __internextLiveCatalogCache?: LiveCatalogCache;
+  __internextMergedCatalogCache?: MergedCatalogCache;
 };
+
+const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode">) =>
+  [product.code, product.supplierCode]
+    .map((value) => value?.trim().toLowerCase())
+    .filter((value): value is string => Boolean(value));
 
 export const loadLiveCatalogItems = async () => {
   const cached = globalCatalogCache.__internextLiveCatalogCache;
@@ -282,9 +303,95 @@ export const loadLiveCatalogItems = async () => {
   };
 };
 
+const loadStaticCatalogProducts = async () => {
+  const catalogPath = join(process.cwd(), "public", "data", "catalog-products.json");
+  const raw = await readFile(catalogPath, "utf8");
+  return JSON.parse(raw) as StaticCatalogProduct[];
+};
+
+const loadMergedCatalogProducts = async () => {
+  const cached = globalCatalogCache.__internextMergedCatalogCache;
+  if (cached && cached.expiresAt > Date.now()) {
+    return {
+      updatedAt: cached.updatedAt,
+      count: cached.items.length,
+      source: cached.source,
+      cached: true,
+      items: cached.items,
+    };
+  }
+
+  const [staticProducts, liveCatalog] = await Promise.all([
+    loadStaticCatalogProducts(),
+    loadLiveCatalogItems(),
+  ]);
+  const liveByKey = new Map<string, LiveCatalogItem>();
+
+  for (const item of liveCatalog.items) {
+    for (const key of [item.code, item.supplierCode]) {
+      const normalizedKey = key?.trim().toLowerCase();
+      if (normalizedKey) {
+        liveByKey.set(normalizedKey, item);
+      }
+    }
+  }
+
+  const items = staticProducts
+    .map((product) => {
+      const live = getProductKeys(product)
+        .map((key) => liveByKey.get(key))
+        .find(Boolean);
+
+      if (!live) {
+        return null;
+      }
+
+      return {
+        ...product,
+        price: live.price,
+        priceText: live.priceText,
+        resellerPrice: live.resellerPrice,
+        resellerPriceText: live.resellerPriceText,
+        rrp: live.rrp,
+        rrpText: live.rrpText,
+        rrpExGst: live.rrpExGst,
+        taxRate: live.taxRate,
+        supplierCode: product.supplierCode || live.supplierCode,
+        availabilityText: live.availabilityText,
+        etaDate: live.etaDate,
+        etaStatus: live.etaStatus,
+        stockQuantity: live.stockQuantity,
+        stockByWarehouse: live.stockByWarehouse,
+        stockRecordUpdated: live.stockRecordUpdated,
+        weightKg: live.weightKg,
+        heightCm: live.heightCm,
+        widthCm: live.widthCm,
+        depthCm: live.depthCm,
+        liveUpdatedAt: liveCatalog.updatedAt,
+      };
+    })
+    .filter((item): item is StaticCatalogProduct & LiveCatalogItem => Boolean(item));
+
+  globalCatalogCache.__internextMergedCatalogCache = {
+    expiresAt: Date.now() + 15 * 60 * 1000,
+    updatedAt: liveCatalog.updatedAt,
+    source: liveCatalog.source,
+    items,
+  };
+
+  return {
+    updatedAt: liveCatalog.updatedAt,
+    count: items.length,
+    source: liveCatalog.source,
+    cached: false,
+    items,
+  };
+};
+
 export default async function handler(
   req: {
     method?: string;
+    url?: string;
   },
   res: {
     statusCode?: number;
@@ -297,7 +404,10 @@ export default async function handler(
   }
 
   try {
-    const catalog = await loadLiveCatalogItems();
+    const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
+    const catalog = requestUrl.searchParams.get("view") === "products"
+      ? await loadMergedCatalogProducts()
+      : await loadLiveCatalogItems();
     res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
     return sendJson(res, 200, catalog);
   } catch (error) {

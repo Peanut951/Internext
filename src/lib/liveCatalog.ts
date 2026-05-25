@@ -66,6 +66,11 @@ type LiveCatalogResponse = {
   items?: LiveCatalogItem[];
 };
 
+type MergedCatalogResponse = {
+  updatedAt?: string;
+  items?: CatalogProductWithLive[];
+};
+
 type CachedCatalogProducts = {
   cachedAt: number;
   products: CatalogProductWithLive[];
@@ -132,6 +137,20 @@ const loadCatalogProductsInternal = async () => {
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
     return cachedProducts;
+  }
+
+  try {
+    const mergedResponse = await fetch("/api/catalog/live?view=products");
+    if (mergedResponse.ok) {
+      const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
+      if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
+        const products = normalizeCatalogProducts(mergedData.items);
+        writeCachedProducts(products);
+        return products;
+      }
+    }
+  } catch {
+    // Fall back to the original client-side merge path below.
   }
 
   const staticResponse = await fetch("/data/catalog-products.json");
