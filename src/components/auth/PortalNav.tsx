@@ -18,6 +18,8 @@ const PortalNav = () => {
     return null;
   }
   const showAdmin = isAdminSession(session);
+  const visiblePortalLinks =
+    session.role === "user" ? portalLinks.filter((link) => link.href !== "/portal") : portalLinks;
 
   return (
     <div className="rounded-[1.75rem] border border-border/60 bg-card/95 p-5 shadow-card backdrop-blur">
@@ -33,7 +35,7 @@ const PortalNav = () => {
         </div>
 
         <div className="flex flex-wrap gap-2.5">
-          {portalLinks.map((link) => {
+          {visiblePortalLinks.map((link) => {
             const active = location.pathname === link.href;
             return (
               <Link

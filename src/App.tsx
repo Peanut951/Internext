@@ -20,6 +20,7 @@ import Checkout from "./pages/checkout/Checkout";
 import OrdersAdmin from "./pages/admin/OrdersAdmin";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import RequireAuth from "./components/auth/RequireAuth";
+import RequirePortalHome from "./components/auth/RequirePortalHome";
 import PortalDashboard from "./pages/portal/Dashboard";
 import PortalOrders from "./pages/portal/Orders";
 // Brands
@@ -81,9 +82,9 @@ const App = () => (
           <Route
             path="/portal"
             element={
-              <RequireAuth>
+              <RequirePortalHome>
                 <PortalDashboard />
-              </RequireAuth>
+              </RequirePortalHome>
             }
           />
           <Route

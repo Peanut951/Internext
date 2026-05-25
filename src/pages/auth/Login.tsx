@@ -35,12 +35,14 @@ const Login = () => {
     });
 
     const redirect = searchParams.get("redirect");
-    if (redirect) {
+    if (redirect && !(result.session.role === "user" && redirect === "/portal")) {
       navigate(redirect);
     } else if (result.session.role === "admin") {
       navigate("/admin/orders");
-    } else {
+    } else if (result.session.role === "reseller") {
       navigate("/portal");
+    } else {
+      navigate("/products");
     }
 
     setSubmitting(false);
