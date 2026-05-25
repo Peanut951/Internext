@@ -207,6 +207,40 @@ const resolvePortalRole = async (
   return "user";
 };
 
+const upsertUserProfile = async (
+  config: SupabaseConfig,
+  userId: string,
+  email: string,
+) => {
+  const now = new Date().toISOString();
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/profiles?on_conflict=id`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify({
+        id: userId,
+        email,
+        role: "user",
+        created_at: now,
+        updated_at: now,
+      }),
+    },
+  );
+
+  if (!response.ok) {
+    const payload = await readResponseJson(response);
+    return String(payload.message || payload.details || "Unable to create profile row.");
+  }
+
+  return null;
+};
+
 export const createSession = (userId: string, email: string, role: UserRole): AuthSession => ({
   userId,
   email,
@@ -427,9 +461,18 @@ export const createUserAccount = async (
       };
     }
 
+    const userEmail = user.email?.trim().toLowerCase() || normalizedEmail;
+    const profileError = await upsertUserProfile(config, user.id, userEmail);
+    if (profileError) {
+      return {
+        ok: false,
+        message: `Account created, but profile row could not be saved: ${profileError}`,
+      };
+    }
+
     return {
       ok: true,
-      email: user.email?.trim().toLowerCase() || normalizedEmail,
+      email: userEmail,
       userId: user.id,
       role: "user",
     };
