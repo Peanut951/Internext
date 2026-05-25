@@ -61,15 +61,18 @@ const isExactProductImage = (url: string, product: ProductImageSource) => {
 };
 
 export const getProductImageCandidates = (product: ProductImageSource) => {
-  const primary = sanitizeProductImageUrl(product.imageUrl);
-  const alternates = (product.imageUrls ?? [])
+  const sanitized = [...(product.imageUrls ?? []), product.imageUrl ?? ""]
     .map((value) => sanitizeProductImageUrl(value))
-    .filter((value): value is string => Boolean(value))
-    .filter((value) => value === primary || isExactProductImage(value, product));
+    .filter((value): value is string => Boolean(value));
+  const uniqueImages = Array.from(new Set(sanitized));
+  const exactMatches = uniqueImages.filter((value) => isExactProductImage(value, product));
 
-  const candidates = [primary, ...alternates].filter((value): value is string => Boolean(value));
+  if (exactMatches.length > 0) {
+    return exactMatches;
+  }
 
-  return Array.from(new Set(candidates));
+  const primary = sanitizeProductImageUrl(product.imageUrl);
+  return primary ? [primary] : uniqueImages.slice(0, 1);
 };
 
 export const getPrimaryProductImage = (product: ProductImageSource) => {
