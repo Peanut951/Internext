@@ -163,7 +163,7 @@ const ProductSearch = () => {
             <h1 className="mt-3 text-4xl font-bold text-primary-foreground md:text-5xl">
               Search real products across the catalogue.
             </h1>
-            <p className="mt-4 max-w-3xl text-lg leading-relaxed text-primary-foreground/78">
+            <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/80">
               Search by product name, code, supplier code, or brand and move through full results with shareable URLs.
             </p>
           </div>
