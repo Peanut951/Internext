@@ -3,7 +3,6 @@ import { Phone, Mail, MapPin } from "lucide-react";
 
 const quickLinks = [
   { label: "About Us", path: "/about" },
-  { label: "Brands", path: "/brands" },
   { label: "Product Range", path: "/products" },
   { label: "Technical Services", path: "/services" },
 ];

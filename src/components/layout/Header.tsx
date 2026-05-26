@@ -35,7 +35,6 @@ const navItems = [
       { label: "Unified Communications", href: "/products/unified-communications" },
     ],
   },
-  { label: "Brands", href: "/brands" },
   { label: "Technical Services", href: "/services" },
   {
     label: "Support",

@@ -23,9 +23,6 @@ import RequireAuth from "./components/auth/RequireAuth";
 import RequirePortalHome from "./components/auth/RequirePortalHome";
 import PortalDashboard from "./pages/portal/Dashboard";
 import PortalOrders from "./pages/portal/Orders";
-// Brands
-import Brands from "./pages/Brands";
-import BrandsDetail from "./pages/BrandsDetail";
 // Services
 import ServicesIndex from "./pages/services/ServicesIndex";
 import Installation from "./pages/services/Installation";
@@ -103,9 +100,6 @@ const App = () => (
               </RequireAdmin>
             }
           />
-          {/* Brands */}
-          <Route path="/brands" element={<Brands />} />
-          <Route path="/brands/:brand" element={<BrandsDetail />} />
           {/* Services */}
           <Route path="/services" element={<ServicesIndex />} />
           <Route path="/services/installation" element={<Installation />} />
