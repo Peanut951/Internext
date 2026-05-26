@@ -1,17 +1,17 @@
 {
-  "auditedAt": "2026-05-25T23:40:52.213Z",
+  "auditedAt": "2026-05-26T00:24:39.926Z",
   "totalProducts": 7589,
   "issueCounts": {
-    "low_resolution": 1376,
-    "low_pixel_count": 4576,
-    "not_exact_code_match": 1403,
-    "very_small_file": 1553,
-    "broken_image": 39,
-    "no_image": 851,
-    "unknown_dimensions": 852
+    "low_resolution": 1390,
+    "low_pixel_count": 4658,
+    "not_exact_code_match": 1400,
+    "very_small_file": 1568,
+    "broken_image": 35,
+    "no_image": 759,
+    "unknown_dimensions": 759
   },
-  "cleanCount": 1261,
-  "flaggedCount": 6328,
+  "cleanCount": 1274,
+  "flaggedCount": 6315,
   "results": [
     {
       "code": "2N9137410E",
@@ -8025,16 +8025,13 @@
       "supplierCode": "NFC-CARD",
       "manufacturer": "Benq",
       "description": "Benq Pdp White Nfc Card to Be Used with Benq Ams ISO/IEC14443",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/BQNFC-CARD.jpg",
+      "candidateCount": 10,
+      "width": 1000,
+      "height": 1000,
+      "bytes": 29190,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -9151,15 +9148,14 @@
       "supplierCode": "CART069B",
       "manufacturer": "Canon",
       "description": "Canon CART069B Black Toner for MF756Cx LBP674Cx 2.1K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069B.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 26304,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9168,15 +9164,14 @@
       "supplierCode": "CART069C",
       "manufacturer": "Canon",
       "description": "Canon CART069C Cyan Toner for MF756Cx LBP674Cx 1.9K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069C.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 25390,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9185,15 +9180,14 @@
       "supplierCode": "CART069HB",
       "manufacturer": "Canon",
       "description": "Canon CART069HB High Capacity Black Toner for MF756Cx LBP674Cx 7.6K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069HB.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 27688,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9202,15 +9196,14 @@
       "supplierCode": "CART069HC",
       "manufacturer": "Canon",
       "description": "Canon CART069HC High Capacity Cyan Toner for MF756Cx LBP674Cx 5.5K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069HC.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 31775,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9219,15 +9212,14 @@
       "supplierCode": "CART069HM",
       "manufacturer": "Canon",
       "description": "Canon CART069HM High Capacity Magenta Toner for MF756Cx LBP674Cx 5.5K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069HM.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 31688,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9253,15 +9245,14 @@
       "supplierCode": "CART069M",
       "manufacturer": "Canon",
       "description": "Canon CART069M Magenta Toner for MF756Cx LBP674Cx 1.9K 1.9K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069M.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 26219,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9270,15 +9261,14 @@
       "supplierCode": "CART069Y",
       "manufacturer": "Canon",
       "description": "Canon CART069Y Yellow Toner for MF756Cx LBP674Cx 1.9K Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART069Y.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 26153,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -9287,15 +9277,15 @@
       "supplierCode": "CART070",
       "manufacturer": "Canon",
       "description": "Canon CART070 Black Toner Cartridge to Suit LBP243 / MF465",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/CCART070.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 18815,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -23224,17 +23214,17 @@
       "supplierCode": "V12H003P13",
       "manufacturer": "Epson",
       "description": "Extension Pole 450mm",
-      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/0026746_300.jpg",
-      "candidateCount": 1,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/ELPFP13.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 11811,
+      "format": "jpeg",
       "issues": [
-        "broken_image",
-        "not_exact_code_match"
+        "low_pixel_count",
+        "very_small_file"
       ],
-      "error": "HTTP 404"
+      "error": ""
     },
     {
       "code": "ELPFP14",
@@ -24534,17 +24524,13 @@
       "supplierCode": "2221508",
       "manufacturer": "Epson",
       "description": "Epson Remote Control for EB-L260F/L210SF",
-      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/Projector_Remote%20controller_L260%20&%20L210SF.JPG",
-      "candidateCount": 1,
-      "width": null,
-      "height": null,
-      "bytes": 1934,
-      "format": "html",
-      "issues": [
-        "not_exact_code_match",
-        "unknown_dimensions",
-        "very_small_file"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/EP2221508.jpg",
+      "candidateCount": 10,
+      "width": 824,
+      "height": 550,
+      "bytes": 31871,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -39772,17 +39758,14 @@
       "supplierCode": "PA03710-B051",
       "manufacturer": "Fujitsu",
       "description": "Ricoh FI-7460 Document Scanner (A3 Duplex) 60PPM 100 Sht Adf 600DPI USB3",
-      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/ricoh_fi-7460_front_chuter%EF%BF%BDstacker-open.jpg",
-      "candidateCount": 1,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "broken_image",
-        "not_exact_code_match"
-      ],
-      "error": "HTTP 404"
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/FAFI-7460.jpg",
+      "candidateCount": 14,
+      "width": 800,
+      "height": 631,
+      "bytes": 95212,
+      "format": "jpeg",
+      "issues": [],
+      "error": ""
     },
     {
       "code": "FAFI-7460-RET",
@@ -42632,15 +42615,14 @@
       "supplierCode": "CT203998",
       "manufacturer": "Fujifilm",
       "description": "CT203998 Black Toner Cartridge High Capacity 24K for AP5330 A4830 A5330",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/FFCT203998.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 36027,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -43347,16 +43329,14 @@
       "supplierCode": "016197600",
       "manufacturer": "Fujifilm",
       "description": "P7300; Black Toner 7500 Pages",
-      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/016197600.jpg",
-      "candidateCount": 1,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "broken_image"
-      ],
-      "error": "HTTP 404"
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Large/016197600.jpg",
+      "candidateCount": 10,
+      "width": 1000,
+      "height": 1000,
+      "bytes": 59226,
+      "format": "jpeg",
+      "issues": [],
+      "error": ""
     },
     {
       "code": "FX097S04276",
@@ -45641,15 +45621,14 @@
       "supplierCode": "CWAA0960",
       "manufacturer": "Fujifilm",
       "description": "Fuji Xerox CWAA0960 Maintenance Kit 100K for DPCP475 AP7C3321 AP7C4421",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/FXCWAA0960.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 23300,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -47525,16 +47504,14 @@
       "supplierCode": "GWN7662",
       "manufacturer": "Grandstream",
       "description": "WI-FI - 6 Hybrid 802.11AX Ap (2X2 2.4GHZ 4X4 5.0 Ghz)",
-      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Large/GR-GWN7662",
-      "candidateCount": 1,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "broken_image"
-      ],
-      "error": "HTTP 404"
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/GR-GWN7662.jpg",
+      "candidateCount": 20,
+      "width": 876,
+      "height": 767,
+      "bytes": 29411,
+      "format": "jpeg",
+      "issues": [],
+      "error": ""
     },
     {
       "code": "GR-GWN7664E",
@@ -50594,15 +50571,14 @@
       "supplierCode": "3YM56AA",
       "manufacturer": "HP",
       "description": "Hp 67 Black Original Ink Cartridge 120 Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP3YM56AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 40715,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -50806,15 +50782,14 @@
       "supplierCode": "4S6W2NA",
       "manufacturer": "HP",
       "description": "Hp 937 Cyan Original Ink Cartridge 800 Page Yield for Ojpro 9132E 9133 9135E 9130",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP4S6W2NA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 34046,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -50823,15 +50798,14 @@
       "supplierCode": "4S6W3NA",
       "manufacturer": "HP",
       "description": "Hp 937 Magenta Original Ink Cartridge 800 Page Yield for Ojpro 9132E 9133 9135E 9130",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP4S6W3NA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 35812,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -50840,15 +50814,14 @@
       "supplierCode": "4S6W4NA",
       "manufacturer": "HP",
       "description": "Hp 937 Yellow Original Ink Cartridge 800 Page Yield for Ojpro 9132E 9133 9135E 9130",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP4S6W4NA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 34056,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -50857,15 +50830,14 @@
       "supplierCode": "4S6W5NA",
       "manufacturer": "HP",
       "description": "Hp 937 Black Original Ink Cartridge 1250 Page Yield for Ojpro 9132E 9133 9135E 9130",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP4S6W5NA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 36515,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -51199,15 +51171,14 @@
       "supplierCode": "7FP21TA",
       "manufacturer": "HP",
       "description": "Hp 68 Black Original Ink Cartridge 160 Page Yield for Envy 6120 6130 6520 6530",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP7FP21TA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 31519,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -51216,15 +51187,14 @@
       "supplierCode": "7FP22TA",
       "manufacturer": "HP",
       "description": "Hp 68E Evomore Black Original Ink Cart 320 Page Yield for Envy 6120 6130 6520 6530",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HP7FP22TA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 43730,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -51420,15 +51390,14 @@
       "supplierCode": "9RR49A",
       "manufacturer": "HP",
       "description": "Hp Advanced Glossy Photo Paper 60 Sheets 10 X 15CM",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/HP9RR49A.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 500,
+      "bytes": 27954,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -51437,16 +51406,13 @@
       "supplierCode": "9RR55A",
       "manufacturer": "HP",
       "description": "Hp Glossy Photo Paper 20 Sheets 210 X 297MM A4",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/HP9RR55A.jpg",
+      "candidateCount": 10,
+      "width": 700,
+      "height": 525,
+      "bytes": 31755,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -52012,15 +51978,14 @@
       "supplierCode": "C2P26AA",
       "manufacturer": "HP",
       "description": "Hp 935XL Yellow Ink Cartridge for Oj Pro 6230/6830 -825 Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPC2P26AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 47593,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -53261,15 +53226,14 @@
       "supplierCode": "CD974AA",
       "manufacturer": "HP",
       "description": "Hp 920XL Yellow Ink 700 Page Yield for Oj 6000 & 6500",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCD974AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 30534,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -53677,15 +53641,14 @@
       "supplierCode": "CE314A",
       "manufacturer": "HP",
       "description": "Hp 126A Drum 14 000 Page Yield for Lj Pro M175 & CP1025",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCE314A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 38184,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -54909,15 +54872,14 @@
       "supplierCode": "CF358A",
       "manufacturer": "HP",
       "description": "Hp 828A Black Laserjet Drum for M855DN/M880Z+/M880Z/M855X+ /M880Z+/M855XH-30K Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCF358A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 32031,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -55817,15 +55779,14 @@
       "supplierCode": "CH562WA",
       "manufacturer": "HP",
       "description": "Hp 61 TRI-COLOUR Ink 165 Page Yield for Dj 3000 & Aio 3050",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCH562WA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 43179,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56090,15 +56051,14 @@
       "supplierCode": "CN046AA",
       "manufacturer": "HP",
       "description": "Hp 951XL Cyan Ink 1 500 Page Yield for Oj Pro 8600",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN046AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 36214,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56107,15 +56067,14 @@
       "supplierCode": "CN047AA",
       "manufacturer": "HP",
       "description": "Hp 951XL Magenta Ink 1 500 Page Yield for Oj Pro 8600",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN047AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 36584,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56124,15 +56083,14 @@
       "supplierCode": "CN048AA",
       "manufacturer": "HP",
       "description": "Hp 951XL Yellow Ink 1 500 Page Yield for Oj Pro 8600",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN048AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 36394,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56141,15 +56099,14 @@
       "supplierCode": "CN053AA",
       "manufacturer": "HP",
       "description": "Hp 932XL Black Ink 1 000 Page Yield for Oj 6600 & 6700",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN053AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 33734,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56158,15 +56115,14 @@
       "supplierCode": "CN054AA",
       "manufacturer": "HP",
       "description": "Hp 933XL Cyan Ink 825 Page Yield for Oj 6600 & 6700",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN054AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 32598,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56191,15 +56147,14 @@
       "supplierCode": "CN056AA",
       "manufacturer": "HP",
       "description": "Hp 933XL Yellow Ink 825 Page Yield for Oj 6600 & 6700",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN056AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 32582,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -56497,15 +56452,14 @@
       "supplierCode": "CN684WA",
       "manufacturer": "HP",
       "description": "Hp 564XL (CB321WA) Black Ink 550 Page Yield for D5400",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPCN684WA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 40567,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57422,15 +57376,14 @@
       "supplierCode": "L0R07A",
       "manufacturer": "HP",
       "description": "Hp 976Y Yellow Originalcrtg 13 K Pagewide Pro 577DW",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0R07A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 21574,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57590,15 +57543,15 @@
       "supplierCode": "L0R91AA",
       "manufacturer": "HP",
       "description": "Hp 975A Magenta Original Pw Cartridge 3K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0R91AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 16082,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -57607,15 +57560,14 @@
       "supplierCode": "L0R94AA",
       "manufacturer": "HP",
       "description": "Hp 975A Yellow Original Pw Cartridge 3K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0R94AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 25905,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57624,15 +57576,14 @@
       "supplierCode": "L0R97AA",
       "manufacturer": "HP",
       "description": "Hp 975A Black Original Pw Cartridge 3.5K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0R97AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 25613,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57708,15 +57659,14 @@
       "supplierCode": "L0S51AA",
       "manufacturer": "HP",
       "description": "Hp 955 Cyan Original Inkcrtg 7 00 Pages Pagewide PRO577DW",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0S51AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 33426,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57789,15 +57739,14 @@
       "supplierCode": "L0S66AA",
       "manufacturer": "HP",
       "description": "Hp 955XL Magenta Original Inkc Rtg 1.6K Pagewide Pro 577DW",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0S66AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 32120,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57806,15 +57755,14 @@
       "supplierCode": "L0S69AA",
       "manufacturer": "HP",
       "description": "Hp 955XL Yellow Original Inkcr Tg 1.6K Pagewide Pro 577DW",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0S69AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 32119,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57823,15 +57771,14 @@
       "supplierCode": "L0S72AA",
       "manufacturer": "HP",
       "description": "Hp 955XL Black Original Inkcrt G 2K Pagewide Pro 577DW",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPL0S72AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 31926,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57907,15 +57854,14 @@
       "supplierCode": "N9K02AA",
       "manufacturer": "HP",
       "description": "Hp 65 Black Original Ink Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPN9K02AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 38152,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -57924,15 +57870,14 @@
       "supplierCode": "N9K03AA",
       "manufacturer": "HP",
       "description": "Hp 65XL High Yield TRI-COLOR Original Ink Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPN9K03AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 52366,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -60148,15 +60093,15 @@
       "supplierCode": "830A0AA",
       "manufacturer": "HP",
       "description": "Poly Trio 8300 IP Conference P Hone and POE-ENABLED No Radio",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPP-830A0AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15514,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -66974,15 +66919,14 @@
       "supplierCode": "B95VJUT#AC3",
       "manufacturer": "HP",
       "description": "Poly Sync 20 Speakerphone USB-C/A Adapter",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPP-B95VJUT.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 20078,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -66991,15 +66935,14 @@
       "supplierCode": "B95VKAA#AC3",
       "manufacturer": "HP",
       "description": "Poly Sync 20+ Speakerphone USB-C/A Adapter",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPP-B95VKAA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 20452,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71026,15 +70969,14 @@
       "supplierCode": "T0A80AA",
       "manufacturer": "HP",
       "description": "Hp 933XL CMY/932XL Blk Crtg Combo 4-PK 3475 Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT0A80AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 54425,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71091,15 +71033,14 @@
       "supplierCode": "T6M01AA",
       "manufacturer": "HP",
       "description": "Hp 905 Black Original Ink Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6M01AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 56100,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71108,15 +71049,14 @@
       "supplierCode": "T6M05AA",
       "manufacturer": "HP",
       "description": "Hp 905XL Cyan Original Ink Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6M05AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 42150,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71157,15 +71097,14 @@
       "supplierCode": "T6M17AA",
       "manufacturer": "HP",
       "description": "Hp 905XL Black Original Ink Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6M17AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 35045,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71190,15 +71129,14 @@
       "supplierCode": "T6N10AA",
       "manufacturer": "HP",
       "description": "Hp 804 Blk Ink Cart 200 Pages for Hp Envy 6220 6222 7120 7820 7822",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6N10AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 34929,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71207,15 +71145,14 @@
       "supplierCode": "T6N11AA",
       "manufacturer": "HP",
       "description": "Hp 804XL TRI-COLOR Ink Cart 415 Pages for Hp Envy 6220 6222 7120 7820 7822",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6N11AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 33582,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -71224,15 +71161,14 @@
       "supplierCode": "T6N12AA",
       "manufacturer": "HP",
       "description": "Hp 804XL Blk Ink Cart 600 Pages for Hp Envy 6220 6222 7120 7820 7822",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPT6N12AA.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 49503,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -74794,15 +74730,14 @@
       "supplierCode": "W1340A",
       "manufacturer": "HP",
       "description": "Hp 134A Black Original Laserjet Toner Cartridge 1.1K Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPW1340A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 28817,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -74839,15 +74774,14 @@
       "supplierCode": "W1470A",
       "manufacturer": "HP",
       "description": "Hp 147A Black Original Laserjet Toner Cartridge 10500 Page Yield",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPW1470A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 24737,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -74884,15 +74818,14 @@
       "supplierCode": "W1480A",
       "manufacturer": "HP",
       "description": "Hp 148A Black Original Laserjet Toner Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPW1480A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 28671,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -75305,15 +75238,15 @@
       "supplierCode": "W2092A",
       "manufacturer": "HP",
       "description": "Hp 119A Yellow Original Laser Toner 700 Pages Color Laser 150NW 178NW 179FNW 179FWG",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/HPW2092A.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 19747,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -81542,15 +81475,14 @@
       "supplierCode": "TK-7314",
       "manufacturer": "Kyocera",
       "description": "TK-7314 Black Toner for P4140DN - 15K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/KYTK-7314.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 29587,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -83639,16 +83571,13 @@
       "supplierCode": "65EP5Q-B",
       "manufacturer": "LG",
       "description": "Lg 65\" 65EP5Q 4K 12/7 Webos 5.0 Oled Pro Panel (Moving Content Only)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/LG-65EP5Q-B.jpg",
+      "candidateCount": 10,
+      "width": 2010,
+      "height": 1334,
+      "bytes": 498089,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -84656,15 +84585,14 @@
       "supplierCode": "12017SR",
       "manufacturer": "Lexmark",
       "description": "Lexmark Black (Return Program) Toner Yield 2000 Pages for E120N",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM12017SR.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 25036,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -85038,15 +84966,15 @@
       "supplierCode": "20N3HC0",
       "manufacturer": "Lexmark",
       "description": "Lexmark 20N3HC0 Cyan High Yield Return Program Toner Cartridge 4.5K for CX331",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM20N3HC0.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15399,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -85055,15 +84983,15 @@
       "supplierCode": "20N3HK0",
       "manufacturer": "Lexmark",
       "description": "Lexmark 20N3HK0 Black High Yield Return Program Toner Cartridge 4.5K for CX331",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM20N3HK0.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15269,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -85072,15 +85000,15 @@
       "supplierCode": "20N3HM0",
       "manufacturer": "Lexmark",
       "description": "Lexmark 20N3HM0 Magenta High Yield Return Program Toner Cartridge 4.5K for CX331",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM20N3HM0.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15355,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -85089,15 +85017,15 @@
       "supplierCode": "20N3HY0",
       "manufacturer": "Lexmark",
       "description": "Lexmark 20N3HY0 Yellow High Yield Return Program Toner Cartridge 4.5K for CX331",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM20N3HY0.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15390,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -98621,15 +98549,14 @@
       "supplierCode": "27X0912",
       "manufacturer": "Lexmark",
       "description": "MarkNet N8230 Fiber Ethernet 100BASE-FX(LC) 1000BASE-SX(LC) 1 (Fiber + sid",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM27X0912.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 29644,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -99252,15 +99179,15 @@
       "supplierCode": "47C4597",
       "manufacturer": "Lexmark",
       "description": "Convenience Stapler (CX73x MX53x / 63x)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM47C4597.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 15204,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -99981,15 +99908,15 @@
       "supplierCode": "57X0070",
       "manufacturer": "Lexmark",
       "description": "Removable External HDD Kit (Pod Only HDD Not Included)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/LM57X0070.jpg",
+      "candidateCount": 4,
+      "width": 500,
+      "height": 500,
+      "bytes": 16576,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -104523,16 +104450,13 @@
       "supplierCode": "W850H21G",
       "manufacturer": "Lexmark",
       "description": "W850 High Yield Toner Cartridg E 35K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/W850H21G.jpg",
+      "candidateCount": 10,
+      "width": 1500,
+      "height": 1500,
+      "bytes": 255307,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -104540,15 +104464,15 @@
       "supplierCode": "W850H22G",
       "manufacturer": "Lexmark",
       "description": "W850 Photoconductor Drum 60K",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/W850H22G.jpg",
+      "candidateCount": 10,
+      "width": 380,
+      "height": 380,
+      "bytes": 25054,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -104557,16 +104481,13 @@
       "supplierCode": "X203A11G",
       "manufacturer": "Lexmark",
       "description": "X203A11G Black Toner (Return Program) Yield 2 500 Pages for X203N X204N",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X203A11G.jpg",
+      "candidateCount": 10,
+      "width": 650,
+      "height": 650,
+      "bytes": 73314,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -104574,15 +104495,15 @@
       "supplierCode": "X264A11G",
       "manufacturer": "Lexmark",
       "description": "X264A11G Black Prebate Toner Yield 3 500 Pages for X264 X363 X364",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X264A11G.jpg",
+      "candidateCount": 10,
+      "width": 380,
+      "height": 380,
+      "bytes": 21186,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -104591,15 +104512,16 @@
       "supplierCode": "X264H11G",
       "manufacturer": "Lexmark",
       "description": "X264H11G Black Prebate Toner Yield 9000 Pages for X264 X363 X364",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X264H11G.jpg",
+      "candidateCount": 10,
+      "width": 355,
+      "height": 355,
+      "bytes": 19265,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -104624,15 +104546,14 @@
       "supplierCode": "X746A1MG",
       "manufacturer": "Lexmark",
       "description": "X746 X748 Magenta 7K Toner Return Program",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X746A1MG.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 500,
+      "bytes": 41595,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -104655,16 +104576,13 @@
       "supplierCode": "X746H1KG",
       "manufacturer": "Lexmark",
       "description": "X746H1KG Black Toner Return Program Yield 12K for X746 X748",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X746H1KG.jpg",
+      "candidateCount": 10,
+      "width": 1772,
+      "height": 1324,
+      "bytes": 229838,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -104672,15 +104590,15 @@
       "supplierCode": "X748H1MG",
       "manufacturer": "Lexmark",
       "description": "X748 Magenta High Yield 10K Toner Return Program",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X748H1MG.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 374,
+      "bytes": 36170,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -104689,15 +104607,15 @@
       "supplierCode": "X792X1CG",
       "manufacturer": "Lexmark",
       "description": "X792X1CG Cyan Extra HIGH-YIELD Return Program 20K Pages for X792",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X792X1CG.jpg",
+      "candidateCount": 10,
+      "width": 380,
+      "height": 380,
+      "bytes": 20282,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -104706,15 +104624,16 @@
       "supplierCode": "X792X1KG",
       "manufacturer": "Lexmark",
       "description": "X792 Black Extra High Yield Re Turn Program Print Cartridge (",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X792X1KG.jpg",
+      "candidateCount": 10,
+      "width": 380,
+      "height": 380,
+      "bytes": 19943,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -104723,15 +104642,15 @@
       "supplierCode": "X792X1MG",
       "manufacturer": "Lexmark",
       "description": "X792 Magenta Extra High Yield Return Program Print Cartridge",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/X792X1MG.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 336,
+      "bytes": 28584,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -115779,15 +115698,15 @@
       "supplierCode": "127105",
       "manufacturer": "Realwear",
       "description": "4X MULTI-BATTERY Charger (Realwear Navigator 500 Series)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127105.jpg",
+      "candidateCount": 10,
+      "width": 493,
+      "height": 352,
+      "bytes": 20361,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -115847,15 +115766,15 @@
       "supplierCode": "127114",
       "manufacturer": "Realwear",
       "description": "USB Power Adapter Quick Charge 3.0 (Uk)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127114.jpg",
+      "candidateCount": 10,
+      "width": 542,
+      "height": 526,
+      "bytes": 12881,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -115932,15 +115851,15 @@
       "supplierCode": "127126",
       "manufacturer": "Realwear",
       "description": "Probuds Is Hearing Protection Headphones with IN-EAR Microphone",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127126.jpg",
+      "candidateCount": 10,
+      "width": 612,
+      "height": 491,
+      "bytes": 17572,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "very_small_file"
       ],
       "error": ""
     },
@@ -116001,16 +115920,13 @@
       "supplierCode": "127137",
       "manufacturer": "Realwear",
       "description": "Hard Hat Band (HMT-1 Realwear Navigator 500 Series)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127137.jpg",
+      "candidateCount": 10,
+      "width": 868,
+      "height": 501,
+      "bytes": 39935,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -116018,16 +115934,13 @@
       "supplierCode": "127138",
       "manufacturer": "Realwear",
       "description": "Hard Hat Band Intrinsically Safe (HMT-1Z1)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127138.jpg",
+      "candidateCount": 10,
+      "width": 900,
+      "height": 900,
+      "bytes": 41260,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -116035,15 +115948,14 @@
       "supplierCode": "127139",
       "manufacturer": "Realwear",
       "description": "Clips for Petzl Professional Hard Hats - Left Eye User (3 Pairs)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127139.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 500,
+      "bytes": 23991,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -116052,15 +115964,14 @@
       "supplierCode": "127140",
       "manufacturer": "Realwear",
       "description": "Clips for Petzl Professional Hard Hats - Right Eye User (3 Pairs) (HMT-1 Realwear Naviga",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127140.jpg",
+      "candidateCount": 10,
+      "width": 547,
+      "height": 548,
+      "bytes": 27698,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -116069,16 +115980,13 @@
       "supplierCode": "127141",
       "manufacturer": "Realwear",
       "description": "Overhead Band (Realwear Navigator 500 Series HMT-1)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
-      "issues": [
-        "no_image",
-        "unknown_dimensions"
-      ],
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127141.jpg",
+      "candidateCount": 10,
+      "width": 1500,
+      "height": 1781,
+      "bytes": 290652,
+      "format": "jpeg",
+      "issues": [],
       "error": ""
     },
     {
@@ -116103,15 +116011,15 @@
       "supplierCode": "127165",
       "manufacturer": "Realwear",
       "description": "Realwear Navigator Z1 with Thermal Camera: 1 Year Service & Support Pack",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-127165.jpg",
+      "candidateCount": 10,
+      "width": 572,
+      "height": 469,
+      "bytes": 21109,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -116269,15 +116177,14 @@
       "supplierCode": "171056",
       "manufacturer": "Realwear",
       "description": "Msa V-GARD Front Brim Hard Hat with Realwear Logo",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-171056.jpg",
+      "candidateCount": 10,
+      "width": 767,
+      "height": 509,
+      "bytes": 18238,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "very_small_file"
       ],
       "error": ""
     },
@@ -116335,15 +116242,15 @@
       "supplierCode": "SSP-ADD1Y",
       "manufacturer": "Realwear",
       "description": "Service & Support Pack 1 Year Renewal.",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-SSP-ADD1Y.jpg",
+      "candidateCount": 10,
+      "width": 498,
+      "height": 497,
+      "bytes": 31159,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -116352,15 +116259,15 @@
       "supplierCode": "SSP-ADD2Y",
       "manufacturer": "Realwear",
       "description": "Service & Support Pack 2 Year Renewal.",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-SSP-ADD2Y.jpg",
+      "candidateCount": 10,
+      "width": 498,
+      "height": 497,
+      "bytes": 31159,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -116369,15 +116276,15 @@
       "supplierCode": "SSP-POP2Y",
       "manufacturer": "Realwear",
       "description": "Service & Support Pack 2 Years.",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/RW-SSP-POP2Y.jpg",
+      "candidateCount": 10,
+      "width": 498,
+      "height": 497,
+      "bytes": 31159,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -120886,15 +120793,15 @@
       "supplierCode": "234281",
       "manufacturer": "Ultimaker",
       "description": "Ultimaker Metal Expansion Kit - China",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/UM234281.jpg",
+      "candidateCount": 10,
+      "width": 644,
+      "height": 413,
+      "bytes": 34928,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_resolution",
+        "low_pixel_count"
       ],
       "error": ""
     },
@@ -121006,15 +120913,14 @@
       "supplierCode": "63-237686",
       "manufacturer": "Ultimaker",
       "description": "UltiMaker S6 Flex 3D Printer (AU)",
-      "selectedUrl": "",
-      "candidateCount": 0,
-      "width": null,
-      "height": null,
-      "bytes": null,
-      "format": "",
+      "selectedUrl": "https://www.alloys.com.au/Images/ProductImages/Original/UM63-237686.jpg",
+      "candidateCount": 10,
+      "width": 500,
+      "height": 500,
+      "bytes": 29428,
+      "format": "jpeg",
       "issues": [
-        "no_image",
-        "unknown_dimensions"
+        "low_pixel_count"
       ],
       "error": ""
     },
