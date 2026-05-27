@@ -51,6 +51,10 @@ const getOutOfStockEtaMessage = (item: CartItem) => {
 
   const etaStatus = item.etaStatus?.trim();
   if (etaStatus && !/^(check availability|in stock)$/i.test(etaStatus)) {
+    if (/^contact us/i.test(etaStatus)) {
+      return etaStatus;
+    }
+
     return `Out of stock. ETA: ${etaStatus}`;
   }
 

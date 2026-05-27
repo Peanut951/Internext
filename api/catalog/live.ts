@@ -106,8 +106,16 @@ const formatDateDmy = (value: string | undefined) => {
   return trimmed;
 };
 
+const CONTACT_AVAILABILITY_TEXT = "Contact us for availability information";
+
+const isBackToBackStatus = (value: string | undefined) => /^btb$/i.test(String(value || "").trim());
+
 const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: number) => {
   const status = String(value || "").trim();
+
+  if (isBackToBackStatus(status)) {
+    return CONTACT_AVAILABILITY_TEXT;
+  }
 
   if (!status || /^\d{4}-\d{2}-\d{2}$/.test(status) || /^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(status)) {
     return stockQuantity > 0 ? "In Stock" : "Check availability";
@@ -115,6 +123,9 @@ const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: n
 
   return status;
 };
+
+const normalizeEtaStatus = (value: string | undefined) =>
+  isBackToBackStatus(value) ? CONTACT_AVAILABILITY_TEXT : formatDateDmy(value);
 
 const splitFeedRows = (csv: string) =>
   csv
@@ -160,7 +171,7 @@ const parseLiveCatalog = (csv: string) => {
         taxRate,
         availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
         etaDate: formatDateDmy(etaDate),
-        etaStatus: formatDateDmy(etaStatus),
+        etaStatus: normalizeEtaStatus(etaStatus),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(qtyAdl) ?? 0,
@@ -225,7 +236,7 @@ const parseLiveCatalogXml = (xml: string) => {
         taxRate,
         availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
         etaDate: formatDateDmy(getXmlTag(row, "ETADate")),
-        etaStatus: formatDateDmy(getXmlTag(row, "ETAStatus")),
+        etaStatus: normalizeEtaStatus(getXmlTag(row, "ETAStatus")),
         stockQuantity,
         stockByWarehouse: {
           adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
