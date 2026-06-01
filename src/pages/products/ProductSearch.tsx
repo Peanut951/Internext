@@ -164,7 +164,7 @@ const ProductSearch = () => {
               Search real products across the catalogue.
             </h1>
             <p className="mt-4 max-w-3xl text-lg leading-relaxed text-white/80">
-              Search by product name, code, supplier code, or brand and move through full results with shareable URLs.
+              Search by product name, code, or brand and move through full results with shareable URLs.
             </p>
           </div>
         </div>
@@ -180,7 +180,7 @@ const ProductSearch = () => {
                   type="search"
                   value={inputValue}
                   onChange={(event) => setInputValue(event.target.value)}
-                  placeholder="Search by brand, product name, code, or supplier code"
+                  placeholder="Search by brand, product name, or code"
                   className="h-14 rounded-xl border-border/70 bg-background pl-12 pr-12 text-base"
                 />
                 {inputValue ? (

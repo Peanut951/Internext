@@ -133,10 +133,6 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
     paragraphs.push(`It is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
   }
 
-  if (product.supplierCode) {
-    paragraphs.push(`Supplier reference ${product.supplierCode} can be used when cross-checking this item with pricing, stock, or replacement discussions.`);
-  }
-
   return paragraphs;
 };
 
@@ -260,8 +256,17 @@ const ProductDetail = () => {
     if (!product) {
       return [];
     }
-    return buildFullDescriptionParagraphs(product, specHighlights);
-  }, [product, specHighlights]);
+    const paragraphs = buildFullDescriptionParagraphs(product, specHighlights);
+
+    if (session?.role === "admin" && product.supplierCode) {
+      return [
+        ...paragraphs,
+        `Admin reference: ${product.supplierCode}`,
+      ];
+    }
+
+    return paragraphs;
+  }, [product, session?.role, specHighlights]);
 
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
@@ -491,7 +496,7 @@ const ProductDetail = () => {
                         <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
                           Code: {product.code}
                         </span>
-                        {product.supplierCode ? (
+                        {session?.role === "admin" && product.supplierCode ? (
                           <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
                             Ref: {product.supplierCode}
                           </span>
@@ -504,7 +509,7 @@ const ProductDetail = () => {
 
                       {product.liveCatalogError ? (
                         <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                          {product.liveCatalogError} Check the Alloys feed environment variable and redeploy.
+                          {product.liveCatalogError} Live product information is temporarily unavailable.
                         </div>
                       ) : null}
 
