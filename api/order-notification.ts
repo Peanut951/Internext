@@ -243,8 +243,8 @@ export default async function handler(
 
   const adminWebhookUrl = readEnv("POWER_AUTOMATE_ORDER_WEBHOOK_URL");
   const customerWebhookUrl = readEnv("POWER_AUTOMATE_CUSTOMER_ORDER_WEBHOOK_URL");
-  if (!adminWebhookUrl) {
-    return sendJson(res, 500, { message: "Order notification webhook is not configured." });
+  if (!adminWebhookUrl && !customerWebhookUrl) {
+    return sendJson(res, 500, { message: "Order notification webhooks are not configured." });
   }
 
   const body = parseJsonBody<RequestBody>(req.body);
@@ -256,31 +256,39 @@ export default async function handler(
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
 
-    const adminResponse = await fetch(adminWebhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        type: "paid_order",
-        submittedAt: new Date().toISOString(),
-        source: "internext-checkout",
-        host: req.headers?.host || "",
-        userAgent: req.headers?.["user-agent"] || "",
-        order: {
-          ...body.order,
-          emailSummary,
-        },
-      }),
-    });
+    let adminEmailSent = false;
+    let adminEmailMessage = "Admin order email webhook is not configured.";
 
-    if (!adminResponse.ok) {
-      return sendJson(res, 502, { message: "Order email workflow did not accept the request." });
+    if (adminWebhookUrl) {
+      const adminResponse = await fetch(adminWebhookUrl, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          type: "paid_order",
+          submittedAt: new Date().toISOString(),
+          source: "internext-checkout",
+          host: req.headers?.host || "",
+          userAgent: req.headers?.["user-agent"] || "",
+          order: {
+            ...body.order,
+            emailSummary,
+          },
+        }),
+      });
+
+      adminEmailSent = adminResponse.ok;
+      adminEmailMessage = adminResponse.ok
+        ? "Admin order email workflow accepted the request."
+        : "Admin order email workflow did not accept the request.";
     }
 
     if (!customerWebhookUrl || !customerEmail.to) {
       return sendJson(res, 200, {
         ok: true,
+        adminEmailSent,
+        adminEmailMessage,
         customerEmailSent: false,
         customerEmailMessage: !customerWebhookUrl
           ? "Customer order email webhook is not configured."
@@ -298,12 +306,18 @@ export default async function handler(
         submittedAt: new Date().toISOString(),
         source: "internext-checkout",
         orderNumber: emailSummary.orderNumber,
+        to: customerEmail.to,
+        subject: customerEmail.subject,
+        html: customerEmail.html,
+        text: customerEmail.text,
         customerEmail,
       }),
     });
 
     return sendJson(res, 200, {
       ok: true,
+      adminEmailSent,
+      adminEmailMessage,
       customerEmailSent: customerResponse.ok,
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
