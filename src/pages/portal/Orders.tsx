@@ -23,6 +23,7 @@ const PortalOrders = () => {
   ).length;
   const deliveredOrders = orders.filter((order) => order.fulfillmentStatus === "delivered").length;
   const totalKnownValue = orders.reduce((sum, order) => sum + order.totalKnownValue, 0);
+  const isUser = session?.role === "user";
 
   return (
     <Layout>
@@ -31,14 +32,17 @@ const PortalOrders = () => {
           <div className="grid gap-6 xl:grid-cols-[minmax(0,1.2fr)_360px]">
             <div className="rounded-[2rem] border border-white/15 bg-white/6 p-6 shadow-elevated backdrop-blur md:p-8">
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                Reseller Orders
+                {isUser ? "User Portal" : "Reseller Orders"}
               </p>
               <h1 className="mt-4 max-w-4xl text-4xl font-bold leading-[0.95] text-white md:text-5xl">
-                Review every order placed through your reseller account.
+                {isUser
+                  ? "Review your order history."
+                  : "Review every order placed through your reseller account."}
               </h1>
               <p className="mt-5 max-w-3xl text-lg leading-7 text-white/80">
-                See order numbers, customer delivery details, fulfillment status, and tracking from
-                one reseller-facing history page.
+                {isUser
+                  ? "See order numbers, delivery details, fulfillment status, and tracking from one account page."
+                  : "See order numbers, customer delivery details, fulfillment status, and tracking from one reseller-facing history page."}
               </p>
             </div>
 
@@ -48,7 +52,7 @@ const PortalOrders = () => {
               </p>
               <p className="mt-4 text-lg font-semibold text-white">{session?.email}</p>
               <p className="mt-2 text-sm leading-6 text-white/72">
-                This page only shows orders placed by the signed-in reseller account.
+                This page only shows orders placed by the signed-in account.
               </p>
 
               <Button className="mt-6 h-11 w-full rounded-full" asChild>
@@ -157,6 +161,11 @@ const PortalOrders = () => {
                           <p className="mt-3 text-2xl font-semibold text-foreground">
                             {formatAud(order.totalKnownValue)}
                           </p>
+                          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <p>Items: {formatAud(order.itemsSubtotal)}</p>
+                            {order.gstAmount > 0 ? <p>GST: {formatAud(order.gstAmount)}</p> : null}
+                            <p>Shipping: {formatAud(order.shippingTotal)}</p>
+                          </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {order.items.length} item{order.items.length === 1 ? "" : "s"}
                             {order.poaLines > 0 ? ` · ${order.poaLines} POA line(s)` : ""}

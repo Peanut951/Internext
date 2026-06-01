@@ -26,6 +26,7 @@ type RequestBody = {
     manufacturer: string;
     qty: number;
     price: number | null;
+    priceText?: string;
   }>;
   shipping?: {
     name?: string;

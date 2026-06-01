@@ -889,6 +889,11 @@ const OrdersAdmin = () => {
                           <p className="mt-3 text-2xl font-semibold text-foreground">
                             {formatAud(order.totalKnownValue)}
                           </p>
+                          <div className="mt-2 space-y-1 text-sm text-muted-foreground">
+                            <p>Items: {formatAud(order.itemsSubtotal)}</p>
+                            {order.gstAmount > 0 ? <p>GST: {formatAud(order.gstAmount)}</p> : null}
+                            <p>Shipping: {formatAud(order.shippingTotal)}</p>
+                          </div>
                           <p className="mt-1 text-sm text-muted-foreground">
                             {order.items.length} item{order.items.length === 1 ? "" : "s"}
                             {order.poaLines > 0 ? ` · ${order.poaLines} POA line(s)` : ""}

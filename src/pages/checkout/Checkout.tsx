@@ -134,6 +134,10 @@ type CheckoutDraft = {
   customer: CheckoutCustomer;
   reseller?: OrderReseller;
   items: CartItem[];
+  shipping?: {
+    name: string;
+    price: number;
+  };
 };
 
 type ShippingQuote = {
@@ -325,6 +329,19 @@ const Checkout = () => {
     }, 0);
   }, [cartItems]);
 
+  const gstAmount = useMemo(() => {
+    return Math.round(
+      cartItems.reduce((sum, item) => {
+        if (item.price === null || !/\bex\s*gst\b/i.test(item.priceText || "")) {
+          return sum;
+        }
+        return sum + item.price * item.qty * 0.1;
+      }, 0) * 100,
+    ) / 100;
+  }, [cartItems]);
+
+  const shippingTotal = shippingQuote?.service.price || 0;
+
   const poaLines = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + (item.price === null ? item.qty : 0), 0);
   }, [cartItems]);
@@ -347,8 +364,8 @@ const Checkout = () => {
   const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
 
   const orderTotal = useMemo(
-    () => subtotal + (shippingQuote?.service.price || 0),
-    [shippingQuote, subtotal],
+    () => subtotal + gstAmount + shippingTotal,
+    [gstAmount, shippingTotal, subtotal],
   );
 
   useEffect(() => {
@@ -546,7 +563,7 @@ const Checkout = () => {
         saveCartItems(draft.items);
         setCartItems(draft.items);
 
-        const order = await placeOrder(draft.customer, draft.reseller);
+        const order = await placeOrder(draft.customer, draft.reseller, draft.shipping);
 
         try {
           await fetch("/api/order-notification", {
@@ -667,6 +684,13 @@ const Checkout = () => {
         customer,
         reseller,
         items: cartItems,
+        shipping:
+          shippingQuote && shippingQuote.service.price > 0
+            ? {
+                name: shippingQuote.service.name,
+                price: shippingQuote.service.price,
+              }
+            : undefined,
       });
 
       const response = await fetch("/api/checkout/create-session", {
@@ -690,6 +714,7 @@ const Checkout = () => {
             manufacturer: item.manufacturer,
             qty: item.qty,
             price: item.price,
+            priceText: item.priceText,
           })),
           shipping:
             shippingQuote && shippingQuote.service.price > 0
@@ -756,8 +781,13 @@ const Checkout = () => {
                   <p className="text-xs text-muted-foreground mt-1">{placedOrder.supplierMessage}</p>
                 </div>
                 <div className="bg-secondary rounded-lg p-4">
-                  <p className="text-muted-foreground mb-1">Known Value</p>
+                  <p className="text-muted-foreground mb-1">Order Total</p>
                   <p className="font-semibold text-foreground">{formatAud(placedOrder.totalKnownValue)}</p>
+                  <div className="mt-2 space-y-1 text-xs text-muted-foreground">
+                    <p>Items: {formatAud(placedOrder.itemsSubtotal)}</p>
+                    {placedOrder.gstAmount > 0 ? <p>GST: {formatAud(placedOrder.gstAmount)}</p> : null}
+                    <p>Shipping: {formatAud(placedOrder.shippingTotal)}</p>
+                  </div>
                   {placedOrder.poaLines > 0 ? (
                     <p className="text-xs text-muted-foreground mt-1">{placedOrder.poaLines} POA line(s)</p>
                   ) : null}
@@ -1084,9 +1114,15 @@ const Checkout = () => {
 
                     <div className="border-t border-border mt-4 pt-4 text-sm">
                       <p className="flex items-center justify-between mb-2">
-                        <span className="text-muted-foreground">Known subtotal</span>
+                        <span className="text-muted-foreground">Items subtotal</span>
                         <span className="font-semibold text-foreground">{formatStoredTotal(subtotal, cartItems)}</span>
                       </p>
+                      {gstAmount > 0 ? (
+                        <p className="flex items-center justify-between mb-2">
+                          <span className="text-muted-foreground">GST</span>
+                          <span className="font-semibold text-foreground">{formatAud(gstAmount)}</span>
+                        </p>
+                      ) : null}
                       <p className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Shipping</span>
                         <span className="font-semibold text-foreground">
@@ -1102,7 +1138,7 @@ const Checkout = () => {
                       ) : null}
                       <p className="flex items-center justify-between border-t border-border pt-3 font-semibold">
                         <span className="text-foreground">Estimated total</span>
-                        <span className="text-foreground">{formatStoredTotal(orderTotal, cartItems)}</span>
+                        <span className="text-foreground">{formatAud(orderTotal)}</span>
                       </p>
                       {poaLines > 0 ? (
                         <p className="text-xs text-muted-foreground">{poaLines} POA line(s) excluded from subtotal.</p>

@@ -18,15 +18,17 @@ const PortalNav = () => {
     return null;
   }
   const showAdmin = isAdminSession(session);
+  const isUser = session.role === "user";
+  const portalLabel = isUser ? "User Portal" : "Reseller Portal";
   const visiblePortalLinks =
-    session.role === "user" ? portalLinks.filter((link) => link.href !== "/portal") : portalLinks;
+    isUser ? portalLinks.filter((link) => link.href !== "/portal") : portalLinks;
 
   return (
     <div className="rounded-[1.75rem] border border-border/60 bg-card/95 p-5 shadow-card backdrop-blur">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-            Reseller Portal
+            {portalLabel}
           </p>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Signed in as <span className="font-medium text-foreground">{session?.email ?? "guest"}</span> with{" "}

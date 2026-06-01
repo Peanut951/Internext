@@ -85,6 +85,10 @@ export type SupplierOrderPayload = {
   }>;
   totals: {
     subtotal: number;
+    itemsSubtotal: number;
+    gstAmount: number;
+    shippingTotal: number;
+    shippingName?: string;
     poaLines: number;
     totalKnownValue: number;
   };
@@ -99,6 +103,10 @@ export type OrderRecord = {
   customer: CheckoutCustomer;
   items: CartItem[];
   subtotal: number;
+  itemsSubtotal: number;
+  gstAmount: number;
+  shippingTotal: number;
+  shippingName?: string;
   poaLines: number;
   totalKnownValue: number;
   paymentStatus: "paid";
@@ -145,13 +153,91 @@ const writeJson = (key: string, value: unknown) => {
   window.localStorage.setItem(key, JSON.stringify(value));
 };
 
-const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & { reseller?: OrderReseller }) => ({
-  ...order,
-  reseller: order.reseller ?? {
-    email: order.customer.email,
-    role: "guest" as const,
-  },
-});
+type OrderTotals = {
+  itemsSubtotal: number;
+  subtotal: number;
+  gstAmount: number;
+  shippingTotal: number;
+  shippingName?: string;
+  poaLines: number;
+  totalKnownValue: number;
+};
+
+type OrderShippingInput = {
+  name?: string;
+  price?: number;
+};
+
+const isExGstItem = (item: Pick<CartItem, "priceText">) => /\bex\s*gst\b/i.test(item.priceText || "");
+
+const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
+
+const calculateTotals = (items: CartItem[], shipping?: OrderShippingInput): OrderTotals => {
+  const itemTotals = items.reduce(
+    (acc, item) => {
+      if (item.price === null) {
+        return { ...acc, poaLines: acc.poaLines + item.qty };
+      }
+
+      const lineValue = item.price * item.qty;
+      const lineGst = isExGstItem(item) ? lineValue * 0.1 : 0;
+
+      return {
+        ...acc,
+        itemsSubtotal: acc.itemsSubtotal + lineValue,
+        gstAmount: acc.gstAmount + lineGst,
+      };
+    },
+    { itemsSubtotal: 0, gstAmount: 0, poaLines: 0 },
+  );
+
+  const shippingTotal = Math.max(0, shipping?.price || 0);
+  const gstAmount = normalizeMoney(itemTotals.gstAmount);
+  const itemsSubtotal = normalizeMoney(itemTotals.itemsSubtotal);
+  const normalizedShipping = normalizeMoney(shippingTotal);
+
+  return {
+    itemsSubtotal,
+    subtotal: itemsSubtotal,
+    gstAmount,
+    shippingTotal: normalizedShipping,
+    shippingName: shipping?.name,
+    poaLines: itemTotals.poaLines,
+    totalKnownValue: normalizeMoney(itemsSubtotal + gstAmount + normalizedShipping),
+  };
+};
+
+const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<OrderRecord> & { reseller?: OrderReseller }) => {
+  const itemsSubtotal = order.itemsSubtotal ?? order.subtotal ?? 0;
+  const gstAmount = order.gstAmount ?? 0;
+  const shippingTotal = order.shippingTotal ?? 0;
+
+  return {
+    ...order,
+    reseller: order.reseller ?? {
+      email: order.customer.email,
+      role: "guest" as const,
+    },
+    itemsSubtotal,
+    subtotal: order.subtotal ?? itemsSubtotal,
+    gstAmount,
+    shippingTotal,
+    totalKnownValue: order.totalKnownValue ?? normalizeMoney(itemsSubtotal + gstAmount + shippingTotal),
+    supplierPayload: {
+      ...order.supplierPayload,
+      totals: {
+        itemsSubtotal,
+        subtotal: order.subtotal ?? itemsSubtotal,
+        gstAmount,
+        shippingTotal,
+        shippingName: order.shippingName,
+        poaLines: order.poaLines ?? 0,
+        totalKnownValue: order.totalKnownValue ?? normalizeMoney(itemsSubtotal + gstAmount + shippingTotal),
+        ...(order.supplierPayload?.totals || {}),
+      },
+    },
+  } as OrderRecord;
+};
 
 const nowIso = () => new Date().toISOString();
 
@@ -169,23 +255,6 @@ const generateId = () => {
     return crypto.randomUUID();
   }
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-};
-
-const calculateTotals = (items: CartItem[]) => {
-  return items.reduce(
-    (acc, item) => {
-      if (item.price === null) {
-        return { ...acc, poaLines: acc.poaLines + item.qty };
-      }
-      const lineValue = item.price * item.qty;
-      return {
-        ...acc,
-        subtotal: acc.subtotal + lineValue,
-        totalKnownValue: acc.totalKnownValue + lineValue,
-      };
-    },
-    { subtotal: 0, poaLines: 0, totalKnownValue: 0 },
-  );
 };
 
 const buildSupplierPayload = (
@@ -329,6 +398,7 @@ export const saveSupplierIntegrationSettings = (settings: SupplierIntegrationSet
 export const placeOrder = async (
   customer: CheckoutCustomer,
   reseller?: OrderReseller,
+  shipping?: OrderShippingInput,
 ): Promise<OrderRecord> => {
   const items = getCartItems();
   if (items.length === 0) {
@@ -337,7 +407,7 @@ export const placeOrder = async (
 
   const timestamp = nowIso();
   const orderNumber = generateOrderNumber();
-  const totals = calculateTotals(items);
+  const totals = calculateTotals(items, shipping);
   const orderReseller: OrderReseller = reseller ?? {
     email: customer.email,
     role: "guest",
@@ -362,6 +432,10 @@ export const placeOrder = async (
     customer,
     items,
     subtotal: totals.subtotal,
+    itemsSubtotal: totals.itemsSubtotal,
+    gstAmount: totals.gstAmount,
+    shippingTotal: totals.shippingTotal,
+    shippingName: totals.shippingName,
     poaLines: totals.poaLines,
     totalKnownValue: totals.totalKnownValue,
     paymentStatus: "paid",

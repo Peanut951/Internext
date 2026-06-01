@@ -4,6 +4,7 @@ type CheckoutLineItem = {
   manufacturer: string;
   qty: number;
   price: number | null;
+  priceText?: string;
 };
 
 type CheckoutCustomer = {
@@ -182,6 +183,16 @@ export const buildStripeCheckoutParams = (payload: {
     params.set("payment_intent_data[metadata][reseller_email]", payload.resellerEmail.trim());
   }
 
+  const gstAmount = Math.round(
+    payload.items.reduce((total, item) => {
+      if (item.price === null || !/\bex\s*gst\b/i.test(item.priceText || "")) {
+        return total;
+      }
+
+      return total + item.price * item.qty * 0.1;
+    }, 0) * 100,
+  ) / 100;
+
   payload.items.forEach((item, index) => {
     const unitAmount = Math.round((item.price ?? 0) * 100);
 
@@ -195,8 +206,21 @@ export const buildStripeCheckoutParams = (payload: {
     params.set(`line_items[${index}][price_data][product_data][metadata][code]`, item.code);
   });
 
+  let nextLineIndex = payload.items.length;
+  if (gstAmount > 0) {
+    params.set(`line_items[${nextLineIndex}][quantity]`, "1");
+    params.set(`line_items[${nextLineIndex}][price_data][currency]`, "aud");
+    params.set(
+      `line_items[${nextLineIndex}][price_data][unit_amount]`,
+      String(Math.round(gstAmount * 100)),
+    );
+    params.set(`line_items[${nextLineIndex}][price_data][product_data][name]`, "GST");
+    params.set(`line_items[${nextLineIndex}][price_data][product_data][metadata][code]`, "GST");
+    nextLineIndex += 1;
+  }
+
   if (payload.shipping && payload.shipping.price > 0) {
-    const index = payload.items.length;
+    const index = nextLineIndex;
     params.set(`line_items[${index}][quantity]`, "1");
     params.set(`line_items[${index}][price_data][currency]`, "aud");
     params.set(

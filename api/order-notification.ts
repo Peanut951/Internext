@@ -6,6 +6,51 @@ type RequestBody = {
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 
+const formatAud = (value: unknown) =>
+  typeof value === "number"
+    ? value.toLocaleString("en-AU", { style: "currency", currency: "AUD" })
+    : "$0.00";
+
+const getNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
+
+const buildOrderEmailSummary = (order: Record<string, unknown>) => {
+  const items = Array.isArray(order.items) ? order.items : [];
+  const itemsSubtotal = getNumber(order.itemsSubtotal ?? order.subtotal);
+  const gstAmount = getNumber(order.gstAmount);
+  const shippingTotal = getNumber(order.shippingTotal);
+  const totalKnownValue = getNumber(order.totalKnownValue) || itemsSubtotal + gstAmount + shippingTotal;
+
+  return {
+    orderNumber: order.orderNumber || "",
+    itemsSubtotal,
+    itemsSubtotalText: formatAud(itemsSubtotal),
+    gstAmount,
+    gstAmountText: formatAud(gstAmount),
+    shippingTotal,
+    shippingTotalText: formatAud(shippingTotal),
+    totalKnownValue,
+    totalKnownValueText: formatAud(totalKnownValue),
+    lineCount: items.length,
+    lines: items.map((item) => {
+      const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      const quantity = getNumber(line.qty);
+      const unitPrice = typeof line.price === "number" ? line.price : null;
+      const lineTotal = unitPrice === null ? null : unitPrice * quantity;
+
+      return {
+        code: line.code || "",
+        description: line.description || "",
+        quantity,
+        unitPrice,
+        unitPriceText: unitPrice === null ? "POA" : formatAud(unitPrice),
+        lineTotal,
+        lineTotalText: lineTotal === null ? "POA" : formatAud(lineTotal),
+        priceBasis: /\bex\s*gst\b/i.test(String(line.priceText || "")) ? "Ex GST" : "Inc GST",
+      };
+    }),
+  };
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -44,7 +89,10 @@ export default async function handler(
         source: "internext-checkout",
         host: req.headers?.host || "",
         userAgent: req.headers?.["user-agent"] || "",
-        order: body.order,
+        order: {
+          ...body.order,
+          emailSummary: buildOrderEmailSummary(body.order),
+        },
       }),
     });
 
