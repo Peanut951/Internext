@@ -272,19 +272,60 @@ const ProductDetail = () => {
     setActiveImage(galleryImages[0] || "");
   }, [galleryImages]);
 
+  useEffect(() => {
+    const scriptId = "internext-product-json-ld";
+    document.getElementById(scriptId)?.remove();
+
+    if (!product) {
+      return;
+    }
+
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      sku: product.code,
+      mpn: product.code,
+      name: product.description,
+      description: fullDescriptionParagraphs.join(" "),
+      brand: {
+        "@type": "Brand",
+        name: product.manufacturer || "Internext",
+      },
+      image: galleryImages.filter((image) => image !== PRODUCT_IMAGE_PLACEHOLDER),
+      offers: product.price
+        ? {
+            "@type": "Offer",
+            url: window.location.href,
+            priceCurrency: "AUD",
+            price: product.price.toFixed(2),
+            availability:
+              typeof product.stockQuantity === "number" && product.stockQuantity > 0
+                ? "https://schema.org/InStock"
+                : "https://schema.org/OutOfStock",
+            itemCondition: "https://schema.org/NewCondition",
+          }
+        : undefined,
+    };
+
+    const script = document.createElement("script");
+    script.id = scriptId;
+    script.type = "application/ld+json";
+    script.textContent = JSON.stringify(structuredData);
+    document.head.appendChild(script);
+
+    return () => {
+      document.getElementById(scriptId)?.remove();
+    };
+  }, [fullDescriptionParagraphs, galleryImages, product]);
+
   const addToCart = () => {
     if (!product) {
       return;
     }
 
-    if (!session) {
-      navigate(`/login?redirect=${encodeURIComponent(`/products/item/${product.code}`)}`);
-      return;
-    }
-
     const existing = getStoredCart();
     const match = existing.find((item) => item.code === product.code);
-    const pricedProduct = getCartPricedProduct(product, session.role);
+    const pricedProduct = getCartPricedProduct(product, session?.role);
     const updated = match
       ? existing.map((item) =>
           item.code === product.code ? { ...item, qty: item.qty + qty } : item,
@@ -549,7 +590,7 @@ const ProductDetail = () => {
                         </div>
 
                         <Button className="w-full" onClick={addToCart}>
-                          {added ? "Added to Cart" : session ? "Add to Cart" : "Sign In to Buy"}
+                          {added ? "Added to Cart" : "Add to Cart"}
                         </Button>
 
                         <Button variant="outline" className="mt-3 w-full" asChild>

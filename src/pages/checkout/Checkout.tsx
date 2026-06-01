@@ -819,6 +819,16 @@ const Checkout = () => {
                   </div>
                 ) : null}
 
+                {!session ? (
+                  <div className="rounded-lg border border-border/60 bg-secondary/30 px-4 py-3 text-sm text-muted-foreground">
+                    <p className="font-medium text-foreground">Continue as guest</p>
+                    <p className="mt-1">
+                      You can complete this purchase without an account. Sign in first if you want
+                      this order saved to your User Portal.
+                    </p>
+                  </div>
+                ) : null}
+
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium mb-2">First Name *</label>

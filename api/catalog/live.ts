@@ -320,7 +320,7 @@ const loadStaticCatalogProducts = async () => {
   return JSON.parse(raw) as StaticCatalogProduct[];
 };
 
-const loadMergedCatalogProducts = async () => {
+export const loadMergedCatalogProducts = async () => {
   const cached = globalCatalogCache.__internextMergedCatalogCache;
   if (cached && cached.expiresAt > Date.now()) {
     return {

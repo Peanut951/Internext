@@ -72,22 +72,8 @@ const App = () => (
           <Route path="/products/search" element={<ProductSearch />} />
           <Route path="/products/item/:code" element={<ProductDetail />} />
           <Route path="/products/:category" element={<ProductCategory />} />
-          <Route
-            path="/cart"
-            element={
-              <RequireAuth>
-                <Cart />
-              </RequireAuth>
-            }
-          />
-          <Route
-            path="/checkout"
-            element={
-              <RequireAuth>
-                <Checkout />
-              </RequireAuth>
-            }
-          />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route
             path="/portal"
             element={

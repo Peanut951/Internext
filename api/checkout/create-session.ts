@@ -104,9 +104,6 @@ export default async function handler(
       cookie: Array.isArray(req.headers?.cookie) ? req.headers?.cookie[0] : req.headers?.cookie,
     },
   });
-  if (!authSession) {
-    return sendJson(res, 401, { message: "Sign in before starting checkout." });
-  }
 
   const body = parseJsonBody<RequestBody>(req.body);
   if (!body) {
@@ -147,7 +144,7 @@ export default async function handler(
       company: String(body.customer?.company || ""),
     },
     items: body.items || [],
-    resellerEmail: authSession.email || body.resellerEmail,
+    resellerEmail: authSession?.email || body.resellerEmail,
     shipping:
       typeof body.shipping?.price === "number" && body.shipping.price > 0
         ? {
