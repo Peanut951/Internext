@@ -1,5 +1,5 @@
 import { type SyntheticEvent, useEffect, useMemo, useState } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Minus, Plus } from "lucide-react";
@@ -184,7 +184,6 @@ const getAvailabilityRows = (product: CatalogProduct) => {
 
 const ProductDetail = () => {
   const { code } = useParams();
-  const navigate = useNavigate();
   const productCode = code || "";
 
   const [loading, setLoading] = useState(true);
