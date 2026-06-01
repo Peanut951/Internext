@@ -40,16 +40,15 @@ const HeroSection = () => {
   return (
     <section className="relative overflow-hidden bg-gradient-hero">
       <div className="absolute inset-0">
-        <div className="absolute left-[-8%] top-[-10%] h-72 w-72 rounded-full bg-accent/15 blur-3xl" />
-        <div className="absolute right-[-6%] top-[18%] h-80 w-80 rounded-full bg-primary-foreground/10 blur-3xl" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-navy-dark/25 to-transparent" />
-        <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(72,139,184,0.32),transparent_34%),radial-gradient(circle_at_78%_20%,rgba(255,255,255,0.16),transparent_28%)]" />
+        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-navy-dark/45 to-transparent" />
+        <div className="absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:72px_72px]" />
       </div>
 
       <div className="container-wide relative py-20 md:py-28 lg:py-32">
         <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(420px,480px)] xl:gap-16">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-primary-foreground/20 bg-primary-foreground/10 px-4 py-2 text-sm text-primary-foreground/85 animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/14 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_30px_-18px_rgba(255,255,255,0.5)] backdrop-blur animate-fade-in-up">
               <span className="h-2 w-2 rounded-full bg-accent" />
               Reseller-first technology distribution across Australia
             </div>
@@ -57,7 +56,7 @@ const HeroSection = () => {
             <h1 className="mt-6 text-4xl font-bold leading-[1.05] text-primary-foreground md:text-6xl animate-fade-in-up" style={{ animationDelay: "0.05s" }}>
               Less supplier friction.
               <br />
-              <span className="text-accent">More momentum for your business.</span>
+              <span className="text-[#72b9e8]">More momentum for your business.</span>
             </h1>
 
             <p
@@ -72,10 +71,15 @@ const HeroSection = () => {
               className="mt-8 flex flex-col gap-4 sm:flex-row animate-fade-in-up"
               style={{ animationDelay: "0.15s" }}
             >
-              <Link to="/products">
-                <Button variant="hero" size="lg" className="gap-2">
+              <Link to="/products" className="group">
+                <Button
+                  size="lg"
+                  className="h-14 gap-3 rounded-xl bg-[#58a6da] px-7 text-base font-bold text-white shadow-[0_18px_42px_-18px_rgba(88,166,218,0.95)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6bb7e8] hover:shadow-[0_22px_52px_-20px_rgba(107,183,232,1)]"
+                >
                   Browse Product Range
-                  <ArrowRight className="h-5 w-5" />
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/18 transition-transform duration-200 group-hover:translate-x-0.5">
+                    <ArrowRight className="h-4 w-4" />
+                  </span>
                 </Button>
               </Link>
               <Link to="/about/customers">
@@ -93,7 +97,7 @@ const HeroSection = () => {
               {operationalPillars.map((pillar) => (
                 <div
                   key={pillar}
-                  className="rounded-xl border border-white/18 bg-white/6 px-4 py-3 text-sm font-medium text-white backdrop-blur-sm"
+                  className="rounded-xl border border-white/22 bg-white/10 px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_34px_-24px_rgba(255,255,255,0.6)] backdrop-blur-sm"
                 >
                   {pillar}
                 </div>
@@ -102,8 +106,8 @@ const HeroSection = () => {
           </div>
 
           <div className="animate-fade-in-up" style={{ animationDelay: "0.18s" }}>
-            <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/8 p-5 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.45)] backdrop-blur-md">
-              <div className="rounded-2xl border border-primary-foreground/18 bg-navy-dark/60 p-5">
+            <div className="rounded-[1.75rem] border border-white/18 bg-white/10 p-5 shadow-[0_28px_90px_-32px_rgba(0,0,0,0.55)] backdrop-blur-md">
+              <div className="rounded-2xl border border-white/22 bg-navy-dark/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm uppercase tracking-[0.18em] text-accent/90">Why Internext</p>
