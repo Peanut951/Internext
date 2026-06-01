@@ -16,6 +16,9 @@ const Login = () => {
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const redirect = searchParams.get("redirect");
+  const isCheckoutRedirect = redirect === "/checkout" || Boolean(redirect?.startsWith("/checkout?"));
+  const showGuestCheckout = searchParams.get("guest") === "1" && isCheckoutRedirect;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -34,7 +37,6 @@ const Login = () => {
       description: `Logged in as ${result.session.role}.`,
     });
 
-    const redirect = searchParams.get("redirect");
     if (redirect && !(result.session.role === "user" && redirect === "/portal")) {
       navigate(redirect);
     } else if (result.session.role === "admin") {
@@ -114,6 +116,17 @@ const Login = () => {
                 {submitting ? "Signing In..." : "Sign In"}
               </Button>
             </form>
+
+            {showGuestCheckout ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="mt-4 h-12 w-full"
+                onClick={() => navigate(redirect || "/checkout")}
+              >
+                Continue as Guest
+              </Button>
+            ) : null}
 
             <div className="mt-8 rounded-2xl border border-border/60 bg-secondary/30 p-4">
               <p className="text-sm font-semibold text-foreground">Need an account?</p>

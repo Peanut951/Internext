@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import PortalNav from "@/components/auth/PortalNav";
+import { useAuthSession } from "@/hooks/use-auth-session";
 import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
@@ -62,6 +63,7 @@ const getOutOfStockEtaMessage = (item: CartItem) => {
 };
 
 const Cart = () => {
+  const { session } = useAuthSession();
   const [items, setItems] = useState<CartItem[]>([]);
 
   useEffect(() => {
@@ -140,6 +142,7 @@ const Cart = () => {
     [items],
   );
   const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
+  const checkoutPath = session ? "/checkout" : `/login?redirect=${encodeURIComponent("/checkout")}&guest=1`;
 
   return (
     <Layout>
@@ -297,7 +300,7 @@ const Cart = () => {
                     </Button>
                   ) : (
                     <Button className="w-full" asChild>
-                      <Link to="/checkout">Proceed to Checkout</Link>
+                      <Link to={checkoutPath}>Proceed to Checkout</Link>
                     </Button>
                   )}
                   <Button className="w-full" variant="outline" asChild>
