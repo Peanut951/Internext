@@ -129,6 +129,7 @@ const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | unde
 
 const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
 const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
+const ORDER_NOTIFICATION_TIMEOUT_MS = 6000;
 
 type CheckoutDraft = {
   customer: CheckoutCustomer;
@@ -138,6 +139,13 @@ type CheckoutDraft = {
     name: string;
     price: number;
   };
+};
+
+type OrderNotificationResult = {
+  customerEmailSent?: boolean;
+  customerEmailStatus?: number;
+  customerEmailTo?: string;
+  customerEmailMessage?: string;
 };
 
 type ShippingQuote = {
@@ -565,18 +573,45 @@ const Checkout = () => {
 
         const order = await placeOrder(draft.customer, draft.reseller, draft.shipping);
 
+        let notificationMessage = "Payment received and order recorded.";
+        let notificationTimeout: number | undefined;
         try {
-          await fetch("/api/order-notification", {
+          const notificationController = new AbortController();
+          notificationTimeout = window.setTimeout(
+            () => notificationController.abort(),
+            ORDER_NOTIFICATION_TIMEOUT_MS,
+          );
+          const notificationResponse = await fetch("/api/order-notification", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            signal: notificationController.signal,
             body: JSON.stringify({
               order,
             }),
           });
-        } catch {
-          // Order creation should not fail just because the internal notification email is unavailable.
+          window.clearTimeout(notificationTimeout);
+          const notificationPayload = (await notificationResponse.json()) as OrderNotificationResult & {
+            message?: string;
+          };
+
+          if (notificationPayload.customerEmailSent) {
+            notificationMessage = `Payment received and order recorded. Confirmation email sent to ${notificationPayload.customerEmailTo || order.customer.email}.`;
+          } else if (notificationPayload.customerEmailMessage) {
+            notificationMessage = `Payment received and order recorded. Customer confirmation email was not sent: ${notificationPayload.customerEmailMessage}`;
+          } else if (!notificationResponse.ok) {
+            notificationMessage = `Payment received and order recorded. Order notification failed: ${notificationPayload.message || "Unable to contact email workflow."}`;
+          }
+        } catch (notificationError) {
+          notificationMessage =
+            notificationError instanceof Error && notificationError.name === "AbortError"
+              ? "Payment received and order recorded. Email workflows are still being processed."
+              : "Payment received and order recorded. Customer confirmation email could not be checked.";
+        } finally {
+          if (notificationTimeout) {
+            window.clearTimeout(notificationTimeout);
+          }
         }
 
         if (!isActive) {
@@ -587,7 +622,7 @@ const Checkout = () => {
         clearCheckoutDraft();
         setPlacedOrder(order);
         setCartItems([]);
-        setPaymentStateMessage("Payment received and order recorded.");
+        setPaymentStateMessage(notificationMessage);
         navigate("/checkout", { replace: true });
       } catch (finalizeError) {
         if (!isActive) {

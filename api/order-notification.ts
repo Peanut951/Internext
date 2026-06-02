@@ -5,6 +5,7 @@ type RequestBody = {
 };
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
+const WEBHOOK_TIMEOUT_MS = 8000;
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
@@ -225,6 +226,43 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
   };
 };
 
+const postJsonWebhook = async (url: string, payload: unknown) => {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+
+    return {
+      ok: response.ok,
+      status: response.status,
+      message: response.ok
+        ? "Workflow accepted the request."
+        : `Workflow returned HTTP ${response.status}.`,
+    };
+  } catch (error) {
+    return {
+      ok: false,
+      status: 0,
+      message:
+        error instanceof Error && error.name === "AbortError"
+          ? `Workflow did not respond within ${WEBHOOK_TIMEOUT_MS / 1000} seconds.`
+          : error instanceof Error
+            ? error.message
+            : "Unable to reach workflow.",
+    };
+  } finally {
+    clearTimeout(timeout);
+  }
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -255,73 +293,61 @@ export default async function handler(
   try {
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
-
-    let adminEmailSent = false;
-    let adminEmailMessage = "Admin order email webhook is not configured.";
-
-    if (adminWebhookUrl) {
-      const adminResponse = await fetch(adminWebhookUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: "paid_order",
-          submittedAt: new Date().toISOString(),
-          source: "internext-checkout",
-          host: req.headers?.host || "",
-          userAgent: req.headers?.["user-agent"] || "",
-          order: {
-            ...body.order,
-            emailSummary,
-          },
-        }),
-      });
-
-      adminEmailSent = adminResponse.ok;
-      adminEmailMessage = adminResponse.ok
-        ? "Admin order email workflow accepted the request."
-        : "Admin order email workflow did not accept the request.";
-    }
-
-    if (!customerWebhookUrl || !customerEmail.to) {
-      return sendJson(res, 200, {
-        ok: true,
-        adminEmailSent,
-        adminEmailMessage,
-        customerEmailSent: false,
-        customerEmailMessage: !customerWebhookUrl
-          ? "Customer order email webhook is not configured."
-          : "Customer email address was not provided.",
-      });
-    }
-
-    const customerResponse = await fetch(customerWebhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    const adminPayload = {
+      type: "paid_order",
+      submittedAt: new Date().toISOString(),
+      source: "internext-checkout",
+      host: req.headers?.host || "",
+      userAgent: req.headers?.["user-agent"] || "",
+      order: {
+        ...body.order,
+        emailSummary,
       },
-      body: JSON.stringify({
-        type: "customer_order_confirmation",
-        submittedAt: new Date().toISOString(),
-        source: "internext-checkout",
-        orderNumber: emailSummary.orderNumber,
-        to: customerEmail.to,
-        subject: customerEmail.subject,
-        html: customerEmail.html,
-        text: customerEmail.text,
-        customerEmail,
-      }),
-    });
+    };
+    const customerPayload = {
+      type: "customer_order_confirmation",
+      submittedAt: new Date().toISOString(),
+      source: "internext-checkout",
+      orderNumber: emailSummary.orderNumber,
+      to: customerEmail.to,
+      subject: customerEmail.subject,
+      html: customerEmail.html,
+      text: customerEmail.text,
+      customerEmail,
+    };
+
+    const [adminResponse, customerResponse] = await Promise.all([
+      adminWebhookUrl
+        ? postJsonWebhook(adminWebhookUrl, adminPayload)
+        : Promise.resolve({
+            ok: false,
+            status: 0,
+            message: "Admin order email webhook is not configured.",
+          }),
+      customerWebhookUrl && customerEmail.to
+        ? postJsonWebhook(customerWebhookUrl, customerPayload)
+        : Promise.resolve({
+            ok: false,
+            status: 0,
+            message: !customerWebhookUrl
+              ? "Customer order email webhook is not configured."
+              : "Customer email address was not provided.",
+          }),
+    ]);
 
     return sendJson(res, 200, {
       ok: true,
-      adminEmailSent,
-      adminEmailMessage,
+      adminEmailSent: adminResponse.ok,
+      adminEmailStatus: adminResponse.status,
+      adminEmailMessage: adminResponse.ok
+        ? "Admin order email workflow accepted the request."
+        : `Admin order email workflow failed: ${adminResponse.message}`,
       customerEmailSent: customerResponse.ok,
+      customerEmailStatus: customerResponse.status,
+      customerEmailTo: customerEmail.to,
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
-        : "Customer confirmation workflow did not accept the request.",
+        : `Customer confirmation workflow failed: ${customerResponse.message}`,
     });
   } catch {
     return sendJson(res, 502, { message: "Unable to reach the order email workflow." });
