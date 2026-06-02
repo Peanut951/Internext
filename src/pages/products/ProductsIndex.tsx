@@ -86,7 +86,7 @@ const categories = [
   {
     icon: Printer,
     title: "Office Products",
-    desc: "Essential office equipment and supplies for productive workplaces",
+    desc: "Essential office equipment, computer systems and supplies for productive workplaces",
     items: [
       { label: "Printers", href: "/products/printers" },
       { label: "Multifunction Devices", href: "/products/multifunction" },

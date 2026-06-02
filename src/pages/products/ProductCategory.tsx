@@ -117,8 +117,8 @@ const topLevelCategories: Record<string, CategoryInfo> = {
   },
   "office-products": {
     title: "Office Products",
-    description: "Essential office equipment and supplies for productive workplaces.",
-    brands: ["Fellowes", "Rexel", "Canon", "3M"],
+    description: "Essential office equipment, computer systems and supplies for productive workplaces.",
+    brands: ["Leader", "Fellowes", "Rexel", "Canon", "3M"],
   },
   printers: {
     title: "Printers",
@@ -725,6 +725,20 @@ const inferTopLevelCategory = (product: CatalogProduct, searchText: string) => {
     TOP_LEVEL_MANUFACTURERS.storageNetworking.includes(manufacturer)
   ) {
     return "storage-networking";
+  }
+
+  if (
+    searchText.includes("notebook") ||
+    searchText.includes("laptop") ||
+    searchText.includes("desktop") ||
+    searchText.includes("ultrabook") ||
+    searchText.includes("mini-pc") ||
+    searchText.includes(" pc ") ||
+    searchText.includes("all-in-one") ||
+    searchText.includes("aio ") ||
+    searchText.includes("workstation")
+  ) {
+    return "office-products";
   }
 
   if (

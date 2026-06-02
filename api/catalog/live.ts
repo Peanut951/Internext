@@ -18,7 +18,7 @@ export type LiveCatalogItem = {
   availabilityText: string;
   etaDate: string;
   etaStatus: string;
-  stockQuantity: number;
+  stockQuantity?: number;
   stockByWarehouse: {
     adl: number;
     bne: number;
@@ -35,7 +35,7 @@ export type LiveCatalogItem = {
 type LiveCatalogCache = {
   expiresAt: number;
   updatedAt: string;
-  source: "xml" | "csv";
+  source: "xml" | "csv" | "combined";
   items: LiveCatalogItem[];
 };
 
@@ -48,8 +48,17 @@ type StaticCatalogProduct = {
 type MergedCatalogCache = {
   expiresAt: number;
   updatedAt: string;
-  source: "xml" | "csv";
+  source: "xml" | "csv" | "combined";
   items: Array<StaticCatalogProduct & LiveCatalogItem>;
+};
+
+type LeaderCatalogProduct = StaticCatalogProduct & {
+  manufacturer: string;
+  description: string;
+  longDescription?: string;
+  leaderDealerBuyEx?: number | null;
+  leaderRrpInc?: number | null;
+  leaderStatus?: string;
 };
 
 const parseNumber = (value: string | undefined) => {
@@ -73,6 +82,9 @@ const formatResellerAud = (value: number | null) =>
 
 const applyTax = (value: number | null, taxRate: number) =>
   value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
+
+const removeTax = (value: number | null, taxRate: number) =>
+  value === null ? null : Math.round((value / (1 + taxRate / 100)) * 100) / 100;
 
 const CUSTOMER_MARGIN_RATE = 0.1;
 const CUSTOMER_GST_RATE = 0.1;
@@ -107,6 +119,7 @@ const formatDateDmy = (value: string | undefined) => {
 };
 
 const CONTACT_AVAILABILITY_TEXT = "Contact us for availability information";
+const LEADER_AVAILABILITY_TEXT = "Available to order";
 
 const isBackToBackStatus = (value: string | undefined) => /^btb$/i.test(String(value || "").trim());
 
@@ -264,6 +277,89 @@ const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCo
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
+const loadLeaderCatalogProducts = async () => {
+  try {
+    const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
+    const raw = await readFile(leaderPath, "utf8");
+    return JSON.parse(raw) as LeaderCatalogProduct[];
+  } catch {
+    return [] as LeaderCatalogProduct[];
+  }
+};
+
+const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalogItem => {
+  const costExGst = typeof product.leaderDealerBuyEx === "number" ? product.leaderDealerBuyEx : null;
+  const price = applyCustomerPrice(costExGst);
+  const resellerPrice = applyResellerPrice(costExGst);
+  const rrp = typeof product.leaderRrpInc === "number" ? product.leaderRrpInc : null;
+  const taxRate = 10;
+
+  return {
+    code: product.code,
+    supplierCode: product.supplierCode || product.code,
+    manufacturer: product.manufacturer || "Leader",
+    name: product.description || product.code,
+    price,
+    priceText: formatCustomerAud(price),
+    resellerPrice,
+    resellerPriceText: formatResellerAud(resellerPrice),
+    rrp,
+    rrpText: formatAud(rrp),
+    rrpExGst: removeTax(rrp, taxRate),
+    taxRate,
+    availabilityText: LEADER_AVAILABILITY_TEXT,
+    etaDate: "",
+    etaStatus: "",
+    stockByWarehouse: {
+      adl: 0,
+      bne: 0,
+      mel: 0,
+      syd: 0,
+    },
+    stockRecordUpdated: "",
+    weightKg: null,
+    heightCm: null,
+    widthCm: null,
+    depthCm: null,
+  };
+};
+
+const getComparablePrice = (item: LiveCatalogItem) =>
+  item.resellerPrice ?? item.price ?? 0;
+
+const chooseHigherPricedCatalogItem = (current: LiveCatalogItem | undefined, next: LiveCatalogItem) => {
+  if (!current) {
+    return next;
+  }
+
+  return getComparablePrice(next) > getComparablePrice(current) ? next : current;
+};
+
+const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
+  const merged: LiveCatalogItem[] = [];
+
+  for (const item of items) {
+    const itemKeys = getProductKeys(item);
+    if (itemKeys.length === 0) {
+      continue;
+    }
+
+    const existingIndex = merged.findIndex((existing) => {
+      const existingKeys = getProductKeys(existing);
+      return existingKeys.some((key) => itemKeys.includes(key));
+    });
+
+    if (existingIndex === -1) {
+      merged.push(item);
+      continue;
+    }
+
+    merged[existingIndex] = chooseHigherPricedCatalogItem(merged[existingIndex], item);
+  }
+
+  return merged;
+};
+
 export const loadLiveCatalogItems = async () => {
   const cached = globalCatalogCache.__internextLiveCatalogCache;
   if (cached && cached.expiresAt > Date.now()) {
@@ -276,6 +372,8 @@ export const loadLiveCatalogItems = async () => {
     };
   }
 
+  const leaderProducts = await loadLeaderCatalogProducts();
+  const leaderItems = leaderProducts.map(createLeaderLiveCatalogItem);
   const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
   if (!feedUrl) {
     throw new Error("Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.");
@@ -292,11 +390,12 @@ export const loadLiveCatalogItems = async () => {
   }
 
   const feedText = await response.text();
-  const items = feedText.trim().startsWith("<")
+  const alloysItems = feedText.trim().startsWith("<")
     ? parseLiveCatalogXml(feedText)
     : parseLiveCatalog(feedText);
+  const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems]);
   const updatedAt = new Date().toISOString();
-  const source = feedText.trim().startsWith("<") ? "xml" : "csv";
+  const source = leaderItems.length > 0 ? "combined" : feedText.trim().startsWith("<") ? "xml" : "csv";
 
   globalCatalogCache.__internextLiveCatalogCache = {
     expiresAt: Date.now() + 15 * 60 * 1000,
@@ -317,7 +416,13 @@ export const loadLiveCatalogItems = async () => {
 const loadStaticCatalogProducts = async () => {
   const catalogPath = join(process.cwd(), "public", "data", "catalog-products.json");
   const raw = await readFile(catalogPath, "utf8");
-  return JSON.parse(raw) as StaticCatalogProduct[];
+  const staticProducts = JSON.parse(raw) as StaticCatalogProduct[];
+  const leaderProducts = await loadLeaderCatalogProducts();
+  const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
+  const leaderOnlyProducts = leaderProducts.filter((product) =>
+    getProductKeys(product).every((key) => !existingKeys.has(key)),
+  );
+  return [...staticProducts, ...leaderOnlyProducts] as StaticCatalogProduct[];
 };
 
 export const loadMergedCatalogProducts = async () => {
