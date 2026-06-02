@@ -87,6 +87,10 @@ const storageShort = (text) => {
 const suffix = (parts) => parts.filter(Boolean).join(", ");
 
 const conciseName = (item) => {
+  if (item.leaderSheet === "Q1 Catalogue 2026 PDF" || item.manufacturer !== "Leader") {
+    return cleanText(item.description);
+  }
+
   const code = item.code;
   const proc = processorShort(cpu(item));
   const ram = memoryShort(memory(item));
@@ -123,6 +127,10 @@ const conciseName = (item) => {
 };
 
 const imageFor = (item) => {
+  if (item.leaderSheet === "Q1 Catalogue 2026 PDF" || item.manufacturer !== "Leader") {
+    return item.imageUrl || "/product-placeholder.svg";
+  }
+
   const code = item.code;
   if (code === "TBL-10W5PRO") return "/images/leader/leader-2in1-tablet.jpg";
   if (code === "SCT4-Z1-R5P") return "/images/leader/leader-convertible.jpg";
@@ -132,7 +140,7 @@ const imageFor = (item) => {
   if (code.startsWith("SV") || code.startsWith("SS")) return "/images/leader/leader-desktop.jpg";
   if (code.startsWith("SN") || code === "MNE-OPS-IDL05") return "/images/leader/leader-mini-pc.jpg";
   if (code.startsWith("SCE4") || code.startsWith("SCP4") || code.startsWith("SCU4")) return "/images/leader/leader-notebook-14.jpg";
-  if (code.startsWith("SRS") || code.startsWith("SCP6") || code.startsWith("SCU6")) return "/images/leader/leader-ai-notebook.jpg";
+  if (code.startsWith("SRS") || code.startsWith("SCP6") || code.startsWith("SCU6")) return "/images/leader/leader-ai-notebook.png";
   return "/images/leader/leader-notebook-15.jpg";
 };
 

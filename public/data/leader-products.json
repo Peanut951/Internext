@@ -1,5 +1,1391 @@
 [
   {
+    "code": "UPA-BGM2200",
+    "supplierCode": "UPA-BGM2200",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS Pro Gaming 2200VA Arctic",
+    "longDescription": "APC Back-UPS Pro Gaming 2200VA/1320W tower UPS in arctic white with RGB lighting, pure sine wave and six Australian outlets. PDF advertised price: $779.00 inc GST. Product code: UPA-BGM2200.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 643.8,
+    "leaderRrpInc": 779,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$779.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPA-BGM2200B",
+    "supplierCode": "UPA-BGM2200B",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS Pro Gaming 2200VA Midnight",
+    "longDescription": "APC Back-UPS Pro Gaming 2200VA/1320W tower UPS in midnight black with RGB lighting, pure sine wave and six Australian outlets. PDF advertised price: $779.00 inc GST. Product code: UPA-BGM2200B.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 643.8,
+    "leaderRrpInc": 779,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$779.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPC-PPS330-AZ",
+    "supplierCode": "UPAPC-PPS330-AZ",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 1600VA Line Interactive UPS",
+    "longDescription": "Line interactive tower UPS with 1600VA/900W capacity, 230V/10A input, four Australian outlets and lead acid battery. PDF advertised price: $359.00 inc GST. Product code: UPAPC-PPS330-AZ.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 296.69,
+    "leaderRrpInc": 359,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$359.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPCBE550-AZ",
+    "supplierCode": "UPAPCBE550-AZ",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 550VA Power-Saving UPS",
+    "longDescription": "Desk top power-saving UPS with 550VA/330W capacity, 230V/10A input, eight Australian outlets and user replaceable lead acid battery. PDF advertised price: $229.00 inc GST. Product code: UPAPCBE550-AZ.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 189.26,
+    "leaderRrpInc": 229,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$229.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPCBE700-AZ",
+    "supplierCode": "UPAPCBE700-AZ",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 700VA Power-Saving UPS",
+    "longDescription": "Desk top power-saving UPS with 700VA/405W capacity, 230V/10A input, eight Australian outlets and user replaceable lead acid battery. PDF advertised price: $299.00 inc GST. Product code: UPAPCBE700-AZ.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 247.11,
+    "leaderRrpInc": 299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPCBX1200MI-AZ",
+    "supplierCode": "UPAPCBX1200MI-AZ",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 1200VA Line Interactive UPS",
+    "longDescription": "Line interactive tower UPS with 1200VA/650W capacity, 230V/10A input, four Australian outlets and lead acid battery. PDF advertised price: $279.00 inc GST. Product code: UPAPCBX1200MI-AZ.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 230.58,
+    "leaderRrpInc": 279,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$279.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPCBX750MI",
+    "supplierCode": "UPAPCBX750MI",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 750VA Line Interactive UPS",
+    "longDescription": "Line interactive tower UPS with 750VA/410W capacity, 230V/10A input, three Australian outlets and lead acid battery. PDF advertised price: $189.00 inc GST. Product code: UPAPCBX750MI.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 156.2,
+    "leaderRrpInc": 189,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$189.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPAPCBX950MI-AZ",
+    "supplierCode": "UPAPCBX950MI-AZ",
+    "manufacturer": "APC",
+    "description": "APC Back-UPS 950VA Line Interactive UPS",
+    "longDescription": "Line interactive tower UPS with 950VA/520W capacity, 230V/10A input, four Australian outlets and lead acid battery. PDF advertised price: $239.00 inc GST. Product code: UPAPCBX950MI-AZ.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 197.52,
+    "leaderRrpInc": 239,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$239.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPA-WCA012AUBK",
+    "supplierCode": "MPA-WCA012AUBK",
+    "manufacturer": "Belkin",
+    "description": "Belkin BoostCharge 25W USB-C PD Wall Charger",
+    "longDescription": "BoostCharge 25W USB-C PD 3.1 cubic wall charger in black with MFi certification and connected equipment warranty. PDF advertised price: $29.00 inc GST. Product code: MPA-WCA012AUBK.",
+    "leaderCategory": "Chargers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 23.97,
+    "leaderRrpInc": 29,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$29.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Chargers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT10-C024",
+    "supplierCode": "MABT-LDT10-C024",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Aluminum Counterbalance Arm",
+    "longDescription": "Dual monitor aluminum interactive counterbalance monitor arm for most 13-32 inch monitors up to 9kg per screen. PDF advertised price: $299.00 inc GST. Product code: MABT-LDT10-C024.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 247.11,
+    "leaderRrpInc": 299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT13-C024E",
+    "supplierCode": "MABT-LDT13-C024E",
+    "manufacturer": "Brateck",
+    "description": "Brateck Economy Dual-Screen Spring-Assisted Arm",
+    "longDescription": "Economy dual-screen spring-assisted monitor arm for most 17-32 inch monitors up to 9kg. PDF advertised price: $169.00 inc GST. Product code: MABT-LDT13-C024E.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 139.67,
+    "leaderRrpInc": 169,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$169.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT16-C024",
+    "supplierCode": "MABT-LDT16-C024",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Full Extension Gas Spring Arm",
+    "longDescription": "Dual monitor full extension gas spring arm with independent arms for most 17-32 inch monitors up to 8kg per screen. PDF advertised price: $229.00 inc GST. Product code: MABT-LDT16-C024.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 189.26,
+    "leaderRrpInc": 229,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$229.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT23-C022",
+    "supplierCode": "MABT-LDT23-C022",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Heavy-Duty Gas Spring Arm",
+    "longDescription": "Dual monitors aluminum heavy-duty gas spring monitor arm with handle for most 17-32 inch monitors up to 8kg per screen. PDF advertised price: $399.00 inc GST. Product code: MABT-LDT23-C022.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 329.75,
+    "leaderRrpInc": 399,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$399.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT33-C024",
+    "supplierCode": "MABT-LDT33-C024",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Steel Articulating Arm",
+    "longDescription": "Affordable steel articulating dual monitor arm for most 17-31 inch monitors up to 9kg per screen. PDF advertised price: $169.00 inc GST. Product code: MABT-LDT33-C024.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 139.67,
+    "leaderRrpInc": 169,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$169.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT48-C024",
+    "supplierCode": "MABT-LDT48-C024",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Pole-Mounted Gas Spring Arm",
+    "longDescription": "Dual monitor pole-mounted gas spring monitor arm for most 17-32 inch monitors up to 9kg per screen. PDF advertised price: $189.00 inc GST. Product code: MABT-LDT48-C024.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 156.2,
+    "leaderRrpInc": 189,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$189.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT49-C012-B",
+    "supplierCode": "MABT-LDT49-C012-B",
+    "manufacturer": "Brateck",
+    "description": "Brateck Premium Slim Aluminum Monitor Arm",
+    "longDescription": "Single monitor premium slim aluminum spring-assisted monitor arm for most 17-32 inch monitors up to 9kg. PDF advertised price: $199.00 inc GST. Product code: MABT-LDT49-C012-B.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 164.46,
+    "leaderRrpInc": 199,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$199.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT63-C024-B",
+    "supplierCode": "MABT-LDT63-C024-B",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Economical Spring-Assisted Arm",
+    "longDescription": "Dual monitor economical spring-assisted arm for most 17-32 inch monitors up to 9kg per screen. PDF advertised price: $199.00 inc GST. Product code: MABT-LDT63-C024-B.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 164.46,
+    "leaderRrpInc": 199,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$199.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT72-T024",
+    "supplierCode": "MABT-LDT72-T024",
+    "manufacturer": "Brateck",
+    "description": "Brateck Premium Aluminum Articulating Monitor Stand",
+    "longDescription": "Premium aluminum articulating monitor stand for most 17-32 inch monitors with up to 8kg capacity. PDF advertised price: $219.00 inc GST. Product code: MABT-LDT72-T024.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 180.99,
+    "leaderRrpInc": 219,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$219.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT81-C022UC-B",
+    "supplierCode": "MABT-LDT81-C022UC-B",
+    "manufacturer": "Brateck",
+    "description": "Brateck Dual Monitor Gas Spring Arm with USB Ports",
+    "longDescription": "Dual monitor gas spring monitor arm with USB-A and USB-C ports for most 17-32 inch monitors. PDF advertised price: $209.00 inc GST. Product code: MABT-LDT81-C022UC-B.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 172.73,
+    "leaderRrpInc": 209,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$209.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MABT-LDT82-C012UC-BK",
+    "supplierCode": "MABT-LDT82-C012UC-BK",
+    "manufacturer": "Brateck",
+    "description": "Brateck Single Screen Heavy-Duty Gas Spring Arm",
+    "longDescription": "Single screen heavy-duty gas spring monitor arm with USB ports for most 17-45 inch monitors. PDF advertised price: $169.00 inc GST. Product code: MABT-LDT82-C012UC-BK.",
+    "leaderCategory": "Monitor Arms",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 139.67,
+    "leaderRrpInc": 169,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$169.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitor Arms"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-HL-L5210DN",
+    "supplierCode": "PRB-HL-L5210DN",
+    "manufacturer": "Brother",
+    "description": "Brother HL-L5210DN Professional Mono Laser Printer",
+    "longDescription": "Professional mono laser printer with up to 48ppm, 2-sided printing, 250 sheet paper tray and wired networking. PDF advertised price: $859.00 inc GST. Product code: PRB-HL-L5210DN.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 709.92,
+    "leaderRrpInc": 859,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$859.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-HLL2445DW",
+    "supplierCode": "PRB-HLL2445DW",
+    "manufacturer": "Brother",
+    "description": "Brother HL-L2445DW Compact Mono Laser Printer",
+    "longDescription": "Compact mono laser printer with up to 32ppm print speeds, 2-sided printing and wired/wireless networking. PDF advertised price: $295.00 inc GST. Product code: PRB-HLL2445DW.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 243.8,
+    "leaderRrpInc": 295,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$295.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-MFC-L9630CDN",
+    "supplierCode": "PRB-MFC-L9630CDN",
+    "manufacturer": "Brother",
+    "description": "Brother MFC-L9630CDN Colour Laser MFP",
+    "longDescription": "Colour laser multi-function printer with print, copy, scan, fax and optional wireless support. PDF advertised price: $2,699.00 inc GST. Product code: PRB-MFC-L9630CDN.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2230.58,
+    "leaderRrpInc": 2699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-MFCL2880DW",
+    "supplierCode": "PRB-MFCL2880DW",
+    "manufacturer": "Brother",
+    "description": "Brother MFC-L2880DW Compact Mono Laser MFP",
+    "longDescription": "Compact mono laser multi-function centre with print, scan, copy and fax, up to 34ppm and 2-sided printing. PDF advertised price: $545.00 inc GST. Product code: PRB-MFCL2880DW.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 450.41,
+    "leaderRrpInc": 545,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$545.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-MFCL3755CDW",
+    "supplierCode": "PRB-MFCL3755CDW",
+    "manufacturer": "Brother",
+    "description": "Brother MFC-L3755CDW Compact Colour Laser MFP",
+    "longDescription": "Compact colour laser multi-function centre with print, scan, copy and fax, up to 26ppm and 2-sided printing. PDF advertised price: $789.00 inc GST. Product code: PRB-MFCL3755CDW.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 652.07,
+    "leaderRrpInc": 789,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$789.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PRB-QL-820NWB",
+    "supplierCode": "PRB-QL-820NWB",
+    "manufacturer": "Brother",
+    "description": "Brother QL-820NWB Wireless Label Printer",
+    "longDescription": "Wireless and networkable high speed label printer supporting Wi-Fi and Bluetooth. PDF advertised price: $395.00 inc GST. Product code: PRB-QL-820NWB.",
+    "leaderCategory": "Printers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 326.45,
+    "leaderRrpInc": 395,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$395.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Printers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SCB-ADS-3100",
+    "supplierCode": "SCB-ADS-3100",
+    "manufacturer": "Brother",
+    "description": "Brother ADS-3100 Advanced Document Scanner",
+    "longDescription": "High-speed desktop document scanner for small office and home office professionals. PDF advertised price: $549.00 inc GST. Product code: SCB-ADS-3100.",
+    "leaderCategory": "Scanners",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 453.72,
+    "leaderRrpInc": 549,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$549.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Scanners"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "CAC-3500XRS-R-ARGB-BK",
+    "supplierCode": "CAC-3500XRS-R-ARGB-BK",
+    "manufacturer": "Corsair",
+    "description": "Corsair 3500X RS-R ARGB Mid-Tower PC Case",
+    "longDescription": "Black E-ATX mid-tower PC case with side tempered glass, USB-C, SSD/HDD support and ARGB fans. PDF advertised price: $189.00 inc GST. Product code: CAC-3500XRS-R-ARGB-BK.",
+    "leaderCategory": "Computer Cases",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 156.2,
+    "leaderRrpInc": 189,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$189.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Computer Cases"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "CAC-AIR5400RS-R-ARGB-BK",
+    "supplierCode": "CAC-AIR5400RS-R-ARGB-BK",
+    "manufacturer": "Corsair",
+    "description": "Corsair AIR 5400 RS-R ARGB Mid-Tower ATX Case",
+    "longDescription": "Black triple-chamber mid-tower ATX case with glass panels, USB-C, ATX/E-ATX support and RS ARGB fans. PDF advertised price: $389.00 inc GST. Product code: CAC-AIR5400RS-R-ARGB-BK.",
+    "leaderCategory": "Computer Cases",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 321.49,
+    "leaderRrpInc": 389,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$389.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Computer Cases"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "CFCW-NAUT360RSLCD-BK",
+    "supplierCode": "CFCW-NAUT360RSLCD-BK",
+    "manufacturer": "Corsair",
+    "description": "Corsair Nautilus 360 RS LCD Liquid CPU Cooler",
+    "longDescription": "Black 360mm liquid CPU cooler with LCD pump, three PWM fans, AM5/LGA1851 support and copper plate. PDF advertised price: $229.00 inc GST. Product code: CFCW-NAUT360RSLCD-BK.",
+    "leaderCategory": "Cooling",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 189.26,
+    "leaderRrpInc": 229,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$229.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Cooling"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PSCP-RM1000X-ATX3",
+    "supplierCode": "PSCP-RM1000X-ATX3",
+    "manufacturer": "Corsair",
+    "description": "Corsair RMx Series RM1000x Fully Modular PSU",
+    "longDescription": "1000W fully modular ATX 3.1 power supply with 80 PLUS Gold, Zero RPM mode and multiple PCIe/SATA/EPS connectors. PDF advertised price: $309.00 inc GST. Product code: PSCP-RM1000X-ATX3.",
+    "leaderCategory": "Power Supplies",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 255.37,
+    "leaderRrpInc": 309,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$309.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Power Supplies"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "PSCP-SF850",
+    "supplierCode": "PSCP-SF850",
+    "manufacturer": "Corsair",
+    "description": "Corsair SF Series SF850 Fully Modular Platinum PSU",
+    "longDescription": "850W fully modular SFX power supply with 80 PLUS Platinum, 92mm FDB fan and ATX 3.1 support. PDF advertised price: $319.00 inc GST. Product code: PSCP-SF850.",
+    "leaderCategory": "Power Supplies",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 263.64,
+    "leaderRrpInc": 319,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$319.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Power Supplies"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-R0M1A25AHAXX",
+    "supplierCode": "NBDB-R0M1A25AHAXX",
+    "manufacturer": "Durabook",
+    "description": "Durabook R10 Rugged Tablet",
+    "longDescription": "10.1 inch WUXGA rugged tablet with Intel Core Ultra 5 226V, 16GB RAM, 256GB SSD, Wi-Fi 7, AI Boost NPU and Windows 11 Pro. PDF advertised price: $5,499.00 inc GST. Product code: NBDB-R0M1A25AHAXX.",
+    "leaderCategory": "Rugged Tablets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 4544.63,
+    "leaderRrpInc": 5499,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$5,499.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Tablets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-R1G1Q2DEHAXX",
+    "supplierCode": "NBDB-R1G1Q2DEHAXX",
+    "manufacturer": "Durabook",
+    "description": "Durabook R11 Rugged Tablet",
+    "longDescription": "11.6 inch Full HD rugged tablet with Intel Core i5-1235U, 16GB RAM, 256GB SSD, 4G LTE, Wi-Fi 6E and Windows 11 Pro. PDF advertised price: $4,499.00 inc GST. Product code: NBDB-R1G1Q2DEHAXX.",
+    "leaderCategory": "Rugged Tablets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 3718.18,
+    "leaderRrpInc": 4499,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$4,499.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Tablets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-R8H5012AHAXX",
+    "supplierCode": "NBDB-R8H5012AHAXX",
+    "manufacturer": "Durabook",
+    "description": "Durabook R8 Rugged Tablet",
+    "longDescription": "8 inch Full HD rugged tablet with Intel Pentium Gold 8500, 8GB RAM, 128GB SSD, Wi-Fi 6E, USB-C and Windows 11 Pro. PDF advertised price: $2,599.00 inc GST. Product code: NBDB-R8H5012AHAXX.",
+    "leaderCategory": "Rugged Tablets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2147.93,
+    "leaderRrpInc": 2599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Tablets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-S4K1Q3AAHBCX",
+    "supplierCode": "NBDB-S4K1Q3AAHBCX",
+    "manufacturer": "Durabook",
+    "description": "Durabook S14I Rugged Laptop",
+    "longDescription": "14 inch Full HD rugged laptop with Intel Core Ultra 5 125U, 16GB RAM, 512GB SSD, Wi-Fi 7, backlit keyboard and Windows 11 Pro. PDF advertised price: $3,939.00 inc GST. Product code: NBDB-S4K1Q3AAHBCX.",
+    "leaderCategory": "Rugged Laptops",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 3255.37,
+    "leaderRrpInc": 3939,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$3,939.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Laptops"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-S5G1Q3AAHBXE",
+    "supplierCode": "NBDB-S5G1Q3AAHBXE",
+    "manufacturer": "Durabook",
+    "description": "Durabook S15 Rugged Laptop",
+    "longDescription": "15 inch Full HD rugged laptop with Intel Core i5-1235U, 16GB RAM, 512GB SSD, Wi-Fi 6E, backlit keyboard and Windows 11 Pro. PDF advertised price: $3,999.00 inc GST. Product code: NBDB-S5G1Q3AAHBXE.",
+    "leaderCategory": "Rugged Laptops",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 3304.96,
+    "leaderRrpInc": 3999,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$3,999.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Laptops"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NBDB-Z4K1Q3DAHBXX",
+    "supplierCode": "NBDB-Z4K1Q3DAHBXX",
+    "manufacturer": "Durabook",
+    "description": "Durabook Z14I Rugged Laptop",
+    "longDescription": "14 inch Full HD rugged laptop with Intel Core Ultra 5 125U, 16GB RAM, 512GB SSD, multi-carrier 4G LTE, Wi-Fi 7 and Windows 11 Pro. PDF advertised price: $5,999.00 inc GST. Product code: NBDB-Z4K1Q3DAHBXX.",
+    "leaderCategory": "Rugged Laptops",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 4957.85,
+    "leaderRrpInc": 5999,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$5,999.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Rugged Laptops"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-MR5-BLACK",
+    "supplierCode": "SPE-MR5-BLACK",
+    "manufacturer": "Edifier",
+    "description": "Edifier MR5 Tri-amped Powered Studio Monitor Speakers Black",
+    "longDescription": "Black tri-amped powered studio monitor speakers with flat frequency response from 46Hz to 40kHz and 110W RMS output. PDF advertised price: $359.00 inc GST. Product code: SPE-MR5-BLACK.",
+    "leaderCategory": "Speakers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 296.69,
+    "leaderRrpInc": 359,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$359.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Speakers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-MR5-WHITE",
+    "supplierCode": "SPE-MR5-WHITE",
+    "manufacturer": "Edifier",
+    "description": "Edifier MR5 Tri-amped Powered Studio Monitor Speakers White",
+    "longDescription": "White tri-amped powered studio monitor speakers with flat frequency response from 46Hz to 40kHz and 110W RMS output. PDF advertised price: $359.00 inc GST. Product code: SPE-MR5-WHITE.",
+    "leaderCategory": "Speakers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 296.69,
+    "leaderRrpInc": 359,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$359.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Speakers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-T5S-BLACK",
+    "supplierCode": "SPE-T5S-BLACK",
+    "manufacturer": "Edifier",
+    "description": "Edifier T5s Powered Subwoofer Black",
+    "longDescription": "Black powered active subwoofer with 38Hz frequency response MDF enclosure and adjustable bass/frequency bandwidth. PDF advertised price: $289.00 inc GST. Product code: SPE-T5S-BLACK.",
+    "leaderCategory": "Speakers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 238.84,
+    "leaderRrpInc": 289,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$289.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Speakers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-T5S-BROWN",
+    "supplierCode": "SPE-T5S-BROWN",
+    "manufacturer": "Edifier",
+    "description": "Edifier T5s Powered Subwoofer Brown",
+    "longDescription": "Brown powered active subwoofer with 38Hz frequency response MDF enclosure and adjustable bass/frequency bandwidth. PDF advertised price: $289.00 inc GST. Product code: SPE-T5S-BROWN.",
+    "leaderCategory": "Speakers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 238.84,
+    "leaderRrpInc": 289,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$289.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Speakers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-W830NB-BLK",
+    "supplierCode": "SPE-W830NB-BLK",
+    "manufacturer": "Edifier",
+    "description": "Edifier W830NB Wireless Over-ear Headphones Black",
+    "longDescription": "Wireless over-ear headphones with active noise cancellation up to -45dB and multiple modes. PDF advertised price: $129.00 inc GST. Product code: SPE-W830NB-BLK.",
+    "leaderCategory": "Headphones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 106.61,
+    "leaderRrpInc": 129,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$129.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Headphones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPE-W830NB-GRAY",
+    "supplierCode": "SPE-W830NB-GRAY",
+    "manufacturer": "Edifier",
+    "description": "Edifier W830NB Wireless Over-ear Headphones Grey",
+    "longDescription": "Wireless over-ear headphones with active noise cancellation up to -45dB and multiple modes. PDF advertised price: $129.00 inc GST. Product code: SPE-W830NB-GRAY.",
+    "leaderCategory": "Headphones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 106.61,
+    "leaderRrpInc": 129,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$129.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Headphones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MF-GA09744-CA",
+    "supplierCode": "MF-GA09744-CA",
+    "manufacturer": "Google",
+    "description": "Google Pixel 10 5G 128GB Obsidian",
+    "longDescription": "Google Pixel 10 5G in Obsidian with 128GB storage, 6.3 inch Gorilla Glass Victus display, 48MP/10.5MP camera and 4970mAh battery. PDF advertised price: $1,349.00 inc GST. Product code: MF-GA09744-CA.",
+    "leaderCategory": "Mobile Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1114.88,
+    "leaderRrpInc": 1349,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,349.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Mobile Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-MAX-BLACK",
+    "supplierCode": "LDR-ERGOLITE-MAX-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Max Office Chair Black",
+    "longDescription": "Ergonomic office chair with lumbar support, mesh back, moulded foam seat, synchro tilt and fixed arms. PDF advertised price: $439.00 inc GST. Product code: LDR-ERGOLITE-MAX-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 362.81,
+    "leaderRrpInc": 439,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$439.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-MAX-BLUE",
+    "supplierCode": "LDR-ERGOLITE-MAX-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Max Office Chair Blue",
+    "longDescription": "Ergonomic office chair with lumbar support, mesh back, moulded foam seat, synchro tilt and fixed arms. PDF advertised price: $439.00 inc GST. Product code: LDR-ERGOLITE-MAX-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 362.81,
+    "leaderRrpInc": 439,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$439.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-MAX-GREY",
+    "supplierCode": "LDR-ERGOLITE-MAX-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Max Office Chair Grey",
+    "longDescription": "Ergonomic office chair with lumbar support, mesh back, moulded foam seat, synchro tilt and fixed arms. PDF advertised price: $439.00 inc GST. Product code: LDR-ERGOLITE-MAX-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 362.81,
+    "leaderRrpInc": 439,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$439.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-ULTRA-BLACK",
+    "supplierCode": "LDR-ERGOLITE-ULTRA-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Ultra Chair Black",
+    "longDescription": "Premium ergonomic office chair with 3D arms, seat slider, lumbar support, five-lock backrest and synchro tilt. PDF advertised price: $699.00 inc GST. Product code: LDR-ERGOLITE-ULTRA-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 577.69,
+    "leaderRrpInc": 699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-ULTRA-BLUE",
+    "supplierCode": "LDR-ERGOLITE-ULTRA-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Ultra Chair Blue",
+    "longDescription": "Premium ergonomic office chair with 3D arms, seat slider, lumbar support, five-lock backrest and synchro tilt. PDF advertised price: $699.00 inc GST. Product code: LDR-ERGOLITE-ULTRA-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 577.69,
+    "leaderRrpInc": 699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-ERGOLITE-ULTRA-GREY",
+    "supplierCode": "LDR-ERGOLITE-ULTRA-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR ErgoLite Ultra Chair Grey",
+    "longDescription": "Premium ergonomic office chair with 3D arms, seat slider, lumbar support, five-lock backrest and synchro tilt. PDF advertised price: $699.00 inc GST. Product code: LDR-ERGOLITE-ULTRA-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 577.69,
+    "leaderRrpInc": 699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-360-BLACK",
+    "supplierCode": "LDR-FLEXLEARN-360-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn 360 Chair Black",
+    "longDescription": "Training chair with writing table, moulded foam, fabric seat/back, alloy base and smooth castors. PDF advertised price: $749.00 inc GST. Product code: LDR-FLEXLEARN-360-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 619.01,
+    "leaderRrpInc": 749,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$749.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-360-BLUE",
+    "supplierCode": "LDR-FLEXLEARN-360-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn 360 Chair Blue",
+    "longDescription": "Training chair with writing table, moulded foam, fabric seat/back, alloy base and smooth castors. PDF advertised price: $749.00 inc GST. Product code: LDR-FLEXLEARN-360-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 619.01,
+    "leaderRrpInc": 749,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$749.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-360-GREY",
+    "supplierCode": "LDR-FLEXLEARN-360-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn 360 Chair Grey",
+    "longDescription": "Training chair with writing table, moulded foam, fabric seat/back, alloy base and smooth castors. PDF advertised price: $749.00 inc GST. Product code: LDR-FLEXLEARN-360-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 619.01,
+    "leaderRrpInc": 749,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$749.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-ULTRA-BLACK",
+    "supplierCode": "LDR-FLEXLEARN-ULTRA-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn Ultra Training Chair Black",
+    "longDescription": "Soft touch lounge training chair with ergonomic design, storage shelf, laptop tray platform and cup holder. PDF advertised price: $999.00 inc GST. Product code: LDR-FLEXLEARN-ULTRA-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 825.62,
+    "leaderRrpInc": 999,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$999.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-ULTRA-BLUE",
+    "supplierCode": "LDR-FLEXLEARN-ULTRA-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn Ultra Training Chair Blue",
+    "longDescription": "Soft touch lounge training chair with ergonomic design, storage shelf, laptop tray platform and cup holder. PDF advertised price: $999.00 inc GST. Product code: LDR-FLEXLEARN-ULTRA-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 825.62,
+    "leaderRrpInc": 999,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$999.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FLEXLEARN-ULTRA-GREY",
+    "supplierCode": "LDR-FLEXLEARN-ULTRA-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Flex Learn Ultra Training Chair Grey",
+    "longDescription": "Soft touch lounge training chair with ergonomic design, storage shelf, laptop tray platform and cup holder. PDF advertised price: $999.00 inc GST. Product code: LDR-FLEXLEARN-ULTRA-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 825.62,
+    "leaderRrpInc": 999,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$999.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-360-BLACK",
+    "supplierCode": "LDR-FOCUS-360-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus 360 Chair Black",
+    "longDescription": "High back executive chair with moulded foam, PU or fabric finish, fixed mechanism and four-star alloy base. PDF advertised price: $1,299.00 inc GST. Product code: LDR-FOCUS-360-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1073.55,
+    "leaderRrpInc": 1299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-360-BLUE",
+    "supplierCode": "LDR-FOCUS-360-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus 360 Chair Blue",
+    "longDescription": "High back executive chair with moulded foam, PU or fabric finish, fixed mechanism and four-star alloy base. PDF advertised price: $1,299.00 inc GST. Product code: LDR-FOCUS-360-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1073.55,
+    "leaderRrpInc": 1299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-360-GREY",
+    "supplierCode": "LDR-FOCUS-360-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus 360 Chair Grey",
+    "longDescription": "High back executive chair with moulded foam, PU or fabric finish, fixed mechanism and four-star alloy base. PDF advertised price: $1,299.00 inc GST. Product code: LDR-FOCUS-360-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1073.55,
+    "leaderRrpInc": 1299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-ULTRA-BLACK",
+    "supplierCode": "LDR-FOCUS-ULTRA-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus Ultra Chair Black",
+    "longDescription": "High-back lounge chair with ergonomic design, fabric upholstery, wide headrest and curved armrests. PDF advertised price: $899.00 inc GST. Product code: LDR-FOCUS-ULTRA-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 742.98,
+    "leaderRrpInc": 899,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$899.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-ULTRA-BLUE",
+    "supplierCode": "LDR-FOCUS-ULTRA-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus Ultra Chair Blue",
+    "longDescription": "High-back lounge chair with ergonomic design, fabric upholstery, wide headrest and curved armrests. PDF advertised price: $899.00 inc GST. Product code: LDR-FOCUS-ULTRA-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 742.98,
+    "leaderRrpInc": 899,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$899.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-FOCUS-ULTRA-GREY",
+    "supplierCode": "LDR-FOCUS-ULTRA-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR Focus Ultra Chair Grey",
+    "longDescription": "High-back lounge chair with ergonomic design, fabric upholstery, wide headrest and curved armrests. PDF advertised price: $899.00 inc GST. Product code: LDR-FOCUS-ULTRA-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 742.98,
+    "leaderRrpInc": 899,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$899.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-VISIT-BLACK",
+    "supplierCode": "LDR-VISIT-BLACK",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR VISIT High Chair Black",
+    "longDescription": "High chair for visitor and hot desks with steel legs, moulded ABS seat, backrest and armrests with fabric covering. PDF advertised price: $329.00 inc GST. Product code: LDR-VISIT-BLACK.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 271.9,
+    "leaderRrpInc": 329,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$329.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-VISIT-BLUE",
+    "supplierCode": "LDR-VISIT-BLUE",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR VISIT High Chair Blue",
+    "longDescription": "High chair for visitor and hot desks with steel legs, moulded ABS seat, backrest and armrests with fabric covering. PDF advertised price: $329.00 inc GST. Product code: LDR-VISIT-BLUE.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 271.9,
+    "leaderRrpInc": 329,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$329.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "LDR-VISIT-GREY",
+    "supplierCode": "LDR-VISIT-GREY",
+    "manufacturer": "LDR Office Solutions",
+    "description": "LDR VISIT High Chair Grey",
+    "longDescription": "High chair for visitor and hot desks with steel legs, moulded ABS seat, backrest and armrests with fabric covering. PDF advertised price: $329.00 inc GST. Product code: LDR-VISIT-GREY.",
+    "leaderCategory": "Office Chairs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 271.9,
+    "leaderRrpInc": 329,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$329.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Office Chairs"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
     "code": "MNE-OPS-IDL05",
     "supplierCode": "MNE-OPS-IDL05",
     "manufacturer": "Leader",
@@ -553,6 +1939,27 @@
     ]
   },
   {
+    "code": "SCP4-C3-I7H",
+    "supplierCode": "SCP4-C3-I7H",
+    "manufacturer": "Leader",
+    "description": "Leader Companion 4C3 14 inch Notebook i7",
+    "longDescription": "14 inch Full HD notebook with Intel Core 7 150U, 16GB DDR4, 500GB M.2 NVMe SSD, Intel graphics, Wi-Fi 6E and Windows 11 Home. PDF advertised price: $1,599.00 inc GST. Product code: SCP4-C3-I7H.",
+    "leaderCategory": "Notebooks",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1321.49,
+    "leaderRrpInc": 1599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Notebooks"
+    },
+    "imageUrl": "/images/leader/leader-notebook-14.jpg",
+    "imageUrls": [
+      "/images/leader/leader-notebook-14.jpg"
+    ]
+  },
+  {
     "code": "SCP4-C3-I7P",
     "supplierCode": "SCP4-C3-I7P",
     "manufacturer": "Leader",
@@ -852,9 +2259,9 @@
       "Bonus 3": "AMD FreeSync (Depend on AMD Panel AVL)",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -892,9 +2299,9 @@
       "Bonus 3": "AMD FreeSync (Depend on AMD Panel AVL)",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -932,9 +2339,9 @@
       "Bonus 3": "AMD FreeSync (Depend on AMD Panel AVL)",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -972,9 +2379,9 @@
       "Bonus 3": "AMD FreeSync (Depend on AMD Panel AVL)",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1012,9 +2419,9 @@
       "Bonus 3": "Multi Color Backlight KB",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1052,9 +2459,9 @@
       "Bonus 3": "Multi Color Backlight KB",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1092,9 +2499,30 @@
       "Bonus 3": "AMD FreeSync (Depend on AMD Panel AVL)",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
+    ]
+  },
+  {
+    "code": "SCP6-C1-A9H",
+    "supplierCode": "SCP6-C1-A9H",
+    "manufacturer": "Leader",
+    "description": "Leader AI Companion SCP6-C1 16 inch Notebook A9",
+    "longDescription": "16 inch Full HD+ notebook with AMD Ryzen AI 9 HX 370, 16GB DDR5, 1TB NVMe SSD, Radeon graphics and Windows 11 Home. PDF advertised price: $2,299.00 inc GST. Product code: SCP6-C1-A9H.",
+    "leaderCategory": "Notebooks",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1900,
+    "leaderRrpInc": 2299,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,299.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Notebooks"
+    },
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
+    "imageUrls": [
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1256,9 +2684,9 @@
       "Bonus 3": "Copilot AI PC",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1296,9 +2724,9 @@
       "Bonus 3": "Copilot AI PC",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1336,9 +2764,9 @@
       "Bonus 3": "Copilot AI PC",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1376,9 +2804,9 @@
       "Bonus 3": "Copilot AI PC",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1772,9 +3200,9 @@
       "Bonus 3": "Virtual Reality ready",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -1808,9 +3236,9 @@
       "Bonus 3": "Virtual Reality ready",
       "Warranty": "2 Years Australia Wide Onsite Warranty"
     },
-    "imageUrl": "/images/leader/leader-ai-notebook.jpg",
+    "imageUrl": "/images/leader/leader-ai-notebook.png",
     "imageUrls": [
-      "/images/leader/leader-ai-notebook.jpg"
+      "/images/leader/leader-ai-notebook.png"
     ]
   },
   {
@@ -2275,6 +3703,153 @@
     ]
   },
   {
+    "code": "SYS-BPCAL03",
+    "supplierCode": "SYS-BPCAL03",
+    "manufacturer": "Leader",
+    "description": "Leader BPCAL03 Embedded Box PC i5UE",
+    "longDescription": "Embedded box PC with Intel Core i5-1245UE, DDR4, six USB, LAN, vPro support, fanless design and 24/7 certification. PDF advertised price: $599.00 inc GST. Product code: SYS-BPCAL03.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 495.04,
+    "leaderRrpInc": 599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-DH610",
+    "supplierCode": "SYS-DH610",
+    "manufacturer": "Leader",
+    "description": "Leader DH610 Slim Mini PC Barebone",
+    "longDescription": "1L barebone slim mini PC supporting Intel 14th/13th/12th Gen processors with LAN, HDMI, DisplayPort and USB connectivity. PDF advertised price: $979.00 inc GST. Product code: SYS-DH610.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 809.09,
+    "leaderRrpInc": 979,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$979.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-DN11H",
+    "supplierCode": "SYS-DN11H",
+    "manufacturer": "Leader",
+    "description": "Leader DN11H Slim Mini AI PC Barebone",
+    "longDescription": "1L barebone slim mini AI PC supporting Intel Meteor Lake Core Ultra 5/7/9 with DDR5, RAID NVMe storage, HDMI and DisplayPort. PDF advertised price: $1,949.00 inc GST. Product code: SYS-DN11H.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1610.74,
+    "leaderRrpInc": 1949,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,949.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-NA10H",
+    "supplierCode": "SYS-NA10H",
+    "manufacturer": "Leader",
+    "description": "Leader NA10H Nano Mini PC Barebone",
+    "longDescription": "0.5L nano mini PC barebone supporting AMD Ryzen 7/9 with DDR5, LAN, HDMI, DisplayPort and 24/7 certification. PDF advertised price: $1,609.00 inc GST. Product code: SYS-NA10H.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1329.75,
+    "leaderRrpInc": 1609,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,609.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-NE10N",
+    "supplierCode": "SYS-NE10N",
+    "manufacturer": "Leader",
+    "description": "Leader NE10N Nano Mini PC Barebone",
+    "longDescription": "0.5L barebone nano mini PC with Intel N100, aluminum chassis, HDMI, DisplayPort and three year warranty. PDF advertised price: $699.00 inc GST. Product code: SYS-NE10N.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 577.69,
+    "leaderRrpInc": 699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-NT10H",
+    "supplierCode": "SYS-NT10H",
+    "manufacturer": "Leader",
+    "description": "Leader NT10H Nano Mini PC Barebone",
+    "longDescription": "0.5L nano mini PC barebone supporting Intel Core Ultra 5/7/9 with DDR5, LAN, HDMI, DisplayPort and 24/7 certification. PDF advertised price: $1,869.00 inc GST. Product code: SYS-NT10H.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1544.63,
+    "leaderRrpInc": 1869,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,869.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
+    "code": "SYS-SPCEL03",
+    "supplierCode": "SYS-SPCEL03",
+    "manufacturer": "Leader",
+    "description": "Leader SPCEL03 Edge IoT PC",
+    "longDescription": "Edge IoT PC with Intel Atom x6413E, DDR4, fanless design, COM, USB, HDMI and wide temperature support. PDF advertised price: $1,469.00 inc GST. Product code: SYS-SPCEL03.",
+    "leaderCategory": "Industrial PCs",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1214.05,
+    "leaderRrpInc": 1469,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,469.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Industrial PCs"
+    },
+    "imageUrl": "/images/leader/leader-mini-pc.jpg",
+    "imageUrls": [
+      "/images/leader/leader-mini-pc.jpg"
+    ]
+  },
+  {
     "code": "TBL-10W5PRO",
     "supplierCode": "TBL-10W5PRO",
     "manufacturer": "Leader",
@@ -2309,6 +3884,1098 @@
     "imageUrl": "/images/leader/leader-2in1-tablet.jpg",
     "imageUrls": [
       "/images/leader/leader-2in1-tablet.jpg"
+    ]
+  },
+  {
+    "code": "MD-ZAEG0045AU",
+    "supplierCode": "MD-ZAEG0045AU",
+    "manufacturer": "Lenovo",
+    "description": "Lenovo Yoga Tab Plus",
+    "longDescription": "Yoga Tab Plus with 12.7 inch 3K LTPS display, Snapdragon 8 Gen 3 mobile platform and 10200mAh battery. PDF advertised price: $1,399.00 inc GST. Product code: MD-ZAEG0045AU.",
+    "leaderCategory": "Tablets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1156.2,
+    "leaderRrpInc": 1399,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,399.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Tablets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MD-ZAFM0192AU",
+    "supplierCode": "MD-ZAFM0192AU",
+    "manufacturer": "Lenovo",
+    "description": "Lenovo Idea Tab 11 5G",
+    "longDescription": "Idea Tab 11 5G with 128GB storage, paper-like tablet finish in Luna Grey, Android, 7040mAh battery and one year warranty. PDF advertised price: $549.00 inc GST. Product code: MD-ZAFM0192AU.",
+    "leaderCategory": "Tablets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 453.72,
+    "leaderRrpInc": 549,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$549.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Tablets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MNL-27U731SA-W",
+    "supplierCode": "MNL-27U731SA-W",
+    "manufacturer": "LG",
+    "description": "LG 27 inch 4K UHD IPS Smart Monitor",
+    "longDescription": "27 inch 4K UHD IPS smart monitor with 3840x2160 resolution, 60Hz refresh, HDR400 and USB-C support. PDF advertised price: $599.00 inc GST. Product code: MNL-27U731SA-W.",
+    "leaderCategory": "Monitors",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 495.04,
+    "leaderRrpInc": 599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitors"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MNL-32U990A-S",
+    "supplierCode": "MNL-32U990A-S",
+    "manufacturer": "LG",
+    "description": "LG UltraFine evo 32 inch 6K IPS Black Monitor",
+    "longDescription": "32 inch 6K UltraFine evo monitor with IPS Black, Thunderbolt 5, HDMI 2.1 and ergonomic adjustments. PDF advertised price: $3,699.00 inc GST. Product code: MNL-32U990A-S.",
+    "leaderCategory": "Monitors",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 3057.02,
+    "leaderRrpInc": 3699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$3,699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitors"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MNL-40U990A-W",
+    "supplierCode": "MNL-40U990A-W",
+    "manufacturer": "LG",
+    "description": "LG UltraFine 40 inch 5K2K Nano IPS Black Monitor",
+    "longDescription": "40 inch 5K2K Nano IPS Black monitor with HDR True Black 600, Thunderbolt 5, DCI-P3 99% and height/tilt/pivot stand. PDF advertised price: $2,699.00 inc GST. Product code: MNL-40U990A-W.",
+    "leaderCategory": "Monitors",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2230.58,
+    "leaderRrpInc": 2699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitors"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MNL-49U950A-W",
+    "supplierCode": "MNL-49U950A-W",
+    "manufacturer": "LG",
+    "description": "LG 49 inch UltraWide DQHD Curved Monitor",
+    "longDescription": "49 inch UltraWide DQHD curved Nano IPS monitor with 5120x1440 resolution, 144Hz, 1ms MBR, HDR400 and dual 10W speakers. PDF advertised price: $2,699.00 inc GST. Product code: MNL-49U950A-W.",
+    "leaderCategory": "Monitors",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2230.58,
+    "leaderRrpInc": 2699,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,699.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitors"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-BASIC-COPILOT-TEAMS",
+    "supplierCode": "M365-BASIC-COPILOT-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 Business Basic + Copilot with Teams",
+    "longDescription": "Annual commitment billed monthly subscription combining lightweight web and mobile apps with Microsoft 365 Copilot. PDF advertised price: $45.00 inc GST. Product code: M365-BASIC-COPILOT-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 37.19,
+    "leaderRrpInc": 45,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$45.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-BUSINESS-PREMIUM-TEAMS",
+    "supplierCode": "M365-BUSINESS-PREMIUM-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 Business Premium with Teams Annual",
+    "longDescription": "Annual Microsoft 365 Business Premium with Teams plan for SMB productivity, collaboration, Intune and Defender for Business. PDF advertised price: $395.00 inc GST. Product code: M365-BUSINESS-PREMIUM-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 326.45,
+    "leaderRrpInc": 395,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$395.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-DEFENDER-SUITE",
+    "supplierCode": "M365-DEFENDER-SUITE",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft Defender Suite",
+    "longDescription": "Microsoft Defender suite for endpoint, Office 365, identity and cloud apps security. Requires E3 or E5. PDF advertised price: $19.00 inc GST. Product code: M365-DEFENDER-SUITE.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 15.7,
+    "leaderRrpInc": 19,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$19.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-E3-TEAMS",
+    "supplierCode": "M365-E3-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 E3 with Teams Annual",
+    "longDescription": "Annual Microsoft 365 E3 with Teams plan for enhanced management, compliance and productivity. PDF advertised price: $685.00 inc GST. Product code: M365-E3-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 566.12,
+    "leaderRrpInc": 685,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$685.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-E5-TEAMS",
+    "supplierCode": "M365-E5-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 E5 with Teams Annual",
+    "longDescription": "Annual Microsoft 365 E5 with Teams plan for enterprise-grade productivity, security, compliance and analytics. PDF advertised price: $1,025.00 inc GST. Product code: M365-E5-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 847.11,
+    "leaderRrpInc": 1025,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,025.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-PREMIUM-COPILOT-TEAMS",
+    "supplierCode": "M365-PREMIUM-COPILOT-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 Business Premium + Copilot with Teams",
+    "longDescription": "Annual commitment billed monthly subscription for productivity, security and Microsoft 365 Copilot. PDF advertised price: $69.00 inc GST. Product code: M365-PREMIUM-COPILOT-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 57.02,
+    "leaderRrpInc": 69,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$69.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "M365-STANDARD-COPILOT-TEAMS",
+    "supplierCode": "M365-STANDARD-COPILOT-TEAMS",
+    "manufacturer": "Microsoft",
+    "description": "Microsoft 365 Business Standard + Copilot with Teams",
+    "longDescription": "Annual commitment billed monthly subscription combining web, mobile and desktop apps with Microsoft 365 Copilot. PDF advertised price: $55.00 inc GST. Product code: M365-STANDARD-COPILOT-TEAMS.",
+    "leaderCategory": "Software",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 45.45,
+    "leaderRrpInc": 55,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$55.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Software"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPA-324012114343",
+    "supplierCode": "MPA-324012114343",
+    "manufacturer": "OtterBox",
+    "description": "OtterBox Plasma Microsoft Surface Pro Rugged Case",
+    "longDescription": "Plasma Microsoft Surface Pro 11/Pro 10/Pro 9 hand and shoulder strap rugged case in ice. PDF advertised price: $159.00 inc GST. Product code: MPA-324012114343.",
+    "leaderCategory": "Tablet Cases",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 131.4,
+    "leaderRrpInc": 159,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$159.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Tablet Cases"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPA-77-97534",
+    "supplierCode": "MPA-77-97534",
+    "manufacturer": "OtterBox",
+    "description": "OtterBox Defender MagSafe Apple iPhone Case Black",
+    "longDescription": "Defender MagSafe black case for iPhone 16e, iPhone 15, iPhone 14 and iPhone 13 with DROP+ 7X military standard protection. PDF advertised price: $99.00 inc GST. Product code: MPA-77-97534.",
+    "leaderCategory": "Phone Cases",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 81.82,
+    "leaderRrpInc": 99,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$99.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Phone Cases"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPA-CHDP109",
+    "supplierCode": "MPA-CHDP109",
+    "manufacturer": "OtterBox",
+    "description": "OtterBox Rugged Apple iPad Case Black",
+    "longDescription": "Rugged black Apple iPad 11th Gen and iPad 10th Gen case with built-in kickstand and adjustable hand strap. PDF advertised price: $59.00 inc GST. Product code: MPA-CHDP109.",
+    "leaderCategory": "Tablet Cases",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 48.76,
+    "leaderRrpInc": 59,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$59.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Tablet Cases"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPPS-CRT2000VA",
+    "supplierCode": "UPPS-CRT2000VA",
+    "manufacturer": "PowerShield",
+    "description": "PowerShield Commander RT 2000VA UPS",
+    "longDescription": "Commander RT 2000VA/1800W rack/tower UPS with pure sine wave, programmable power management and two year warranty. PDF advertised price: $1,909.00 inc GST. Product code: UPPS-CRT2000VA.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1577.69,
+    "leaderRrpInc": 1909,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,909.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPPS-CRT3000VA",
+    "supplierCode": "UPPS-CRT3000VA",
+    "manufacturer": "PowerShield",
+    "description": "PowerShield Commander RT 3000VA UPS",
+    "longDescription": "Commander RT 3000VA/2700W rack/tower UPS with hot-swappable batteries, 15A input and two year warranty. PDF advertised price: $2,599.00 inc GST. Product code: UPPS-CRT3000VA.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2147.93,
+    "leaderRrpInc": 2599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPPS-PSCERT1000",
+    "supplierCode": "UPPS-PSCERT1000",
+    "manufacturer": "PowerShield",
+    "description": "PowerShield Centurion RT 1000VA UPS",
+    "longDescription": "Centurion RT 1000VA/900W true online double conversion rack/tower UPS with two year warranty. PDF advertised price: $1,539.00 inc GST. Product code: UPPS-PSCERT1000.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1271.9,
+    "leaderRrpInc": 1539,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,539.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPPS-PSCERT2000",
+    "supplierCode": "UPPS-PSCERT2000",
+    "manufacturer": "PowerShield",
+    "description": "PowerShield Centurion RT 2000VA UPS",
+    "longDescription": "Centurion RT 2000VA/1800W true online double conversion rack/tower UPS with two year warranty. PDF advertised price: $2,565.00 inc GST. Product code: UPPS-PSCERT2000.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2119.83,
+    "leaderRrpInc": 2565,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,565.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "UPPS-PSCERT2000SB",
+    "supplierCode": "UPPS-PSCERT2000SB",
+    "manufacturer": "PowerShield",
+    "description": "PowerShield Centurion RT 2000VA Short Base UPS",
+    "longDescription": "Centurion RT 2000VA/1800W short base true online double conversion UPS for comms cabinet compatibility. PDF advertised price: $2,195.00 inc GST. Product code: UPPS-PSCERT2000SB.",
+    "leaderCategory": "UPS",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1814.05,
+    "leaderRrpInc": 2195,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,195.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "UPS"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MF-SM-A176BZKCATS",
+    "supplierCode": "MF-SM-A176BZKCATS",
+    "manufacturer": "Samsung",
+    "description": "Samsung Galaxy A17 5G 128GB Black",
+    "longDescription": "Samsung Galaxy A17 5G in black with 128GB storage, 6.7 inch Super AMOLED display, 50MP/13MP camera and 5000mAh battery. PDF advertised price: $349.00 inc GST. Product code: MF-SM-A176BZKCATS.",
+    "leaderCategory": "Mobile Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 288.43,
+    "leaderRrpInc": 349,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$349.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Mobile Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-ECS-24-POE",
+    "supplierCode": "NHU-ECS-24-POE",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Enterprise Campus 24 PoE Switch",
+    "longDescription": "24-port Layer 3 Etherlighting PoE+++ switch with high-capacity 10GbE ports and 1050W total PoE availability via Shared Mode. PDF advertised price: $6,039.00 inc GST. Product code: NHU-ECS-24-POE.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 4990.91,
+    "leaderRrpInc": 6039,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$6,039.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-ECS-48-POE",
+    "supplierCode": "NHU-ECS-48-POE",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Enterprise Campus 48 PoE Switch",
+    "longDescription": "48-port Layer 3 Etherlighting PoE+++ switch with high-capacity 10GbE ports and 2150W total PoE availability via Shared Mode. PDF advertised price: $8,139.00 inc GST. Product code: NHU-ECS-48-POE.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 6726.45,
+    "leaderRrpInc": 8139,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$8,139.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-UCG-FIBER",
+    "supplierCode": "NHU-UCG-FIBER",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Cloud Gateway Fiber",
+    "longDescription": "Desktop 10G cloud gateway with integrated PoE switch, selectable NVR storage and full UniFi application support. PDF advertised price: $569.00 inc GST. Product code: NHU-UCG-FIBER.",
+    "leaderCategory": "Networking",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 470.25,
+    "leaderRrpInc": 569,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$569.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Networking"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-UCG-MAX",
+    "supplierCode": "NHU-UCG-MAX",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Cloud Gateway Max",
+    "longDescription": "Compact 2.5G cloud gateway supporting 30+ UniFi devices, 300+ clients, 1.5Gbps IPS routing and 512GB NVMe SSD. PDF advertised price: $599.00 inc GST. Product code: NHU-UCG-MAX.",
+    "leaderCategory": "Networking",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 495.04,
+    "leaderRrpInc": 599,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$599.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Networking"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-UDR7",
+    "supplierCode": "NHU-UDR7",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Dream Router 7",
+    "longDescription": "10G cloud gateway with integrated Wi-Fi 7, PoE switch, microSD storage and full UniFi application support. PDF advertised price: $589.00 inc GST. Product code: NHU-UDR7.",
+    "leaderCategory": "Networking",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 486.78,
+    "leaderRrpInc": 589,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$589.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Networking"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-UMR-ULTRA",
+    "supplierCode": "NHU-UMR-ULTRA",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Mobile Router Ultra",
+    "longDescription": "Ultra-compact managed LTE mobile router for IoT applications with integrated Wi-Fi, WAN failover and DC power input support. PDF advertised price: $209.00 inc GST. Product code: NHU-UMR-ULTRA.",
+    "leaderCategory": "Networking",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 172.73,
+    "leaderRrpInc": 209,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$209.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Networking"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-USW-PRO-HD-24",
+    "supplierCode": "NHU-USW-PRO-HD-24",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Pro HD 24 Switch",
+    "longDescription": "Professional-grade Layer 3 Etherlighting switch with 2x10GbE, 22x2.5GbE and 4x10G SFP+ ports. PDF advertised price: $1,279.00 inc GST. Product code: NHU-USW-PRO-HD-24.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1057.02,
+    "leaderRrpInc": 1279,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,279.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-USW-PRO-HD-24-POE",
+    "supplierCode": "NHU-USW-PRO-HD-24-POE",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Pro HD 24 PoE Switch",
+    "longDescription": "Professional-grade Layer 3 Etherlighting switch with 2x10GbE PoE++, 22x2.5GbE PoE++ and 4x10G SFP+ ports. PDF advertised price: $2,049.00 inc GST. Product code: NHU-USW-PRO-HD-24-POE.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1693.39,
+    "leaderRrpInc": 2049,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,049.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-USW-PRO-XG-10-POE",
+    "supplierCode": "NHU-USW-PRO-XG-10-POE",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Pro XG 10 PoE Switch",
+    "longDescription": "1U professional-grade 10-port Layer 3 Etherlighting PoE+++ switch with 10x10GbE and 2x10G SFP+ ports. PDF advertised price: $1,489.00 inc GST. Product code: NHU-USW-PRO-XG-10-POE.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1230.58,
+    "leaderRrpInc": 1489,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,489.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-USW-PRO-XG-48-POE",
+    "supplierCode": "NHU-USW-PRO-XG-48-POE",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti Pro XG 48 PoE Switch",
+    "longDescription": "Professional-grade 48-port Layer 3 Etherlighting PoE+++ switch with 32x10GbE, 16x2.5GbE PoE and 4x25G SFP28 ports. PDF advertised price: $5,209.00 inc GST. Product code: NHU-USW-PRO-XG-48-POE.",
+    "leaderCategory": "Network Switches",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 4304.96,
+    "leaderRrpInc": 5209,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$5,209.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Network Switches"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NHU-UVC-AI-PRO-W",
+    "supplierCode": "NHU-UVC-AI-PRO-W",
+    "manufacturer": "Ubiquiti",
+    "description": "Ubiquiti AI Professional Camera White",
+    "longDescription": "UniFi Protect indoor/outdoor 4K PoE camera in white with IP65 weather resistance, PoE+ power and GbE RJ45 port. PDF advertised price: $1,059.00 inc GST. Product code: NHU-UVC-AI-PRO-W.",
+    "leaderCategory": "Security Cameras",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 875.21,
+    "leaderRrpInc": 1059,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$1,059.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Security Cameras"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "32366",
+    "supplierCode": "32366",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Agenda Wireless Presenter",
+    "longDescription": "Wireless presenter with clear laser projection up to 100 metres and built-in rechargeable USB-C battery. PDF advertised price: $59.00 inc GST. Product code: 32366.",
+    "leaderCategory": "Presentation Tools",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 48.76,
+    "leaderRrpInc": 59,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$59.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Presentation Tools"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "CBV-31854",
+    "supplierCode": "CBV-31854",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim USB-C to USB-C 100W Magnetic Cable",
+    "longDescription": "120cm USB-C to USB-C magnetic cable with 100W PD fast charging. PDF advertised price: $19.00 inc GST. Product code: CBV-31854.",
+    "leaderCategory": "Cables",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 15.7,
+    "leaderRrpInc": 19,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$19.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Cables"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "CBV-66974",
+    "supplierCode": "CBV-66974",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim USB-C and Lightning 2-in-1 60W Cable",
+    "longDescription": "2-in-1 USB-C and Lightning cable with 60W support and MFi certification. PDF advertised price: $29.00 inc GST. Product code: CBV-66974.",
+    "leaderCategory": "Cables",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 23.97,
+    "leaderRrpInc": 29,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$29.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Cables"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "HXV-2TBG4BLACK",
+    "supplierCode": "HXV-2TBG4BLACK",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Store'n'Go Grid Design Hard Drive 2TB",
+    "longDescription": "USB 3.0 Gen 1 portable hard drive with 2TB storage and Nero Backup Software. PDF advertised price: $169.00 inc GST. Product code: HXV-2TBG4BLACK.",
+    "leaderCategory": "Storage",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 139.67,
+    "leaderRrpInc": 169,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$169.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Storage"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MIV-70242",
+    "supplierCode": "MIV-70242",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Silent Ergonomic Wireless Blue LED Mouse",
+    "longDescription": "Silent ergonomic wireless mouse with Blue LED sensor and silent click switches. PDF advertised price: $29.00 inc GST. Product code: MIV-70242.",
+    "leaderCategory": "Mice",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 23.97,
+    "leaderRrpInc": 29,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$29.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Mice"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MNV-49590",
+    "supplierCode": "MNV-49590",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim 14 inch Full HD Portable Monitor",
+    "longDescription": "14 inch Full HD 1080p portable monitor with HDR support and USB-C one cable setup. PDF advertised price: $279.00 inc GST. Product code: MNV-49590.",
+    "leaderCategory": "Monitors",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 230.58,
+    "leaderRrpInc": 279,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$279.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Monitors"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPV-66972",
+    "supplierCode": "MPV-66972",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Charge'n'Go Power Bank 10000mAh",
+    "longDescription": "10000mAh power bank with built-in USB-C and Lightning cables plus USB-C and USB-A ports. PDF advertised price: $69.00 inc GST. Product code: MPV-66972.",
+    "leaderCategory": "Power Banks",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 57.02,
+    "leaderRrpInc": 69,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$69.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Power Banks"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "MPV-67038",
+    "supplierCode": "MPV-67038",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim 3-in-1 Wireless Docking Charger",
+    "longDescription": "Qi2 certified 3-in-1 wireless charging dock with 15W fast charging support. PDF advertised price: $89.00 inc GST. Product code: MPV-67038.",
+    "leaderCategory": "Chargers",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 73.55,
+    "leaderRrpInc": 89,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$89.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Chargers"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "NAV-32147",
+    "supplierCode": "NAV-32147",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Share My Screen 4K Adapter",
+    "longDescription": "Share My Screen 4K adapter supporting 4K at 30Hz for presentations, streaming and gaming with USB-C devices. PDF advertised price: $199.00 inc GST. Product code: NAV-32147.",
+    "leaderCategory": "Adapters",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 164.46,
+    "leaderRrpInc": 199,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$199.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Adapters"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPV-41645",
+    "supplierCode": "SPV-41645",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Multimedia Headphones with Volume Control",
+    "longDescription": "Multimedia headphones with volume control and high-quality stereo sound. PDF advertised price: $19.00 inc GST. Product code: SPV-41645.",
+    "leaderCategory": "Headphones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 15.7,
+    "leaderRrpInc": 19,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$19.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Headphones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "SPV-67031",
+    "supplierCode": "SPV-67031",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim Classic USB-C Headset",
+    "longDescription": "Classic on-ear USB-C headset with padded ear cups and adjustable headband. PDF advertised price: $29.00 inc GST. Product code: SPV-67031.",
+    "leaderCategory": "Headsets",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 23.97,
+    "leaderRrpInc": 29,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$29.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Headsets"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "VIV-66614",
+    "supplierCode": "VIV-66614",
+    "manufacturer": "Verbatim",
+    "description": "Verbatim 1080p Full HD Webcam",
+    "longDescription": "1080p Full HD webcam with directional high-sensitivity microphone and stereo audio. PDF advertised price: $69.00 inc GST. Product code: VIV-66614.",
+    "leaderCategory": "Webcams",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 57.02,
+    "leaderRrpInc": 69,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$69.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Webcams"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPV-CN6501-1C",
+    "supplierCode": "IPV-CN6501-1C",
+    "manufacturer": "ViewSonic",
+    "description": "ViewSonic 65 inch 4K Presentation Display",
+    "longDescription": "65 inch 4K presentation display with 24/7 playback, USB-C port, intuitive signage player and commercial brightness. PDF advertised price: $2,089.00 inc GST. Product code: IPV-CN6501-1C.",
+    "leaderCategory": "Displays",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 1726.45,
+    "leaderRrpInc": 2089,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$2,089.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Displays"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPV-CN7501-1C",
+    "supplierCode": "IPV-CN7501-1C",
+    "manufacturer": "ViewSonic",
+    "description": "ViewSonic 75 inch 4K Presentation Display",
+    "longDescription": "75 inch 4K presentation display with 24/7 playback, USB-C port, intuitive signage player and commercial brightness. PDF advertised price: $3,189.00 inc GST. Product code: IPV-CN7501-1C.",
+    "leaderCategory": "Displays",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 2635.54,
+    "leaderRrpInc": 3189,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$3,189.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "Displays"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPY-T73U",
+    "supplierCode": "IPY-T73U",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T73U IP Phone",
+    "longDescription": "SIP-T73U IP phone with 2.8 inch colour display, 12 SIP accounts, HD voice, USB and PoE, plus Bluetooth and Wi-Fi via adapter. PDF advertised price: $249.00 inc GST. Product code: IPY-T73U.",
+    "leaderCategory": "IP Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 205.79,
+    "leaderRrpInc": 249,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$249.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "IP Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPY-T77U",
+    "supplierCode": "IPY-T77U",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T77U IP Phone",
+    "longDescription": "SIP-T77U IP phone with 7 inch touchscreen, 16 SIP accounts, dual USB, HD voice, PoE, Linux 6.1 and TEE encryption. PDF advertised price: $479.00 inc GST. Product code: IPY-T77U.",
+    "leaderCategory": "IP Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 395.87,
+    "leaderRrpInc": 479,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$479.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "IP Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPY-T85W",
+    "supplierCode": "IPY-T85W",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T85W IP Phone",
+    "longDescription": "SIP-T85W IP phone with 5.5 inch colour display, 16 SIP accounts, HD voice, Bluetooth 5.0, Wi-Fi 6, dual USB, PoE and Linux 6.1. PDF advertised price: $359.00 inc GST. Product code: IPY-T85W.",
+    "leaderCategory": "IP Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 296.69,
+    "leaderRrpInc": 359,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$359.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "IP Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPY-T87W",
+    "supplierCode": "IPY-T87W",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T87W IP Phone",
+    "longDescription": "SIP-T87W IP phone with 7 inch touchscreen, 16 SIP accounts, HD voice, Bluetooth 5.0, Wi-Fi 6, dual USB, PoE and Linux 6.1. PDF advertised price: $499.00 inc GST. Product code: IPY-T87W.",
+    "leaderCategory": "IP Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 412.4,
+    "leaderRrpInc": 499,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$499.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "IP Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
+    ]
+  },
+  {
+    "code": "IPY-T88W",
+    "supplierCode": "IPY-T88W",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T88W IP Phone",
+    "longDescription": "SIP-T88W IP phone with 7 inch touchscreen, Android 13, HD voice, Bluetooth 5.0, Wi-Fi 6, dual USB, PoE and optional BTH88 handset. PDF advertised price: $589.00 inc GST. Product code: IPY-T88W.",
+    "leaderCategory": "IP Phones",
+    "leaderSheet": "Q1 Catalogue 2026 PDF",
+    "leaderStatus": "PDF catalogue",
+    "leaderDealerBuyEx": 486.78,
+    "leaderRrpInc": 589,
+    "leaderSpecs": {
+      "PDF advertised price inc GST": "$589.00",
+      "Source": "Leader Q1 Catalogue 2026 PDF",
+      "Category": "IP Phones"
+    },
+    "imageUrl": "/product-placeholder.svg",
+    "imageUrls": [
+      "/product-placeholder.svg"
     ]
   }
 ]
