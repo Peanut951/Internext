@@ -66,6 +66,55 @@ const getShippingWeight = (value: unknown) => {
   return weightKg ? `${weightKg.toFixed(2)} kg` : null;
 };
 
+const estimateShippingWeightKg = (product: {
+  description?: string | null;
+  name?: string | null;
+  manufacturer?: string | null;
+}) => {
+  const text = `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
+
+  if (/\b(warranty|licen[cs]e|subscription|support|onsite|software)\b/.test(text)) {
+    return 0.1;
+  }
+
+  if (/\b(ink|toner|cartridge|ribbon|remote|adapter|cable|cord|lead|mouse|keyboard)\b/.test(text)) {
+    return 0.5;
+  }
+
+  if (/\b(paper|roll|media)\b/.test(text)) {
+    return 5;
+  }
+
+  if (/\b(laptop|notebook|chromebook|tablet)\b/.test(text)) {
+    return 3;
+  }
+
+  if (/\b(monitor|display|screen|tv)\b/.test(text)) {
+    return 8;
+  }
+
+  if (/\b(printer|multifunction|mfp|copier|scanner|plotter)\b/.test(text)) {
+    return 25;
+  }
+
+  if (/\b(server|workstation|desktop|pc\b|ups|battery)\b/.test(text)) {
+    return 12;
+  }
+
+  if (/\b(camera|nvr|switch|router|phone|handset|headset|access point|ap\b)\b/.test(text)) {
+    return 2;
+  }
+
+  return 1;
+};
+
+const getRequiredShippingWeight = (product: {
+  weightKg?: number | null;
+  description?: string | null;
+  name?: string | null;
+  manufacturer?: string | null;
+}) => getShippingWeight(product.weightKg) || `${estimateShippingWeightKg(product).toFixed(2)} kg`;
+
 const getShippingDimension = (value: unknown) => {
   const centimetres = getPositiveNumber(value);
   return centimetres ? `${centimetres.toFixed(1)} cm` : null;
@@ -108,7 +157,7 @@ export default async function handler(
       "        <g:service>Australia Post Standard</g:service>",
       `        <g:price>${DEFAULT_GOOGLE_SHIPPING_PRICE_AUD.toFixed(2)} AUD</g:price>`,
       "      </g:shipping>",
-      optionalTag("g:shipping_weight", getShippingWeight(product.weightKg)),
+      optionalTag("g:shipping_weight", getRequiredShippingWeight(product)),
       optionalTag("g:shipping_length", getShippingDimension(product.depthCm)),
       optionalTag("g:shipping_width", getShippingDimension(product.widthCm)),
       optionalTag("g:shipping_height", getShippingDimension(product.heightCm)),
