@@ -52,6 +52,24 @@ const getPrice = (value: unknown) =>
     ? `${value.toFixed(2)} AUD`
     : "";
 
+const getPositiveNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+};
+
+const optionalTag = (name: string, value: string | null) =>
+  value ? `      <${name}>${escapeXml(value)}</${name}>` : null;
+
+const getShippingWeight = (value: unknown) => {
+  const weightKg = getPositiveNumber(value);
+  return weightKg ? `${weightKg.toFixed(2)} kg` : null;
+};
+
+const getShippingDimension = (value: unknown) => {
+  const centimetres = getPositiveNumber(value);
+  return centimetres ? `${centimetres.toFixed(1)} cm` : null;
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -83,6 +101,12 @@ export default async function handler(
     const image = absoluteUrl(product.imageUrl);
     const price = getPrice(product.price);
     const mpn = product.supplierCode || product.code;
+    const shippingTags = [
+      optionalTag("g:shipping_weight", getShippingWeight(product.weightKg)),
+      optionalTag("g:shipping_length", getShippingDimension(product.depthCm)),
+      optionalTag("g:shipping_width", getShippingDimension(product.widthCm)),
+      optionalTag("g:shipping_height", getShippingDimension(product.heightCm)),
+    ].filter((tag): tag is string => Boolean(tag));
 
     return [
       "    <item>",
@@ -96,6 +120,7 @@ export default async function handler(
       "      <g:condition>new</g:condition>",
       `      <g:brand>${escapeXml(product.manufacturer || "Internext")}</g:brand>`,
       `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
+      ...shippingTags,
       "    </item>",
     ].join("\n");
   });
