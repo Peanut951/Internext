@@ -1,6 +1,7 @@
 import { loadMergedCatalogProducts } from "../catalog/live.js";
 
 const SITE_URL = "https://www.internext.com.au";
+const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 
 const escapeXml = (value: unknown) =>
   String(value ?? "")
@@ -102,6 +103,11 @@ export default async function handler(
     const price = getPrice(product.price);
     const mpn = product.supplierCode || product.code;
     const shippingTags = [
+      "      <g:shipping>",
+      "        <g:country>AU</g:country>",
+      "        <g:service>Australia Post Standard</g:service>",
+      `        <g:price>${DEFAULT_GOOGLE_SHIPPING_PRICE_AUD.toFixed(2)} AUD</g:price>`,
+      "      </g:shipping>",
       optionalTag("g:shipping_weight", getShippingWeight(product.weightKg)),
       optionalTag("g:shipping_length", getShippingDimension(product.depthCm)),
       optionalTag("g:shipping_width", getShippingDimension(product.widthCm)),
