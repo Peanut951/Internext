@@ -182,6 +182,16 @@ const getAvailabilityRows = (product: CatalogProduct) => {
   return rows.filter((row): row is { label: string; value: string } => Boolean(row));
 };
 
+const getSchemaAvailability = (product: CatalogProduct) => {
+  if (/available to order|in stock/i.test(product.availabilityText || "")) {
+    return "https://schema.org/InStock";
+  }
+
+  return typeof product.stockQuantity === "number" && product.stockQuantity > 0
+    ? "https://schema.org/InStock"
+    : "https://schema.org/OutOfStock";
+};
+
 const ProductDetail = () => {
   const { code } = useParams();
   const productCode = code || "";
@@ -283,7 +293,7 @@ const ProductDetail = () => {
       "@context": "https://schema.org",
       "@type": "Product",
       sku: product.code,
-      mpn: product.code,
+      mpn: product.supplierCode || product.code,
       name: product.description,
       description: fullDescriptionParagraphs.join(" "),
       brand: {
@@ -297,10 +307,7 @@ const ProductDetail = () => {
             url: window.location.href,
             priceCurrency: "AUD",
             price: product.price.toFixed(2),
-            availability:
-              typeof product.stockQuantity === "number" && product.stockQuantity > 0
-                ? "https://schema.org/InStock"
-                : "https://schema.org/OutOfStock",
+            availability: getSchemaAvailability(product),
             itemCondition: "https://schema.org/NewCondition",
           }
         : undefined,

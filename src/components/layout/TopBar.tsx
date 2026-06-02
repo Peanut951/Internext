@@ -35,7 +35,7 @@ const TopBar = () => {
                 className="gap-2"
                 onClick={async () => {
                   await clearAuthSession();
-                  window.location.hash = "#/login";
+                  window.location.href = "/login";
                 }}
               >
                 <LogOut className="h-4 w-4" />

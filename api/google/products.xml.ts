@@ -27,11 +27,21 @@ const stripHtml = (value: unknown) =>
     .trim();
 
 const truncate = (value: string, maxLength: number) =>
-  value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}…` : value;
+  value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
 
-const getAvailability = (product: { stockQuantity?: number | null; price?: number | null }) => {
+const isPlaceholderImage = (value: unknown) => String(value || "").includes("product-placeholder.svg");
+
+const getAvailability = (product: {
+  stockQuantity?: number | null;
+  price?: number | null;
+  availabilityText?: string | null;
+}) => {
   if (product.price === null || product.price === undefined) {
     return "out_of_stock";
+  }
+
+  if (/available to order|in stock/i.test(product.availabilityText || "")) {
+    return "in_stock";
   }
 
   return (product.stockQuantity || 0) > 0 ? "in_stock" : "out_of_stock";
@@ -63,14 +73,16 @@ export default async function handler(
   const products = catalog.items
     .filter((product) => typeof product.price === "number" && product.price > 0)
     .filter((product) => Boolean(absoluteUrl(product.imageUrl)))
+    .filter((product) => !isPlaceholderImage(product.imageUrl))
     .slice(0, 50000);
 
   const items = products.map((product) => {
     const title = truncate(stripHtml(product.description || product.name || product.code), 150);
     const description = truncate(stripHtml(product.longDescription || product.description || product.name), 5000);
-    const link = `${SITE_URL}/#/products/item/${encodeURIComponent(String(product.code))}`;
+    const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
     const image = absoluteUrl(product.imageUrl);
     const price = getPrice(product.price);
+    const mpn = product.supplierCode || product.code;
 
     return [
       "    <item>",
@@ -83,8 +95,7 @@ export default async function handler(
       `      <g:price>${escapeXml(price)}</g:price>`,
       "      <g:condition>new</g:condition>",
       `      <g:brand>${escapeXml(product.manufacturer || "Internext")}</g:brand>`,
-      `      <g:mpn>${escapeXml(product.code)}</g:mpn>`,
-      "      <g:identifier_exists>no</g:identifier_exists>",
+      `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
       "    </item>",
     ].join("\n");
   });

@@ -151,8 +151,8 @@ export const buildStripeCheckoutParams = (payload: {
 }) => {
   const params = new URLSearchParams();
   params.set("mode", "payment");
-  params.set("success_url", `${payload.origin}/#/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
-  params.set("cancel_url", `${payload.origin}/#/checkout?checkout=cancelled`);
+  params.set("success_url", `${payload.origin}/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
+  params.set("cancel_url", `${payload.origin}/checkout?checkout=cancelled`);
   params.set("billing_address_collection", "required");
   params.set("phone_number_collection[enabled]", "true");
   params.set("customer_email", payload.customer.email.trim());

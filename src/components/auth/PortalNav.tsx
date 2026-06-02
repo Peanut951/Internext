@@ -72,7 +72,7 @@ const PortalNav = () => {
             size="sm"
             onClick={async () => {
               await clearAuthSession();
-              window.location.hash = "#/login";
+              window.location.href = "/login";
             }}
           >
             Sign Out
