@@ -63,7 +63,7 @@ const directories = [
   "https://www.alloys.com.au/Images/ProductImages/Small",
 ];
 
-const extensions = [".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".webp", ""];
+const extensions = [".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".gif", ".GIF", ""];
 
 const buildCandidates = (product) => {
   const candidates = [];

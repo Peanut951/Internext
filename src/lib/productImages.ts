@@ -1,6 +1,6 @@
 import type { SyntheticEvent } from "react";
 
-export const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.svg";
+export const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.png";
 
 const INVALID_IMAGE_PATTERNS = [/\/controls\/bit\.gif(?:\?.*)?$/i, /\/bit\.gif(?:\?.*)?$/i];
 

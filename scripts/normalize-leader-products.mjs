@@ -128,7 +128,7 @@ const conciseName = (item) => {
 
 const imageFor = (item) => {
   if (item.leaderSheet === "Q1 Catalogue 2026 PDF" || item.manufacturer !== "Leader") {
-    return item.imageUrl || "/product-placeholder.svg";
+    return item.imageUrl || "/product-placeholder.png";
   }
 
   const code = item.code;

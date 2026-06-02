@@ -4,6 +4,8 @@ const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
 const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
+  "ES-AR135DHD3",
+  "ES-AR135WH2",
   "ES-AR100WH2",
   "ES-SK150XHW-E12",
   "GR-GCC6010",
@@ -40,7 +42,7 @@ const stripHtml = (value: unknown) =>
 const truncate = (value: string, maxLength: number) =>
   value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
 
-const isPlaceholderImage = (value: unknown) => String(value || "").includes("product-placeholder.svg");
+const isPlaceholderImage = (value: unknown) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
 const isKnownTinyOrTrackingImage = (value: unknown) => /\/controls\/bit\.gif$/i.test(String(value || "").trim());
 
 const isSupportedGoogleImageUrl = (value: unknown) => {
@@ -57,13 +59,47 @@ const isSupportedGoogleImageUrl = (value: unknown) => {
   }
 };
 
+const hasSupportedGoogleImageExtension = (url: string) => {
+  try {
+    return /\.(jpe?g|png|gif)$/i.test(new URL(url).pathname);
+  } catch {
+    return false;
+  }
+};
+
+const getSupportedImageFormatCandidates = (value: unknown) => {
+  const image = absoluteUrl(value);
+  if (!image) {
+    return [];
+  }
+
+  if (hasSupportedGoogleImageExtension(image)) {
+    return [image];
+  }
+
+  try {
+    const parsed = new URL(image);
+    if (!/\/productimages\//i.test(parsed.pathname)) {
+      return [image];
+    }
+
+    return [".jpg", ".png", ".gif"].map((extension) => {
+      const next = new URL(parsed.href);
+      next.pathname = `${next.pathname.replace(/\/$/, "")}${extension}`;
+      return next.href;
+    });
+  } catch {
+    return [image];
+  }
+};
+
 const getProductImageCandidates = (product: {
   imageUrl?: string | null;
   imageUrls?: unknown;
 }) => {
   const gallery = Array.isArray(product.imageUrls) ? product.imageUrls : [];
   const candidates = [product.imageUrl, ...gallery]
-    .map((value) => absoluteUrl(value))
+    .flatMap(getSupportedImageFormatCandidates)
     .filter(Boolean);
 
   return Array.from(new Set(candidates)).sort((a, b) => {

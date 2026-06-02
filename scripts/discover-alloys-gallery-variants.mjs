@@ -55,7 +55,7 @@ const directories = [
   "https://www.alloys.com.au/images/ProductImages",
 ];
 
-const extensions = [".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".webp"];
+const extensions = [".jpg", ".JPG", ".jpeg", ".JPEG", ".png", ".PNG", ".gif", ".GIF"];
 
 const tokenVariants = (token) => {
   const base = String(token || "").trim();
