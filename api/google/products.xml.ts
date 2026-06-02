@@ -3,6 +3,15 @@ import { loadMergedCatalogProducts } from "../catalog/live.js";
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
+const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
+  "ES-AR100WH2",
+  "ES-SK150XHW-E12",
+  "GR-GCC6010",
+  "GR-GWN7711",
+  "GR-GWN7711P",
+  "LG-AM-ST21BA",
+  "LG-AM-ST21BC",
+]);
 
 const escapeXml = (value: unknown) =>
   String(value ?? "")
@@ -32,6 +41,50 @@ const truncate = (value: string, maxLength: number) =>
   value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
 
 const isPlaceholderImage = (value: unknown) => String(value || "").includes("product-placeholder.svg");
+const isKnownTinyOrTrackingImage = (value: unknown) => /\/controls\/bit\.gif$/i.test(String(value || "").trim());
+
+const isSupportedGoogleImageUrl = (value: unknown) => {
+  const image = absoluteUrl(value);
+  if (!image || isPlaceholderImage(image) || isKnownTinyOrTrackingImage(image)) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(image);
+    return /\.(jpe?g|png|gif)$/i.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+};
+
+const getProductImageCandidates = (product: {
+  imageUrl?: string | null;
+  imageUrls?: unknown;
+}) => {
+  const gallery = Array.isArray(product.imageUrls) ? product.imageUrls : [];
+  const candidates = [product.imageUrl, ...gallery]
+    .map((value) => absoluteUrl(value))
+    .filter(Boolean);
+
+  return Array.from(new Set(candidates)).sort((a, b) => {
+    const aPreferred = /\/(original|large)\//i.test(a) ? 0 : 1;
+    const bPreferred = /\/(original|large)\//i.test(b) ? 0 : 1;
+    return aPreferred - bPreferred;
+  });
+};
+
+const getGoogleImage = (product: {
+  code?: string | null;
+  imageUrl?: string | null;
+  imageUrls?: unknown;
+}) => {
+  const code = String(product.code || "").trim().toUpperCase();
+  if (GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES.has(code)) {
+    return "";
+  }
+
+  return getProductImageCandidates(product).find(isSupportedGoogleImageUrl) || "";
+};
 
 const getAvailability = (product: {
   stockQuantity?: number | null;
@@ -195,15 +248,14 @@ export default async function handler(
   const catalog = await loadMergedCatalogProducts();
   const products = catalog.items
     .filter((product) => typeof product.price === "number" && product.price > 0)
-    .filter((product) => Boolean(absoluteUrl(product.imageUrl)))
-    .filter((product) => !isPlaceholderImage(product.imageUrl))
+    .filter((product) => Boolean(getGoogleImage(product)))
     .slice(0, 50000);
 
   const items = products.map((product) => {
     const title = truncate(stripHtml(product.description || product.name || product.code), 150);
     const description = truncate(stripHtml(product.longDescription || product.description || product.name), 5000);
     const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
-    const image = absoluteUrl(product.imageUrl);
+    const image = getGoogleImage(product);
     const price = getPrice(product.price);
     const mpn = product.supplierCode || product.code;
     const shippingTags = [
