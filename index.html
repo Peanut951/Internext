@@ -29,6 +29,27 @@
 
   <body>
     <div id="root"></div>
+    <script id="merchantWidgetScript" src="https://www.gstatic.com/shopping/merchant/merchantwidget.js" defer></script>
+    <script>
+      window.addEventListener("DOMContentLoaded", function () {
+        var merchantWidgetScript = document.getElementById("merchantWidgetScript");
+        if (!merchantWidgetScript) {
+          return;
+        }
+
+        merchantWidgetScript.addEventListener("load", function () {
+          if (!window.merchantwidget) {
+            return;
+          }
+
+          window.merchantwidget.start({
+            merchant_id: 5802034641,
+            position: "BOTTOM_RIGHT",
+            region: "AU",
+          });
+        });
+      });
+    </script>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
