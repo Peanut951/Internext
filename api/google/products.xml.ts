@@ -1,18 +1,88 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
 
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
 const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
+  "AK-NK-2",
+  "AK-R20K-BK-L-KIT",
+  "AK-S562CCLIP",
+  "AK-S567-GREY",
+  "AK-VP-R49G",
+  "AL-1199",
+  "AL-8199",
+  "AV3250",
+  "CDRG2090",
+  "CDRG2110",
+  "CDRG2140",
+  "CIPFTM-250ST",
+  "CLBP243DWII",
+  "CMF754CDWII",
+  "CPFI-5100C",
+  "CPFI-5100CO",
+  "CPFI-5100GY",
+  "CPFI-5100MBK",
+  "CPFI-5100PBK",
+  "CPFI-5100PC",
+  "CPFI-5100PM",
+  "CPFI-5100R",
+  "EB-2250U",
   "ES-AR135DHD3",
   "ES-AR135WH2",
   "ES-AR100WH2",
+  "ES-AR150DHD3",
   "ES-SK150XHW-E12",
+  "EPB11B255508",
+  "EPC11CH40031",
+  "EPC11CH45501",
+  "EPC11CH72501",
+  "EPC11CJ20501",
+  "EPC11CK46501",
+  "EPC13T200292",
+  "EPDS-790WN",
   "GR-GCC6010",
+  "GR-GDS3705",
+  "GR-GDS37X0-IN",
+  "GR-GWN7615",
+  "GR-GWN7670",
+  "GR-GWN7670WM",
   "GR-GWN7711",
   "GR-GWN7711P",
+  "GR-GWN7816P",
+  "GR-GXP2200EXT",
+  "HP2Y9H0A",
+  "HP2Y9H1A",
+  "HP2Y9H3A",
+  "HP2Y9H3A_PROMO",
+  "HP698G7A",
+  "HP698G8A",
+  "IV2477X",
+  "IV2477X-BLK",
+  "KYMA4000FX",
+  "KYMA4000WIFX",
+  "KYP4060DN",
+  "KYPA2600CWX",
+  "KYPA2600CX",
+  "KYPA6000X",
+  "KYTK-1264",
+  "KYTK-1274",
   "LG-AM-ST21BA",
   "LG-AM-ST21BC",
+  "LM29S0034",
+  "LM40N9575",
+  "LM47C9667",
+  "LMMX532ADWE",
+  "LMMX632ADWE",
+  "NB-FP3SHELF",
+  "NB-T70",
+  "R842167",
+  "SH-SHELLYPROSHUT",
+  "ST-RX265-5A",
+  "ST-RX275-5A",
+  "ST-RX286-5A",
+  "VO-PPC-1540",
 ]);
 
 const escapeXml = (value: unknown) =>
@@ -113,13 +183,28 @@ const getGoogleImage = (product: {
   code?: string | null;
   imageUrl?: string | null;
   imageUrls?: unknown;
-}) => {
+}, excludedCodes = GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES) => {
   const code = String(product.code || "").trim().toUpperCase();
-  if (GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES.has(code)) {
+  if (excludedCodes.has(code)) {
     return "";
   }
 
   return getProductImageCandidates(product).find(isSupportedGoogleImageUrl) || "";
+};
+
+const loadGoogleFeedExclusions = async () => {
+  try {
+    const raw = await readFile(join(process.cwd(), "public", "data", "google-feed-exclusions.json"), "utf8");
+    const parsed = JSON.parse(raw) as { codes?: unknown };
+    const codes = Array.isArray(parsed.codes) ? parsed.codes : [];
+
+    return new Set([
+      ...GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES,
+      ...codes.map((code) => String(code).trim().toUpperCase()).filter(Boolean),
+    ]);
+  } catch {
+    return GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES;
+  }
 };
 
 const getAvailability = (product: {
@@ -282,16 +367,17 @@ export default async function handler(
   }
 
   const catalog = await loadMergedCatalogProducts();
+  const excludedCodes = await loadGoogleFeedExclusions();
   const products = catalog.items
     .filter((product) => typeof product.price === "number" && product.price > 0)
-    .filter((product) => Boolean(getGoogleImage(product)))
+    .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
     .slice(0, 50000);
 
   const items = products.map((product) => {
     const title = truncate(stripHtml(product.description || product.name || product.code), 150);
     const description = truncate(stripHtml(product.longDescription || product.description || product.name), 5000);
     const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
-    const image = getGoogleImage(product);
+    const image = getGoogleImage(product, excludedCodes);
     const price = getPrice(product.price);
     const mpn = product.supplierCode || product.code;
     const shippingTags = [
