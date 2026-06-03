@@ -163,6 +163,25 @@ type ShippingQuote = {
   };
 };
 
+declare global {
+  interface Window {
+    renderOptIn?: () => void;
+    gapi?: {
+      load: (api: string, callback: () => void) => void;
+      surveyoptin?: {
+        render: (options: {
+          merchant_id: number;
+          order_id: string;
+          email: string;
+          delivery_country: string;
+          estimated_delivery_date: string;
+          products?: Array<{ gtin: string }>;
+        }) => void;
+      };
+    };
+  }
+}
+
 const readCheckoutDraft = () => {
   if (typeof window === "undefined") {
     return null;
@@ -274,6 +293,60 @@ const getOutOfStockEtaMessage = (item: CartItem) => {
   }
 
   return "Out of stock. For ETA please call 1300 567 835.";
+};
+
+const GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID = 5802034641;
+
+const getGoogleReviewDeliveryDate = (createdAt: string) => {
+  const baseDate = new Date(createdAt);
+  const deliveryDate = Number.isNaN(baseDate.getTime()) ? new Date() : baseDate;
+  deliveryDate.setDate(deliveryDate.getDate() + 7);
+  return deliveryDate.toISOString().slice(0, 10);
+};
+
+const GoogleCustomerReviewsOptIn = ({ order }: { order: OrderRecord }) => {
+  useEffect(() => {
+    if (!order.customer.email || !order.orderNumber) {
+      return;
+    }
+
+    const renderOptIn = () => {
+      window.gapi?.load("surveyoptin", () => {
+        window.gapi?.surveyoptin?.render({
+          merchant_id: GOOGLE_CUSTOMER_REVIEWS_MERCHANT_ID,
+          order_id: order.orderNumber,
+          email: order.customer.email,
+          delivery_country: "AU",
+          estimated_delivery_date: getGoogleReviewDeliveryDate(order.createdAt),
+        });
+      });
+    };
+
+    window.renderOptIn = renderOptIn;
+
+    const existingScript = document.querySelector<HTMLScriptElement>(
+      'script[src^="https://apis.google.com/js/platform.js"]',
+    );
+
+    if (existingScript) {
+      renderOptIn();
+      return;
+    }
+
+    const script = document.createElement("script");
+    script.src = "https://apis.google.com/js/platform.js?onload=renderOptIn";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      if (window.renderOptIn === renderOptIn) {
+        delete window.renderOptIn;
+      }
+    };
+  }, [order.createdAt, order.customer.email, order.orderNumber]);
+
+  return null;
 };
 
 const Checkout = () => {
@@ -801,6 +874,7 @@ const Checkout = () => {
           </div>
           {placedOrder ? (
             <div className="max-w-3xl bg-card border border-border/50 rounded-2xl p-8 shadow-card">
+              <GoogleCustomerReviewsOptIn order={placedOrder} />
               <div className="flex items-start gap-3 mb-4">
                 <CheckCircle2 className="h-6 w-6 text-accent mt-0.5" />
                 <div>
