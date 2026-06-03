@@ -5,6 +5,7 @@ import { loadMergedCatalogProducts } from "../catalog/live.js";
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
+const GOOGLE_IMAGE_FEED_VERSION = "20260604";
 const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
   "AK-NK-2",
   "AK-R20K-BK-L-KIT",
@@ -123,7 +124,7 @@ const isSupportedGoogleImageUrl = (value: unknown) => {
 
   try {
     const parsed = new URL(image);
-    return /\.(jpe?g|png|gif)$/i.test(parsed.pathname);
+    return ["http:", "https:"].includes(parsed.protocol) && /\.(jpe?g|png|gif)$/i.test(parsed.pathname);
   } catch {
     return false;
   }
@@ -179,6 +180,21 @@ const getProductImageCandidates = (product: {
   });
 };
 
+const getFreshGoogleImageUrl = (value: string) => {
+  const image = absoluteUrl(value);
+  if (!image) {
+    return "";
+  }
+
+  try {
+    const parsed = new URL(image);
+    parsed.searchParams.set("internext_google_image_v", GOOGLE_IMAGE_FEED_VERSION);
+    return parsed.href;
+  } catch {
+    return image;
+  }
+};
+
 const getGoogleImage = (product: {
   code?: string | null;
   imageUrl?: string | null;
@@ -189,7 +205,8 @@ const getGoogleImage = (product: {
     return "";
   }
 
-  return getProductImageCandidates(product).find(isSupportedGoogleImageUrl) || "";
+  const image = getProductImageCandidates(product).find(isSupportedGoogleImageUrl) || "";
+  return image ? getFreshGoogleImageUrl(image) : "";
 };
 
 const loadGoogleFeedExclusions = async () => {

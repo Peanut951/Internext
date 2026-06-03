@@ -48,6 +48,9 @@ type CatalogProduct = {
 
 type CartItem = CatalogProduct & { qty: number };
 
+const SITE_URL = "https://www.internext.com.au";
+const DEFAULT_PUBLIC_SHIPPING_PRICE = 35;
+
 const getStoredCart = (): CartItem[] => {
   if (typeof window === "undefined") {
     return [];
@@ -192,6 +195,60 @@ const getSchemaAvailability = (product: CatalogProduct) => {
     : "https://schema.org/OutOfStock";
 };
 
+const toAbsoluteUrl = (value: string) => {
+  try {
+    return new URL(value, SITE_URL).href;
+  } catch {
+    return "";
+  }
+};
+
+const truncateText = (value: string, maxLength: number) =>
+  value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
+
+const setNamedMeta = (selector: string, attribute: "name" | "property", key: string, content: string) => {
+  let element = document.head.querySelector<HTMLMetaElement>(selector);
+
+  if (!element) {
+    element = document.createElement("meta");
+    element.setAttribute(attribute, key);
+    document.head.appendChild(element);
+  }
+
+  element.setAttribute("content", content);
+};
+
+const setCanonicalLink = (href: string) => {
+  let element = document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]');
+
+  if (!element) {
+    element = document.createElement("link");
+    element.setAttribute("rel", "canonical");
+    document.head.appendChild(element);
+  }
+
+  element.setAttribute("href", href);
+};
+
+const getPublicProductUrl = (productCode: string) =>
+  `${SITE_URL}/products/item/${encodeURIComponent(productCode)}`;
+
+const getProductMetaDescription = (
+  product: CatalogProduct,
+  description: string,
+  availability: string,
+) => {
+  const price = product.price ? formatAud(product.price) : null;
+  const parts = [
+    `Buy ${product.description} from Internext Australia.`,
+    price ? `${price} Inc GST.` : null,
+    availability ? `${availability}.` : null,
+    description,
+  ].filter(Boolean);
+
+  return truncateText(parts.join(" "), 155);
+};
+
 const ProductDetail = () => {
   const { code } = useParams();
   const productCode = code || "";
@@ -289,6 +346,33 @@ const ProductDetail = () => {
       return;
     }
 
+    const canonicalUrl = getPublicProductUrl(product.code);
+    const pageTitle = truncateText(`${product.description} | Internext`, 60);
+    const metaDescription = getProductMetaDescription(
+      product,
+      fullDescriptionParagraphs.join(" "),
+      availability,
+    );
+    const schemaImages = galleryImages
+      .filter((image) => image !== PRODUCT_IMAGE_PLACEHOLDER)
+      .map(toAbsoluteUrl)
+      .filter(Boolean);
+
+    document.title = pageTitle;
+    setNamedMeta('meta[name="description"]', "name", "description", metaDescription);
+    setNamedMeta('meta[property="og:title"]', "property", "og:title", pageTitle);
+    setNamedMeta('meta[property="og:description"]', "property", "og:description", metaDescription);
+    setNamedMeta('meta[property="og:type"]', "property", "og:type", "product");
+    setNamedMeta('meta[property="og:url"]', "property", "og:url", canonicalUrl);
+    setNamedMeta('meta[name="twitter:title"]', "name", "twitter:title", pageTitle);
+    setNamedMeta('meta[name="twitter:description"]', "name", "twitter:description", metaDescription);
+    setCanonicalLink(canonicalUrl);
+
+    if (schemaImages[0]) {
+      setNamedMeta('meta[property="og:image"]', "property", "og:image", schemaImages[0]);
+      setNamedMeta('meta[name="twitter:image"]', "name", "twitter:image", schemaImages[0]);
+    }
+
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -300,29 +384,82 @@ const ProductDetail = () => {
         "@type": "Brand",
         name: product.manufacturer || "Internext",
       },
-      image: galleryImages.filter((image) => image !== PRODUCT_IMAGE_PLACEHOLDER),
+      image: schemaImages,
       offers: product.price
         ? {
             "@type": "Offer",
-            url: window.location.href,
+            url: canonicalUrl,
             priceCurrency: "AUD",
             price: product.price.toFixed(2),
             availability: getSchemaAvailability(product),
             itemCondition: "https://schema.org/NewCondition",
+            shippingDetails: {
+              "@type": "OfferShippingDetails",
+              shippingRate: {
+                "@type": "MonetaryAmount",
+                value: DEFAULT_PUBLIC_SHIPPING_PRICE.toFixed(2),
+                currency: "AUD",
+              },
+              shippingDestination: {
+                "@type": "DefinedRegion",
+                addressCountry: "AU",
+              },
+              deliveryTime: {
+                "@type": "ShippingDeliveryTime",
+                handlingTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 1,
+                  maxValue: 2,
+                  unitCode: "DAY",
+                },
+                transitTime: {
+                  "@type": "QuantitativeValue",
+                  minValue: 2,
+                  maxValue: 7,
+                  unitCode: "DAY",
+                },
+              },
+            },
+            hasMerchantReturnPolicy: {
+              "@type": "MerchantReturnPolicy",
+              applicableCountry: "AU",
+              returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+              merchantReturnDays: 30,
+              returnMethod: "https://schema.org/ReturnByMail",
+              returnFees: "https://schema.org/ReturnShippingFees",
+            },
           }
         : undefined,
+    };
+    const breadcrumbData = {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        {
+          "@type": "ListItem",
+          position: 1,
+          name: "Products",
+          item: `${SITE_URL}/products`,
+        },
+        {
+          "@type": "ListItem",
+          position: 2,
+          name: product.description,
+          item: canonicalUrl,
+        },
+      ],
     };
 
     const script = document.createElement("script");
     script.id = scriptId;
     script.type = "application/ld+json";
-    script.textContent = JSON.stringify(structuredData);
+    script.textContent = JSON.stringify([structuredData, breadcrumbData]);
     document.head.appendChild(script);
 
     return () => {
       document.getElementById(scriptId)?.remove();
     };
-  }, [fullDescriptionParagraphs, galleryImages, product]);
+  }, [availability, fullDescriptionParagraphs, galleryImages, product]);
 
   const addToCart = () => {
     if (!product) {
