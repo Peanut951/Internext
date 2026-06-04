@@ -20,6 +20,7 @@ import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { trackPurchase } from "@/lib/analytics";
 
 const defaultCustomer: CheckoutCustomer = {
   firstName: "",
@@ -551,6 +552,9 @@ const Checkout = () => {
             destinationPostcode: postcode,
             items: cartItems.map((item) => ({
               code: item.code,
+              manufacturer: item.manufacturer,
+              description: item.description,
+              longDescription: item.longDescription,
               qty: item.qty,
               weightKg: item.weightKg,
               heightCm: item.heightCm,
@@ -695,6 +699,19 @@ const Checkout = () => {
         clearCheckoutDraft();
         setPlacedOrder(order);
         setCartItems([]);
+        trackPurchase({
+          transactionId: order.orderNumber,
+          value: order.totalKnownValue,
+          shipping: order.shippingTotal,
+          tax: order.gstAmount,
+          items: order.items.map((item) => ({
+            item_id: item.code,
+            item_name: item.description,
+            item_brand: item.manufacturer,
+            price: item.price || 0,
+            quantity: item.qty,
+          })),
+        });
         setPaymentStateMessage(notificationMessage);
         navigate("/checkout", { replace: true });
       } catch (finalizeError) {
@@ -800,7 +817,6 @@ const Checkout = () => {
               }
             : undefined,
       });
-
       const response = await fetch("/api/checkout/create-session", {
         method: "POST",
         headers: {

@@ -14,6 +14,7 @@ import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
+import { trackAddToCart } from "@/lib/analytics";
 
 type CatalogProduct = {
   code: string;
@@ -479,6 +480,13 @@ const ProductDetail = () => {
         )
       : [...existing, { ...pricedProduct, qty }];
     saveStoredCart(updated);
+    trackAddToCart({
+      item_id: product.code,
+      item_name: product.description,
+      item_brand: product.manufacturer,
+      price: pricedProduct.price || 0,
+      quantity: qty,
+    });
     setAdded(true);
     window.setTimeout(() => setAdded(false), 1500);
   };

@@ -16,6 +16,7 @@ import {
   getDisplayPrice,
   getPriceRole,
 } from "@/lib/pricing";
+import { trackAddToCart } from "@/lib/analytics";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -1166,6 +1167,7 @@ const ProductCategory = () => {
   };
 
   const addToCart = (product: CatalogProduct) => {
+    const pricedProduct = getCartPricedProduct(product, session?.role);
     setCartItems((prev) => {
       const existing = prev.find((item) => item.code === product.code);
       if (existing) {
@@ -1173,7 +1175,14 @@ const ProductCategory = () => {
           item.code === product.code ? { ...item, qty: item.qty + 1 } : item,
         );
       }
-      return [...prev, { ...getCartPricedProduct(product, session?.role), qty: 1 }];
+      return [...prev, { ...pricedProduct, qty: 1 }];
+    });
+    trackAddToCart({
+      item_id: product.code,
+      item_name: product.description,
+      item_brand: product.manufacturer,
+      price: pricedProduct.price || 0,
+      quantity: 1,
     });
   };
 

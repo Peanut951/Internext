@@ -9,6 +9,7 @@ import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
+import { trackCheckoutStarted } from "@/lib/analytics";
 
 const refreshCartStock = async (items: CartItem[]) => {
   if (items.length === 0) {
@@ -143,6 +144,18 @@ const Cart = () => {
   );
   const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
   const checkoutPath = session ? "/checkout" : `/login?redirect=${encodeURIComponent("/checkout")}&guest=1`;
+  const trackProceedToCheckout = () => {
+    trackCheckoutStarted({
+      value: subtotal,
+      items: items.map((item) => ({
+        item_id: item.code,
+        item_name: item.description,
+        item_brand: item.manufacturer,
+        price: item.price || 0,
+        quantity: item.qty,
+      })),
+    });
+  };
 
   return (
     <Layout>
@@ -305,7 +318,7 @@ const Cart = () => {
                     </Button>
                   ) : (
                     <Button className="w-full" asChild>
-                      <Link to={checkoutPath}>Proceed to Checkout</Link>
+                      <Link to={checkoutPath} onClick={trackProceedToCheckout}>Proceed to Checkout</Link>
                     </Button>
                   )}
                   <Button className="w-full" variant="outline" asChild>

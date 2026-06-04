@@ -1,11 +1,11 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
+import { getGoogleShippingDimension, getGoogleShippingWeight } from "../shipping/_estimates.js";
 
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
-const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
-const GOOGLE_IMAGE_FEED_VERSION = "20260604";
+const GOOGLE_IMAGE_FEED_VERSION = "20260604-2";
 const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
   "AK-NK-2",
   "AK-R20K-BK-L-KIT",
@@ -164,7 +164,9 @@ const getSupportedImageFormatCandidates = (value: unknown) => {
 
     return [".jpg", ".png", ".gif"].map((extension) => {
       const next = new URL(parsed.href);
-      next.pathname = `${next.pathname.replace(/\/$/, "")}${extension}`;
+      next.pathname = /\.[a-z0-9]+$/i.test(next.pathname)
+        ? next.pathname.replace(/\.[a-z0-9]+$/i, extension)
+        : `${next.pathname.replace(/\/$/, "")}${extension}`;
       return next.href;
     });
   } catch {
@@ -297,126 +299,8 @@ const getPrice = (value: unknown) =>
     ? `${value.toFixed(2)} AUD`
     : "";
 
-const getPositiveNumber = (value: unknown) => {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
-};
-
 const optionalTag = (name: string, value: string | null) =>
   value ? `      <${name}>${escapeXml(value)}</${name}>` : null;
-
-const getShippingWeight = (value: unknown) => {
-  const weightKg = getPositiveNumber(value);
-  return weightKg ? `${weightKg.toFixed(2)} kg` : null;
-};
-
-const estimateShippingWeightKg = (product: {
-  description?: string | null;
-  name?: string | null;
-  manufacturer?: string | null;
-}) => {
-  const text = `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
-
-  if (/\b(warranty|licen[cs]e|subscription|support|onsite|software)\b/.test(text)) {
-    return 0.1;
-  }
-
-  if (/\b(ink|toner|cartridge|ribbon|remote|adapter|cable|cord|lead|mouse|keyboard)\b/.test(text)) {
-    return 0.5;
-  }
-
-  if (/\b(paper|roll|media)\b/.test(text)) {
-    return 5;
-  }
-
-  if (/\b(laptop|notebook|chromebook|tablet)\b/.test(text)) {
-    return 3;
-  }
-
-  if (/\b(monitor|display|screen|tv)\b/.test(text)) {
-    return 8;
-  }
-
-  if (/\b(printer|multifunction|mfp|copier|scanner|plotter)\b/.test(text)) {
-    return 25;
-  }
-
-  if (/\b(server|workstation|desktop|pc\b|ups|battery)\b/.test(text)) {
-    return 12;
-  }
-
-  if (/\b(camera|nvr|switch|router|phone|handset|headset|access point|ap\b)\b/.test(text)) {
-    return 2;
-  }
-
-  return 1;
-};
-
-const getRequiredShippingWeight = (product: {
-  weightKg?: number | null;
-  description?: string | null;
-  name?: string | null;
-  manufacturer?: string | null;
-}) => getShippingWeight(product.weightKg) || `${estimateShippingWeightKg(product).toFixed(2)} kg`;
-
-const getShippingDimension = (value: unknown) => {
-  const centimetres = getPositiveNumber(value);
-  return centimetres
-    ? `${Math.min(centimetres, MAX_GOOGLE_SHIPPING_DIMENSION_CM).toFixed(1)} cm`
-    : null;
-};
-
-const estimateShippingDimensionsCm = (product: {
-  description?: string | null;
-  name?: string | null;
-  manufacturer?: string | null;
-}) => {
-  const text = `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
-
-  if (/\b(warranty|licen[cs]e|subscription|support|onsite|software)\b/.test(text)) {
-    return { length: 1, width: 1, height: 1 };
-  }
-
-  if (/\b(ink|toner|cartridge|ribbon|remote|adapter|cable|cord|lead|mouse|keyboard)\b/.test(text)) {
-    return { length: 20, width: 15, height: 10 };
-  }
-
-  if (/\b(paper|roll|media)\b/.test(text)) {
-    return { length: 65, width: 25, height: 25 };
-  }
-
-  if (/\b(laptop|notebook|chromebook|tablet)\b/.test(text)) {
-    return { length: 45, width: 35, height: 12 };
-  }
-
-  if (/\b(monitor|display|screen|tv)\b/.test(text)) {
-    return { length: 80, width: 55, height: 20 };
-  }
-
-  if (/\b(printer|multifunction|mfp|copier|scanner|plotter)\b/.test(text)) {
-    return { length: 80, width: 60, height: 50 };
-  }
-
-  if (/\b(server|workstation|desktop|pc\b|ups|battery)\b/.test(text)) {
-    return { length: 60, width: 50, height: 30 };
-  }
-
-  if (/\b(camera|nvr|switch|router|phone|handset|headset|access point|ap\b)\b/.test(text)) {
-    return { length: 30, width: 20, height: 15 };
-  }
-
-  return { length: 30, width: 20, height: 10 };
-};
-
-const getRequiredShippingDimension = (
-  product: {
-    description?: string | null;
-    name?: string | null;
-    manufacturer?: string | null;
-  },
-  value: unknown,
-  dimension: "length" | "width" | "height",
-) => getShippingDimension(value) || `${estimateShippingDimensionsCm(product)[dimension].toFixed(1)} cm`;
 
 export default async function handler(
   req: {
@@ -455,10 +339,10 @@ export default async function handler(
       "        <g:service>Australia Post Standard</g:service>",
       `        <g:price>${DEFAULT_GOOGLE_SHIPPING_PRICE_AUD.toFixed(2)} AUD</g:price>`,
       "      </g:shipping>",
-      optionalTag("g:shipping_weight", getRequiredShippingWeight(product)),
-      optionalTag("g:shipping_length", getRequiredShippingDimension(product, product.depthCm, "length")),
-      optionalTag("g:shipping_width", getRequiredShippingDimension(product, product.widthCm, "width")),
-      optionalTag("g:shipping_height", getRequiredShippingDimension(product, product.heightCm, "height")),
+      optionalTag("g:shipping_weight", getGoogleShippingWeight(product)),
+      optionalTag("g:shipping_length", getGoogleShippingDimension(product, "lengthCm")),
+      optionalTag("g:shipping_width", getGoogleShippingDimension(product, "widthCm")),
+      optionalTag("g:shipping_height", getGoogleShippingDimension(product, "heightCm")),
     ].filter((tag): tag is string => Boolean(tag));
 
     return [

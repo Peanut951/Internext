@@ -1,7 +1,11 @@
 import { readEnv, sendJson } from "../checkout/_shared.js";
+import { estimateShippingProfile } from "./_estimates.js";
 
 type ShippingQuoteItem = {
   code?: string;
+  manufacturer?: string;
+  description?: string;
+  longDescription?: string;
   qty?: number;
   weightKg?: number | null;
   heightCm?: number | null;
@@ -24,11 +28,6 @@ type ParcelEstimate = {
 };
 
 const ORIGIN_POSTCODE = "2158";
-const DEFAULT_WEIGHT_KG = 1;
-const DEFAULT_LENGTH_CM = 30;
-const DEFAULT_WIDTH_CM = 20;
-const DEFAULT_HEIGHT_CM = 10;
-
 const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | undefined): T | null => {
   if (!body) {
     return null;
@@ -59,13 +58,15 @@ const roundParcel = (parcel: ParcelEstimate): ParcelEstimate => ({
 });
 
 const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
+  const estimate = estimateShippingProfile(item);
+
   return roundParcel({
     itemCode: item.code,
     qty: 1,
-    weightKg: toPositiveNumber(item.weightKg) ?? DEFAULT_WEIGHT_KG,
-    lengthCm: toPositiveNumber(item.depthCm) ?? DEFAULT_LENGTH_CM,
-    widthCm: toPositiveNumber(item.widthCm) ?? DEFAULT_WIDTH_CM,
-    heightCm: toPositiveNumber(item.heightCm) ?? DEFAULT_HEIGHT_CM,
+    weightKg: estimate.weightKg,
+    lengthCm: estimate.lengthCm,
+    widthCm: estimate.widthCm,
+    heightCm: estimate.heightCm,
   });
 };
 
@@ -73,10 +74,10 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
   if (items.length === 0) {
     return [{
       qty: 1,
-      weightKg: DEFAULT_WEIGHT_KG,
-      lengthCm: DEFAULT_LENGTH_CM,
-      widthCm: DEFAULT_WIDTH_CM,
-      heightCm: DEFAULT_HEIGHT_CM,
+      weightKg: 1,
+      lengthCm: 30,
+      widthCm: 20,
+      heightCm: 10,
     }];
   }
 

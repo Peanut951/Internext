@@ -89,6 +89,11 @@ const Privacy = () => {
                   personal information against unauthorised access, loss, or misuse. This includes 
                   encryption, access controls, and regular security assessments.
                 </p>
+                <ul className="list-disc pl-6 space-y-2 text-muted-foreground mt-3">
+                  <li>Online payments are processed by Stripe; Internext does not store full card details.</li>
+                  <li>Administrative access is restricted to authorised users.</li>
+                  <li>Order and contact form notifications are sent through configured business workflows.</li>
+                </ul>
               </div>
 
               <div>

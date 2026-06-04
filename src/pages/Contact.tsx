@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
+import { trackContactFormSubmitted } from "@/lib/analytics";
 
 const contactTypes = [
   { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 567 835" },
@@ -58,6 +59,7 @@ const Contact = () => {
         title: "Message Sent",
         description: "Thank you for contacting us. We'll respond within 1 business day.",
       });
+      trackContactFormSubmitted(formData.enquiryType);
     } catch (error) {
       toast({
         title: "Message Not Sent",
@@ -114,6 +116,14 @@ const Contact = () => {
             {/* Contact Form */}
             <div>
               <h2 className="text-2xl font-bold text-foreground mb-6">Send Us a Message</h2>
+              <div className="mb-6 rounded-2xl border border-border/50 bg-secondary/40 p-5">
+                <h3 className="font-semibold text-foreground">What happens next</h3>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                  Your enquiry is sent to the Internext team with your contact details and message.
+                  We aim to respond within 1 business day, and urgent order or warranty questions can
+                  also be followed up by calling 1300 567 835.
+                </p>
+              </div>
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid md:grid-cols-2 gap-4">

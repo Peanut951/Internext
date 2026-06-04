@@ -64,3 +64,56 @@ export const trackPageView = (path: string) => {
     page_title: document.title,
   });
 };
+
+const trackEvent = (eventName: string, params: Record<string, unknown> = {}) => {
+  if (typeof window === "undefined" || !GOOGLE_ANALYTICS_ID || !window.gtag) {
+    return;
+  }
+
+  window.gtag("event", eventName, {
+    currency: "AUD",
+    ...params,
+  });
+};
+
+type AnalyticsItem = {
+  item_id: string;
+  item_name: string;
+  item_brand?: string;
+  price?: number;
+  quantity?: number;
+};
+
+export const trackAddToCart = (item: AnalyticsItem & { value?: number }) => {
+  trackEvent("add_to_cart", {
+    value: item.value ?? (item.price || 0) * (item.quantity || 1),
+    items: [item],
+  });
+};
+
+export const trackCheckoutStarted = (params: { value: number; items: AnalyticsItem[] }) => {
+  trackEvent("begin_checkout", params);
+};
+
+export const trackPurchase = (params: {
+  transactionId: string;
+  value: number;
+  shipping: number;
+  tax: number;
+  items: AnalyticsItem[];
+}) => {
+  trackEvent("purchase", {
+    transaction_id: params.transactionId,
+    value: params.value,
+    shipping: params.shipping,
+    tax: params.tax,
+    items: params.items,
+  });
+};
+
+export const trackContactFormSubmitted = (enquiryType: string) => {
+  trackEvent("generate_lead", {
+    form_name: "contact",
+    enquiry_type: enquiryType || "unspecified",
+  });
+};

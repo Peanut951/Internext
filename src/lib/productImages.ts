@@ -3,6 +3,7 @@ import type { SyntheticEvent } from "react";
 export const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.png";
 
 const INVALID_IMAGE_PATTERNS = [/\/controls\/bit\.gif(?:\?.*)?$/i, /\/bit\.gif(?:\?.*)?$/i];
+const SUPPORTED_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|gif)$/i;
 
 type ProductImageSource = {
   code?: string;
@@ -70,13 +71,32 @@ const isExactProductImage = (url: string, product: ProductImageSource) => {
 };
 
 const getHigherResolutionVariants = (url: string) => {
-  const variants = [
+  const qualityVariants = [
     url.replace(/\/Images\/ProductImages\/Small\//i, "/Images/ProductImages/Original/"),
     url.replace(/\/Images\/ProductImages\/Small\//i, "/Images/ProductImages/Large/"),
     url.replace(/\/images\/ProductImages\/Small\//i, "/images/ProductImages/Original/"),
     url.replace(/\/images\/ProductImages\/Small\//i, "/images/ProductImages/Large/"),
     url,
   ];
+
+  const variants = qualityVariants.flatMap((variant) => {
+    try {
+      const parsed = new URL(variant, window.location.origin);
+      if (SUPPORTED_IMAGE_EXTENSION_PATTERN.test(parsed.pathname)) {
+        return [variant];
+      }
+
+      return [".jpg", ".png", ".gif"].map((extension) => {
+        const next = new URL(parsed.href);
+        next.pathname = /\.[a-z0-9]+$/i.test(next.pathname)
+          ? next.pathname.replace(/\.[a-z0-9]+$/i, extension)
+          : `${next.pathname.replace(/\/$/, "")}${extension}`;
+        return next.href;
+      });
+    } catch {
+      return SUPPORTED_IMAGE_EXTENSION_PATTERN.test(variant.split("?")[0]) ? [variant] : [];
+    }
+  });
 
   return Array.from(new Set(variants));
 };

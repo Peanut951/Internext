@@ -93,6 +93,25 @@ const Shipping = () => {
               ))}
             </div>
 
+            <h2 className="text-2xl font-bold text-foreground mb-8">How Freight Is Calculated</h2>
+
+            <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 mb-12">
+              <ul className="space-y-3 text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
+                  Checkout uses the delivery postcode and the cart item's weight and dimensions where available.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
+                  If a supplier has not provided exact measurements, Internext applies a product-category estimate so freight can still be calculated.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
+                  Large, bulky, or multi-carton orders may need manual confirmation if the carrier cannot quote automatically.
+                </li>
+              </ul>
+            </div>
+
             {/* Tracking */}
             <h2 className="text-2xl font-bold text-foreground mb-8">Order Tracking</h2>
             

@@ -2,32 +2,32 @@ import Layout from "@/components/layout/Layout";
 import { Users, Target, Award, Globe } from "lucide-react";
 
 const stats = [
-  { value: "15+", label: "Years in Business" },
-  { value: "500+", label: "Active Partners" },
-  { value: "25+", label: "Premium Brands" },
-  { value: "$50M+", label: "Annual Revenue" },
+  { value: "7,500+", label: "Products in Catalogue" },
+  { value: "Live", label: "Pricing & Availability" },
+  { value: "AU-wide", label: "Delivery Coverage" },
+  { value: "Secure", label: "Online Checkout" },
 ];
 
 const values = [
   {
     icon: Users,
-    title: "Partner First",
-    description: "Every decision we make starts with how it benefits our reseller partners. Your success drives our business.",
+    title: "Clear Product Data",
+    description: "We keep product pages focused on price, availability, size, ETA, and practical buying information.",
   },
   {
     icon: Target,
-    title: "Excellence",
-    description: "We hold ourselves to the highest standards in service, support, and delivery across every interaction.",
+    title: "Reliable Fulfilment",
+    description: "Shipping is calculated from the order contents and destination so customers see freight before payment.",
   },
   {
     icon: Award,
-    title: "Integrity",
-    description: "Transparent pricing, honest communication, and ethical business practices are non-negotiable.",
+    title: "Transparent Pricing",
+    description: "Customer pricing is shown including GST, while approved reseller accounts can access reseller pricing.",
   },
   {
     icon: Globe,
-    title: "Innovation",
-    description: "Constantly evolving our services and technology offerings to keep our partners ahead of the curve.",
+    title: "Practical Support",
+    description: "Customers and resellers can contact our team for product questions, warranty help, and order support.",
   },
 ];
 
@@ -42,8 +42,8 @@ const About = () => {
               About Internext
             </h1>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              For over 15 years, Internext has been Australia's trusted technology 
-              distributor, building lasting partnerships with resellers nationwide.
+              Internext helps Australian customers and technology resellers source products with live pricing,
+              availability, secure checkout, and practical support.
             </p>
           </div>
         </div>
@@ -75,33 +75,31 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  Founded in 2008 in Sydney, Internext began with a simple mission: 
-                  to be the distributor that Australian IT resellers actually wanted 
-                  to work with.
+                  Internext is built around a simple buying experience: search the catalogue, compare live
+                  product information, add items to cart, and complete checkout with delivery calculated from
+                  the order and destination.
                 </p>
                 <p>
-                  We saw an industry dominated by transactional relationships and 
-                  decided to do things differently. By investing in our people, 
-                  building genuine partnerships, and maintaining the highest service 
-                  standards, we've grown to become one of Australia's most respected 
-                  technology distributors.
+                  The catalogue brings together thousands of technology products across print, networking,
+                  communications, security, AV, computing, consumables, and services. Product pages are designed
+                  to show the details buyers actually need: price, stock, ETA where available, size, warranty
+                  context, and product imagery.
                 </p>
                 <p>
-                  Today, we partner with over 500 resellers across Australia, 
-                  representing 25+ premium technology brands. But our success isn't 
-                  measured in numbers — it's measured in the success of our partners.
+                  Registered customers can keep track of order history, while approved reseller accounts receive
+                  access to reseller pricing and account tools. Guest checkout is also available for eligible
+                  purchases.
                 </p>
               </div>
             </div>
             <div className="bg-secondary rounded-2xl p-8 lg:p-12">
               <blockquote className="text-xl text-foreground italic leading-relaxed">
-                "We don't just distribute products. We distribute success to our 
-                partners through genuine support, expert guidance, and a commitment 
-                to their growth."
+                "Our focus is straightforward: make technology purchasing easier to search, compare,
+                price, order, and support."
               </blockquote>
               <div className="mt-6">
-                <div className="font-semibold text-foreground">Michael Chen</div>
-                <div className="text-muted-foreground">Founder & CEO</div>
+                <div className="font-semibold text-foreground">Internext Team</div>
+                <div className="text-muted-foreground">Sales and support</div>
               </div>
             </div>
           </div>
@@ -142,17 +140,17 @@ const About = () => {
       <section className="py-20 bg-primary">
         <div className="container-wide text-center">
           <h2 className="text-3xl md:text-4xl font-bold text-primary-foreground mb-4">
-            Ready to partner with us?
+            Ready to get started?
           </h2>
           <p className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
-            Join 500+ Australian technology resellers who trust Internext as their 
-            distribution partner.
+            Browse live products, create an account for order history, or contact us for help choosing the
+            right product.
           </p>
           <a 
             href="/contact" 
             className="inline-flex items-center gap-2 bg-accent text-accent-foreground px-8 py-3 rounded-lg font-semibold hover:bg-teal-light transition-colors"
           >
-            Become a Partner
+            Contact Internext
           </a>
         </div>
       </section>
