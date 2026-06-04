@@ -30,6 +30,9 @@ const ACRONYMS = new Set([
   "SSD",
   "HDD",
   "MFP",
+  "NBD",
+  "RTX",
+  "VR",
 ]);
 
 const SMALL_WORDS = new Set(["and", "or", "for", "with", "to", "of", "in", "on", "at", "by"]);
@@ -51,6 +54,13 @@ const normalizeWhitespace = (value: string) =>
 const cleanEncodingNoise = (value: string) =>
   normalizeWhitespace(value)
     .replace(/[\uFFFD]+/g, "")
+    .replace(/\bWiFi\b/gi, "Wi-Fi")
+    .replace(/\bWin\s?11\b/gi, "Windows 11")
+    .replace(/\bWty\b/gi, "Warranty")
+    .replace(/\bNbd\b/gi, "NBD")
+    .replace(/\bAdv\s+Det\b/gi, "Advanced Detection")
+    .replace(/\b(\d+)\s*Yr\b/gi, "$1 Year")
+    .replace(/\b(\d+)\s*Yrs\b/gi, "$1 Years")
     .replace(/\s([,.;:!?])/g, "$1")
     .replace(/\(\s+/g, "(")
     .replace(/\s+\)/g, ")")

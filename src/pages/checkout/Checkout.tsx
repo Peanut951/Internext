@@ -15,7 +15,7 @@ import {
   placeOrder,
   saveCartItems,
 } from "@/lib/orderManagement";
-import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
@@ -1179,6 +1179,7 @@ const Checkout = () => {
                   <>
                     <div className="space-y-3 max-h-[460px] overflow-auto pr-1">
                       {cartItems.map((item) => {
+                        const productImage = getOptionalProductImage(item);
                         const isUnavailable = typeof item.stockQuantity === "number" && item.stockQuantity <= 0;
                         const exceedsAvailable =
                           typeof item.stockQuantity === "number" &&
@@ -1195,12 +1196,14 @@ const Checkout = () => {
                           }`}
                         >
                           <div className="flex gap-3">
-                            <img
-                              src={getPrimaryProductImage(item)}
-                              alt={item.description}
-                              onError={handleProductImageError}
-                              className="h-16 w-16 rounded-md border border-border/50 bg-white object-contain"
-                            />
+                            {productImage ? (
+                              <img
+                                src={productImage}
+                                alt={item.description}
+                                onError={handleProductImageError}
+                                className="h-16 w-16 rounded-md border border-border/50 bg-white object-contain"
+                              />
+                            ) : null}
                             <div className="min-w-0">
                               <p className="text-sm font-medium text-foreground break-words">{item.description}</p>
                               <p className="text-xs text-muted-foreground">

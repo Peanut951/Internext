@@ -7,8 +7,17 @@ const INVALID_IMAGE_PATTERNS = [/\/controls\/bit\.gif(?:\?.*)?$/i, /\/bit\.gif(?
 type ProductImageSource = {
   code?: string;
   supplierCode?: string;
+  description?: string;
+  longDescription?: string;
+  manufacturer?: string;
   imageUrl?: string;
   imageUrls?: string[];
+};
+
+export const isDigitalProduct = (product: ProductImageSource) => {
+  const text = `${product.manufacturer || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+
+  return /\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text);
 };
 
 const sanitizeProductImageUrl = (value?: string | null) => {
@@ -92,6 +101,10 @@ const sortByImageQuality = (images: string[]) =>
   [...images].sort((a, b) => getImageQualityScore(b) - getImageQualityScore(a));
 
 export const getProductImageCandidates = (product: ProductImageSource) => {
+  if (isDigitalProduct(product)) {
+    return [];
+  }
+
   const sanitized = [...(product.imageUrls ?? []), product.imageUrl ?? ""]
     .map((value) => sanitizeProductImageUrl(value))
     .filter((value): value is string => Boolean(value));
@@ -106,8 +119,12 @@ export const getProductImageCandidates = (product: ProductImageSource) => {
   return primary ? sortByImageQuality(getHigherResolutionVariants(primary)) : uniqueImages.slice(0, 1);
 };
 
+export const getOptionalProductImage = (product: ProductImageSource) => {
+  return getProductImageCandidates(product)[0] ?? null;
+};
+
 export const getPrimaryProductImage = (product: ProductImageSource) => {
-  return getProductImageCandidates(product)[0] ?? PRODUCT_IMAGE_PLACEHOLDER;
+  return getOptionalProductImage(product) ?? PRODUCT_IMAGE_PLACEHOLDER;
 };
 
 export const handleProductImageError = (event: SyntheticEvent<HTMLImageElement>) => {

@@ -6,7 +6,7 @@ import PortalNav from "@/components/auth/PortalNav";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
-import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
 
@@ -191,6 +191,7 @@ const Cart = () => {
 
                 {items.map((item) => {
                   const lineTotal = item.price === null ? null : item.price * item.qty;
+                  const productImage = getOptionalProductImage(item);
                   const isUnavailable = typeof item.stockQuantity === "number" && item.stockQuantity <= 0;
                   const exceedsAvailable =
                     typeof item.stockQuantity === "number" &&
@@ -205,14 +206,18 @@ const Cart = () => {
                           : "border-border/60"
                       }`}
                     >
-                      <div className="grid gap-4 sm:grid-cols-[120px_minmax(0,1fr)_auto] sm:items-center">
-                        <img
-                          src={getPrimaryProductImage(item)}
-                          alt={item.description}
-                          onError={handleProductImageError}
-                          className="h-28 w-full sm:w-28 rounded-lg border border-border/50 bg-white object-contain"
-                          loading="lazy"
-                        />
+                      <div className={`grid gap-4 sm:items-center ${
+                        productImage ? "sm:grid-cols-[120px_minmax(0,1fr)_auto]" : "sm:grid-cols-[minmax(0,1fr)_auto]"
+                      }`}>
+                        {productImage ? (
+                          <img
+                            src={productImage}
+                            alt={item.description}
+                            onError={handleProductImageError}
+                            className="h-28 w-full rounded-lg border border-border/50 bg-white object-contain sm:w-28"
+                            loading="lazy"
+                          />
+                        ) : null}
 
                         <div>
                           <h3 className="font-semibold text-foreground leading-snug break-words">{item.description}</h3>

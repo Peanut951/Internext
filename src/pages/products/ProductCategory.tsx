@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
@@ -1415,7 +1415,7 @@ const ProductCategory = () => {
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                   {pageItems.map((product) => {
                     const priceLabel = getDisplayPrice(product, session?.role);
-                    const productImage = getPrimaryProductImage(product);
+                    const productImage = getOptionalProductImage(product);
                     const summary = getCardSummary(product);
                     const highlights = getCardHighlights(product);
                     const availability =
@@ -1440,18 +1440,20 @@ const ProductCategory = () => {
                             </span>
                           </div>
 
-                          <div className="relative aspect-[1/1] overflow-hidden rounded-[1.2rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
-                            <div className="absolute inset-x-6 top-0 h-9 rounded-b-full bg-white/35 blur-xl" />
-                            <div className="flex h-full items-center justify-center p-5">
-                              <img
-                                src={productImage}
-                                alt={product.description}
-                                loading="lazy"
-                                onError={handleProductImageError}
-                                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
-                              />
+                          {productImage ? (
+                            <div className="relative aspect-[1/1] overflow-hidden rounded-[1.2rem] border border-border/50 bg-gradient-to-br from-secondary via-background to-secondary/55">
+                              <div className="absolute inset-x-6 top-0 h-9 rounded-b-full bg-white/35 blur-xl" />
+                              <div className="flex h-full items-center justify-center p-5">
+                                <img
+                                  src={productImage}
+                                  alt={product.description}
+                                  loading="lazy"
+                                  onError={handleProductImageError}
+                                  className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                                />
+                              </div>
                             </div>
-                          </div>
+                          ) : null}
                         </div>
 
                         <div className="flex flex-1 flex-col px-5 pb-5">

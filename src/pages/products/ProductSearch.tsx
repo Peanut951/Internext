@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Search, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import {
@@ -288,7 +288,7 @@ const ProductSearch = () => {
 
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   {currentItems.map(({ product }) => {
-                    const image = getPrimaryProductImage(product);
+                    const image = getOptionalProductImage(product);
                     const availability =
                       product.availabilityText ||
                       (typeof product.stockQuantity === "number"
@@ -300,16 +300,18 @@ const ProductSearch = () => {
                         to={`/products/item/${encodeURIComponent(product.code)}`}
                         className="group rounded-2xl border border-border/60 bg-background p-4 transition-all duration-300 hover:-translate-y-1 hover:border-accent/30 hover:shadow-card"
                       >
-                        <div className="grid gap-4 sm:grid-cols-[112px_minmax(0,1fr)]">
-                          <div className="aspect-square overflow-hidden rounded-xl border border-border/50 bg-white max-sm:max-w-[112px]">
-                            <img
-                              src={image}
-                              alt={product.description}
-                              loading="lazy"
-                              onError={handleProductImageError}
-                              className="h-full w-full object-contain"
-                            />
-                          </div>
+                        <div className={`grid gap-4 ${image ? "sm:grid-cols-[112px_minmax(0,1fr)]" : ""}`}>
+                          {image ? (
+                            <div className="aspect-square overflow-hidden rounded-xl border border-border/50 bg-white max-sm:max-w-[112px]">
+                              <img
+                                src={image}
+                                alt={product.description}
+                                loading="lazy"
+                                onError={handleProductImageError}
+                                className="h-full w-full object-contain"
+                              />
+                            </div>
+                          ) : null}
 
                           <div className="min-w-0">
                             <div className="flex flex-wrap gap-2">

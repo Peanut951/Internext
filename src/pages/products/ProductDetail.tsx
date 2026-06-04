@@ -7,6 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProductImageCandidates,
   handleProductImageError,
+  isDigitalProduct,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
@@ -308,7 +309,10 @@ const ProductDetail = () => {
       return [];
     }
     const candidates = getProductImageCandidates(product);
-    return candidates.length > 0 ? candidates : [PRODUCT_IMAGE_PLACEHOLDER];
+    if (candidates.length > 0) {
+      return candidates;
+    }
+    return isDigitalProduct(product) ? [] : [PRODUCT_IMAGE_PLACEHOLDER];
   }, [product]);
 
   const specHighlights = useMemo(() => {
@@ -526,8 +530,9 @@ const ProductDetail = () => {
                 <div className="bg-card rounded-2xl border border-border/50 p-4 shadow-card sm:p-5 md:p-6">
                   <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
                     <div>
-                      <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
-                        {activeImage ? (
+                      {galleryImages.length > 0 ? (
+                        <div className="mb-4 flex aspect-square items-center justify-center overflow-hidden rounded-2xl bg-secondary/60">
+                          {activeImage ? (
                           <img
                             src={activeImage}
                             alt={product.description}
@@ -535,10 +540,9 @@ const ProductDetail = () => {
                             loading="eager"
                             onError={handleActiveImageError}
                           />
-                        ) : (
-                          <span className="text-muted-foreground text-sm">No image</span>
-                        )}
-                      </div>
+                          ) : null}
+                        </div>
+                      ) : null}
                       {galleryImages.length > 1 ? (
                         <div className="rounded-2xl border border-border/50 bg-secondary/20 p-3">
                           <div className="grid grid-cols-4 gap-3 sm:grid-cols-5">

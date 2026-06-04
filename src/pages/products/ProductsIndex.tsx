@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
-import { getPrimaryProductImage, handleProductImageError } from "@/lib/productImages";
+import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import { getDisplayPrice } from "@/lib/pricing";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -364,7 +364,7 @@ const ProductsIndex = () => {
 
                     <div className="max-h-[520px] overflow-y-auto">
                       {searchPreviewMatches.map(({ product }, index) => {
-                        const image = getPrimaryProductImage(product);
+                        const image = getOptionalProductImage(product);
                         const price = getDisplayPrice(product, session?.role);
                         const availability =
                           product.availabilityText ||
@@ -376,19 +376,25 @@ const ProductsIndex = () => {
                           <Link
                             key={`${product.code}-${index}`}
                             to={`/products/item/${encodeURIComponent(product.code)}`}
-                            className={`grid grid-cols-[56px_minmax(0,1fr)] gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:grid-cols-[64px_minmax(0,1fr)_auto] sm:items-center sm:gap-4 ${
+                            className={`grid gap-3 px-4 py-3 transition-colors hover:bg-secondary/60 sm:items-center sm:gap-4 ${
+                              image
+                                ? "grid-cols-[56px_minmax(0,1fr)] sm:grid-cols-[64px_minmax(0,1fr)_auto]"
+                                : "grid-cols-1 sm:grid-cols-[minmax(0,1fr)_auto]"
+                            } ${
                               index < searchPreviewMatches.length - 1 ? "border-b border-border/40" : ""
                             }`}
                           >
-                            <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white sm:h-16 sm:w-16">
-                              <img
-                                src={image}
-                                alt={product.description}
-                                loading="lazy"
-                                onError={handleProductImageError}
-                                className="h-full w-full object-contain"
-                              />
-                            </div>
+                            {image ? (
+                              <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white sm:h-16 sm:w-16">
+                                <img
+                                  src={image}
+                                  alt={product.description}
+                                  loading="lazy"
+                                  onError={handleProductImageError}
+                                  className="h-full w-full object-contain"
+                                />
+                              </div>
+                            ) : null}
                             <div className="min-w-0">
                               <p className="break-words font-medium leading-snug text-foreground">
                                 {product.description}
@@ -397,7 +403,7 @@ const ProductsIndex = () => {
                                 {product.manufacturer || "Unbranded"} - Code: {product.code}
                               </p>
                             </div>
-                            <div className="col-start-2 text-sm sm:col-start-auto sm:text-right">
+                            <div className={`${image ? "col-start-2 sm:col-start-auto" : ""} text-sm sm:text-right`}>
                               <p className="whitespace-nowrap font-semibold text-foreground">{price}</p>
                               {availability ? (
                                 <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">
