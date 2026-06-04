@@ -121,7 +121,7 @@ const TechnicalServices = () => {
                   </div>
                   <div>
                     <div className="font-medium text-foreground">Technical Hotline</div>
-                    <div className="text-muted-foreground">1300 123 456 (Option 2)</div>
+                    <div className="text-muted-foreground">1300 567 835</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">

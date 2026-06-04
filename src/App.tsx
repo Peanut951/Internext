@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import RequireAuth from "./components/auth/RequireAuth";
 import RequirePortalHome from "./components/auth/RequirePortalHome";
+import { trackPageView } from "@/lib/analytics";
 
 const Index = lazy(() => import("./pages/Index"));
 const NotFound = lazy(() => import("./pages/NotFound"));
@@ -43,6 +44,7 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    trackPageView(pathname);
   }, [pathname]);
 
   return null;

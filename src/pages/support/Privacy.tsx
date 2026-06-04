@@ -24,7 +24,7 @@ const Privacy = () => {
             <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 space-y-8">
               <div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Last updated: November 2024
+                  Last updated: June 2026
                 </p>
                 <p className="text-muted-foreground">
                   Internext Pty Ltd ("we", "us", or "our") is committed to protecting your privacy 
@@ -40,12 +40,12 @@ const Privacy = () => {
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Name and contact details (email, phone, address)</li>
-                  <li>Business information (company name, ABN, industry)</li>
+                  <li>Business information where supplied (company name, ABN, industry)</li>
                   <li>Account credentials and preferences</li>
                   <li>Order history and transaction details</li>
                   <li>Payment information (processed securely by third-party providers)</li>
                   <li>Communications with us (emails, support requests)</li>
-                  <li>Website usage data (cookies, analytics)</li>
+                  <li>Website usage data (cookies, analytics, and session diagnostics)</li>
                 </ul>
               </div>
 
@@ -56,7 +56,7 @@ const Privacy = () => {
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Process orders and provide our products and services</li>
-                  <li>Manage your reseller account</li>
+                  <li>Manage customer, reseller, and administrator accounts</li>
                   <li>Communicate with you about orders, products, and services</li>
                   <li>Provide customer support and technical assistance</li>
                   <li>Send marketing communications (with your consent)</li>
@@ -95,7 +95,8 @@ const Privacy = () => {
                 <h2 className="text-xl font-bold text-foreground mb-4">5. Cookies and Analytics</h2>
                 <p className="text-muted-foreground">
                   Our website uses cookies and similar technologies to enhance your experience and 
-                  collect analytics data. You can manage cookie preferences through your browser settings.
+                  collect analytics and diagnostic data. This may include Google Analytics and Microsoft Clarity 
+                  if enabled. You can manage cookie preferences through your browser settings.
                 </p>
               </div>
 
@@ -121,8 +122,8 @@ const Privacy = () => {
                 </p>
                 <div className="mt-3 text-muted-foreground">
                   <p>Email: privacy@internext.com.au</p>
-                  <p>Phone: 1300 123 456</p>
-                  <p>Address: Level 10, 123 Business Street, Sydney NSW 2000</p>
+                  <p>Phone: 1300 567 835</p>
+                  <p>Address: 7B/256 New Line Rd, Dural NSW 2158</p>
                 </div>
               </div>
 

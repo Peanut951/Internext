@@ -83,8 +83,8 @@ const Warranty = () => {
               <div className="grid md:grid-cols-4 gap-4">
                 {[
                   { step: "1", title: "Gather Info", desc: "Product model, serial number, purchase date, and issue description" },
-                  { step: "2", title: "Submit Request", desc: "Lodge claim through reseller portal or contact support" },
-                  { step: "3", title: "Get RMA", desc: "Receive return authorisation and shipping instructions" },
+                  { step: "2", title: "Submit Request", desc: "Contact us with the claim details or submit a service request" },
+                  { step: "3", title: "Review", desc: "We assess the claim and provide next steps or return instructions where needed" },
                   { step: "4", title: "Resolution", desc: "Product repaired, replaced, or credited as applicable" },
                 ].map((item) => (
                   <div key={item.step} className="bg-card rounded-xl p-5 shadow-card border border-border/50 text-center">
@@ -174,7 +174,7 @@ const Warranty = () => {
                 Need to Submit a Warranty Claim?
               </h2>
               <p className="text-primary-foreground/80 mb-6">
-                Use our service request form to lodge your warranty or return request.
+                Start your warranty or return request through our service request form.
               </p>
               <Button variant="hero" asChild>
                 <Link to="/services/request">

@@ -12,7 +12,7 @@ const Shipping = () => {
               Shipping & Delivery
             </h1>
             <p className="text-xl text-primary-foreground/80">
-              Fast, reliable delivery across Australia with real-time tracking.
+              Delivery across Australia with freight calculated from the items and destination at checkout.
             </p>
           </div>
         </div>
@@ -38,11 +38,11 @@ const Shipping = () => {
                 <ul className="space-y-2 text-sm">
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-4 w-4 text-accent" />
-                    Next business day (orders before 2pm)
+                    Typically 1-3 business days after dispatch
                   </li>
                   <li className="flex items-center gap-2 text-foreground">
                     <CheckCircle className="h-4 w-4 text-accent" />
-                    Same-day available (additional cost)
+                    Express options may be available for selected areas
                   </li>
                 </ul>
               </div>
@@ -75,10 +75,10 @@ const Shipping = () => {
             
             <div className="space-y-4 mb-12">
               {[
-                { name: "Standard Delivery", desc: "Our default shipping option included with all orders. Tracking provided.", time: "1-5 business days" },
-                { name: "Express Delivery", desc: "Priority handling and expedited shipping for urgent orders.", time: "Same or next day (metro)" },
-                { name: "Scheduled Delivery", desc: "Choose a specific delivery date that suits your customer.", time: "As scheduled" },
-                { name: "Direct Ship", desc: "Ship directly to your customer with your branding.", time: "Varies by location" },
+                { name: "Standard Delivery", desc: "The default freight option calculated from the delivery address and product dimensions.", time: "1-5 business days" },
+                { name: "Express Delivery", desc: "Priority handling where the selected carrier and destination support it.", time: "Varies by area" },
+                { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
+                { name: "Bulky Freight", desc: "Used for large, heavy, or multi-carton items that need special handling.", time: "Quoted at checkout" },
               ].map((option) => (
                 <div key={option.name} className="bg-card rounded-xl p-6 shadow-card border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
@@ -104,14 +104,14 @@ const Shipping = () => {
                 <div>
                   <h3 className="text-lg font-semibold text-foreground mb-2">Real-Time Tracking</h3>
                   <p className="text-muted-foreground mb-4">
-                    All orders include tracking information sent via email once dispatched. 
-                    You can also view tracking status in your reseller portal at any time.
+                    Orders include tracking information by email once it is supplied by the carrier.
+                    Signed-in customers can also review order history from their portal.
                   </p>
                   <ul className="space-y-2 text-sm text-muted-foreground">
-                    <li>• Dispatch confirmation with tracking number</li>
-                    <li>• SMS and email notifications (optional)</li>
-                    <li>• Proof of delivery documentation</li>
-                    <li>• Integration with major courier tracking systems</li>
+                    <li>Dispatch confirmation with tracking number where supplied by the carrier</li>
+                    <li>Email notifications for key order updates</li>
+                    <li>Proof of delivery documentation where available</li>
+                    <li>Tracking links for supported courier systems</li>
                   </ul>
                 </div>
               </div>

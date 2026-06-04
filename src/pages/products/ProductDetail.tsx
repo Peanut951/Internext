@@ -381,7 +381,7 @@ const ProductDetail = () => {
       "@context": "https://schema.org",
       "@type": "Product",
       sku: product.code,
-      mpn: product.supplierCode || product.code,
+      mpn: product.code,
       name: product.description,
       description: fullDescriptionParagraphs.join(" "),
       brand: {

@@ -113,6 +113,14 @@ const stripHtml = (value: unknown) =>
 const truncate = (value: string, maxLength: number) =>
   value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
 
+const removeSupplierReferences = (value: unknown) =>
+  stripHtml(value)
+    .replace(/\s*Product code:\s*[^.;]+[.;]?/gi, "")
+    .replace(/\s*supplier reference:\s*[^.;]+[.;]?/gi, "")
+    .replace(/\s*;?\s*supplier reference\s+[^.;]+[.;]?/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 const isPlaceholderImage = (value: unknown) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
 const isKnownTinyOrTrackingImage = (value: unknown) => /\/controls\/bit\.gif$/i.test(String(value || "").trim());
 
@@ -238,6 +246,50 @@ const getAvailability = (product: {
   }
 
   return (product.stockQuantity || 0) > 0 ? "in_stock" : "out_of_stock";
+};
+
+const getProductText = (product: {
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) =>
+  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+
+const getProductType = (product: {
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) => {
+  const text = getProductText(product);
+
+  if (/\b(toner|cartridge|drum|ink|ribbon|printhead)\b/.test(text)) return "Printer consumables";
+  if (/\b(paper|roll|media|film|vinyl)\b/.test(text)) return "Print media";
+  if (/\b(printer|multifunction|mfp|copier|scanner|plotter)\b/.test(text)) return "Printers and scanners";
+  if (/\b(laptop|notebook|chromebook|tablet|desktop|workstation|pc\b)\b/.test(text)) return "Computers";
+  if (/\b(monitor|display|screen|projector|signage|panel)\b/.test(text)) return "Displays and AV";
+  if (/\b(camera|cctv|nvr|dvr|surveillance|intercom|access control|rfid)\b/.test(text)) return "Security and access control";
+  if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications";
+  if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power";
+  if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text)) return "Services and software";
+
+  return "Technology products";
+};
+
+const getGoogleProductCategory = (product: {
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) => {
+  const type = getProductType(product);
+
+  if (type === "Printer consumables" || type === "Print media") return "Office Supplies";
+  if (type === "Services and software") return "Software";
+
+  return "Electronics";
 };
 
 const getPrice = (value: unknown) =>
@@ -392,11 +444,11 @@ export default async function handler(
 
   const items = products.map((product) => {
     const title = truncate(stripHtml(product.description || product.name || product.code), 150);
-    const description = truncate(stripHtml(product.longDescription || product.description || product.name), 5000);
+    const description = truncate(removeSupplierReferences(product.longDescription || product.description || product.name), 5000);
     const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
     const image = getGoogleImage(product, excludedCodes);
     const price = getPrice(product.price);
-    const mpn = product.supplierCode || product.code;
+    const mpn = product.code;
     const shippingTags = [
       "      <g:shipping>",
       "        <g:country>AU</g:country>",
@@ -421,6 +473,9 @@ export default async function handler(
       "      <g:condition>new</g:condition>",
       `      <g:brand>${escapeXml(product.manufacturer || "Internext")}</g:brand>`,
       `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
+      `      <g:identifier_exists>yes</g:identifier_exists>`,
+      `      <g:product_type>${escapeXml(getProductType(product))}</g:product_type>`,
+      `      <g:google_product_category>${escapeXml(getGoogleProductCategory(product))}</g:google_product_category>`,
       ...shippingTags,
       "    </item>",
     ].join("\n");

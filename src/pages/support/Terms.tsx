@@ -24,11 +24,11 @@ const Terms = () => {
             <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 space-y-8">
               <div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Last updated: November 2024
+                  Last updated: June 2026
                 </p>
                 <p className="text-muted-foreground">
                   These terms and conditions ("Terms") govern your use of Internext Pty Ltd's 
-                  ("Internext", "we", "us") services, including our website and reseller portal. 
+                  ("Internext", "we", "us") services, including our website, checkout, and account portals. 
                   By accessing our services, you agree to be bound by these Terms.
                 </p>
               </div>
@@ -36,17 +36,17 @@ const Terms = () => {
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4">1. Account Registration</h2>
                 <p className="text-muted-foreground">
-                  To access reseller pricing and place orders, you must register for an account. 
-                  You agree to provide accurate information during registration and keep your 
-                  account credentials confidential. You are responsible for all activities under 
-                  your account.
+                  You may browse products without an account and may complete eligible purchases as a guest. 
+                  Registered customer accounts can view order history, while approved reseller accounts can 
+                  access reseller pricing and reseller tools. You agree to provide accurate information and keep 
+                  your account credentials confidential. You are responsible for all activities under your account.
                 </p>
               </div>
 
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4">2. Ordering and Pricing</h2>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>All prices are in Australian dollars and exclude GST unless stated otherwise.</li>
+                  <li>All prices are in Australian dollars. Customer prices are shown including GST, while approved reseller prices may be shown excluding GST.</li>
                   <li>Prices are subject to change without notice until an order is confirmed.</li>
                   <li>We reserve the right to correct pricing errors and cancel affected orders.</li>
                   <li>Stock availability is subject to change and confirmation at time of order.</li>
@@ -57,9 +57,10 @@ const Terms = () => {
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4">3. Payment Terms</h2>
                 <p className="text-muted-foreground">
-                  Standard payment terms are 30 days from invoice date for approved accounts. 
-                  We reserve the right to modify credit terms at any time. Late payments may 
-                  incur interest charges and suspension of account privileges.
+                  Online orders are payable at checkout unless separate credit terms have been approved in writing. 
+                  Standard payment terms for approved accounts are 30 days from invoice date unless otherwise agreed. 
+                  We reserve the right to modify credit terms at any time. Late payments may incur interest charges 
+                  and suspension of account privileges.
                 </p>
               </div>
 

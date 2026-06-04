@@ -42,7 +42,7 @@ const resources = [
 
 const quickLinks = [
   { title: "Partner Portal Login", description: "Access your dashboard, orders, and account tools" },
-  { title: "RMA Request", description: "Submit return merchandise authorisation requests" },
+  { title: "Returns & Warranty", description: "Start a return or warranty support request" },
   { title: "Deal Registration", description: "Register opportunities for additional discounts" },
   { title: "Demo Equipment", description: "Request demo units for customer presentations" },
 ];

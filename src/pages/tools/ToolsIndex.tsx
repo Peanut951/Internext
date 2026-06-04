@@ -80,7 +80,7 @@ const ToolsIndex = () => {
               "Marketing Assets",
               "Price Lists",
               "Warranty Information",
-              "RMA Forms",
+              "Returns & Warranty",
               "Vendor Programs",
               "Training Calendar",
               "Demo Requests",

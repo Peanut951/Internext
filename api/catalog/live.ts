@@ -34,6 +34,7 @@ export type LiveCatalogItem = {
 
 type LiveCatalogCache = {
   expiresAt: number;
+  staleUntil: number;
   updatedAt: string;
   source: "xml" | "csv" | "combined";
   items: LiveCatalogItem[];
@@ -47,6 +48,7 @@ type StaticCatalogProduct = {
 
 type MergedCatalogCache = {
   expiresAt: number;
+  staleUntil: number;
   updatedAt: string;
   source: "xml" | "csv" | "combined";
   items: Array<StaticCatalogProduct & LiveCatalogItem>;
@@ -89,6 +91,20 @@ const removeTax = (value: number | null, taxRate: number) =>
 const CUSTOMER_MARGIN_RATE = 0.1;
 const CUSTOMER_GST_RATE = 0.1;
 const RESELLER_MARGIN_RATE = 0.1;
+const DEFAULT_SERVER_CATALOG_CACHE_MS = 30 * 60 * 1000;
+const DEFAULT_SERVER_CATALOG_STALE_MS = 6 * 60 * 60 * 1000;
+
+const parseCacheMs = (name: string, fallback: number) => {
+  const raw = readEnv(name);
+  const parsed = Number(raw);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const getServerCatalogCacheMs = () =>
+  parseCacheMs("CATALOG_SERVER_CACHE_MS", DEFAULT_SERVER_CATALOG_CACHE_MS);
+
+const getServerCatalogStaleMs = () =>
+  parseCacheMs("CATALOG_SERVER_STALE_MS", DEFAULT_SERVER_CATALOG_STALE_MS);
 
 const applyCustomerPrice = (value: number | null) =>
   value === null
@@ -362,6 +378,7 @@ const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
 
 export const loadLiveCatalogItems = async () => {
   const cached = globalCatalogCache.__internextLiveCatalogCache;
+  const now = Date.now();
   if (cached && cached.expiresAt > Date.now()) {
     return {
       updatedAt: cached.updatedAt,
@@ -376,41 +393,69 @@ export const loadLiveCatalogItems = async () => {
   const leaderItems = leaderProducts.map(createLeaderLiveCatalogItem);
   const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
   if (!feedUrl) {
+    if (cached && cached.staleUntil > now) {
+      return {
+        updatedAt: cached.updatedAt,
+        count: cached.items.length,
+        source: cached.source,
+        cached: true,
+        stale: true,
+        items: cached.items,
+      };
+    }
     throw new Error("Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.");
   }
 
-  const response = await fetch(feedUrl, {
-    headers: {
-      Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
-    },
-  });
+  try {
+    const response = await fetch(feedUrl, {
+      headers: {
+        Accept: "application/xml,text/xml,text/csv,text/plain,*/*",
+      },
+    });
 
-  if (!response.ok) {
-    throw new Error(`Alloys feed returned ${response.status}.`);
+    if (!response.ok) {
+      throw new Error(`Alloys feed returned ${response.status}.`);
+    }
+
+    const feedText = await response.text();
+    const alloysItems = feedText.trim().startsWith("<")
+      ? parseLiveCatalogXml(feedText)
+      : parseLiveCatalog(feedText);
+    const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems]);
+    const updatedAt = new Date().toISOString();
+    const source = leaderItems.length > 0 ? "combined" : feedText.trim().startsWith("<") ? "xml" : "csv";
+    const cacheMs = getServerCatalogCacheMs();
+    const staleMs = getServerCatalogStaleMs();
+
+    globalCatalogCache.__internextLiveCatalogCache = {
+      expiresAt: Date.now() + cacheMs,
+      staleUntil: Date.now() + cacheMs + staleMs,
+      updatedAt,
+      source,
+      items,
+    };
+
+    return {
+      updatedAt,
+      count: items.length,
+      source,
+      cached: false,
+      items,
+    };
+  } catch (error) {
+    if (cached && cached.staleUntil > now) {
+      return {
+        updatedAt: cached.updatedAt,
+        count: cached.items.length,
+        source: cached.source,
+        cached: true,
+        stale: true,
+        items: cached.items,
+      };
+    }
+
+    throw error;
   }
-
-  const feedText = await response.text();
-  const alloysItems = feedText.trim().startsWith("<")
-    ? parseLiveCatalogXml(feedText)
-    : parseLiveCatalog(feedText);
-  const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems]);
-  const updatedAt = new Date().toISOString();
-  const source = leaderItems.length > 0 ? "combined" : feedText.trim().startsWith("<") ? "xml" : "csv";
-
-  globalCatalogCache.__internextLiveCatalogCache = {
-    expiresAt: Date.now() + 15 * 60 * 1000,
-    updatedAt,
-    source,
-    items,
-  };
-
-  return {
-    updatedAt,
-    count: items.length,
-    source,
-    cached: false,
-    items,
-  };
 };
 
 const loadStaticCatalogProducts = async () => {
@@ -427,6 +472,7 @@ const loadStaticCatalogProducts = async () => {
 
 export const loadMergedCatalogProducts = async () => {
   const cached = globalCatalogCache.__internextMergedCatalogCache;
+  const now = Date.now();
   if (cached && cached.expiresAt > Date.now()) {
     return {
       updatedAt: cached.updatedAt,
@@ -437,10 +483,28 @@ export const loadMergedCatalogProducts = async () => {
     };
   }
 
-  const [staticProducts, liveCatalog] = await Promise.all([
-    loadStaticCatalogProducts(),
-    loadLiveCatalogItems(),
-  ]);
+  let staticProducts: StaticCatalogProduct[];
+  let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
+
+  try {
+    [staticProducts, liveCatalog] = await Promise.all([
+      loadStaticCatalogProducts(),
+      loadLiveCatalogItems(),
+    ]);
+  } catch (error) {
+    if (cached && cached.staleUntil > now) {
+      return {
+        updatedAt: cached.updatedAt,
+        count: cached.items.length,
+        source: cached.source,
+        cached: true,
+        stale: true,
+        items: cached.items,
+      };
+    }
+
+    throw error;
+  }
   const liveByKey = new Map<string, LiveCatalogItem>();
 
   for (const item of liveCatalog.items) {
@@ -489,7 +553,8 @@ export const loadMergedCatalogProducts = async () => {
     .filter((item): item is StaticCatalogProduct & LiveCatalogItem => Boolean(item));
 
   globalCatalogCache.__internextMergedCatalogCache = {
-    expiresAt: Date.now() + 15 * 60 * 1000,
+    expiresAt: Date.now() + getServerCatalogCacheMs(),
+    staleUntil: Date.now() + getServerCatalogCacheMs() + getServerCatalogStaleMs(),
     updatedAt: liveCatalog.updatedAt,
     source: liveCatalog.source,
     items,
@@ -524,7 +589,7 @@ export default async function handler(
     const catalog = requestUrl.searchParams.get("view") === "products"
       ? await loadMergedCatalogProducts()
       : await loadLiveCatalogItems();
-    res.setHeader("Cache-Control", "s-maxage=900, stale-while-revalidate=3600");
+    res.setHeader("Cache-Control", "s-maxage=1800, stale-while-revalidate=21600");
     return sendJson(res, 200, catalog);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to load Alloys catalog feed.";
