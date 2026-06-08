@@ -30,6 +30,7 @@ export type LiveCatalogItem = {
   heightCm: number | null;
   widthCm: number | null;
   depthCm: number | null;
+  gtin: string;
 };
 
 type LiveCatalogCache = {
@@ -43,6 +44,10 @@ type LiveCatalogCache = {
 type StaticCatalogProduct = {
   code: string;
   supplierCode?: string;
+  gtin?: string;
+  ean?: string;
+  upc?: string;
+  barcode?: string;
   [key: string]: unknown;
 };
 
@@ -72,6 +77,31 @@ const parsePositiveNumber = (value: string | undefined) => {
   const parsed = parseNumber(value);
   return parsed !== null && parsed > 0 ? parsed : null;
 };
+
+const normalizeGtin = (value: unknown) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits) ? digits : "";
+};
+
+const normalizeHeaderName = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const getCsvField = (headers: string[], parts: string[], names: string[]) => {
+  for (const name of names) {
+    const index = headers.indexOf(normalizeHeaderName(name));
+    if (index >= 0 && parts[index] !== undefined) {
+      return parts[index]?.trim() || "";
+    }
+  }
+
+  return "";
+};
+
+const getProductGtin = (product: {
+  gtin?: unknown;
+  ean?: unknown;
+  upc?: unknown;
+  barcode?: unknown;
+}) => normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
 
 const formatAud = (value: number | null) =>
   value === null ? "P.O.A." : value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
@@ -164,7 +194,8 @@ const splitFeedRows = (csv: string) =>
     .filter(Boolean);
 
 const parseLiveCatalog = (csv: string) => {
-  const [, ...rows] = splitFeedRows(csv);
+  const [header = "", ...rows] = splitFeedRows(csv);
+  const headers = header.split(",").map(normalizeHeaderName);
 
   return rows
     .map((row): LiveCatalogItem | null => {
@@ -213,6 +244,18 @@ const parseLiveCatalog = (csv: string) => {
         heightCm: metresToCentimetres(parsePositiveNumber(parts[18])),
         widthCm: metresToCentimetres(parsePositiveNumber(parts[19])),
         depthCm: metresToCentimetres(parsePositiveNumber(parts[20])),
+        gtin: normalizeGtin(
+          getCsvField(headers, parts, [
+            "GTIN",
+            "EAN",
+            "EAN13",
+            "UPC",
+            "Barcode",
+            "BarCode",
+            "APN",
+            "ProductBarcode",
+          ]),
+        ),
       };
     })
     .filter((item): item is LiveCatalogItem => Boolean(item));
@@ -278,6 +321,15 @@ const parseLiveCatalogXml = (xml: string) => {
         heightCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Height"))),
         widthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Width"))),
         depthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Depth"))),
+        gtin:
+          normalizeGtin(getXmlTag(row, "GTIN")) ||
+          normalizeGtin(getXmlTag(row, "EAN")) ||
+          normalizeGtin(getXmlTag(row, "EAN13")) ||
+          normalizeGtin(getXmlTag(row, "UPC")) ||
+          normalizeGtin(getXmlTag(row, "Barcode")) ||
+          normalizeGtin(getXmlTag(row, "BarCode")) ||
+          normalizeGtin(getXmlTag(row, "APN")) ||
+          normalizeGtin(getXmlTag(row, "ProductBarcode")),
       };
     })
     .filter((item): item is LiveCatalogItem => Boolean(item));
@@ -337,6 +389,7 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
     heightCm: null,
     widthCm: null,
     depthCm: null,
+    gtin: getProductGtin(product),
   };
 };
 
@@ -547,6 +600,7 @@ export const loadMergedCatalogProducts = async () => {
         heightCm: live.heightCm,
         widthCm: live.widthCm,
         depthCm: live.depthCm,
+        gtin: getProductGtin(product) || live.gtin,
         liveUpdatedAt: liveCatalog.updatedAt,
       };
     })

@@ -12,6 +12,10 @@
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  gtin?: string;
+  ean?: string;
+  upc?: string;
+  barcode?: string;
   availabilityText?: string;
   etaDate?: string;
   etaStatus?: string;

@@ -30,6 +30,10 @@ type CatalogProduct = {
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  gtin?: string;
+  ean?: string;
+  upc?: string;
+  barcode?: string;
   availabilityText?: string;
   etaDate?: string;
   etaStatus?: string;
@@ -208,6 +212,45 @@ const toAbsoluteUrl = (value: string) => {
 const truncateText = (value: string, maxLength: number) =>
   value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
 
+const normalizeToken = (value: unknown) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const normalizeGtin = (value: unknown) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits) ? digits : "";
+};
+
+const getProductGtin = (product: CatalogProduct) =>
+  normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
+
+const getProductMpn = (product: CatalogProduct) => {
+  const supplierCode = product.supplierCode?.trim() || "";
+  const code = product.code.trim();
+
+  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+    return supplierCode;
+  }
+
+  return code;
+};
+
+const buildSearchTitleText = (product: CatalogProduct) => {
+  const brand = product.manufacturer.trim();
+  const base = product.description.trim();
+  const mpn = getProductMpn(product);
+  const normalizedBase = normalizeToken(base);
+  const parts = [
+    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    base,
+    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
+  ].filter(Boolean);
+
+  return parts.join(" ");
+};
+
 const setNamedMeta = (selector: string, attribute: "name" | "property", key: string, content: string) => {
   let element = document.head.querySelector<HTMLMetaElement>(selector);
 
@@ -352,7 +395,8 @@ const ProductDetail = () => {
     }
 
     const canonicalUrl = getPublicProductUrl(product.code);
-    const pageTitle = truncateText(`${product.description} | Internext`, 60);
+    const searchTitle = buildSearchTitleText(product);
+    const pageTitle = truncateText(`${searchTitle} | Internext`, 60);
     const metaDescription = getProductMetaDescription(
       product,
       fullDescriptionParagraphs.join(" "),
@@ -382,8 +426,9 @@ const ProductDetail = () => {
       "@context": "https://schema.org",
       "@type": "Product",
       sku: product.code,
-      mpn: product.code,
-      name: product.description,
+      mpn: getProductMpn(product),
+      ...(getProductGtin(product) ? { gtin: getProductGtin(product) } : {}),
+      name: searchTitle,
       description: fullDescriptionParagraphs.join(" "),
       brand: {
         "@type": "Brand",

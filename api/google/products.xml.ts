@@ -121,6 +121,58 @@ const removeSupplierReferences = (value: unknown) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const normalizeToken = (value: unknown) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const normalizeGtin = (value: unknown) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits) ? digits : "";
+};
+
+const getProductGtin = (product: {
+  gtin?: unknown;
+  ean?: unknown;
+  upc?: unknown;
+  barcode?: unknown;
+}) => normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
+
+const getProductMpn = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
+}) => {
+  const supplierCode = String(product.supplierCode || "").trim();
+  const code = String(product.code || "").trim();
+
+  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+    return supplierCode;
+  }
+
+  return code;
+};
+
+const buildShoppingTitle = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+}) => {
+  const brand = stripHtml(product.manufacturer || "");
+  const base = stripHtml(product.description || product.name || product.code);
+  const mpn = getProductMpn(product);
+  const normalizedBase = normalizeToken(base);
+  const parts = [
+    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    base,
+    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
+  ].filter(Boolean);
+
+  return truncate(parts.join(" "), 150);
+};
+
 const isPlaceholderImage = (value: unknown) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
 const isKnownTinyOrTrackingImage = (value: unknown) => /\/controls\/bit\.gif$/i.test(String(value || "").trim());
 
@@ -266,15 +318,20 @@ const getProductType = (product: {
 }) => {
   const text = getProductText(product);
 
-  if (/\b(toner|cartridge|drum|ink|ribbon|printhead)\b/.test(text)) return "Printer consumables";
-  if (/\b(paper|roll|media|film|vinyl)\b/.test(text)) return "Print media";
-  if (/\b(printer|multifunction|mfp|copier|scanner|plotter)\b/.test(text)) return "Printers and scanners";
-  if (/\b(laptop|notebook|chromebook|tablet|desktop|workstation|pc\b)\b/.test(text)) return "Computers";
-  if (/\b(monitor|display|screen|projector|signage|panel)\b/.test(text)) return "Displays and AV";
-  if (/\b(camera|cctv|nvr|dvr|surveillance|intercom|access control|rfid)\b/.test(text)) return "Security and access control";
-  if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking";
-  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications";
-  if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power";
+  if (/\b(toner|cartridge|drum|ink|ribbon|printhead)\b/.test(text)) return "Print > Printer consumables";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "Print > Print media";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "Print > Printers and multifunction devices";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "Print > Scanners";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Computers > Laptops";
+  if (/\b(tablet)\b/.test(text)) return "Computers > Tablets";
+  if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computers > Desktop computers and servers";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Displays and AV > Displays";
+  if (/\b(projector)\b/.test(text)) return "Displays and AV > Projectors";
+  if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security > Surveillance";
+  if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Security > Access control";
+  if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
+  if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
   if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text)) return "Services and software";
 
   return "Technology products";
@@ -288,7 +345,20 @@ const getGoogleProductCategory = (product: {
 }) => {
   const type = getProductType(product);
 
-  if (type === "Printer consumables" || type === "Print media") return "Office Supplies";
+  if (type.includes("Printer consumables")) return "Office Supplies > Office Instruments > Printer & Copier Accessories > Printer Consumables";
+  if (type.includes("Print media")) return "Office Supplies > Office Paper Products";
+  if (type.includes("Printers")) return "Electronics > Print, Copy, Scan & Fax > Printers, Copiers & Fax Machines";
+  if (type.includes("Scanners")) return "Electronics > Print, Copy, Scan & Fax > Scanners";
+  if (type.includes("Laptops")) return "Electronics > Computers > Laptops";
+  if (type.includes("Tablets")) return "Electronics > Computers > Tablet Computers";
+  if (type.includes("Desktop")) return "Electronics > Computers > Desktop Computers";
+  if (type.includes("Displays")) return "Electronics > Video > Computer Monitors";
+  if (type.includes("Projectors")) return "Electronics > Video > Projectors";
+  if (type.includes("Surveillance")) return "Cameras & Optics > Cameras > Security Cameras";
+  if (type.includes("Access control")) return "Hardware > Security & Locks";
+  if (type.includes("Networking")) return "Electronics > Networking";
+  if (type.includes("Unified communications")) return "Electronics > Communications > Telephony";
+  if (type.includes("Power")) return "Electronics > Power";
   if (type === "Services and software") return "Software";
 
   return "Electronics";
@@ -327,12 +397,13 @@ export default async function handler(
     .slice(0, 50000);
 
   const items = products.map((product) => {
-    const title = truncate(stripHtml(product.description || product.name || product.code), 150);
+    const title = buildShoppingTitle(product);
     const description = truncate(removeSupplierReferences(product.longDescription || product.description || product.name), 5000);
     const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
     const image = getGoogleImage(product, excludedCodes);
     const price = getPrice(product.price);
-    const mpn = product.code;
+    const mpn = getProductMpn(product);
+    const gtin = getProductGtin(product);
     const shippingTags = [
       "      <g:shipping>",
       "        <g:country>AU</g:country>",
@@ -356,8 +427,9 @@ export default async function handler(
       `      <g:price>${escapeXml(price)}</g:price>`,
       "      <g:condition>new</g:condition>",
       `      <g:brand>${escapeXml(product.manufacturer || "Internext")}</g:brand>`,
+      gtin ? `      <g:gtin>${escapeXml(gtin)}</g:gtin>` : "",
       `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
-      `      <g:identifier_exists>yes</g:identifier_exists>`,
+      `      <g:identifier_exists>${gtin || mpn ? "yes" : "no"}</g:identifier_exists>`,
       `      <g:product_type>${escapeXml(getProductType(product))}</g:product_type>`,
       `      <g:google_product_category>${escapeXml(getGoogleProductCategory(product))}</g:google_product_category>`,
       ...shippingTags,

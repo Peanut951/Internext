@@ -37,6 +37,45 @@ const formatAud = (value) =>
     ? value.toLocaleString("en-AU", { style: "currency", currency: "AUD" })
     : "";
 
+const normalizeToken = (value) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, "");
+
+const normalizeGtin = (value) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  return /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits) ? digits : "";
+};
+
+const getProductGtin = (product) =>
+  normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
+
+const getProductMpn = (product) => {
+  const supplierCode = String(product.supplierCode || "").trim();
+  const code = String(product.code || "").trim();
+
+  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+    return supplierCode;
+  }
+
+  return code;
+};
+
+const buildSearchTitleText = (product) => {
+  const brand = stripHtml(product.manufacturer || "");
+  const base = stripHtml(product.description || product.name || product.code);
+  const mpn = getProductMpn(product);
+  const normalizedBase = normalizeToken(base);
+  const parts = [
+    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    base,
+    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
+  ].filter(Boolean);
+
+  return parts.join(" ");
+};
+
 const getProductUrl = (code) => `${SITE_URL}/products/item/${encodeURIComponent(code)}`;
 
 const isPlaceholderImage = (value) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
@@ -76,8 +115,9 @@ const buildStructuredData = (product, url, image) => ({
   "@context": "https://schema.org",
   "@type": "Product",
   sku: product.code,
-  mpn: product.code,
-  name: stripHtml(product.description || product.name || product.code),
+  mpn: getProductMpn(product),
+  ...(getProductGtin(product) ? { gtin: getProductGtin(product) } : {}),
+  name: buildSearchTitleText(product),
   description: removeSupplierReferences(product.longDescription || product.description || product.name || product.code),
   brand: {
     "@type": "Brand",
@@ -96,6 +136,26 @@ const buildStructuredData = (product, url, image) => ({
               ? "https://schema.org/OutOfStock"
               : "https://schema.org/InStock",
           itemCondition: "https://schema.org/NewCondition",
+          shippingDetails: {
+            "@type": "OfferShippingDetails",
+            shippingRate: {
+              "@type": "MonetaryAmount",
+              value: "35.00",
+              currency: "AUD",
+            },
+            shippingDestination: {
+              "@type": "DefinedRegion",
+              addressCountry: "AU",
+            },
+          },
+          hasMerchantReturnPolicy: {
+            "@type": "MerchantReturnPolicy",
+            applicableCountry: "AU",
+            returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
+            merchantReturnDays: 30,
+            returnMethod: "https://schema.org/ReturnByMail",
+            returnFees: "https://schema.org/ReturnShippingFees",
+          },
         },
       }
     : {}),
@@ -116,7 +176,7 @@ const removeExistingHeadTags = (html) =>
     .replace(/\s*<link\s+rel="canonical"[\s\S]*?>/gi, "");
 
 const createProductHtml = (template, product) => {
-  const titleText = stripHtml(product.description || product.name || product.code);
+  const titleText = buildSearchTitleText(product);
   const title = truncate(`${titleText} | Internext`, 60);
   const url = getProductUrl(product.code);
   const description = buildDescription(product);

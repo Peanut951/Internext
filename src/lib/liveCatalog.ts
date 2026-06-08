@@ -14,6 +14,10 @@ export type CatalogProductWithLive = {
   imageUrl?: string;
   imageUrls?: string[];
   supplierCode?: string;
+  gtin?: string;
+  ean?: string;
+  upc?: string;
+  barcode?: string;
   availabilityText?: string;
   etaDate?: string;
   etaStatus?: string;
@@ -59,6 +63,7 @@ type LiveCatalogItem = {
   heightCm: number | null;
   widthCm: number | null;
   depthCm: number | null;
+  gtin: string;
 };
 
 type LiveCatalogResponse = {
@@ -214,6 +219,7 @@ const loadCatalogProductsInternal = async () => {
         heightCm: live.heightCm,
         widthCm: live.widthCm,
         depthCm: live.depthCm,
+        gtin: product.gtin || live.gtin,
         liveUpdatedAt: liveData.updatedAt,
       };
     })
