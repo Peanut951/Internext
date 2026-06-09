@@ -82,9 +82,28 @@ const categoryPaths = [
   "uc-accessories",
 ];
 
+const staticPaths = [
+  "about",
+  "contact",
+  "services",
+  "support/faq",
+  "support/shipping",
+  "support/warranty",
+  "support/returns",
+  "support/payment-security",
+  "support/consumer-guarantees",
+  "privacy",
+  "terms",
+];
+
 const urls = [
   { loc: `${SITE_URL}/`, changefreq: "weekly", priority: "1.0" },
   { loc: `${SITE_URL}/products`, changefreq: "daily", priority: "0.9" },
+  ...staticPaths.map((path) => ({
+    loc: `${SITE_URL}/${path}`,
+    changefreq: "monthly",
+    priority: "0.65",
+  })),
   ...categoryPaths.map((path) => ({
     loc: `${SITE_URL}/products/${path}`,
     changefreq: "weekly",

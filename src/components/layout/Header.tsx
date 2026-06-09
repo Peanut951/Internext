@@ -38,12 +38,15 @@ const navItems = [
   { label: "Technical Services", href: "/services" },
   {
     label: "Support",
-    href: "#",
+    href: "/support/faq",
     megaMenu: true,
     items: [
       { label: "FAQ", href: "/support/faq" },
       { label: "Shipping & Delivery", href: "/support/shipping" },
       { label: "Warranty & Returns", href: "/support/warranty" },
+      { label: "Returns & Refunds", href: "/support/returns" },
+      { label: "Payment Security", href: "/support/payment-security" },
+      { label: "Consumer Guarantees", href: "/support/consumer-guarantees" },
       { label: "Privacy Policy", href: "/privacy" },
       { label: "Terms & Conditions", href: "/terms" },
     ],
@@ -147,6 +150,15 @@ const Header = () => {
           </div>
 
           <div className="flex items-center justify-end gap-2 xl:hidden">
+            <Button variant="outline" size="sm" className="h-9 rounded-full px-0" asChild>
+              <Link to="/cart" className="inline-flex h-9 items-center gap-2 px-3 leading-none">
+                <ShoppingCart className="h-4 w-4 shrink-0" />
+                <span className="sr-only sm:not-sr-only">Cart</span>
+                <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-primary-foreground">
+                  {cartCount}
+                </span>
+              </Link>
+            </Button>
             {/* Mobile Menu Button */}
             <Button
               variant="ghost"
@@ -231,14 +243,29 @@ const Header = () => {
               </span>
             </Link>
             {navItems.map((item) => (
-              <Link
-                key={item.label}
-                to={item.href}
-                className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {item.label}
-              </Link>
+              <div key={item.label} className="border-t border-border/40 first:border-t-0">
+                <Link
+                  to={item.href}
+                  className="block rounded-md px-4 py-3 font-medium text-foreground transition-colors hover:bg-secondary hover:text-accent"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {item.label}
+                </Link>
+                {item.items?.length ? (
+                  <div className="grid grid-cols-1 gap-1 pb-2 pl-5 pr-3 sm:grid-cols-2">
+                    {item.items.map((subItem) => (
+                      <Link
+                        key={subItem.label}
+                        to={subItem.href}
+                        className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        onClick={() => setMobileMenuOpen(false)}
+                      >
+                        {subItem.label}
+                      </Link>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
             ))}
             {session ? null : (
               <Link

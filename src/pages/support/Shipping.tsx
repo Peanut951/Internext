@@ -5,13 +5,13 @@ const Shipping = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero py-16 md:py-20">
+      <section className="bg-gradient-hero py-14 sm:py-16 md:py-20">
         <div className="container-wide">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-primary-foreground sm:text-4xl md:text-5xl">
               Shipping & Delivery
             </h1>
-            <p className="text-xl text-primary-foreground/80">
+            <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
               Delivery across Australia with freight calculated from the items and destination at checkout.
             </p>
           </div>
@@ -115,8 +115,8 @@ const Shipping = () => {
             {/* Tracking */}
             <h2 className="text-2xl font-bold text-foreground mb-8">Order Tracking</h2>
             
-            <div className="bg-secondary rounded-2xl p-8 mb-12">
-              <div className="flex items-start gap-4">
+            <div className="mb-12 rounded-2xl bg-secondary p-5 sm:p-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Package className="h-6 w-6 text-accent" />
                 </div>

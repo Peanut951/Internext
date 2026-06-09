@@ -4,13 +4,13 @@ const Terms = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero py-16 md:py-20">
+      <section className="bg-gradient-hero py-14 sm:py-16 md:py-20">
         <div className="container-wide">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-primary-foreground sm:text-4xl md:text-5xl">
               Terms & Conditions
             </h1>
-            <p className="text-xl text-primary-foreground/80">
+            <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
               Terms governing your use of Internext services.
             </p>
           </div>
@@ -21,7 +21,7 @@ const Terms = () => {
       <section className="section-padding bg-background">
         <div className="container-wide">
           <div className="max-w-4xl mx-auto">
-            <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 space-y-8">
+            <div className="space-y-8 rounded-2xl border border-border/50 bg-card p-5 shadow-card sm:p-7 md:p-8">
               <div>
                 <p className="text-sm text-muted-foreground mb-6">
                   Last updated: June 2026

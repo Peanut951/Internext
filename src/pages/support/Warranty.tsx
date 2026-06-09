@@ -7,13 +7,13 @@ const Warranty = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero py-16 md:py-20">
+      <section className="bg-gradient-hero py-14 sm:py-16 md:py-20">
         <div className="container-wide">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-primary-foreground sm:text-4xl md:text-5xl">
               Warranty & Returns
             </h1>
-            <p className="text-xl text-primary-foreground/80">
+            <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
               Our warranty and returns policies to protect you and your customers.
             </p>
           </div>
@@ -25,8 +25,8 @@ const Warranty = () => {
         <div className="container-wide">
           <div className="max-w-4xl mx-auto">
             {/* Australian Consumer Law */}
-            <div className="bg-secondary rounded-2xl p-8 mb-10">
-              <div className="flex items-start gap-4">
+            <div className="mb-10 rounded-2xl bg-secondary p-5 sm:p-8">
+              <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <div className="w-12 h-12 bg-accent/10 rounded-xl flex items-center justify-center flex-shrink-0">
                   <Shield className="h-6 w-6 text-accent" />
                 </div>
@@ -34,7 +34,7 @@ const Warranty = () => {
                   <h2 className="text-xl font-bold text-foreground mb-3">
                     Australian Consumer Law Compliance
                   </h2>
-                  <p className="text-muted-foreground">
+                  <p className="leading-7 text-muted-foreground">
                     All products sold by Internext come with guarantees that cannot be excluded under 
                     the Australian Consumer Law. You are entitled to a replacement or refund for a major 
                     failure and compensation for any other reasonably foreseeable loss or damage. You are 
@@ -168,7 +168,7 @@ const Warranty = () => {
             </div>
 
             {/* CTA */}
-            <div className="bg-primary rounded-2xl p-8 text-center">
+            <div className="rounded-2xl bg-primary p-5 text-center sm:p-8">
               <FileText className="h-10 w-10 text-primary-foreground mx-auto mb-4" />
               <h2 className="text-xl font-bold text-primary-foreground mb-3">
                 Need to Submit a Warranty Claim?

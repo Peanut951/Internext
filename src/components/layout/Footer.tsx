@@ -10,15 +10,24 @@ const quickLinks = [
 const supportLinks = [
   { label: "Reseller Portal", path: "/login" },
   { label: "Partner Program", path: "/contact" },
-  { label: "Technical Support", path: "/faq" },
+  { label: "Technical Support", path: "/support/faq" },
+  { label: "Shipping & Delivery", path: "/support/shipping" },
+  { label: "Returns & Refunds", path: "/support/returns" },
+  { label: "Payment Security", path: "/support/payment-security" },
   { label: "Contact Us", path: "/contact" },
+];
+
+const legalLinks = [
+  { label: "Privacy Policy", path: "/privacy" },
+  { label: "Terms of Service", path: "/terms" },
+  { label: "Consumer Guarantees", path: "/support/consumer-guarantees" },
 ];
 
 const Footer = () => {
   return (
     <footer className="bg-primary text-primary-foreground">
-      <div className="container-wide py-16">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+      <div className="container-wide py-12 sm:py-16">
+        <div className="grid grid-cols-1 gap-9 sm:grid-cols-2 lg:grid-cols-4 lg:gap-12">
           {/* Brand Column */}
           <div className="space-y-4">
             <div>
@@ -107,18 +116,21 @@ const Footer = () => {
             Strait Islander peoples today.
           </p>
 
-          <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-primary-foreground/50 text-sm">
-            &copy; {new Date().getFullYear()} Internext. All rights reserved.
-          </p>
-          <div className="flex gap-6 text-sm">
-            <a href="#" className="text-primary-foreground/50 hover:text-accent transition-colors">
-              Privacy Policy
-            </a>
-            <a href="#" className="text-primary-foreground/50 hover:text-accent transition-colors">
-              Terms of Service
-            </a>
-          </div>
+          <div className="flex flex-col items-start justify-between gap-4 md:flex-row md:items-center">
+            <p className="text-sm text-primary-foreground/50">
+              &copy; {new Date().getFullYear()} Internext. All rights reserved.
+            </p>
+            <div className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+              {legalLinks.map((item) => (
+                <Link
+                  key={item.label}
+                  to={item.path}
+                  className="text-primary-foreground/50 transition-colors hover:text-accent"
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </div>

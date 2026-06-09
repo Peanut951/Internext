@@ -277,7 +277,7 @@ const ProductsIndex = () => {
             </h1>
             <p className="text-xl leading-relaxed text-primary-foreground/80">
               Explore our comprehensive range of technology products from the world's
-              leading brands, available exclusively to our reseller partners.
+              leading brands, available to customers and approved reseller partners.
             </p>
           </div>
         </div>

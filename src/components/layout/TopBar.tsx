@@ -11,19 +11,19 @@ const TopBar = () => {
   const portalLabel = canAccessResellerPortal ? "Reseller Portal" : "User Portal";
 
   return (
-    <div className="bg-primary text-primary-foreground py-2">
-      <div className="container-wide flex items-center justify-between text-sm">
-        <div className="flex items-center gap-6">
+    <div className="bg-primary py-2 text-primary-foreground">
+      <div className="container-wide flex items-center justify-between gap-3 text-sm">
+        <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <a href="tel:1300123456" className="flex items-center gap-2 hover:text-accent transition-colors">
-            <Phone className="h-4 w-4" />
-            <span>1300 567 835</span>
+            <Phone className="h-4 w-4 shrink-0" />
+            <span className="whitespace-nowrap">1300 567 835</span>
           </a>
-          <a href="mailto:sales@internext.com.au" className="flex items-center gap-2 hover:text-accent transition-colors">
-            <Mail className="h-4 w-4" />
+          <a href="mailto:sales@internext.com.au" className="hidden min-w-0 items-center gap-2 transition-colors hover:text-accent sm:flex">
+            <Mail className="h-4 w-4 shrink-0" />
             <span>orders@internext.com.au</span>
           </a>
         </div>
-        <div className="flex items-center gap-4">
+        <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {session ? (
             <>
               <Link to={portalHref} className="hidden sm:inline text-primary-foreground/80 hover:text-accent transition-colors">
@@ -32,20 +32,20 @@ const TopBar = () => {
               <Button
                 variant="accent"
                 size="sm"
-                className="gap-2"
+                className="gap-2 px-3"
                 onClick={async () => {
                   await clearAuthSession();
                   window.location.href = "/login";
                 }}
               >
                 <LogOut className="h-4 w-4" />
-                Sign Out
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
             </>
           ) : (
             <>
               <Link to="/login">
-                <Button variant="accent" size="sm" className="gap-2">
+                <Button variant="accent" size="sm" className="gap-2 px-3">
                   <User className="h-4 w-4" />
                   Login
                 </Button>

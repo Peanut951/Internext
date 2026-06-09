@@ -73,13 +73,13 @@ const FAQ = () => {
   return (
     <Layout>
       {/* Hero */}
-      <section className="bg-gradient-hero py-16 md:py-20">
+      <section className="bg-gradient-hero py-14 sm:py-16 md:py-20">
         <div className="container-wide">
           <div className="max-w-3xl">
-            <h1 className="text-4xl md:text-5xl font-bold text-primary-foreground mb-4">
+            <h1 className="mb-4 text-3xl font-bold text-primary-foreground sm:text-4xl md:text-5xl">
               Frequently Asked Questions
             </h1>
-            <p className="text-xl text-primary-foreground/80 mb-6">
+            <p className="mb-6 text-base leading-7 text-primary-foreground/80 sm:text-lg">
               Find answers to common questions about ordering, delivery, and support.
             </p>
             <div className="relative max-w-xl">
