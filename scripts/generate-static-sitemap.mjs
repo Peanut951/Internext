@@ -32,6 +32,7 @@ const productCodes = Array.from(
       .filter(Boolean),
   ),
 ).sort((a, b) => a.localeCompare(b));
+const today = new Date().toISOString().slice(0, 10);
 
 const categoryPaths = [
   "projectors",
@@ -121,7 +122,7 @@ const sitemap = [
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
   ...urls.map(
     (url) =>
-      `  <url><loc>${escapeXml(url.loc)}</loc><changefreq>${url.changefreq}</changefreq><priority>${url.priority}</priority></url>`,
+      `  <url><loc>${escapeXml(url.loc)}</loc><lastmod>${today}</lastmod><changefreq>${url.changefreq}</changefreq><priority>${url.priority}</priority></url>`,
   ),
   "</urlset>",
   "",
@@ -131,6 +132,7 @@ const robots = [
   "User-agent: *",
   "Allow: /",
   `Sitemap: ${SITE_URL}/sitemap.xml`,
+  `Product-feed: ${SITE_URL}/google-products.xml`,
   "",
 ].join("\n");
 

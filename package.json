@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-product-pages.mjs",
+    "build": "node scripts/generate-static-sitemap.mjs && node scripts/generate-google-product-feed.mjs && vite build && node scripts/generate-static-product-pages.mjs",
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "preview": "vite preview"

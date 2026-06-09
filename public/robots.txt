@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Sitemap: https://www.internext.com.au/sitemap.xml
+Product-feed: https://www.internext.com.au/google-products.xml

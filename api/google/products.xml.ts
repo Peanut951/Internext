@@ -389,6 +389,19 @@ export default async function handler(
     return;
   }
 
+  try {
+    const staticXml = await readFile(join(process.cwd(), "public", "google-products.xml"), "utf8");
+    if (staticXml.trim()) {
+      res.statusCode = 200;
+      res.setHeader("Content-Type", "application/xml; charset=utf-8");
+      res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate=86400");
+      res.end(staticXml);
+      return;
+    }
+  } catch {
+    // Fall back to the dynamic catalog path when the build-time feed is unavailable.
+  }
+
   const catalog = await loadMergedCatalogProducts();
   const excludedCodes = await loadGoogleFeedExclusions();
   const products = catalog.items
