@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -16,9 +17,17 @@ const escapeXml = (value) =>
 
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"));
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"));
+let leaderFeedProducts = [];
+
+try {
+  leaderFeedProducts = await loadLeaderFeedProducts();
+} catch (error) {
+  console.warn(`Leader feed unavailable for sitemap build: ${error.message}`);
+}
+
 const productCodes = Array.from(
   new Set(
-    [...staticProducts, ...leaderProducts]
+    [...staticProducts, ...leaderProducts, ...leaderFeedProducts]
       .map((product) => String(product.code || "").trim())
       .filter(Boolean),
   ),
