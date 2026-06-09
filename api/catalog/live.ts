@@ -42,6 +42,15 @@ type LiveCatalogCache = {
   items: LiveCatalogItem[];
 };
 
+type LiveCatalogResult = {
+  updatedAt: string;
+  count: number;
+  source: LiveCatalogCache["source"];
+  cached: boolean;
+  stale?: boolean;
+  items: LiveCatalogItem[];
+};
+
 type StaticCatalogProduct = {
   code: string;
   supplierCode?: string;
@@ -57,6 +66,15 @@ type MergedCatalogCache = {
   staleUntil: number;
   updatedAt: string;
   source: "xml" | "csv" | "combined";
+  items: Array<StaticCatalogProduct & LiveCatalogItem>;
+};
+
+type MergedCatalogResult = {
+  updatedAt: string;
+  count: number;
+  source: MergedCatalogCache["source"];
+  cached: boolean;
+  stale?: boolean;
   items: Array<StaticCatalogProduct & LiveCatalogItem>;
 };
 
@@ -536,12 +554,15 @@ const parseLiveCatalogXml = (xml: string) => {
 
 const globalCatalogCache = globalThis as typeof globalThis & {
   __internextLiveCatalogCache?: LiveCatalogCache;
+  __internextLiveCatalogPromise?: Promise<LiveCatalogResult>;
   __internextMergedCatalogCache?: MergedCatalogCache;
+  __internextMergedCatalogPromise?: Promise<MergedCatalogResult>;
   __internextLeaderCatalogProductsCache?: {
     expiresAt: number;
     staleUntil: number;
     products: LeaderCatalogProduct[];
   };
+  __internextLeaderCatalogProductsPromise?: Promise<LeaderCatalogProduct[]>;
 };
 
 const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode">) =>
@@ -556,6 +577,26 @@ const loadLeaderCatalogProducts = async () => {
     return cached.products;
   }
 
+  if (globalCatalogCache.__internextLeaderCatalogProductsPromise) {
+    return globalCatalogCache.__internextLeaderCatalogProductsPromise;
+  }
+
+  const loadPromise = loadLeaderCatalogProductsUncached(cached, now);
+  globalCatalogCache.__internextLeaderCatalogProductsPromise = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    if (globalCatalogCache.__internextLeaderCatalogProductsPromise === loadPromise) {
+      delete globalCatalogCache.__internextLeaderCatalogProductsPromise;
+    }
+  }
+};
+
+const loadLeaderCatalogProductsUncached = async (
+  cached: typeof globalCatalogCache.__internextLeaderCatalogProductsCache,
+  now: number,
+) => {
   const cacheMs = getServerCatalogCacheMs();
   const staleMs = getServerCatalogStaleMs();
   const feedUrl = readEnv("LEADER_DATA_FEED_URL");
@@ -678,6 +719,7 @@ const chooseHigherPricedCatalogItem = (current: LiveCatalogItem | undefined, nex
 
 const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
   const merged: LiveCatalogItem[] = [];
+  const indexByKey = new Map<string, number>();
 
   for (const item of items) {
     const itemKeys = getProductKeys(item);
@@ -685,17 +727,26 @@ const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
       continue;
     }
 
-    const existingIndex = merged.findIndex((existing) => {
-      const existingKeys = getProductKeys(existing);
-      return existingKeys.some((key) => itemKeys.includes(key));
-    });
+    const existingIndex = itemKeys
+      .map((key) => indexByKey.get(key))
+      .find((index): index is number => typeof index === "number");
 
-    if (existingIndex === -1) {
+    if (typeof existingIndex !== "number") {
+      const nextIndex = merged.length;
       merged.push(item);
+      for (const key of itemKeys) {
+        indexByKey.set(key, nextIndex);
+      }
       continue;
     }
 
-    merged[existingIndex] = chooseHigherPricedCatalogItem(merged[existingIndex], item);
+    const current = merged[existingIndex];
+    const selected = chooseHigherPricedCatalogItem(current, item);
+    merged[existingIndex] = selected;
+
+    for (const key of [...getProductKeys(current), ...itemKeys, ...getProductKeys(selected)]) {
+      indexByKey.set(key, existingIndex);
+    }
   }
 
   return merged;
@@ -714,6 +765,26 @@ export const loadLiveCatalogItems = async () => {
     };
   }
 
+  if (globalCatalogCache.__internextLiveCatalogPromise) {
+    return globalCatalogCache.__internextLiveCatalogPromise;
+  }
+
+  const loadPromise = loadLiveCatalogItemsUncached(cached, now);
+  globalCatalogCache.__internextLiveCatalogPromise = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    if (globalCatalogCache.__internextLiveCatalogPromise === loadPromise) {
+      delete globalCatalogCache.__internextLiveCatalogPromise;
+    }
+  }
+};
+
+const loadLiveCatalogItemsUncached = async (
+  cached: typeof globalCatalogCache.__internextLiveCatalogCache,
+  now: number,
+): Promise<LiveCatalogResult> => {
   const leaderProducts = await loadLeaderCatalogProducts();
   const leaderItems = leaderProducts.map(createLeaderLiveCatalogItem);
   const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
@@ -808,6 +879,26 @@ export const loadMergedCatalogProducts = async () => {
     };
   }
 
+  if (globalCatalogCache.__internextMergedCatalogPromise) {
+    return globalCatalogCache.__internextMergedCatalogPromise;
+  }
+
+  const loadPromise = loadMergedCatalogProductsUncached(cached, now);
+  globalCatalogCache.__internextMergedCatalogPromise = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    if (globalCatalogCache.__internextMergedCatalogPromise === loadPromise) {
+      delete globalCatalogCache.__internextMergedCatalogPromise;
+    }
+  }
+};
+
+const loadMergedCatalogProductsUncached = async (
+  cached: typeof globalCatalogCache.__internextMergedCatalogCache,
+  now: number,
+): Promise<MergedCatalogResult> => {
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
 
