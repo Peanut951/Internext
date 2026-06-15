@@ -230,7 +230,7 @@ const getProductMpn = (product: CatalogProduct) => {
   const supplierCode = product.supplierCode?.trim() || "";
   const code = product.code.trim();
 
-  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
     return supplierCode;
   }
 
@@ -409,6 +409,7 @@ const ProductDetail = () => {
 
     document.title = pageTitle;
     setNamedMeta('meta[name="description"]', "name", "description", metaDescription);
+    setNamedMeta('meta[name="robots"]', "name", "robots", "index, follow");
     setNamedMeta('meta[property="og:title"]', "property", "og:title", pageTitle);
     setNamedMeta('meta[property="og:description"]', "property", "og:description", metaDescription);
     setNamedMeta('meta[property="og:type"]', "property", "og:type", "product");

@@ -56,7 +56,7 @@ const getProductMpn = (product) => {
   const supplierCode = String(product.supplierCode || "").trim();
   const code = String(product.code || "").trim();
 
-  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
     return supplierCode;
   }
 
@@ -82,22 +82,31 @@ const getProductUrl = (code) => `${SITE_URL}/products/item/${encodeURIComponent(
 const isPlaceholderImage = (value) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
 const isTrackingImage = (value) => /\/controls\/bit\.gif$/i.test(String(value || ""));
 
-const getImage = (product) => {
+const getImages = (product) => {
   const candidates = [product.imageUrl, ...(Array.isArray(product.imageUrls) ? product.imageUrls : [])]
     .map((value) => String(value || "").trim())
     .filter(Boolean)
     .filter((value) => !isPlaceholderImage(value) && !isTrackingImage(value))
     .filter((value) => /\.(jpe?g|png|gif)(?:\?.*)?$/i.test(value));
 
-  const selected = candidates.find((value) => /\/(Original|Large)\//i.test(value)) || candidates[0] || "";
-  if (!selected) return "";
-
-  try {
-    return new URL(selected, SITE_URL).href;
-  } catch {
-    return "";
-  }
+  return Array.from(new Set(candidates))
+    .sort((a, b) => {
+      const aPreferred = /\/(Original|Large)\//i.test(a) ? 0 : 1;
+      const bPreferred = /\/(Original|Large)\//i.test(b) ? 0 : 1;
+      return aPreferred - bPreferred;
+    })
+    .map((value) => {
+      try {
+        return new URL(value, SITE_URL).href;
+      } catch {
+        return "";
+      }
+    })
+    .filter(Boolean)
+    .slice(0, 11);
 };
+
+const getImage = (product) => getImages(product)[0] || "";
 
 const buildDescription = (product) => {
   const title = stripHtml(product.description || product.name || product.code);
@@ -112,7 +121,7 @@ const buildDescription = (product) => {
   return truncate(parts.join(" "), 155);
 };
 
-const buildStructuredData = (product, url, image) => ({
+const buildStructuredData = (product, url, images) => ({
   "@context": "https://schema.org",
   "@type": "Product",
   sku: product.code,
@@ -124,7 +133,7 @@ const buildStructuredData = (product, url, image) => ({
     "@type": "Brand",
     name: product.manufacturer || "Internext",
   },
-  ...(image ? { image: [image] } : {}),
+  ...(images.length > 0 ? { image: images } : {}),
   ...(typeof product.price === "number" && product.price > 0
     ? {
         offers: {
@@ -166,6 +175,7 @@ const removeExistingHeadTags = (html) =>
   html
     .replace(/\s*<title>[\s\S]*?<\/title>/i, "")
     .replace(/\s*<meta\s+name="description"[\s\S]*?>/gi, "")
+    .replace(/\s*<meta\s+name="robots"[\s\S]*?>/gi, "")
     .replace(/\s*<meta\s+property="og:title"[\s\S]*?>/gi, "")
     .replace(/\s*<meta\s+property="og:description"[\s\S]*?>/gi, "")
     .replace(/\s*<meta\s+property="og:type"[\s\S]*?>/gi, "")
@@ -181,8 +191,9 @@ const createProductHtml = (template, product) => {
   const title = truncate(`${titleText} | Internext`, 60);
   const url = getProductUrl(product.code);
   const description = buildDescription(product);
-  const image = getImage(product);
-  const structuredData = buildStructuredData(product, url, image);
+  const images = getImages(product);
+  const image = images[0] || "";
+  const structuredData = buildStructuredData(product, url, images);
   const headTags = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,

@@ -96,8 +96,11 @@ const readJson = (filePath, fallback = []) => {
   }
 };
 
+const stripInvalidXmlChars = (value) =>
+  String(value ?? "").replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD]/g, "");
+
 const escapeXml = (value) =>
-  String(value ?? "")
+  stripInvalidXmlChars(value)
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -131,7 +134,7 @@ const getProductMpn = (product) => {
   const supplierCode = String(product.supplierCode || "").trim();
   const code = String(product.code || "").trim();
 
-  if (/[a-z]/i.test(supplierCode) && normalizeToken(supplierCode) !== normalizeToken(code)) {
+  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
     return supplierCode;
   }
 
@@ -225,6 +228,17 @@ const getGoogleImage = (product, excludedCodes) => {
   return image ? getFreshImageUrl(image) : "";
 };
 
+const getGoogleImages = (product, excludedCodes) => {
+  const code = String(product.code || "").trim().toUpperCase();
+  if (excludedCodes.has(code)) return [];
+
+  return getProductImageCandidates(product)
+    .filter((value) => hasSupportedImageExtension(value))
+    .map(getFreshImageUrl)
+    .filter(Boolean)
+    .slice(0, 11);
+};
+
 const getProductText = (product) =>
   `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
@@ -314,7 +328,7 @@ const getGoogleShippingDimension = (product, dimension) =>
 
 const buildShoppingTitle = (product) => {
   const brand = stripHtml(product.manufacturer || "");
-  const base = stripHtml(product.description || product.name || product.code);
+  const base = removeSupplierReferences(product.description || product.name || product.code);
   const mpn = getProductMpn(product);
   const normalizedBase = normalizeToken(base);
   const parts = [
@@ -331,11 +345,29 @@ const getPrice = (value) =>
 
 const getAvailability = (product) => {
   if (product.price === null || product.price === undefined) return "out_of_stock";
+  if (typeof product.stockQuantity === "number" && product.stockQuantity <= 0 && getAvailabilityDate(product)) return "backorder";
   if (/available to order|in stock/i.test(product.availabilityText || "")) return "in_stock";
   return typeof product.stockQuantity === "number" && product.stockQuantity <= 0 ? "out_of_stock" : "in_stock";
 };
 
 const optionalTag = (name, value) => (value ? `      <${name}>${escapeXml(value)}</${name}>` : null);
+
+const getAvailabilityDate = (product) => {
+  const raw = String(product.etaDate || "").trim();
+  const dmy = raw.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (dmy) {
+    const [, day, month, year] = dmy;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T00:00+1000`;
+  }
+
+  const iso = raw.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  if (iso) {
+    const [, year, month, day] = iso;
+    return `${year}-${month.padStart(2, "0")}-${day.padStart(2, "0")}T00:00+1000`;
+  }
+
+  return "";
+};
 
 const getProductKeys = (product) =>
   [product.code, product.supplierCode]
@@ -396,9 +428,14 @@ const products = mergeProducts([
   .slice(0, 50000);
 
 const items = products.map((product) => {
-  const image = getGoogleImage(product, excludedCodes);
+  const images = getGoogleImages(product, excludedCodes);
+  const image = images[0] || getGoogleImage(product, excludedCodes);
+  const additionalImages = images.slice(1, 11);
   const mpn = getProductMpn(product);
   const gtin = getProductGtin(product);
+  const availability = getAvailability(product);
+  const availabilityDate = availability === "backorder" ? getAvailabilityDate(product) : "";
+  const productType = getProductType(product);
   const shippingTags = [
     "      <g:shipping>",
     "        <g:country>AU</g:country>",
@@ -418,15 +455,20 @@ const items = products.map((product) => {
     `      <g:description>${escapeXml(truncate(removeSupplierReferences(product.longDescription || product.description || product.name), 5000))}</g:description>`,
     `      <g:link>${escapeXml(`${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`)}</g:link>`,
     `      <g:image_link>${escapeXml(image)}</g:image_link>`,
-    `      <g:availability>${getAvailability(product)}</g:availability>`,
+    ...additionalImages.map((additionalImage) => `      <g:additional_image_link>${escapeXml(additionalImage)}</g:additional_image_link>`),
+    `      <g:availability>${availability}</g:availability>`,
+    optionalTag("g:availability_date", availabilityDate) || "",
     `      <g:price>${escapeXml(getPrice(product.price))}</g:price>`,
     "      <g:condition>new</g:condition>",
     `      <g:brand>${escapeXml(product.manufacturer || "Internext")}</g:brand>`,
     gtin ? `      <g:gtin>${escapeXml(gtin)}</g:gtin>` : "",
     `      <g:mpn>${escapeXml(mpn)}</g:mpn>`,
     `      <g:identifier_exists>${gtin || mpn ? "yes" : "no"}</g:identifier_exists>`,
-    `      <g:product_type>${escapeXml(getProductType(product))}</g:product_type>`,
+    `      <g:product_type>${escapeXml(productType)}</g:product_type>`,
     `      <g:google_product_category>${escapeXml(getGoogleProductCategory(product))}</g:google_product_category>`,
+    optionalTag("g:custom_label_0", productType.split(" > ")[0]) || "",
+    optionalTag("g:custom_label_1", product.manufacturer || "Internext") || "",
+    optionalTag("g:custom_label_2", availability) || "",
     ...shippingTags,
     "    </item>",
   ].join("\n");
