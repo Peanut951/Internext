@@ -27,22 +27,22 @@ const replacements = {
     "https://ellipsesecurity.com/wp-content/uploads/2024/12/NVR501-08B-P8-IQ-2.png",
   ],
   "NVR502-16B-P16-I": [
-    "https://univiewpro.com/cdn/shop/files/NVR502-16B-P16-IQ.png?v=1745850272",
+    "https://www.internext.com.au/product-images/google/nvr502-16b-p16-iq.png",
   ],
   "RW-127128": [
-    "https://shop.realwear.com/cdn/shop/files/127128_0.png?v=1779278187",
+    "https://www.internext.com.au/product-images/google/realwear-navigator-520.png",
   ],
   "ST-GX065-V3-5L": [
-    "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png",
+    "https://www.internext.com.au/product-images/google/smart-board-gx-display.png",
   ],
   "ST-GX075-V3-5L": [
-    "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png",
+    "https://www.internext.com.au/product-images/google/smart-board-gx-display.png",
   ],
   "ST-GX086-V3-5L": [
-    "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png",
+    "https://www.internext.com.au/product-images/google/smart-board-gx-display.png",
   ],
   "TRJB07/WM03-F-IN": [
-    "https://nellyssecurity.com/cdn/shop/files/TR-JB07_WM03-H-IN_1.jpg?v=1736884076",
+    "https://www.internext.com.au/product-images/google/tr-jb07-wm03-h-in.jpg",
   ],
 };
 
