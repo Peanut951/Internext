@@ -344,6 +344,15 @@ const getProductText = (product: {
 }) =>
   `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
+const getProductListingText = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+}) =>
+  `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
+
 const getProductType = (product: {
   manufacturer?: string | null;
   name?: string | null;
@@ -369,6 +378,26 @@ const getProductType = (product: {
   if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text)) return "Services and software";
 
   return "Technology products";
+};
+
+const isGoogleMerchantPhysicalProduct = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) => {
+  const listingText = getProductListingText(product);
+  const productType = getProductType(product);
+
+  if (productType === "Services and software") {
+    return false;
+  }
+
+  return !/\b(care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|warranty|extended\s*warranty|onsite\s+support|subscription|renewal|licen[cs]e|software|training|installation|professional\s+service|bootcamp|managed\s+service|digital\s+download)\b/i.test(
+    listingText,
+  );
 };
 
 const getGoogleProductCategory = (product: {
@@ -462,6 +491,7 @@ export default async function handler(
       return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
     })
     .filter((product) => typeof product.price === "number" && product.price > 0)
+    .filter(isGoogleMerchantPhysicalProduct)
     .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
     .slice(0, 50000);
 
