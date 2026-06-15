@@ -297,18 +297,7 @@ const getGoogleImages = (product: {
 };
 
 const loadGoogleFeedExclusions = async () => {
-  try {
-    const raw = await readFile(join(process.cwd(), "public", "data", "google-feed-exclusions.json"), "utf8");
-    const parsed = JSON.parse(raw) as { codes?: unknown };
-    const codes = Array.isArray(parsed.codes) ? parsed.codes : [];
-
-    return new Set([
-      ...GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES,
-      ...codes.map((code) => String(code).trim().toUpperCase()).filter(Boolean),
-    ]);
-  } catch {
-    return GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES;
-  }
+  return new Set<string>();
 };
 
 const loadGoogleImageOverrides = async () => {

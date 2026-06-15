@@ -422,10 +422,7 @@ const imageOverrideMap = new Map(
     Array.isArray(images) ? images.filter(Boolean) : [],
   ]),
 );
-const excludedCodes = new Set([
-  ...BLOCKED_IMAGE_CODES,
-  ...(Array.isArray(exclusions.codes) ? exclusions.codes : []).map((code) => String(code).trim().toUpperCase()).filter(Boolean),
-]);
+const excludedCodes = new Set();
 
 const products = mergeProducts([
   ...readJson(path.join(dataDir, "catalog-products.json")),
