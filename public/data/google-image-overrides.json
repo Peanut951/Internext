@@ -1,7 +1,7 @@
 {
-  "updatedAt": "2026-06-15T00:00:00.000Z",
+  "updatedAt": "2026-06-15T02:29:22.692Z",
   "source": "product_issues_2026-06-15_11-25-55.csv",
-  "reason": "Merchant Centre image issue fixes. These products had dead primary supplier images but valid alternate product images.",
+  "reason": "Merchant Centre image issue fixes applied to the site catalogue and Google Shopping feed.",
   "images": {
     "CPFI-5100M": [
       "https://www.alloys.com.au/Images/ProductImages/Original/PFI-5100M%20Inks-7.jpg"
@@ -12,9 +12,33 @@
     "EPC11CJ71501": [
       "https://www.alloys.com.au/Images/ProductImages/Original/EPC11CJ71501%20(4).jpg"
     ],
+    "EPC13S020693": [
+      "https://media.ldlc.com/r1600/ld/products/00/06/30/68/LD0006306822.jpg"
+    ],
     "NVR501-04B-P4-IQ": [
       "https://www.alloys.com.au/Images/ProductImages/Original/NVR501-04B-P4-IQ%202.png",
       "https://www.alloys.com.au/Images/ProductImages/Large/NVR501-04B-P4-IQ.png"
+    ],
+    "NVR501-08B-P8-IQ": [
+      "https://ellipsesecurity.com/wp-content/uploads/2024/12/NVR501-08B-P8-IQ-2.png"
+    ],
+    "NVR502-16B-P16-I": [
+      "https://univiewpro.com/cdn/shop/files/NVR502-16B-P16-IQ.png?v=1745850272"
+    ],
+    "RW-127128": [
+      "https://shop.realwear.com/cdn/shop/files/127128_0.png?v=1779278187"
+    ],
+    "ST-GX065-V3-5L": [
+      "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png"
+    ],
+    "ST-GX075-V3-5L": [
+      "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png"
+    ],
+    "ST-GX086-V3-5L": [
+      "https://www.smarttech.com/-/media/project/smart/www/education/products/interactive-displays/smart-board-gx/award-winning-gx-series-educational-display.png"
+    ],
+    "TRJB07/WM03-F-IN": [
+      "https://nellyssecurity.com/cdn/shop/files/TR-JB07_WM03-H-IN_1.jpg?v=1736884076"
     ]
   }
 }
