@@ -1,0 +1,20 @@
+{
+  "updatedAt": "2026-06-15T00:00:00.000Z",
+  "source": "product_issues_2026-06-15_11-25-55.csv",
+  "reason": "Merchant Centre image issue fixes. These products had dead primary supplier images but valid alternate product images.",
+  "images": {
+    "CPFI-5100M": [
+      "https://www.alloys.com.au/Images/ProductImages/Original/PFI-5100M%20Inks-7.jpg"
+    ],
+    "CPFI-5100Y": [
+      "https://www.alloys.com.au/Images/ProductImages/Original/PFI-5100Y%20Inks-8.jpg"
+    ],
+    "EPC11CJ71501": [
+      "https://www.alloys.com.au/Images/ProductImages/Original/EPC11CJ71501%20(4).jpg"
+    ],
+    "NVR501-04B-P4-IQ": [
+      "https://www.alloys.com.au/Images/ProductImages/Original/NVR501-04B-P4-IQ%202.png",
+      "https://www.alloys.com.au/Images/ProductImages/Large/NVR501-04B-P4-IQ.png"
+    ]
+  }
+}

@@ -232,9 +232,12 @@ const getSupportedImageFormatCandidates = (value: unknown) => {
 const getProductImageCandidates = (product: {
   imageUrl?: string | null;
   imageUrls?: unknown;
+  googleImageOverrides?: unknown;
 }) => {
   const gallery = Array.isArray(product.imageUrls) ? product.imageUrls : [];
-  const candidates = [product.imageUrl, ...gallery]
+  const overrideGallery = Array.isArray(product.googleImageOverrides) ? product.googleImageOverrides : [];
+  const sourceImages = overrideGallery.length ? overrideGallery : [product.imageUrl, ...gallery];
+  const candidates = sourceImages
     .flatMap(getSupportedImageFormatCandidates)
     .filter(Boolean);
 
@@ -264,6 +267,7 @@ const getGoogleImage = (product: {
   code?: string | null;
   imageUrl?: string | null;
   imageUrls?: unknown;
+  googleImageOverrides?: unknown;
 }, excludedCodes = GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES) => {
   const code = String(product.code || "").trim().toUpperCase();
   if (excludedCodes.has(code)) {
@@ -278,6 +282,7 @@ const getGoogleImages = (product: {
   code?: string | null;
   imageUrl?: string | null;
   imageUrls?: unknown;
+  googleImageOverrides?: unknown;
 }, excludedCodes = GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES) => {
   const code = String(product.code || "").trim().toUpperCase();
   if (excludedCodes.has(code)) {
@@ -303,6 +308,21 @@ const loadGoogleFeedExclusions = async () => {
     ]);
   } catch {
     return GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES;
+  }
+};
+
+const loadGoogleImageOverrides = async () => {
+  try {
+    const raw = await readFile(join(process.cwd(), "public", "data", "google-image-overrides.json"), "utf8");
+    const parsed = JSON.parse(raw) as { images?: Record<string, unknown> };
+    const entries = Object.entries(parsed.images || {}).map(([code, images]) => [
+      code.trim().toUpperCase(),
+      Array.isArray(images) ? images.filter(Boolean) : [],
+    ] as const);
+
+    return new Map(entries);
+  } catch {
+    return new Map<string, unknown[]>();
   }
 };
 
@@ -446,7 +466,12 @@ export default async function handler(
 
   const catalog = await loadMergedCatalogProducts();
   const excludedCodes = await loadGoogleFeedExclusions();
+  const imageOverrides = await loadGoogleImageOverrides();
   const products = catalog.items
+    .map((product) => {
+      const overrideImages = imageOverrides.get(String(product.code || "").trim().toUpperCase());
+      return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
+    })
     .filter((product) => typeof product.price === "number" && product.price > 0)
     .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
     .slice(0, 50000);

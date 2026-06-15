@@ -195,7 +195,9 @@ const getSupportedImageFormatCandidates = (value) => {
 
 const getProductImageCandidates = (product) => {
   const gallery = Array.isArray(product.imageUrls) ? product.imageUrls : [];
-  const candidates = [product.imageUrl, ...gallery]
+  const overrideGallery = Array.isArray(product.googleImageOverrides) ? product.googleImageOverrides : [];
+  const sourceImages = overrideGallery.length ? overrideGallery : [product.imageUrl, ...gallery];
+  const candidates = sourceImages
     .flatMap(getSupportedImageFormatCandidates)
     .filter(Boolean)
     .filter((value) => !isPlaceholderImage(value) && !isTrackingImage(value));
@@ -413,6 +415,13 @@ try {
 }
 
 const exclusions = readJson(path.join(dataDir, "google-feed-exclusions.json"), { codes: [] });
+const imageOverrides = readJson(path.join(dataDir, "google-image-overrides.json"), { images: {} });
+const imageOverrideMap = new Map(
+  Object.entries(imageOverrides.images || {}).map(([code, images]) => [
+    String(code).trim().toUpperCase(),
+    Array.isArray(images) ? images.filter(Boolean) : [],
+  ]),
+);
 const excludedCodes = new Set([
   ...BLOCKED_IMAGE_CODES,
   ...(Array.isArray(exclusions.codes) ? exclusions.codes : []).map((code) => String(code).trim().toUpperCase()).filter(Boolean),
@@ -423,6 +432,10 @@ const products = mergeProducts([
   ...readJson(path.join(dataDir, "leader-products.json")),
   ...leaderFeedProducts,
 ])
+  .map((product) => {
+    const overrideImages = imageOverrideMap.get(String(product.code || "").trim().toUpperCase());
+    return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
+  })
   .filter((product) => typeof product.price === "number" && product.price > 0)
   .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
   .slice(0, 50000);
