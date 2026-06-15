@@ -186,6 +186,7 @@ const createProductHtml = (template, product) => {
   const headTags = [
     `<title>${escapeHtml(title)}</title>`,
     `<meta name="description" content="${escapeHtml(description)}" />`,
+    `<meta name="robots" content="index, follow" />`,
     `<link rel="canonical" href="${escapeHtml(url)}" />`,
     `<meta property="og:title" content="${escapeHtml(title)}" />`,
     `<meta property="og:description" content="${escapeHtml(description)}" />`,
