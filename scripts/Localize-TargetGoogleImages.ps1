@@ -7,6 +7,10 @@ $targets = @{
   "KYPA2600CWX" = "https://www.abdofficesolutions.com/cdn/shop/files/Kyocera_ECOSYS_PA2600cwx_1200x1200.jpg?v=1741797054"
   "KYPA2600CX" = "https://www.abdofficesolutions.com/cdn/shop/files/Kyocera_ECOSYS_PA2600cwx_1200x1200.jpg?v=1741797054"
   "KYPA6000X" = "https://www.abdofficesolutions.com/cdn/shop/files/Kyocera_ECOSYS_PA_6000x_1_1200x1200.png?v=1727369530"
+  "LG-WP601-B" = "https://www.lg.com/content/dam/channel/wcms/za/images/business/feature/wp601-b/WP601-Gallery-450-01-webOS-Box-Digital-Signage-ID.jpg"
+  "LM47C9667" = "https://i5.walmartimages.com/seo/Lexmark-CX735adse-Laser-Multifunction-Printer-Color-TAA-Compliant_9d49a7c6-7b28-474f-a84e-83f6531afba3.8a2697c1f93a8d4088f906994fdafbdf.jpeg"
+  "LMMX532ADWE" = "https://i5.walmartimages.com/seo/Lexmark-MX532adwe-MFP-Mono-Laser-Printer-46-ppm-1200-x-1200-2-GB-1-2GHz_085d5a27-612a-47eb-bd4d-2e076f6f6b1a.88b1c011ab6bad1356ee36a8a5c2352c.jpeg"
+  "NB-T70" = "https://www.pbtech.com/pacific/imgprod/T/A/TAANBY1027__1.jpg?h=481507840"
   "SH-SHELLYPROSHUT" = "https://us.shelly.com/cdn/shop/files/Shelly-Pro-Dual-Cover-Shutter-main-image_7bd08d0d-b0da-4504-b978-21edba4fb31c.png?v=1762463558"
 }
 
@@ -19,11 +23,9 @@ if (-not $overrides.images) {
   $overrides | Add-Member -NotePropertyName images -NotePropertyValue ([pscustomobject]@{})
 }
 
-$client = [System.Net.Http.HttpClient]::new()
-$client.DefaultRequestHeaders.UserAgent.ParseAdd("Mozilla/5.0 (compatible; InternextImageRepair/1.0)")
-$client.DefaultRequestHeaders.Accept.ParseAdd("image/jpeg")
-$client.DefaultRequestHeaders.Accept.ParseAdd("image/png")
-$client.DefaultRequestHeaders.Accept.ParseAdd("image/gif")
+$client = [System.Net.WebClient]::new()
+$client.Headers.Add("User-Agent", "Mozilla/5.0 (compatible; InternextImageRepair/1.0)")
+$client.Headers.Add("Accept", "image/jpeg,image/png,image/gif,image/*;q=0.8")
 
 $report = @()
 foreach ($entry in $targets.GetEnumerator()) {
@@ -33,7 +35,7 @@ foreach ($entry in $targets.GetEnumerator()) {
   $path = Join-Path $outDir $fileName
   $publicUrl = "https://www.internext.com.au/product-images/google/repairs/$fileName"
 
-  $bytes = $client.GetByteArrayAsync($entry.Value).GetAwaiter().GetResult()
+  $bytes = $client.DownloadData($entry.Value)
   [System.IO.File]::WriteAllBytes($path, $bytes)
   $overrides.images | Add-Member -Force -NotePropertyName $code -NotePropertyValue @($publicUrl)
   $report += [pscustomobject]@{ code = $code; bytes = $bytes.Length; file = $path; url = $publicUrl }
