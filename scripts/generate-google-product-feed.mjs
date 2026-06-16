@@ -264,7 +264,7 @@ const getProductType = (product) => {
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
   if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
-  if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text)) return "Services and software";
+  if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|install(?:ation|ations)?|instal|service|renewal|postscript|pdf\s+upgrade)\b/.test(text)) return "Services and software";
 
   return "Technology products";
 };
@@ -275,7 +275,7 @@ const isGoogleMerchantPhysicalProduct = (product) => {
 
   if (productType === "Services and software") return false;
 
-  return !/\b(care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|warranty|extended\s*warranty|onsite\s+support|subscription|renewal|licen[cs]e|software|training|installation|professional\s+service|bootcamp|managed\s+service|digital\s+download)\b/i.test(
+  return !/\b(care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|warranty|extended\s*warranty|hardware\s+support|onsite\s+support|subscription|renewal|licen[cs]e|software|training|install(?:ation|ations)?|instal|professional\s+service|bootcamp|managed\s+service|digital\s+download|postscript|pdf\s+upgrade|poly\+.*service)\b/i.test(
     listingText,
   );
 };

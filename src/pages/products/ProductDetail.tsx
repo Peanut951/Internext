@@ -7,7 +7,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProductImageCandidates,
   handleProductImageError,
-  isDigitalProduct,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
 import { loadCatalogProductsFast } from "@/lib/liveCatalog";
@@ -361,7 +360,7 @@ const ProductDetail = () => {
     if (candidates.length > 0) {
       return candidates;
     }
-    return isDigitalProduct(product) ? [] : [PRODUCT_IMAGE_PLACEHOLDER];
+    return [];
   }, [product]);
 
   const specHighlights = useMemo(() => {

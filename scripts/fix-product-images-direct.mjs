@@ -123,7 +123,13 @@ const severeCodes = new Set(
   audit.results
     .filter((result) =>
       result.issues.some((issue) =>
-        ["no_image", "broken_image", "unknown_dimensions"].includes(issue),
+        [
+          "no_image",
+          "broken_image",
+          "unknown_dimensions",
+          "generic_image",
+          "unsupported_image_type",
+        ].includes(issue),
       ),
     )
     .map((result) => result.code),

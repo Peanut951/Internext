@@ -10,6 +10,7 @@ const options = {
   concurrency: 6,
   maxImages: 8,
   includeMultiple: false,
+  auditTargets: false,
   code: "",
 };
 
@@ -26,6 +27,8 @@ for (let index = 0; index < args.length; index += 1) {
     index += 1;
   } else if (arg === "--include-multiple") {
     options.includeMultiple = true;
+  } else if (arg === "--audit-targets") {
+    options.auditTargets = true;
   } else if (arg === "--code") {
     options.code = String(args[index + 1] || "").trim().toLowerCase();
     index += 1;
@@ -210,7 +213,15 @@ const sourceImages = async (product) => {
 const catalog = readJson(catalogPath, []);
 const report = readJson(reportPath, { updates: [], misses: [], processedCodes: [] });
 const processed = new Set(report.processedCodes || []);
+const auditCodes = options.auditTargets
+  ? new Set(
+      (readJson(path.resolve("reports/product-image-audit.json"), { results: [] }).results || [])
+        .map((result) => String(result.code || result.id || "").trim())
+        .filter(Boolean),
+    )
+  : null;
 const targets = catalog
+  .filter((product) => !auditCodes || auditCodes.has(String(product.code || "").trim()))
   .filter((product) => options.includeMultiple || !Array.isArray(product.imageUrls) || product.imageUrls.length <= 1)
   .filter((product) => !processed.has(product.code))
   .filter((product) => !options.code || String(product.code || "").toLowerCase() === options.code)

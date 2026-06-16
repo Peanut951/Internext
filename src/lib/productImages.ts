@@ -18,7 +18,7 @@ type ProductImageSource = {
 export const isDigitalProduct = (product: ProductImageSource) => {
   const text = `${product.manufacturer || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
-  return /\b(warranty|licen[cs]e|subscription|software|support|onsite|installation|service|renewal)\b/.test(text);
+  return /\b(warranty|licen[cs]e|subscription|software|support|onsite|install(?:ation|ations)?|instal|service|renewal|postscript|pdf\s+upgrade)\b/.test(text);
 };
 
 const sanitizeProductImageUrl = (value?: string | null) => {
