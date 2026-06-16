@@ -415,6 +415,11 @@ const isGoogleMerchantPhysicalProduct = (product: {
   );
 };
 
+const isLeaderLiveFeedImage = (product: { imageUrl?: string | null; imageUrls?: unknown }) => {
+  const images = [product.imageUrl, ...(Array.isArray(product.imageUrls) ? product.imageUrls : [])];
+  return images.some((image) => /https?:\/\/www\.leadersystems\.com\.au\/Images\//i.test(String(image || "")));
+};
+
 const getGoogleProductCategory = (product: {
   manufacturer?: string | null;
   name?: string | null;
@@ -506,6 +511,7 @@ export default async function handler(
       return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
     })
     .filter((product) => typeof product.price === "number" && product.price > 0)
+    .filter((product) => !isLeaderLiveFeedImage(product))
     .filter(isGoogleMerchantPhysicalProduct)
     .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
     .slice(0, 50000);

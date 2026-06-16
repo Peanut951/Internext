@@ -422,10 +422,12 @@ const mergeProducts = (products) => {
 
 let leaderFeedProducts = [];
 
-try {
-  leaderFeedProducts = await loadLeaderFeedProducts();
-} catch (error) {
-  console.warn(`Leader feed unavailable for Google product feed: ${error.message}`);
+if (process.env.INCLUDE_LEADER_LIVE_GOOGLE_FEED === "true") {
+  try {
+    leaderFeedProducts = await loadLeaderFeedProducts();
+  } catch (error) {
+    console.warn(`Leader feed unavailable for Google product feed: ${error.message}`);
+  }
 }
 
 const exclusions = readJson(path.join(dataDir, "google-feed-exclusions.json"), { codes: [] });
