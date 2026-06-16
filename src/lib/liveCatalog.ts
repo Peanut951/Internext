@@ -85,6 +85,8 @@ const CATALOG_CACHE_KEY = "internext-live-catalog-products";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
+let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
+let staticCatalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 
 const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
   [product.code, product.supplierCode]
@@ -138,8 +140,82 @@ const writeCachedProducts = (products: CatalogProductWithLive[]) => {
   }
 };
 
-const loadCatalogProductsInternal = async () => {
-  const cachedProducts = readCachedProducts();
+export const mergeCatalogProductUpdates = (
+  currentProducts: CatalogProductWithLive[],
+  updatedProducts: CatalogProductWithLive[],
+) => {
+  const updatesByKey = new Map<string, CatalogProductWithLive>();
+  for (const product of updatedProducts) {
+    for (const key of getProductKeys(product)) {
+      updatesByKey.set(key, product);
+    }
+  }
+
+  const appliedUpdates = new Set<CatalogProductWithLive>();
+  const mergedProducts = currentProducts.map((product) => {
+    const update = getProductKeys(product)
+      .map((key) => updatesByKey.get(key))
+      .find(Boolean);
+
+    if (!update) {
+      return product;
+    }
+
+    appliedUpdates.add(update);
+    return {
+      ...product,
+      ...update,
+      imageUrl: product.imageUrl || update.imageUrl,
+      imageUrls: product.imageUrls?.length ? product.imageUrls : update.imageUrls,
+      longDescription: product.longDescription || update.longDescription,
+    };
+  });
+
+  const newProducts = updatedProducts.filter((product) => !appliedUpdates.has(product));
+  return [...mergedProducts, ...newProducts];
+};
+
+const loadStaticCatalogProducts = async () => {
+  if (!staticCatalogProductsPromise) {
+    staticCatalogProductsPromise = (async () => {
+      const staticResponse = await fetch("/data/catalog-products.json");
+      if (!staticResponse.ok) {
+        throw new Error("Unable to load product catalog.");
+      }
+
+      const staticProducts = normalizeCatalogProducts(
+        (await staticResponse.json()) as CatalogProductWithLive[],
+      );
+
+      try {
+        const leaderResponse = await fetch("/data/leader-products.json");
+        if (!leaderResponse.ok) {
+          return staticProducts;
+        }
+
+        const leaderProducts = normalizeCatalogProducts(
+          (await leaderResponse.json()) as CatalogProductWithLive[],
+        );
+        const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
+        const leaderOnlyProducts = leaderProducts.filter((product) =>
+          getProductKeys(product).every((key) => !existingKeys.has(key)),
+        );
+
+        return [...staticProducts, ...leaderOnlyProducts];
+      } catch {
+        return staticProducts;
+      }
+    })().catch((error) => {
+      staticCatalogProductsPromise = null;
+      throw error;
+    });
+  }
+
+  return staticCatalogProductsPromise;
+};
+
+const loadCatalogProductsInternal = async (skipCache = false) => {
+  const cachedProducts = skipCache ? null : readCachedProducts();
   if (cachedProducts) {
     return cachedProducts;
   }
@@ -158,14 +234,7 @@ const loadCatalogProductsInternal = async () => {
     // Fall back to the original client-side merge path below.
   }
 
-  const staticResponse = await fetch("/data/catalog-products.json");
-  if (!staticResponse.ok) {
-    throw new Error("Unable to load product catalog.");
-  }
-
-  const staticProducts = normalizeCatalogProducts(
-    (await staticResponse.json()) as CatalogProductWithLive[],
-  );
+  const staticProducts = await loadStaticCatalogProducts();
 
   const liveResponse = await fetch("/api/catalog/live");
   if (!liveResponse.ok) {
@@ -229,7 +298,26 @@ const loadCatalogProductsInternal = async () => {
   return products;
 };
 
-export const loadCatalogProducts = async () => {
+export const loadCatalogProducts = async (options?: { forceRefresh?: boolean }) => {
+  if (options?.forceRefresh) {
+    if (!catalogProductsRefreshPromise) {
+      catalogProductsRefreshPromise = loadCatalogProductsInternal(true)
+        .then((products) => {
+          catalogProductsPromise = Promise.resolve(products);
+          return products;
+        })
+        .catch((error) => {
+          catalogProductsPromise = null;
+          throw error;
+        })
+        .finally(() => {
+          catalogProductsRefreshPromise = null;
+        });
+    }
+
+    return catalogProductsRefreshPromise;
+  }
+
   if (!catalogProductsPromise) {
     catalogProductsPromise = loadCatalogProductsInternal().catch((error) => {
       catalogProductsPromise = null;
@@ -238,4 +326,30 @@ export const loadCatalogProducts = async () => {
   }
 
   return catalogProductsPromise;
+};
+
+export const loadCatalogProductsFast = async (
+  onLiveProducts?: (products: CatalogProductWithLive[]) => void,
+) => {
+  const cachedProducts = readCachedProducts();
+  if (cachedProducts) {
+    void loadCatalogProducts({ forceRefresh: true })
+      .then((products) => onLiveProducts?.(products))
+      .catch(() => {
+        // Fast catalogue views can keep showing the cached products if live refresh fails.
+      });
+    return cachedProducts;
+  }
+
+  try {
+    const staticProducts = await loadStaticCatalogProducts();
+    void loadCatalogProducts({ forceRefresh: true })
+      .then((products) => onLiveProducts?.(products))
+      .catch(() => {
+        // Static catalogue data is still useful for first paint while live data recovers.
+      });
+    return staticProducts;
+  } catch {
+    return loadCatalogProducts();
+  }
 };

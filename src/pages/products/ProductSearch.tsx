@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
@@ -60,7 +60,13 @@ const ProductSearch = () => {
 
     const loadProducts = async () => {
       try {
-        const data = (await loadCatalogProducts()) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          if (mounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+          }
+        })) as CatalogProduct[];
         if (mounted) {
           setProducts(data);
           setLoading(false);

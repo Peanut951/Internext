@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -815,7 +815,13 @@ const ProductCategory = () => {
     const loadProducts = async () => {
       try {
         const [catalogProducts, featuredResponse] = await Promise.all([
-          loadCatalogProducts() as Promise<CatalogProduct[]>,
+          loadCatalogProductsFast((liveProducts) => {
+            if (isMounted) {
+              setProducts((current) =>
+                mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+              );
+            }
+          }) as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
         ]);
 

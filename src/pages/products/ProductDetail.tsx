@@ -10,7 +10,7 @@ import {
   isDigitalProduct,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -310,7 +310,12 @@ const ProductDetail = () => {
     let isMounted = true;
     const loadProduct = async () => {
       try {
-        const data = (await loadCatalogProducts()) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          const liveProduct = (liveProducts as CatalogProduct[]).find((item) => item.code === productCode) || null;
+          if (isMounted && liveProduct) {
+            setProduct(liveProduct);
+          }
+        })) as CatalogProduct[];
         const found = data.find((item) => item.code === productCode) || null;
         if (isMounted) {
           setProduct(found);

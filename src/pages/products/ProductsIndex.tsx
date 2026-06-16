@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import { getDisplayPrice } from "@/lib/pricing";
@@ -190,7 +190,13 @@ const ProductsIndex = () => {
 
     const loadProducts = async () => {
       try {
-        const data = (await loadCatalogProducts()) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          if (isMounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+          }
+        })) as CatalogProduct[];
         if (isMounted) {
           setProducts(data);
           setCatalogLoading(false);
