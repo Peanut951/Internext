@@ -429,6 +429,7 @@ try {
 }
 
 const exclusions = readJson(path.join(dataDir, "google-feed-exclusions.json"), { codes: [] });
+const invalidImageCodeData = readJson(path.join(dataDir, "google-feed-invalid-image-codes.json"), { codes: [] });
 const imageOverrides = readJson(path.join(dataDir, "google-image-overrides.json"), { images: {} });
 const imageOverrideMap = new Map(
   Object.entries(imageOverrides.images || {}).map(([code, images]) => [
@@ -436,7 +437,9 @@ const imageOverrideMap = new Map(
     Array.isArray(images) ? images.filter(Boolean) : [],
   ]),
 );
-const excludedCodes = new Set();
+const excludedCodes = new Set(
+  [...(exclusions.codes || []), ...(invalidImageCodeData.codes || [])].map((code) => String(code || "").trim().toUpperCase()).filter(Boolean),
+);
 
 const products = mergeProducts([
   ...readJson(path.join(dataDir, "catalog-products.json")),

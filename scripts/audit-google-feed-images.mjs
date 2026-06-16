@@ -1,7 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const feedPath = "public/google-products.xml";
+const feedPathArgIndex = process.argv.indexOf("--feed");
+const feedPath = feedPathArgIndex === -1 ? "public/google-products.xml" : process.argv[feedPathArgIndex + 1] || "public/google-products.xml";
 const outputPath = "reports/google-feed-image-audit.json";
 const concurrency = 24;
 const minLikelyProductImageBytes = 10_000;

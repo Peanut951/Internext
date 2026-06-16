@@ -297,7 +297,22 @@ const getGoogleImages = (product: {
 };
 
 const loadGoogleFeedExclusions = async () => {
-  return new Set<string>();
+  const codes = new Set<string>();
+
+  for (const fileName of ["google-feed-exclusions.json", "google-feed-invalid-image-codes.json"]) {
+    try {
+      const raw = await readFile(join(process.cwd(), "public", "data", fileName), "utf8");
+      const parsed = JSON.parse(raw) as { codes?: unknown[] };
+      for (const code of parsed.codes || []) {
+        const normalized = String(code || "").trim().toUpperCase();
+        if (normalized) codes.add(normalized);
+      }
+    } catch {
+      // Missing exclusion files should not prevent feed generation.
+    }
+  }
+
+  return codes;
 };
 
 const loadGoogleImageOverrides = async () => {
