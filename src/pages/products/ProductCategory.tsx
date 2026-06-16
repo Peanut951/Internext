@@ -1038,6 +1038,12 @@ const ProductCategory = () => {
 
     if (sort === "featured") {
       return [...filtered].sort((a, b) => {
+        const imageDiff =
+          Number(Boolean(getOptionalProductImage(b))) - Number(Boolean(getOptionalProductImage(a)));
+        if (imageDiff !== 0) {
+          return imageDiff;
+        }
+
         const scoreDiff = getFeaturedScore(b) - getFeaturedScore(a);
         if (scoreDiff !== 0) {
           return scoreDiff;
