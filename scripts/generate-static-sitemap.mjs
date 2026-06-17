@@ -131,6 +131,7 @@ const sitemap = [
 const robots = [
   "User-agent: *",
   "Allow: /",
+  "Disallow: /api/",
   `Sitemap: ${SITE_URL}/sitemap.xml`,
   `Product-feed: ${SITE_URL}/google-products.xml`,
   "",
