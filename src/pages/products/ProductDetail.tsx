@@ -75,6 +75,9 @@ const saveStoredCart = (items: CartItem[]) => {
   window.localStorage.setItem("internext-cart", JSON.stringify(items));
 };
 
+const isProductInStoredCart = (productCode: string) =>
+  getStoredCart().some((item) => item.code === productCode);
+
 const getPlainProductName = (product: CatalogProduct) => {
   const description = product.description.trim();
   const manufacturer = product.manufacturer.trim();
@@ -301,12 +304,13 @@ const ProductDetail = () => {
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<CatalogProduct | null>(null);
   const [qty, setQty] = useState(1);
-  const [added, setAdded] = useState(false);
+  const [isInCart, setIsInCart] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
   const { session } = useAuthSession();
 
   useEffect(() => {
     let isMounted = true;
+    setIsInCart(isProductInStoredCart(productCode));
     const loadProduct = async () => {
       try {
         const data = (await loadCatalogProductsFast((liveProducts) => {
@@ -537,8 +541,7 @@ const ProductDetail = () => {
       price: pricedProduct.price || 0,
       quantity: qty,
     });
-    setAdded(true);
-    window.setTimeout(() => setAdded(false), 1500);
+    setIsInCart(true);
   };
 
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
@@ -794,13 +797,21 @@ const ProductDetail = () => {
                           </div>
                         </div>
 
-                        <Button className="w-full" onClick={addToCart}>
-                          {added ? "Added to Cart" : "Add to Cart"}
-                        </Button>
+                        {isInCart ? (
+                          <Button className="w-full" asChild>
+                            <Link to="/cart">View Cart</Link>
+                          </Button>
+                        ) : (
+                          <Button className="w-full" onClick={addToCart}>
+                            Add to Cart
+                          </Button>
+                        )}
 
-                        <Button variant="outline" className="mt-3 w-full" asChild>
-                          <Link to="/cart">View Cart</Link>
-                        </Button>
+                        {!isInCart ? (
+                          <Button variant="outline" className="mt-3 w-full" asChild>
+                            <Link to="/cart">View Cart</Link>
+                          </Button>
+                        ) : null}
 
                         <Button variant="outline" className="mt-3 w-full" asChild>
                           <Link to="/products">Browse More Products</Link>

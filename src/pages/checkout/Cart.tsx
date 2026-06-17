@@ -205,6 +205,7 @@ const Cart = () => {
                 {items.map((item) => {
                   const lineTotal = item.price === null ? null : item.price * item.qty;
                   const productImage = getOptionalProductImage(item);
+                  const productPath = `/products/item/${encodeURIComponent(item.code)}`;
                   const isUnavailable = typeof item.stockQuantity === "number" && item.stockQuantity <= 0;
                   const exceedsAvailable =
                     typeof item.stockQuantity === "number" &&
@@ -223,17 +224,28 @@ const Cart = () => {
                         productImage ? "sm:grid-cols-[120px_minmax(0,1fr)_auto]" : "sm:grid-cols-[minmax(0,1fr)_auto]"
                       }`}>
                         {productImage ? (
-                          <img
-                            src={productImage}
-                            alt={item.description}
-                            onError={handleProductImageError}
-                            className="h-28 w-full rounded-lg border border-border/50 bg-white object-contain sm:w-28"
-                            loading="lazy"
-                          />
+                          <Link
+                            to={productPath}
+                            aria-label={`View ${item.description}`}
+                            className="block h-28 w-full rounded-lg border border-border/50 bg-white transition hover:border-accent/60 sm:w-28"
+                          >
+                            <img
+                              src={productImage}
+                              alt={item.description}
+                              onError={handleProductImageError}
+                              className="h-full w-full rounded-lg object-contain"
+                              loading="lazy"
+                            />
+                          </Link>
                         ) : null}
 
                         <div>
-                          <h3 className="font-semibold text-foreground leading-snug break-words">{item.description}</h3>
+                          <Link
+                            to={productPath}
+                            className="font-semibold text-foreground leading-snug break-words hover:text-accent"
+                          >
+                            {item.description}
+                          </Link>
                           <p className="text-sm text-muted-foreground mt-1">{item.manufacturer}</p>
                           <p className="text-xs text-muted-foreground mt-1">Code: {item.code}</p>
                           <p className="text-sm text-muted-foreground mt-2">
