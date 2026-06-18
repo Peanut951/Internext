@@ -8,7 +8,6 @@ import {
   validateCheckoutPayload,
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
-import { loadLiveCatalogItems } from "../catalog/live.js";
 
 type RequestBody = {
   origin?: string;
@@ -27,6 +26,7 @@ type RequestBody = {
     qty: number;
     price: number | null;
     priceText?: string;
+    stockQuantity?: number;
   }>;
   shipping?: {
     name?: string;
@@ -34,37 +34,22 @@ type RequestBody = {
   };
 };
 
-const normalizeStockKey = (value: string | undefined) => value?.trim().toLowerCase() || "";
-
-const validateLiveStock = async (items: NonNullable<RequestBody["items"]>) => {
-  const catalog = await loadLiveCatalogItems();
-  const liveByCode = new Map(
-    catalog.items.flatMap((item) =>
-      [item.code, item.supplierCode]
-        .map(normalizeStockKey)
-        .filter(Boolean)
-        .map((key) => [key, item] as const),
-    ),
-  );
-
+const validateSubmittedStock = (items: NonNullable<RequestBody["items"]>) => {
   const unavailable: string[] = [];
   const insufficient: string[] = [];
-  const unknown: string[] = [];
 
   items.forEach((item) => {
-    const live = liveByCode.get(normalizeStockKey(item.code));
-    if (!live) {
-      unknown.push(item.code);
+    if (typeof item.stockQuantity !== "number") {
       return;
     }
 
-    if (live.stockQuantity <= 0) {
+    if (item.stockQuantity <= 0) {
       unavailable.push(item.code);
       return;
     }
 
-    if (item.qty > live.stockQuantity) {
-      insufficient.push(`${item.code} has ${live.stockQuantity} available`);
+    if (item.qty > item.stockQuantity) {
+      insufficient.push(`${item.code} has ${item.stockQuantity} available`);
     }
   });
 
@@ -74,10 +59,6 @@ const validateLiveStock = async (items: NonNullable<RequestBody["items"]>) => {
 
   if (insufficient.length > 0) {
     return `Reduce quantity before payment: ${insufficient.join(", ")}.`;
-  }
-
-  if (unknown.length > 0) {
-    return `Unable to confirm live stock for: ${unknown.join(", ")}.`;
   }
 
   return null;
@@ -120,18 +101,9 @@ export default async function handler(
     return sendJson(res, 400, { message: validationError });
   }
 
-  try {
-    const stockError = await validateLiveStock(body.items || []);
-    if (stockError) {
-      return sendJson(res, 400, { message: stockError });
-    }
-  } catch (error) {
-    return sendJson(res, 502, {
-      message:
-        error instanceof Error
-          ? `Unable to verify live stock availability: ${error.message}`
-          : "Unable to verify live stock availability.",
-    });
+  const stockError = validateSubmittedStock(body.items || []);
+  if (stockError) {
+    return sendJson(res, 400, { message: stockError });
   }
 
   const params = buildStripeCheckoutParams({

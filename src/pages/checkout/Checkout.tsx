@@ -896,6 +896,7 @@ const Checkout = () => {
             qty: item.qty,
             price: item.price,
             priceText: item.priceText,
+            stockQuantity: item.stockQuantity,
           })),
           shipping:
             activeShippingQuote && activeShippingQuote.service.price > 0
