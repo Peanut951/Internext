@@ -7,7 +7,7 @@ const publicDir = path.resolve("public");
 const dataDir = path.join(publicDir, "data");
 const outputPath = path.join(publicDir, "google-products.xml");
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
-const GOOGLE_IMAGE_FEED_VERSION = "20260609-1";
+const GOOGLE_IMAGE_FEED_VERSION = "20260618-1";
 
 const BLOCKED_IMAGE_CODES = new Set([
   "AK-NK-2",
@@ -283,23 +283,23 @@ const isGoogleMerchantPhysicalProduct = (product) => {
 const getGoogleProductCategory = (product) => {
   const type = getProductType(product);
 
-  if (type.includes("Printer consumables")) return "Office Supplies > Office Instruments > Printer & Copier Accessories > Printer Consumables";
-  if (type.includes("Print media")) return "Office Supplies > Office Paper Products";
-  if (type.includes("Printers")) return "Electronics > Print, Copy, Scan & Fax > Printers, Copiers & Fax Machines";
-  if (type.includes("Scanners")) return "Electronics > Print, Copy, Scan & Fax > Scanners";
-  if (type.includes("Laptops")) return "Electronics > Computers > Laptops";
-  if (type.includes("Tablets")) return "Electronics > Computers > Tablet Computers";
-  if (type.includes("Desktop")) return "Electronics > Computers > Desktop Computers";
-  if (type.includes("Displays")) return "Electronics > Video > Computer Monitors";
-  if (type.includes("Projectors")) return "Electronics > Video > Projectors";
-  if (type.includes("Surveillance")) return "Cameras & Optics > Cameras > Security Cameras";
-  if (type.includes("Access control")) return "Hardware > Security & Locks";
-  if (type.includes("Networking")) return "Electronics > Networking";
-  if (type.includes("Unified communications")) return "Electronics > Communications > Telephony";
-  if (type.includes("Power")) return "Electronics > Power";
-  if (type === "Services and software") return "Software";
+  if (type.includes("Printer consumables")) return "5258";
+  if (type.includes("Print media")) return "956";
+  if (type.includes("Printers")) return "500106";
+  if (type.includes("Scanners")) return "306";
+  if (type.includes("Laptops")) return "328";
+  if (type.includes("Tablets")) return "4745";
+  if (type.includes("Desktop")) return "325";
+  if (type.includes("Displays")) return "305";
+  if (type.includes("Projectors")) return "396";
+  if (type.includes("Surveillance")) return "362";
+  if (type.includes("Access control")) return "359";
+  if (type.includes("Networking")) return "342";
+  if (type.includes("Unified communications")) return "270";
+  if (type.includes("Power")) return "275";
+  if (type === "Services and software") return "2092";
 
-  return "Electronics";
+  return "222";
 };
 
 const toPositiveNumber = (value) => {
@@ -343,17 +343,97 @@ const getGoogleShippingDimension = (product, dimension) =>
   `${Math.min(estimateShippingProfile(product)[dimension], 100).toFixed(1)} cm`;
 
 const buildShoppingTitle = (product) => {
+  const override = SHOPPING_TITLE_OVERRIDES.get(String(product.code || "").trim().toUpperCase());
+  if (override) {
+    return override;
+  }
+
   const brand = stripHtml(product.manufacturer || "");
   const base = removeSupplierReferences(product.description || product.name || product.code);
   const mpn = getProductMpn(product);
   const normalizedBase = normalizeToken(base);
-  const parts = [
+  const partsWithoutMpn = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
     base,
+  ].filter(Boolean);
+  const parts = [
+    ...partsWithoutMpn,
     mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
+  const title = normalizeTitleCapitalization(parts.join(" "));
 
-  return truncate(parts.join(" "), 150);
+  return truncate(hasExcessiveCapitalization(title) ? normalizeTitleCapitalization(partsWithoutMpn.join(" ")) : title, 150);
+};
+
+const TITLE_ACRONYMS = new Set([
+  "AC",
+  "AIO",
+  "AP",
+  "DDR",
+  "DDR4",
+  "DDR5",
+  "FHD",
+  "GB",
+  "HD",
+  "HDMI",
+  "IP",
+  "IPS",
+  "LCD",
+  "LED",
+  "MFP",
+  "MP",
+  "NAS",
+  "NVR",
+  "PC",
+  "POE",
+  "SSD",
+  "UHD",
+  "UPS",
+  "USB",
+  "VA",
+  "VESA",
+  "VPN",
+  "WIFI",
+]);
+
+const SHOPPING_TITLE_OVERRIDES = new Map([
+  ["AK-K32-B4-EU-KIT", "Akubela K32 Intercom Kit with Frame"],
+  ["INT-LG-RC-WMP-1", "Intesis LG Air Conditioner Wall Mounted Controller Interface"],
+  ["R411018", "Ricoh Type 1027 Photoconductor Unit 60000 Pages"],
+  ["R885274", "Ricoh Type 6210D Toner Cartridge 43000 Pages"],
+]);
+
+const toTitleWord = (word) => {
+  const clean = word.replace(/[^a-z0-9]/gi, "").toUpperCase();
+  if (TITLE_ACRONYMS.has(clean) || /\d/.test(word)) {
+    return word;
+  }
+
+  return word
+    .split(/([-/])/)
+    .map((part) =>
+      /^[-/]$/.test(part) || !part
+        ? part
+        : `${part[0].toUpperCase()}${part.slice(1).toLowerCase()}`,
+    )
+    .join("");
+};
+
+const normalizeTitleCapitalization = (title) => {
+  if (!hasExcessiveCapitalization(title)) {
+    return title;
+  }
+
+  return title.split(/\s+/).map(toTitleWord).join(" ");
+};
+
+const hasExcessiveCapitalization = (title) => {
+  const letters = title.replace(/[^a-z]/gi, "");
+  if (!letters) {
+    return false;
+  }
+
+  return letters.length > 12 && (letters.match(/[A-Z]/g) || []).length / letters.length >= 0.72;
 };
 
 const getPrice = (value) =>
@@ -460,7 +540,7 @@ const products = mergeProducts([
 const items = products.map((product) => {
   const images = getGoogleImages(product, excludedCodes);
   const image = images[0] || getGoogleImage(product, excludedCodes);
-  const additionalImages = images.slice(1, 11);
+  const additionalImages = [];
   const mpn = getProductMpn(product);
   const gtin = getProductGtin(product);
   const availability = getAvailability(product);
@@ -496,6 +576,8 @@ const items = products.map((product) => {
     `      <g:identifier_exists>${gtin || mpn ? "yes" : "no"}</g:identifier_exists>`,
     `      <g:product_type>${escapeXml(productType)}</g:product_type>`,
     `      <g:google_product_category>${escapeXml(getGoogleProductCategory(product))}</g:google_product_category>`,
+    "      <g:excluded_destination>Free local listings</g:excluded_destination>",
+    "      <g:excluded_destination>Local inventory ads</g:excluded_destination>",
     optionalTag("g:custom_label_0", productType.split(" > ")[0]) || "",
     optionalTag("g:custom_label_1", product.manufacturer || "Internext") || "",
     optionalTag("g:custom_label_2", availability) || "",
