@@ -18,7 +18,7 @@ import {
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
-import { ArrowLeft, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldCheck, Truck } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { trackPurchase } from "@/lib/analytics";
 
@@ -163,6 +163,26 @@ type ShippingQuote = {
     heightCm: number;
   };
 };
+
+const getShippingQuoteKey = (
+  postcode: string,
+  country: string,
+  items: CartItem[],
+) =>
+  JSON.stringify({
+    postcode: postcode.trim(),
+    country: country.trim().toLowerCase(),
+    items: items
+      .map((item) => ({
+        code: item.code,
+        qty: item.qty,
+        weightKg: item.weightKg ?? null,
+        heightCm: item.heightCm ?? null,
+        widthCm: item.widthCm ?? null,
+        depthCm: item.depthCm ?? null,
+      }))
+      .sort((a, b) => a.code.localeCompare(b.code)),
+  });
 
 declare global {
   interface Window {
@@ -350,6 +370,52 @@ const GoogleCustomerReviewsOptIn = ({ order }: { order: OrderRecord }) => {
   return null;
 };
 
+const sendOrderNotification = async (order: OrderRecord) => {
+  let notificationMessage = "Payment received and order recorded.";
+  let notificationTimeout: number | undefined;
+
+  try {
+    const notificationController = new AbortController();
+    notificationTimeout = window.setTimeout(
+      () => notificationController.abort(),
+      ORDER_NOTIFICATION_TIMEOUT_MS,
+    );
+    const notificationResponse = await fetch("/api/order-notification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      signal: notificationController.signal,
+      body: JSON.stringify({
+        order,
+      }),
+    });
+    window.clearTimeout(notificationTimeout);
+    const notificationPayload = (await notificationResponse.json()) as OrderNotificationResult & {
+      message?: string;
+    };
+
+    if (notificationPayload.customerEmailSent) {
+      notificationMessage = `Payment received and order recorded. Confirmation email sent to ${notificationPayload.customerEmailTo || order.customer.email}.`;
+    } else if (notificationPayload.customerEmailMessage) {
+      notificationMessage = `Payment received and order recorded. Customer confirmation email was not sent: ${notificationPayload.customerEmailMessage}`;
+    } else if (!notificationResponse.ok) {
+      notificationMessage = `Payment received and order recorded. Order notification failed: ${notificationPayload.message || "Unable to contact email workflow."}`;
+    }
+  } catch (notificationError) {
+    notificationMessage =
+      notificationError instanceof Error && notificationError.name === "AbortError"
+        ? "Payment received and order recorded. Email workflows are still being processed."
+        : "Payment received and order recorded. Customer confirmation email could not be checked.";
+  } finally {
+    if (notificationTimeout) {
+      window.clearTimeout(notificationTimeout);
+    }
+  }
+
+  return notificationMessage;
+};
+
 const Checkout = () => {
   const location = useLocation();
   const navigate = useNavigate();
@@ -366,6 +432,7 @@ const Checkout = () => {
   const [selectedAddressLabel, setSelectedAddressLabel] = useState<string | null>(null);
   const [paymentStateMessage, setPaymentStateMessage] = useState<string | null>(null);
   const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
+  const [shippingQuoteKey, setShippingQuoteKey] = useState<string | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
   const { session } = useAuthSession();
@@ -422,7 +489,19 @@ const Checkout = () => {
     ) / 100;
   }, [cartItems]);
 
-  const shippingTotal = shippingQuote?.service.price || 0;
+  const currentShippingQuoteKey = useMemo(
+    () => getShippingQuoteKey(customer.postcode, customer.country, cartItems),
+    [cartItems, customer.country, customer.postcode],
+  );
+  const activeShippingQuote =
+    shippingQuoteKey === currentShippingQuoteKey ? shippingQuote : null;
+  const hasAustralianPostcode = /^\d{4}$/.test(customer.postcode.trim());
+  const requiresShippingQuote =
+    cartItems.length > 0 &&
+    customer.country.trim().toLowerCase() === "australia";
+  const isShippingReady =
+    !requiresShippingQuote || (hasAustralianPostcode && Boolean(activeShippingQuote));
+  const shippingTotal = activeShippingQuote?.service.price || 0;
 
   const poaLines = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + (item.price === null ? item.qty : 0), 0);
@@ -529,6 +608,7 @@ const Checkout = () => {
 
     if (!/^\d{4}$/.test(postcode) || !isAustralianAddress || cartItems.length === 0) {
       setShippingQuote(null);
+      setShippingQuoteKey(null);
       setShippingError(null);
       setShippingLoading(false);
       return;
@@ -536,11 +616,14 @@ const Checkout = () => {
 
     let isActive = true;
     const controller = new AbortController();
+    const quoteKey = getShippingQuoteKey(postcode, customer.country, cartItems);
+
+    setShippingQuote(null);
+    setShippingQuoteKey(null);
+    setShippingError(null);
+    setShippingLoading(true);
 
     const quoteShipping = async () => {
-      setShippingLoading(true);
-      setShippingError(null);
-
       try {
         const response = await fetch("/api/shipping/quote", {
           method: "POST",
@@ -571,6 +654,7 @@ const Checkout = () => {
 
         if (isActive) {
           setShippingQuote(payload);
+          setShippingQuoteKey(quoteKey);
         }
       } catch (quoteError) {
         if (!isActive || (quoteError instanceof Error && quoteError.name === "AbortError")) {
@@ -578,6 +662,7 @@ const Checkout = () => {
         }
 
         setShippingQuote(null);
+        setShippingQuoteKey(null);
         setShippingError(
           quoteError instanceof Error ? quoteError.message : "Unable to calculate shipping.",
         );
@@ -650,47 +735,6 @@ const Checkout = () => {
 
         const order = await placeOrder(draft.customer, draft.reseller, draft.shipping);
 
-        let notificationMessage = "Payment received and order recorded.";
-        let notificationTimeout: number | undefined;
-        try {
-          const notificationController = new AbortController();
-          notificationTimeout = window.setTimeout(
-            () => notificationController.abort(),
-            ORDER_NOTIFICATION_TIMEOUT_MS,
-          );
-          const notificationResponse = await fetch("/api/order-notification", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            signal: notificationController.signal,
-            body: JSON.stringify({
-              order,
-            }),
-          });
-          window.clearTimeout(notificationTimeout);
-          const notificationPayload = (await notificationResponse.json()) as OrderNotificationResult & {
-            message?: string;
-          };
-
-          if (notificationPayload.customerEmailSent) {
-            notificationMessage = `Payment received and order recorded. Confirmation email sent to ${notificationPayload.customerEmailTo || order.customer.email}.`;
-          } else if (notificationPayload.customerEmailMessage) {
-            notificationMessage = `Payment received and order recorded. Customer confirmation email was not sent: ${notificationPayload.customerEmailMessage}`;
-          } else if (!notificationResponse.ok) {
-            notificationMessage = `Payment received and order recorded. Order notification failed: ${notificationPayload.message || "Unable to contact email workflow."}`;
-          }
-        } catch (notificationError) {
-          notificationMessage =
-            notificationError instanceof Error && notificationError.name === "AbortError"
-              ? "Payment received and order recorded. Email workflows are still being processed."
-              : "Payment received and order recorded. Customer confirmation email could not be checked.";
-        } finally {
-          if (notificationTimeout) {
-            window.clearTimeout(notificationTimeout);
-          }
-        }
-
         if (!isActive) {
           return;
         }
@@ -712,8 +756,11 @@ const Checkout = () => {
             quantity: item.qty,
           })),
         });
-        setPaymentStateMessage(notificationMessage);
+        setPaymentStateMessage("Payment received and order recorded. Sending confirmation emails...");
         navigate("/checkout", { replace: true });
+        void sendOrderNotification(order).then((notificationMessage) => {
+          setPaymentStateMessage(notificationMessage);
+        });
       } catch (finalizeError) {
         if (!isActive) {
           return;
@@ -795,6 +842,16 @@ const Checkout = () => {
       return;
     }
 
+    if (requiresShippingQuote && !hasAustralianPostcode) {
+      setError("Enter a valid 4-digit Australian postcode before payment.");
+      return;
+    }
+
+    if (requiresShippingQuote && (shippingLoading || !activeShippingQuote)) {
+      setError("Wait for the latest shipping total to finish calculating before payment.");
+      return;
+    }
+
     setSubmitting(true);
     try {
       const reseller: OrderReseller | undefined = session
@@ -810,10 +867,10 @@ const Checkout = () => {
         reseller,
         items: cartItems,
         shipping:
-          shippingQuote && shippingQuote.service.price > 0
+          activeShippingQuote && activeShippingQuote.service.price > 0
             ? {
-                name: shippingQuote.service.name,
-                price: shippingQuote.service.price,
+                name: activeShippingQuote.service.name,
+                price: activeShippingQuote.service.price,
               }
             : undefined,
       });
@@ -841,10 +898,10 @@ const Checkout = () => {
             priceText: item.priceText,
           })),
           shipping:
-            shippingQuote && shippingQuote.service.price > 0
+            activeShippingQuote && activeShippingQuote.service.price > 0
               ? {
-                  name: shippingQuote.service.name,
-                  price: shippingQuote.service.price,
+                  name: activeShippingQuote.service.name,
+                  price: activeShippingQuote.service.price,
                 }
               : undefined,
         }),
@@ -895,8 +952,17 @@ const Checkout = () => {
                 <CheckCircle2 className="h-6 w-6 text-accent mt-0.5" />
                 <div>
                   <h2 className="text-2xl font-bold text-foreground">Order Placed</h2>
-                  <p className="text-muted-foreground">Order number: {placedOrder.orderNumber}</p>
+                  <p className="text-muted-foreground">
+                    Order number: {placedOrder.orderNumber}. A confirmation email is sent to {placedOrder.customer.email}.
+                  </p>
                 </div>
+              </div>
+
+              <div className="mb-6 rounded-xl border border-accent/20 bg-accent/10 p-4 text-sm text-foreground">
+                <p className="font-semibold">What happens next</p>
+                <p className="mt-1 text-muted-foreground">
+                  Internext has recorded the paid order, confirmed the item and shipping totals, and will progress fulfilment using the delivery details supplied at checkout.
+                </p>
               </div>
 
               <div className="grid sm:grid-cols-2 gap-4 text-sm mb-6">
@@ -937,6 +1003,21 @@ const Checkout = () => {
                 className="bg-card rounded-2xl p-7 shadow-card border border-border/50 space-y-5"
               >
                 <h2 className="text-2xl font-bold text-foreground">Customer Details</h2>
+
+                <div className="grid gap-3 rounded-xl border border-border/60 bg-secondary/25 p-4 text-sm text-muted-foreground md:grid-cols-3">
+                  <div className="flex items-start gap-2">
+                    <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>Payment is processed securely through Stripe.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>Freight is calculated from your postcode and cart dimensions.</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <MailCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <span>Order confirmation is sent to the customer email.</span>
+                  </div>
+                </div>
 
                 {paymentStateMessage ? (
                   <div className="rounded-lg bg-accent/10 px-4 py-3 text-sm text-foreground">
@@ -1163,13 +1244,22 @@ const Checkout = () => {
                 <Button
                   type="submit"
                   className="w-full md:w-auto"
-                  disabled={submitting || confirmingPayment || cartItems.length === 0 || hasStockBlockingItems}
+                  disabled={
+                    submitting ||
+                    confirmingPayment ||
+                    shippingLoading ||
+                    !isShippingReady ||
+                    cartItems.length === 0 ||
+                    hasStockBlockingItems
+                  }
                 >
                   {confirmingPayment
                     ? "Finalising Payment..."
                     : submitting
                       ? "Redirecting to Payment..."
-                      : "Pay Securely"}
+                      : shippingLoading
+                        ? "Calculating Shipping..."
+                        : "Pay Securely"}
                 </Button>
               </form>
 
@@ -1266,8 +1356,8 @@ const Checkout = () => {
                         <span className="font-semibold text-foreground">
                           {shippingLoading
                             ? "Calculating..."
-                            : shippingQuote
-                              ? shippingQuote.service.priceText
+                            : activeShippingQuote
+                              ? activeShippingQuote.service.priceText
                               : "Enter postcode"}
                         </span>
                       </p>
@@ -1296,6 +1386,16 @@ const Checkout = () => {
                           Reduce item quantities to match available stock before payment.
                         </p>
                       ) : null}
+                      <div className="mt-4 space-y-2 rounded-xl border border-border/60 bg-secondary/25 p-3 text-xs text-muted-foreground">
+                        <div className="flex items-start gap-2">
+                          <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                          <span>GST, item totals, and shipping are recorded separately in the order.</span>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <LockKeyhole className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                          <span>Card details are entered on Stripe, not stored by Internext.</span>
+                        </div>
+                      </div>
                     </div>
                   </>
                 )}

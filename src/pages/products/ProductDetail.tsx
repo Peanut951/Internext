@@ -2,7 +2,7 @@ import { type SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Minus, Plus } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Headphones, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProductImageCandidates,
@@ -195,6 +195,34 @@ const getAvailabilityRows = (product: CatalogProduct) => {
   return rows.filter((row): row is { label: string; value: string } => Boolean(row));
 };
 
+const getStockSummary = (product: CatalogProduct) => {
+  if (typeof product.stockQuantity === "number") {
+    if (product.stockQuantity > 0) {
+      return `${product.stockQuantity.toLocaleString("en-AU")} available across warehouse stock`;
+    }
+
+    if (product.etaDate) {
+      return `Currently out of stock. Next ETA ${product.etaDate}`;
+    }
+
+    if (product.etaStatus && !/^(check availability|in stock)$/i.test(product.etaStatus)) {
+      return `Currently out of stock. ${product.etaStatus}`;
+    }
+
+    return "Currently out of stock. Call 1300 567 835 for ETA";
+  }
+
+  return product.availabilityText || "Live availability checked before checkout";
+};
+
+const getDeliverySummary = (product: CatalogProduct) => {
+  if (typeof product.stockQuantity === "number" && product.stockQuantity <= 0) {
+    return product.etaDate ? `Backorder available from ${product.etaDate}` : "Delivery timing confirmed once ETA is available";
+  }
+
+  return "Shipping calculated at checkout from product dimensions and delivery postcode";
+};
+
 const getSchemaAvailability = (product: CatalogProduct) => {
   if (/available to order|in stock/i.test(product.availabilityText || "")) {
     return "https://schema.org/InStock";
@@ -376,6 +404,7 @@ const ProductDetail = () => {
     }
     return extractProductSpecHighlights(product);
   }, [product]);
+  const keyHighlights = useMemo(() => specHighlights.slice(0, 6), [specHighlights]);
 
   const fullDescriptionParagraphs = useMemo(() => {
     if (!product) {
@@ -772,6 +801,22 @@ const ProductDetail = () => {
                         {product.description}
                       </h1>
 
+                      {keyHighlights.length > 0 ? (
+                        <div className="mb-5 rounded-2xl border border-border/50 bg-card p-4 shadow-sm">
+                          <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-accent">
+                            Key Details
+                          </p>
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            {keyHighlights.map((highlight) => (
+                              <div key={highlight} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                                <span>{highlight}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      ) : null}
+
                       {product.liveCatalogError ? (
                         <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
                           {product.liveCatalogError} Live product information is temporarily unavailable.
@@ -791,6 +836,23 @@ const ProductDetail = () => {
                         ) : (
                           <p className="mb-6 text-sm text-muted-foreground">RRP not listed</p>
                         )}
+
+                        <div className="mb-5 grid gap-3 text-sm">
+                          <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-secondary/30 p-3">
+                            <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                            <div>
+                              <p className="font-medium text-foreground">Delivery</p>
+                              <p className="mt-1 text-muted-foreground">{getDeliverySummary(product)}</p>
+                            </div>
+                          </div>
+                          <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-secondary/30 p-3">
+                            <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                            <div>
+                              <p className="font-medium text-foreground">Stock check</p>
+                              <p className="mt-1 text-muted-foreground">{getStockSummary(product)}</p>
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="mb-5">
                           <p className="mb-2 text-sm font-medium text-foreground">Quantity</p>
@@ -834,7 +896,10 @@ const ProductDetail = () => {
                         </Button>
 
                         <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">
-                          <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
+                          <div className="flex items-center gap-2">
+                            <Headphones className="h-4 w-4 text-accent" />
+                            <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
+                          </div>
                           <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             Use the product code <span className="font-medium text-foreground">{product.code}</span> when discussing this item with sales or comparing options across your shortlist.
                           </p>

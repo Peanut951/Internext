@@ -8,7 +8,7 @@ import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
 import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
-import { ArrowLeft, ShoppingCart, Trash2 } from "lucide-react";
+import { ArrowLeft, CheckCircle2, ShieldCheck, ShoppingCart, Trash2, Truck } from "lucide-react";
 import { trackCheckoutStarted } from "@/lib/analytics";
 
 const refreshCartStock = async (items: CartItem[]) => {
@@ -321,6 +321,27 @@ const Cart = () => {
                       Reduce item quantities to match available stock before checkout.
                     </p>
                   ) : null}
+                </div>
+
+                <div className="mb-5 space-y-3 rounded-xl border border-border/60 bg-secondary/25 p-4 text-sm">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <p className="text-muted-foreground">
+                      Secure card payment is handled through Stripe.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <p className="text-muted-foreground">
+                      Shipping is calculated from the delivery postcode and product dimensions.
+                    </p>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
+                    <p className="text-muted-foreground">
+                      Stock is checked before checkout so unavailable items cannot be paid for.
+                    </p>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
