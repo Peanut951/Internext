@@ -1,5 +1,8 @@
-const GOOGLE_ANALYTICS_ID = (import.meta.env.VITE_GOOGLE_ANALYTICS_ID as string | undefined)?.trim() || "";
+const DEFAULT_GOOGLE_ANALYTICS_ID = "G-45E9SWHH1N";
+const GOOGLE_ANALYTICS_ID =
+  (import.meta.env.VITE_GOOGLE_ANALYTICS_ID as string | undefined)?.trim() || DEFAULT_GOOGLE_ANALYTICS_ID;
 const MICROSOFT_CLARITY_ID = (import.meta.env.VITE_MICROSOFT_CLARITY_ID as string | undefined)?.trim() || "";
+let initialStaticPageViewSkipped = false;
 
 declare global {
   interface Window {
@@ -21,6 +24,10 @@ const appendScript = (id: string, src: string, async = true) => {
   document.head.appendChild(script);
 };
 
+const hasStaticGoogleTag = () =>
+  typeof document !== "undefined" &&
+  Boolean(document.querySelector(`script[src*="googletagmanager.com/gtag/js?id=${GOOGLE_ANALYTICS_ID}"]`));
+
 export const initAnalytics = () => {
   if (typeof window === "undefined") {
     return;
@@ -28,15 +35,20 @@ export const initAnalytics = () => {
 
   if (GOOGLE_ANALYTICS_ID) {
     window.dataLayer = window.dataLayer || [];
-    window.gtag = (...args: unknown[]) => window.dataLayer?.push(args);
-    window.gtag("js", new Date());
-    window.gtag("config", GOOGLE_ANALYTICS_ID, {
-      send_page_view: false,
-    });
-    appendScript(
-      "internext-google-analytics",
-      `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GOOGLE_ANALYTICS_ID)}`,
-    );
+    if (!window.gtag) {
+      window.gtag = (...args: unknown[]) => window.dataLayer?.push(args);
+      window.gtag("js", new Date());
+      window.gtag("config", GOOGLE_ANALYTICS_ID, {
+        send_page_view: false,
+      });
+    }
+
+    if (!hasStaticGoogleTag()) {
+      appendScript(
+        "internext-google-analytics",
+        `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GOOGLE_ANALYTICS_ID)}`,
+      );
+    }
   }
 
   if (MICROSOFT_CLARITY_ID) {
@@ -55,6 +67,11 @@ export const initAnalytics = () => {
 
 export const trackPageView = (path: string) => {
   if (typeof window === "undefined" || !GOOGLE_ANALYTICS_ID || !window.gtag) {
+    return;
+  }
+
+  if (!initialStaticPageViewSkipped && hasStaticGoogleTag()) {
+    initialStaticPageViewSkipped = true;
     return;
   }
 

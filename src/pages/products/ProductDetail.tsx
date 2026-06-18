@@ -14,6 +14,8 @@ import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
 import { trackAddToCart } from "@/lib/analytics";
+import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
 
 type CatalogProduct = {
   code: string;
@@ -307,6 +309,7 @@ const ProductDetail = () => {
   const [isInCart, setIsInCart] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
   const { session } = useAuthSession();
+  const { toast } = useToast();
 
   useEffect(() => {
     let isMounted = true;
@@ -528,6 +531,8 @@ const ProductDetail = () => {
     const existing = getStoredCart();
     const match = existing.find((item) => item.code === product.code);
     const pricedProduct = getCartPricedProduct(product, session?.role);
+    const nextQuantity = (match?.qty || 0) + qty;
+    const toastProductName = truncateText(product.description, 90);
     const updated = match
       ? existing.map((item) =>
           item.code === product.code ? { ...item, qty: item.qty + qty } : item,
@@ -542,6 +547,17 @@ const ProductDetail = () => {
       quantity: qty,
     });
     setIsInCart(true);
+    toast({
+      title: match ? "Cart updated" : "Added to cart",
+      description: match
+        ? `${toastProductName} is now ${nextQuantity} in your cart.`
+        : `${qty} x ${toastProductName} added to your cart.`,
+      action: (
+        <ToastAction altText="View cart" asChild>
+          <Link to="/cart">View cart</Link>
+        </ToastAction>
+      ),
+    });
   };
 
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
