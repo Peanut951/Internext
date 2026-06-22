@@ -156,19 +156,89 @@ const getProductMpn = (product: {
   return code;
 };
 
+const getProductText = (product: {
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) =>
+  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+
+const getShoppingTitleProductType = (product: {
+  manufacturer?: string | null;
+  name?: string | null;
+  description?: string | null;
+  longDescription?: string | null;
+}) => {
+  const text = getProductText(product);
+
+  if (/\btoner\b/.test(text)) return "Toner Cartridge";
+  if (/\bink\b/.test(text)) return "Ink Cartridge";
+  if (/\bdrum\b/.test(text)) return "Drum Unit";
+  if (/\bribbon\b/.test(text)) return "Printer Ribbon";
+  if (/\bprinthead\b/.test(text)) return "Printhead";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "Print Media";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "Printer";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "Scanner";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
+  if (/\btablet\b/.test(text)) return "Tablet";
+  if (/\bserver\b/.test(text)) return "Server";
+  if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
+  if (/\bprojector\b/.test(text)) return "Projector";
+  if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";
+  if (/\b(camera|cctv|surveillance)\b/.test(text)) return "Security Camera";
+  if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access Control";
+  if (/\b(access point|wifi|wi-fi|ap\b)\b/.test(text)) return "Wireless Access Point";
+  if (/\bswitch\b/.test(text)) return "Network Switch";
+  if (/\brouter\b/.test(text)) return "Router";
+  if (/\b(nas|storage)\b/.test(text)) return "Network Storage";
+  if (/\bfirewall\b/.test(text)) return "Firewall";
+  if (/\bheadset\b/.test(text)) return "Headset";
+  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
+  if (/\bups\b/.test(text)) return "UPS";
+  if (/\b(battery|power supply|powerboard|pdu)\b/.test(text)) return "Power Accessory";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control Module";
+  if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Cable";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Mount";
+
+  return "";
+};
+
+const removeLeadingBrandFromTitle = (title: string, brand: string) => {
+  const cleanBrand = stripHtml(brand || "");
+  const cleanTitle = stripHtml(title || "");
+  if (!cleanBrand) return cleanTitle;
+
+  const escapedBrand = cleanBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
+};
+
 const buildShoppingTitle = (product: {
   code?: string | null;
   supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
+  longDescription?: string | null;
 }) => {
   const brand = stripHtml(product.manufacturer || "");
-  const base = stripHtml(product.description || product.name || product.code);
+  const base = removeLeadingBrandFromTitle(
+    removeSupplierReferences(product.description || product.name || product.code),
+    brand,
+  );
   const mpn = getProductMpn(product);
+  const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
+  const normalizedType = normalizeToken(productType);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    productType &&
+    normalizedType &&
+    !normalizedBase.includes(normalizedType)
+      ? productType
+      : "",
     base,
     mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
@@ -351,13 +421,44 @@ const getAvailability = (product: {
   return (product.stockQuantity || 0) > 0 ? "in_stock" : "out_of_stock";
 };
 
-const getProductText = (product: {
+const buildShoppingDescription = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
   longDescription?: string | null;
-}) =>
-  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+  gtin?: unknown;
+  ean?: unknown;
+  upc?: unknown;
+  barcode?: unknown;
+  price?: number | null;
+  stockQuantity?: number | null;
+  availabilityText?: string | null;
+  etaDate?: string | null;
+}) => {
+  const title = buildShoppingTitle(product);
+  const brand = stripHtml(product.manufacturer || "");
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const productType = getProductType(product);
+  const sourceDescription = removeSupplierReferences(product.longDescription || product.description || product.name || "");
+  const availability = getAvailability(product).replace(/_/g, " ");
+  const price = getPrice(product.price);
+  const parts = [
+    `${title} available from Internext Australia.`,
+    brand ? `Brand: ${brand}.` : "",
+    mpn ? `MPN: ${mpn}.` : "",
+    gtin ? `GTIN: ${gtin}.` : "",
+    productType && productType !== "Technology products" ? `Product type: ${productType}.` : "",
+    price ? `Online price: ${price}.` : "",
+    availability ? `Availability: ${availability}.` : "",
+    sourceDescription && normalizeToken(sourceDescription) !== normalizeToken(title) ? sourceDescription : "",
+    "Includes secure checkout, Australian delivery options, live availability where supplied, and customer support from Internext.",
+  ].filter(Boolean);
+
+  return truncate(parts.join(" "), 5000);
+};
 
 const getProductListingText = (product: {
   code?: string | null;
@@ -390,6 +491,10 @@ const getProductType = (product: {
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
   if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Technology accessories > Control modules";
+  if (/\b(adapter|adaptor|converter)\b/.test(text)) return "Technology accessories > Adapters and converters";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Technology accessories > Cables";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Technology accessories > Mounts and stands";
   if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|install(?:ation|ations)?|instal|service|renewal|postscript|pdf\s+upgrade)\b/.test(text)) return "Services and software";
 
   return "Technology products";
@@ -442,6 +547,7 @@ const getGoogleProductCategory = (product: {
   if (type.includes("Networking")) return "Electronics > Networking";
   if (type.includes("Unified communications")) return "Electronics > Communications > Telephony";
   if (type.includes("Power")) return "Electronics > Power";
+  if (type.includes("Technology accessories")) return "Electronics";
   if (type === "Services and software") return "Software";
 
   return "Electronics";
@@ -518,7 +624,7 @@ export default async function handler(
 
   const items = products.map((product) => {
     const title = buildShoppingTitle(product);
-    const description = truncate(removeSupplierReferences(product.longDescription || product.description || product.name), 5000);
+    const description = buildShoppingDescription(product);
     const link = `${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`;
     const images = getGoogleImages(product, excludedCodes);
     const image = images[0] || getGoogleImage(product, excludedCodes);

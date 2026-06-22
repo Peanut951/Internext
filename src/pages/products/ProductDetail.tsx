@@ -269,13 +269,55 @@ const getProductMpn = (product: CatalogProduct) => {
   return code;
 };
 
+const getSeoProductType = (product: CatalogProduct) => {
+  const text = `${product.manufacturer} ${product.description} ${product.longDescription || ""}`.toLowerCase();
+
+  if (/\btoner\b/.test(text)) return "Toner Cartridge";
+  if (/\bink\b/.test(text)) return "Ink Cartridge";
+  if (/\bdrum\b/.test(text)) return "Drum Unit";
+  if (/\bribbon\b/.test(text)) return "Printer Ribbon";
+  if (/\bprinthead\b/.test(text)) return "Printhead";
+  if (/\b(toner|cartridge|drum|ink|ribbon|printhead)\b/.test(text)) return "Printer consumable";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "Print media";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "Printer";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "Scanner";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
+  if (/\b(tablet)\b/.test(text)) return "Tablet";
+  if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computer system";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Commercial display";
+  if (/\b(projector)\b/.test(text)) return "Projector";
+  if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security camera";
+  if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access control device";
+  if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Network hardware";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business communication device";
+  if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power accessory";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control module";
+  if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Cable";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Mount";
+
+  return "";
+};
+
+const removeLeadingBrandFromTitle = (title: string, brand: string) => {
+  const cleanBrand = brand.trim();
+  const cleanTitle = title.trim();
+  if (!cleanBrand) return cleanTitle;
+
+  const escapedBrand = cleanBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
+};
+
 const buildSearchTitleText = (product: CatalogProduct) => {
   const brand = product.manufacturer.trim();
-  const base = product.description.trim();
+  const base = removeLeadingBrandFromTitle(product.description, brand);
   const mpn = getProductMpn(product);
+  const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
+  const normalizedType = normalizeToken(productType);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
     base,
     mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
@@ -316,14 +358,38 @@ const getProductMetaDescription = (
   availability: string,
 ) => {
   const price = product.price ? formatAud(product.price) : null;
+  const productType = getSeoProductType(product);
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const title = buildSearchTitleText(product);
   const parts = [
-    `Buy ${product.description} from Internext Australia.`,
+    `Shop ${title} at Internext Australia.`,
+    productType ? `${productType} for Australian business and home customers.` : null,
+    mpn ? `MPN ${mpn}.` : null,
+    gtin ? `GTIN ${gtin}.` : null,
     price ? `${price} Inc GST.` : null,
     availability ? `${availability}.` : null,
     description,
   ].filter(Boolean);
 
   return truncateText(parts.join(" "), 155);
+};
+
+const getProductStructuredDescription = (product: CatalogProduct, paragraphs: string[]) => {
+  const productType = getSeoProductType(product);
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const searchTitle = buildSearchTitleText(product);
+  const parts = [
+    `${searchTitle} from Internext Australia.`,
+    productType ? `Product type: ${productType}.` : "",
+    mpn ? `MPN: ${mpn}.` : "",
+    gtin ? `GTIN: ${gtin}.` : "",
+    paragraphs.join(" "),
+    "Includes secure checkout, Australian delivery options, and Internext customer support.",
+  ].filter(Boolean);
+
+  return parts.join(" ");
 };
 
 const ProductDetail = () => {
@@ -436,7 +502,7 @@ const ProductDetail = () => {
 
     const canonicalUrl = getPublicProductUrl(product.code);
     const searchTitle = buildSearchTitleText(product);
-    const pageTitle = truncateText(`${searchTitle} | Internext`, 60);
+    const pageTitle = truncateText(`${searchTitle} | Internext Australia`, 90);
     const metaDescription = getProductMetaDescription(
       product,
       fullDescriptionParagraphs.join(" "),
@@ -470,7 +536,7 @@ const ProductDetail = () => {
       mpn: getProductMpn(product),
       ...(getProductGtin(product) ? { gtin: getProductGtin(product) } : {}),
       name: searchTitle,
-      description: fullDescriptionParagraphs.join(" "),
+      description: getProductStructuredDescription(product, fullDescriptionParagraphs),
       brand: {
         "@type": "Brand",
         name: product.manufacturer || "Internext",

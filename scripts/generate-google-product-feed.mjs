@@ -264,6 +264,10 @@ const getProductType = (product) => {
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
   if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Technology accessories > Control modules";
+  if (/\b(adapter|adaptor|converter)\b/.test(text)) return "Technology accessories > Adapters and converters";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Technology accessories > Cables";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Technology accessories > Mounts and stands";
   if (/\b(warranty|licen[cs]e|subscription|software|support|onsite|install(?:ation|ations)?|instal|service|renewal|postscript|pdf\s+upgrade)\b/.test(text)) return "Services and software";
 
   return "Technology products";
@@ -297,6 +301,7 @@ const getGoogleProductCategory = (product) => {
   if (type.includes("Networking")) return "342";
   if (type.includes("Unified communications")) return "270";
   if (type.includes("Power")) return "275";
+  if (type.includes("Technology accessories")) return "222";
   if (type === "Services and software") return "2092";
 
   return "222";
@@ -342,6 +347,52 @@ const getGoogleShippingWeight = (product) => `${estimateShippingProfile(product)
 const getGoogleShippingDimension = (product, dimension) =>
   `${Math.min(estimateShippingProfile(product)[dimension], 100).toFixed(1)} cm`;
 
+const getShoppingTitleProductType = (product) => {
+  const text = getProductText(product);
+
+  if (/\btoner\b/.test(text)) return "Toner Cartridge";
+  if (/\bink\b/.test(text)) return "Ink Cartridge";
+  if (/\bdrum\b/.test(text)) return "Drum Unit";
+  if (/\bribbon\b/.test(text)) return "Printer Ribbon";
+  if (/\bprinthead\b/.test(text)) return "Printhead";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "Print Media";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "Printer";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "Scanner";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
+  if (/\btablet\b/.test(text)) return "Tablet";
+  if (/\b(server)\b/.test(text)) return "Server";
+  if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
+  if (/\bprojector\b/.test(text)) return "Projector";
+  if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";
+  if (/\b(camera|cctv|surveillance)\b/.test(text)) return "Security Camera";
+  if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access Control";
+  if (/\b(access point|wifi|wi-fi|ap\b)\b/.test(text)) return "Wireless Access Point";
+  if (/\bswitch\b/.test(text)) return "Network Switch";
+  if (/\brouter\b/.test(text)) return "Router";
+  if (/\b(nas|storage)\b/.test(text)) return "Network Storage";
+  if (/\bfirewall\b/.test(text)) return "Firewall";
+  if (/\b(headset)\b/.test(text)) return "Headset";
+  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
+  if (/\bups\b/.test(text)) return "UPS";
+  if (/\b(battery|power supply|powerboard|pdu)\b/.test(text)) return "Power Accessory";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control Module";
+  if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Cable";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Mount";
+
+  return "";
+};
+
+const removeLeadingBrandFromTitle = (title, brand) => {
+  const cleanBrand = stripHtml(brand || "");
+  const cleanTitle = stripHtml(title || "");
+  if (!cleanBrand) return cleanTitle;
+
+  const escapedBrand = cleanBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
+};
+
 const buildShoppingTitle = (product) => {
   const override = SHOPPING_TITLE_OVERRIDES.get(String(product.code || "").trim().toUpperCase());
   if (override) {
@@ -349,11 +400,21 @@ const buildShoppingTitle = (product) => {
   }
 
   const brand = stripHtml(product.manufacturer || "");
-  const base = removeSupplierReferences(product.description || product.name || product.code);
+  const base = removeLeadingBrandFromTitle(
+    removeSupplierReferences(product.description || product.name || product.code),
+    brand,
+  );
   const mpn = getProductMpn(product);
+  const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
+  const normalizedType = normalizeToken(productType);
   const partsWithoutMpn = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    productType &&
+    normalizedType &&
+    !normalizedBase.includes(normalizedType)
+      ? productType
+      : "",
     base,
   ].filter(Boolean);
   const parts = [
@@ -363,6 +424,30 @@ const buildShoppingTitle = (product) => {
   const title = normalizeTitleCapitalization(parts.join(" "));
 
   return truncate(hasExcessiveCapitalization(title) ? normalizeTitleCapitalization(partsWithoutMpn.join(" ")) : title, 150);
+};
+
+const buildShoppingDescription = (product) => {
+  const title = buildShoppingTitle(product);
+  const brand = stripHtml(product.manufacturer || "");
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const productType = getProductType(product);
+  const sourceDescription = removeSupplierReferences(product.longDescription || product.description || product.name || "");
+  const availability = getAvailability(product).replace(/_/g, " ");
+  const price = getPrice(product.price);
+  const parts = [
+    `${title} available from Internext Australia.`,
+    brand ? `Brand: ${brand}.` : "",
+    mpn ? `MPN: ${mpn}.` : "",
+    gtin ? `GTIN: ${gtin}.` : "",
+    productType && productType !== "Technology products" ? `Product type: ${productType}.` : "",
+    price ? `Online price: ${price}.` : "",
+    availability ? `Availability: ${availability}.` : "",
+    sourceDescription && normalizeToken(sourceDescription) !== normalizeToken(title) ? sourceDescription : "",
+    "Includes secure checkout, Australian delivery options, live availability where supplied, and customer support from Internext.",
+  ].filter(Boolean);
+
+  return truncate(parts.join(" "), 5000);
 };
 
 const TITLE_ACRONYMS = new Set([
@@ -562,7 +647,7 @@ const items = products.map((product) => {
     "    <item>",
     `      <g:id>${escapeXml(product.code)}</g:id>`,
     `      <g:title>${escapeXml(buildShoppingTitle(product))}</g:title>`,
-    `      <g:description>${escapeXml(truncate(removeSupplierReferences(product.longDescription || product.description || product.name), 5000))}</g:description>`,
+    `      <g:description>${escapeXml(buildShoppingDescription(product))}</g:description>`,
     `      <g:link>${escapeXml(`${SITE_URL}/products/item/${encodeURIComponent(String(product.code))}`)}</g:link>`,
     `      <g:image_link>${escapeXml(image)}</g:image_link>`,
     ...additionalImages.map((additionalImage) => `      <g:additional_image_link>${escapeXml(additionalImage)}</g:additional_image_link>`),

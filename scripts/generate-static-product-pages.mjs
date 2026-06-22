@@ -63,13 +63,61 @@ const getProductMpn = (product) => {
   return code;
 };
 
+const getProductText = (product) =>
+  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+
+const getSeoProductType = (product) => {
+  const text = getProductText(product);
+
+  if (/\btoner\b/.test(text)) return "Toner Cartridge";
+  if (/\bink\b/.test(text)) return "Ink Cartridge";
+  if (/\bdrum\b/.test(text)) return "Drum Unit";
+  if (/\bribbon\b/.test(text)) return "Printer Ribbon";
+  if (/\bprinthead\b/.test(text)) return "Printhead";
+  if (/\b(toner|cartridge|drum|ink|ribbon|printhead)\b/.test(text)) return "Printer consumable";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "Print media";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "Printer";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "Scanner";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
+  if (/\b(tablet)\b/.test(text)) return "Tablet";
+  if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computer system";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Commercial display";
+  if (/\b(projector)\b/.test(text)) return "Projector";
+  if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security camera";
+  if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access control device";
+  if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Network hardware";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business communication device";
+  if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power accessory";
+  if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control module";
+  if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "Cable";
+  if (/\b(mount|bracket|stand)\b/.test(text)) return "Mount";
+
+  return "";
+};
+
+const removeLeadingBrandFromTitle = (title, brand) => {
+  const cleanBrand = stripHtml(brand || "");
+  const cleanTitle = stripHtml(title || "");
+  if (!cleanBrand) return cleanTitle;
+
+  const escapedBrand = cleanBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
+};
+
 const buildSearchTitleText = (product) => {
   const brand = stripHtml(product.manufacturer || "");
-  const base = stripHtml(product.description || product.name || product.code);
+  const base = removeLeadingBrandFromTitle(
+    removeSupplierReferences(product.description || product.name || product.code),
+    brand,
+  );
   const mpn = getProductMpn(product);
+  const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
+  const normalizedType = normalizeToken(productType);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
     base,
     mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
@@ -109,16 +157,45 @@ const getImages = (product) => {
 const getImage = (product) => getImages(product)[0] || "";
 
 const buildDescription = (product) => {
-  const title = stripHtml(product.description || product.name || product.code);
+  const title = buildSearchTitleText(product);
   const longDescription = removeSupplierReferences(product.longDescription || "");
   const price = formatAud(product.price);
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const productType = getSeoProductType(product);
+  const availability =
+    typeof product.stockQuantity === "number" && product.stockQuantity <= 0
+      ? "out of stock"
+      : "in stock or available to order";
   const parts = [
-    `Buy ${title} from Internext Australia.`,
+    `Shop ${title} at Internext Australia.`,
+    productType ? `${productType} for Australian business and home customers.` : "",
+    mpn ? `MPN ${mpn}.` : "",
+    gtin ? `GTIN ${gtin}.` : "",
     price ? `${price} Inc GST.` : "",
+    availability ? `${availability}.` : "",
     longDescription || title,
   ].filter(Boolean);
 
   return truncate(parts.join(" "), 155);
+};
+
+const buildStructuredDescription = (product) => {
+  const title = buildSearchTitleText(product);
+  const productType = getSeoProductType(product);
+  const mpn = getProductMpn(product);
+  const gtin = getProductGtin(product);
+  const sourceDescription = removeSupplierReferences(product.longDescription || product.description || product.name || "");
+  const parts = [
+    `${title} from Internext Australia.`,
+    productType ? `Product type: ${productType}.` : "",
+    mpn ? `MPN: ${mpn}.` : "",
+    gtin ? `GTIN: ${gtin}.` : "",
+    sourceDescription && normalizeToken(sourceDescription) !== normalizeToken(title) ? sourceDescription : "",
+    "Includes secure checkout, Australian delivery options, and Internext customer support.",
+  ].filter(Boolean);
+
+  return parts.join(" ");
 };
 
 const buildStructuredData = (product, url, images) => ({
@@ -128,7 +205,7 @@ const buildStructuredData = (product, url, images) => ({
   mpn: getProductMpn(product),
   ...(getProductGtin(product) ? { gtin: getProductGtin(product) } : {}),
   name: buildSearchTitleText(product),
-  description: removeSupplierReferences(product.longDescription || product.description || product.name || product.code),
+  description: buildStructuredDescription(product),
   brand: {
     "@type": "Brand",
     name: product.manufacturer || "Internext",
@@ -188,7 +265,7 @@ const removeExistingHeadTags = (html) =>
 
 const createProductHtml = (template, product) => {
   const titleText = buildSearchTitleText(product);
-  const title = truncate(`${titleText} | Internext`, 60);
+  const title = truncate(`${titleText} | Internext Australia`, 90);
   const url = getProductUrl(product.code);
   const description = buildDescription(product);
   const images = getImages(product);
@@ -217,7 +294,7 @@ const createProductHtml = (template, product) => {
     `<h1>${escapeHtml(titleText)}</h1>`,
     image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(titleText)}" style="max-width:480px;width:100%;height:auto;object-fit:contain" />` : "",
     product.price ? `<p><strong>${escapeHtml(formatAud(product.price))} Inc GST</strong></p>` : "",
-    `<p>${escapeHtml(removeSupplierReferences(product.longDescription || product.description || ""))}</p>`,
+    `<p>${escapeHtml(buildStructuredDescription(product))}</p>`,
     `<p>Product code: ${escapeHtml(product.code)}</p>`,
     `</main>`,
   ]
