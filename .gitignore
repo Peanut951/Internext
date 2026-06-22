@@ -5,6 +5,7 @@ node_modules/
 dist/
 .vite/
 .vercel/
+public/data/catalog-live-overrides.json
 
 # local environment
 .env

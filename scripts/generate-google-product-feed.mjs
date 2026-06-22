@@ -7,6 +7,7 @@ const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
 const dataDir = path.join(publicDir, "data");
 const outputPath = path.join(publicDir, "google-products.xml");
+const liveOverridesPath = path.join(dataDir, "catalog-live-overrides.json");
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const GOOGLE_IMAGE_FEED_VERSION = "20260618-1";
 
@@ -601,6 +602,20 @@ try {
   alloysLiveItems = await loadAlloysLiveCatalogItems();
 } catch (error) {
   console.warn(`Alloys live feed unavailable for Google product feed: ${error.message}`);
+}
+
+if (alloysLiveItems.length > 0) {
+  fs.writeFileSync(
+    liveOverridesPath,
+    `${JSON.stringify(
+      {
+        updatedAt: new Date().toISOString(),
+        items: alloysLiveItems,
+      },
+      null,
+      2,
+    )}\n`,
+  );
 }
 
 const exclusions = readJson(path.join(dataDir, "google-feed-exclusions.json"), { codes: [] });

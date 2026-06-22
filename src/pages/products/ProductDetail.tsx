@@ -9,7 +9,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -51,6 +51,7 @@ type CatalogProduct = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  liveUpdatedAt?: string;
 };
 
 type CartItem = CatalogProduct & { qty: number };
@@ -399,6 +400,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<CatalogProduct | null>(null);
+  const [isLivePriceReady, setIsLivePriceReady] = useState(false);
   const [qty, setQty] = useState(1);
   const [isInCart, setIsInCart] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
@@ -408,12 +410,20 @@ const ProductDetail = () => {
   useEffect(() => {
     let isMounted = true;
     setIsInCart(isProductInStoredCart(productCode));
+    setIsLivePriceReady(false);
     const loadProduct = async () => {
       try {
-        const data = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          const liveProduct = (liveProducts as CatalogProduct[]).find((item) => item.code === productCode) || null;
+          if (isMounted && liveProduct) {
+            setProduct(liveProduct);
+            setIsLivePriceReady(true);
+          }
+        })) as CatalogProduct[];
         const found = data.find((item) => item.code === productCode) || null;
         if (isMounted) {
           setProduct(found);
+          setIsLivePriceReady(Boolean(found?.liveUpdatedAt));
           setLoading(false);
         }
       } catch (err) {
@@ -434,8 +444,8 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return getDisplayPrice(product, session?.role);
-  }, [product, session?.role]);
+    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "Checking live price...";
+  }, [isLivePriceReady, product, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -941,8 +951,8 @@ const ProductDetail = () => {
                             <Link to="/cart">View Cart</Link>
                           </Button>
                         ) : (
-                          <Button className="w-full" onClick={addToCart}>
-                            Add to Cart
+                          <Button className="w-full" onClick={addToCart} disabled={!isLivePriceReady}>
+                            {isLivePriceReady ? "Add to Cart" : "Checking live price"}
                           </Button>
                         )}
 

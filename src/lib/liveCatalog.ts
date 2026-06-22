@@ -81,7 +81,7 @@ type CachedCatalogProducts = {
   products: CatalogProductWithLive[];
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products";
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v2";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
@@ -187,10 +187,35 @@ const loadStaticCatalogProducts = async () => {
         (await staticResponse.json()) as CatalogProductWithLive[],
       );
 
+      const applyStaticLiveOverrides = async (products: CatalogProductWithLive[]) => {
+        try {
+          const liveOverridesResponse = await fetch("/data/catalog-live-overrides.json");
+          if (!liveOverridesResponse.ok) {
+            return products;
+          }
+
+          const liveOverrides = (await liveOverridesResponse.json()) as MergedCatalogResponse;
+          if (!Array.isArray(liveOverrides.items) || liveOverrides.items.length === 0) {
+            return products;
+          }
+
+          const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
+          return mergeCatalogProductUpdates(
+            products,
+            liveOverrides.items.map((item) => ({
+              ...item,
+              liveUpdatedAt: item.liveUpdatedAt || updatedAt,
+            })),
+          );
+        } catch {
+          return products;
+        }
+      };
+
       try {
         const leaderResponse = await fetch("/data/leader-products.json");
         if (!leaderResponse.ok) {
-          return staticProducts;
+          return applyStaticLiveOverrides(staticProducts);
         }
 
         const leaderProducts = normalizeCatalogProducts(
@@ -201,9 +226,9 @@ const loadStaticCatalogProducts = async () => {
           getProductKeys(product).every((key) => !existingKeys.has(key)),
         );
 
-        return [...staticProducts, ...leaderOnlyProducts];
+        return applyStaticLiveOverrides([...staticProducts, ...leaderOnlyProducts]);
       } catch {
-        return staticProducts;
+        return applyStaticLiveOverrides(staticProducts);
       }
     })().catch((error) => {
       staticCatalogProductsPromise = null;
