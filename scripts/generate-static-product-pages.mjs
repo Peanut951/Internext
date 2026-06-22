@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
+import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const distDir = path.resolve("dist");
@@ -313,6 +314,7 @@ if (!fs.existsSync(templatePath)) {
 
 const template = fs.readFileSync(templatePath, "utf8");
 let leaderFeedProducts = [];
+let alloysLiveItems = [];
 
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
@@ -320,11 +322,17 @@ try {
   console.warn(`Leader feed unavailable for static product pages: ${error.message}`);
 }
 
-const products = [
+try {
+  alloysLiveItems = await loadAlloysLiveCatalogItems();
+} catch (error) {
+  console.warn(`Alloys live feed unavailable for static product pages: ${error.message}`);
+}
+
+const products = mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...readJson(path.join(dataDir, "leader-products.json")),
   ...leaderFeedProducts,
-];
+], alloysLiveItems);
 const uniqueProducts = new Map();
 
 for (const product of products) {

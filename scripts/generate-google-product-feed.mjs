@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
+import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -586,6 +587,7 @@ const mergeProducts = (products) => {
 };
 
 let leaderFeedProducts = [];
+let alloysLiveItems = [];
 
 if (process.env.INCLUDE_LEADER_LIVE_GOOGLE_FEED === "true") {
   try {
@@ -593,6 +595,12 @@ if (process.env.INCLUDE_LEADER_LIVE_GOOGLE_FEED === "true") {
   } catch (error) {
     console.warn(`Leader feed unavailable for Google product feed: ${error.message}`);
   }
+}
+
+try {
+  alloysLiveItems = await loadAlloysLiveCatalogItems();
+} catch (error) {
+  console.warn(`Alloys live feed unavailable for Google product feed: ${error.message}`);
 }
 
 const exclusions = readJson(path.join(dataDir, "google-feed-exclusions.json"), { codes: [] });
@@ -608,11 +616,11 @@ const excludedCodes = new Set(
   [...(exclusions.codes || []), ...(invalidImageCodeData.codes || [])].map((code) => String(code || "").trim().toUpperCase()).filter(Boolean),
 );
 
-const products = mergeProducts([
+const products = mergeProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...readJson(path.join(dataDir, "leader-products.json")),
   ...leaderFeedProducts,
-])
+], alloysLiveItems))
   .map((product) => {
     const overrideImages = imageOverrideMap.get(String(product.code || "").trim().toUpperCase());
     return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
