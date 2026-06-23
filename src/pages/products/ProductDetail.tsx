@@ -16,7 +16,6 @@ import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing"
 import { trackAddToCart } from "@/lib/analytics";
 import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 import { useToast } from "@/hooks/use-toast";
-import { ToastAction } from "@/components/ui/toast";
 
 type CatalogProduct = {
   code: string;
@@ -642,11 +641,6 @@ const ProductDetail = () => {
         description: match
           ? `${toastProductName} is now ${nextQuantity} in your cart.`
           : `${qty} x ${toastProductName} added to your cart.`,
-        action: (
-          <ToastAction altText="View cart" asChild>
-            <Link to="/cart">View cart</Link>
-          </ToastAction>
-        ),
       });
     } catch {
       toast({

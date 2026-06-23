@@ -838,10 +838,6 @@ const ProductCategory = () => {
     };
   }, []);
 
-  useEffect(() => {
-    saveCartItems(cartItems.map((item) => ({ ...toCartProduct(item), qty: item.qty })));
-  }, [cartItems]);
-
   const categorizedProducts = useMemo(() => {
     return products.map((product) => {
       const searchText = normalizeKey(
@@ -1167,38 +1163,54 @@ const ProductCategory = () => {
   };
 
   const addToCart = (product: CatalogProduct) => {
-    const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
-    setCartItems((prev) => {
-      const compactPrev = prev.map((item) => ({ ...toCartProduct(item), qty: item.qty }));
-      const existing = compactPrev.find((item) => item.code === product.code);
-      if (existing) {
-        return compactPrev.map((item) =>
-          item.code === product.code ? { ...pricedProduct, qty: item.qty + 1 } : item,
-        );
-      }
-      return [...compactPrev, { ...pricedProduct, qty: 1 }];
-    });
-    trackAddToCart({
-      item_id: product.code,
-      item_name: product.description,
-      item_brand: product.manufacturer,
-      price: pricedProduct.price || 0,
-      quantity: 1,
-    });
+    try {
+      const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
+      setCartItems((prev) => {
+        const compactPrev = prev.map((item) => ({ ...toCartProduct(item), qty: item.qty }));
+        const existing = compactPrev.find((item) => item.code === product.code);
+        const next = existing
+          ? compactPrev.map((item) =>
+              item.code === product.code ? { ...pricedProduct, qty: item.qty + 1 } : item,
+            )
+          : [...compactPrev, { ...pricedProduct, qty: 1 }];
+
+        saveCartItems(next);
+        return next;
+      });
+      trackAddToCart({
+        item_id: product.code,
+        item_name: product.description,
+        item_brand: product.manufacturer,
+        price: pricedProduct.price || 0,
+        quantity: 1,
+      });
+    } catch (error) {
+      console.error("Unable to add product to cart", error);
+    }
   };
 
   const updateQty = (code: string, delta: number) => {
-    setCartItems((prev) =>
-      prev
+    setCartItems((prev) => {
+      const next = prev
         .map((item) =>
           item.code === code ? { ...item, qty: Math.max(1, item.qty + delta) } : item,
         )
-        .filter((item) => item.qty > 0),
-    );
+        .filter((item) => item.qty > 0)
+        .map((item) => ({ ...toCartProduct(item), qty: item.qty }));
+
+      saveCartItems(next);
+      return next;
+    });
   };
 
   const removeItem = (code: string) => {
-    setCartItems((prev) => prev.filter((item) => item.code !== code));
+    setCartItems((prev) => {
+      const next = prev
+        .filter((item) => item.code !== code)
+        .map((item) => ({ ...toCartProduct(item), qty: item.qty }));
+      saveCartItems(next);
+      return next;
+    });
   };
 
   const cartTotal = useMemo(() => {
@@ -1433,6 +1445,7 @@ const ProductCategory = () => {
                       (typeof product.stockQuantity === "number"
                         ? `${product.stockQuantity} available`
                         : "");
+                    const isInCart = cartItems.some((item) => item.code === product.code);
                     return (
                       <div
                         key={product.code}
@@ -1525,14 +1538,25 @@ const ProductCategory = () => {
                                 View Details
                               </Link>
                             </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
-                              onClick={() => addToCart(product)}
-                            >
-                              Add to Cart
-                            </Button>
+                            {isInCart ? (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
+                                asChild
+                              >
+                                <Link to="/cart">View Cart</Link>
+                              </Button>
+                            ) : (
+                              <Button
+                                variant="default"
+                                size="sm"
+                                className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
+                                onClick={() => addToCart(product)}
+                              >
+                                Add to Cart
+                              </Button>
+                            )}
                           </div>
                         </div>
                       </div>

@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import RequireAuth from "./components/auth/RequireAuth";
 import RequirePortalHome from "./components/auth/RequirePortalHome";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Layout from "./components/layout/Layout";
 import { trackPageView } from "@/lib/analytics";
 
@@ -78,9 +79,10 @@ const App = () => (
       <BrowserRouter>
         <Toaster />
         <Sonner />
-        <ScrollToTop />
-        <Suspense fallback={<RouteFallback />}>
-          <Routes>
+        <ErrorBoundary>
+          <ScrollToTop />
+          <Suspense fallback={<RouteFallback />}>
+            <Routes>
             <Route path="/" element={<Index />} />
             {/* About */}
             <Route path="/about" element={<AboutIndex />} />
@@ -138,8 +140,9 @@ const App = () => (
             {/* Contact */}
             <Route path="/contact" element={<Contact />} />
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </Suspense>
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>
