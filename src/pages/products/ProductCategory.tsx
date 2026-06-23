@@ -70,7 +70,29 @@ type FacetOption = {
   match: RegExp;
 };
 
-const normalizeKey = (value: string) => value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const safeText = (value: unknown, fallback = "") => {
+  if (value === null || value === undefined) {
+    return fallback;
+  }
+
+  const text = String(value).trim();
+  return text || fallback;
+};
+
+const safeNumber = (value: unknown) => {
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? value : null;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value.replace(/[^0-9.-]/g, ""));
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+};
+
+const normalizeKey = (value: unknown) => safeText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
 const makeRule = (keywords: string[], manufacturers: string[] = []): Rule => ({
   keywords: keywords.map(normalizeKey),
@@ -673,7 +695,7 @@ const TOP_LEVEL_MANUFACTURERS = {
 };
 
 const inferTopLevelCategory = (product: CatalogProduct, searchText: string) => {
-  const manufacturer = normalizeKey(product.manufacturer || "");
+  const manufacturer = normalizeKey(product.manufacturer);
 
   if (
     searchText.includes("toner") ||
@@ -758,10 +780,11 @@ const inferTopLevelCategory = (product: CatalogProduct, searchText: string) => {
 };
 
 const formatPrice = (value: number | null | undefined) => {
-  if (value === null || value === undefined) {
+  const numericValue = safeNumber(value);
+  if (numericValue === null) {
     return null;
   }
-  return value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+  return numericValue.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
 };
 
 const getCardSummary = (product: CatalogProduct) => {
@@ -862,7 +885,7 @@ const ProductCategory = () => {
         if (!rule) continue;
         const keywordMatch = rule.keywords.some((keyword) => keyword && searchText.includes(keyword));
         const manufacturerMatch = rule.manufacturers.length
-          ? rule.manufacturers.includes(normalizeKey(product.manufacturer || ""))
+          ? rule.manufacturers.includes(normalizeKey(product.manufacturer))
           : false;
         if (keywordMatch || manufacturerMatch) {
           assigned = slug;
@@ -890,7 +913,7 @@ const ProductCategory = () => {
   const manufacturers = useMemo(() => {
     const values = new Set<string>();
     categoryProducts.forEach((product) => {
-      const value = product.manufacturer?.trim() || "Unbranded";
+      const value = safeText(product.manufacturer, "Unbranded");
       values.add(value);
     });
     return Array.from(values).sort((a, b) => a.localeCompare(b));
@@ -968,12 +991,12 @@ const ProductCategory = () => {
 
   const priceRole = getPriceRole(session?.role);
   const getVisiblePrice = (product: CatalogProduct) =>
-    priceRole === "reseller" ? product.resellerPrice ?? null : product.price;
+    priceRole === "reseller" ? safeNumber(product.resellerPrice) : safeNumber(product.price);
 
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
     const filtered = categoryProducts.filter((product) => {
-      const productManufacturer = product.manufacturer?.trim() || "Unbranded";
+      const productManufacturer = safeText(product.manufacturer, "Unbranded");
       if (
         normalizedSelectedBrands.size > 0 &&
         !normalizedSelectedBrands.has(normalizeKey(productManufacturer))
@@ -1043,16 +1066,16 @@ const ProductCategory = () => {
           return aPrice - bPrice;
         }
 
-        return a.description.localeCompare(b.description);
+        return safeText(a.description).localeCompare(safeText(b.description));
       });
     }
 
     if (sort === "name-asc") {
-      return [...filtered].sort((a, b) => a.description.localeCompare(b.description));
+      return [...filtered].sort((a, b) => safeText(a.description).localeCompare(safeText(b.description)));
     }
 
     if (sort === "name-desc") {
-      return [...filtered].sort((a, b) => b.description.localeCompare(a.description));
+      return [...filtered].sort((a, b) => safeText(b.description).localeCompare(safeText(a.description)));
     }
 
     if (sort === "price-asc") {
@@ -1168,7 +1191,16 @@ const ProductCategory = () => {
 
   const addToCart = (product: CatalogProduct) => {
     try {
-      const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
+      const safeProduct = {
+        ...product,
+        code: safeText(product.code, "unknown"),
+        manufacturer: safeText(product.manufacturer, "Unbranded"),
+        description: safeText(product.description, "Product"),
+        price: safeNumber(product.price),
+        resellerPrice: safeNumber(product.resellerPrice),
+        rrp: safeNumber(product.rrp),
+      };
+      const pricedProduct = toCartProduct(getCartPricedProduct(safeProduct, session?.role));
       setCartItems((prev) => {
         const compactPrev = prev.map((item) => ({ ...toCartProduct(item), qty: item.qty }));
         const existing = compactPrev.find((item) => item.code === product.code);
@@ -1182,9 +1214,9 @@ const ProductCategory = () => {
         return next;
       });
       trackAddToCart({
-        item_id: product.code,
-        item_name: product.description,
-        item_brand: product.manufacturer,
+        item_id: safeProduct.code,
+        item_name: safeProduct.description,
+        item_brand: safeProduct.manufacturer,
         price: pricedProduct.price || 0,
         quantity: 1,
       });
@@ -1440,19 +1472,31 @@ const ProductCategory = () => {
               {!loading && !error && pageItems.length > 0 && (
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
                   {pageItems.map((product) => {
-                    const priceLabel = getDisplayPrice(product, session?.role);
-                    const productImage = getOptionalProductImage(product);
-                    const summary = getCardSummary(product);
-                    const highlights = getCardHighlights(product);
+                    const productCode = safeText(product.code, "unknown");
+                    const productBrand = safeText(product.manufacturer, "Unbranded");
+                    const productName = safeText(product.description, "Product");
+                    const displayProduct = {
+                      ...product,
+                      code: productCode,
+                      manufacturer: productBrand,
+                      description: productName,
+                      price: safeNumber(product.price),
+                      resellerPrice: safeNumber(product.resellerPrice),
+                      rrp: safeNumber(product.rrp),
+                    };
+                    const priceLabel = getDisplayPrice(displayProduct, session?.role);
+                    const productImage = getOptionalProductImage(displayProduct);
+                    const summary = getCardSummary(displayProduct);
+                    const highlights = getCardHighlights(displayProduct);
                     const availability =
-                      product.availabilityText ||
+                      safeText(product.availabilityText) ||
                       (typeof product.stockQuantity === "number"
                         ? `${product.stockQuantity} available`
                         : "");
-                    const isInCart = cartItems.some((item) => item.code === product.code);
+                    const isInCart = cartItems.some((item) => item.code === productCode);
                     return (
                       <div
-                        key={product.code}
+                        key={productCode}
                         className="group relative flex h-full flex-col overflow-hidden rounded-[1.4rem] border border-border/60 bg-card shadow-card transition-all duration-300 hover:-translate-y-1 hover:border-accent/25 hover:shadow-elevated"
                       >
                         <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-transparent via-accent/80 to-transparent opacity-70" />
@@ -1460,10 +1504,10 @@ const ProductCategory = () => {
                         <div className="p-5 pb-4">
                           <div className="mb-3 flex flex-wrap justify-center gap-2">
                             <span className="inline-flex items-center rounded-full bg-accent/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-accent">
-                              {product.manufacturer}
+                              {productBrand}
                             </span>
                             <span className="inline-flex items-center rounded-full border border-border/60 bg-background px-3 py-1 text-[11px] font-medium text-muted-foreground">
-                              {product.code}
+                              {productCode}
                             </span>
                           </div>
 
@@ -1473,7 +1517,7 @@ const ProductCategory = () => {
                               <div className="flex h-full items-center justify-center p-5">
                                 <img
                                   src={productImage}
-                                  alt={product.description}
+                                  alt={productName}
                                   loading="lazy"
                                   onError={handleProductImageError}
                                   className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
@@ -1485,7 +1529,7 @@ const ProductCategory = () => {
 
                         <div className="flex flex-1 flex-col px-5 pb-5">
                           <h4 className="min-h-[4.2rem] text-center text-lg font-semibold leading-snug text-foreground">
-                            {product.description}
+                            {productName}
                           </h4>
 
                           <p className="mt-3 min-h-[4.4rem] text-center text-sm leading-6 text-muted-foreground">
@@ -1514,9 +1558,9 @@ const ProductCategory = () => {
                               <span className="text-2xl font-bold leading-none text-foreground">
                                 {priceLabel}
                               </span>
-                              {product.rrp ? (
+                              {displayProduct.rrp ? (
                                 <span className="text-xs text-right text-muted-foreground">
-                                  RRP {formatPrice(product.rrp)}
+                                  RRP {formatPrice(displayProduct.rrp)}
                                 </span>
                               ) : (
                                 <span className="text-xs text-right text-muted-foreground">
@@ -1538,7 +1582,7 @@ const ProductCategory = () => {
                               className="w-full min-w-0 rounded-xl border-border/70 bg-background whitespace-normal px-3 text-center leading-tight"
                               asChild
                             >
-                              <Link to={`/products/item/${encodeURIComponent(product.code)}`}>
+                              <Link to={`/products/item/${encodeURIComponent(productCode)}`}>
                                 View Details
                               </Link>
                             </Button>
@@ -1556,7 +1600,7 @@ const ProductCategory = () => {
                                 variant="default"
                                 size="sm"
                                 className="w-full min-w-0 rounded-xl whitespace-normal px-3 text-center leading-tight"
-                                onClick={() => addToCart(product)}
+                                onClick={() => addToCart(displayProduct)}
                               >
                                 Add to Cart
                               </Button>
