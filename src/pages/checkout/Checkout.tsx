@@ -1,4 +1,4 @@
-﻿import { FormEvent, useEffect, useMemo, useState } from "react";
+﻿import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
@@ -444,6 +444,7 @@ const Checkout = () => {
   const [shippingQuoteKey, setShippingQuoteKey] = useState<string | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
+  const finalizingPaymentSessionRef = useRef<string | null>(null);
   const { session } = useAuthSession();
 
   useEffect(() => {
@@ -702,7 +703,11 @@ const Checkout = () => {
   }, [checkoutState]);
 
   useEffect(() => {
-    if (checkoutState !== "success" || !checkoutSessionId || confirmingPayment || placedOrder) {
+    if (checkoutState !== "success" || !checkoutSessionId || placedOrder) {
+      return;
+    }
+
+    if (finalizingPaymentSessionRef.current === checkoutSessionId) {
       return;
     }
 
@@ -718,6 +723,7 @@ const Checkout = () => {
       return;
     }
 
+    finalizingPaymentSessionRef.current = checkoutSessionId;
     let isActive = true;
 
     const finalizePaidCheckout = async () => {
@@ -771,6 +777,10 @@ const Checkout = () => {
           setPaymentStateMessage(notificationMessage);
         });
       } catch (finalizeError) {
+        if (finalizingPaymentSessionRef.current === checkoutSessionId) {
+          finalizingPaymentSessionRef.current = null;
+        }
+
         if (!isActive) {
           return;
         }
@@ -793,7 +803,7 @@ const Checkout = () => {
     return () => {
       isActive = false;
     };
-  }, [checkoutSessionId, checkoutState, confirmingPayment, navigate, placedOrder]);
+  }, [checkoutSessionId, checkoutState, navigate, placedOrder]);
 
   const applyAddressSuggestion = (result: AddressLookupResult) => {
     const address1 = getLineOneFromLookup(result);

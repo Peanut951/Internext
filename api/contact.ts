@@ -14,6 +14,7 @@ const normalizeField = (value: unknown) => String(value || "").trim();
 const requiredFields = ["name", "email", "enquiryType", "message"] as const;
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
+const WEBHOOK_TIMEOUT_MS = 20000;
 
 export default async function handler(
   req: {
@@ -51,12 +52,16 @@ export default async function handler(
     return sendJson(res, 503, { message: "Contact form forwarding is not configured yet." });
   }
 
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
+
   try {
     const response = await fetch(webhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
+      signal: controller.signal,
       body: JSON.stringify({
         type: "contact_form",
         submittedAt: new Date().toISOString(),
@@ -76,7 +81,16 @@ export default async function handler(
     }
 
     return sendJson(res, 200, { ok: true });
-  } catch {
-    return sendJson(res, 502, { message: "Unable to reach the contact form workflow." });
+  } catch (error) {
+    const message =
+      error instanceof Error && error.name === "AbortError"
+        ? `Contact form workflow did not respond within ${WEBHOOK_TIMEOUT_MS / 1000} seconds.`
+        : error instanceof Error
+          ? `Unable to reach the contact form workflow: ${error.message}`
+          : "Unable to reach the contact form workflow.";
+
+    return sendJson(res, 502, { message });
+  } finally {
+    clearTimeout(timeout);
   }
 }

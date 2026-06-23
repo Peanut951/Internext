@@ -41,9 +41,13 @@ const Contact = () => {
         body: JSON.stringify(formData),
       });
 
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        details?: string;
+      };
       if (!response.ok) {
-        throw new Error(payload.message || "Unable to send your message.");
+        const detail = payload.details ? ` ${payload.details}` : "";
+        throw new Error(`${payload.message || "Unable to send your message."}${detail}`);
       }
 
       setFormData({
