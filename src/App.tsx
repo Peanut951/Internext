@@ -73,76 +73,84 @@ const RouteFallback = () => (
   </Layout>
 );
 
+const AppRoutes = () => {
+  const { pathname } = useLocation();
+
+  return (
+    <ErrorBoundary resetKey={pathname}>
+      <ScrollToTop />
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          {/* About */}
+          <Route path="/about" element={<AboutIndex />} />
+          <Route path="/about/why-partner" element={<WhyPartner />} />
+          <Route path="/about/team" element={<Team />} />
+          <Route path="/about/customers" element={<Customers />} />
+          {/* Products */}
+          <Route path="/products" element={<ProductsIndex />} />
+          <Route path="/products/search" element={<ProductSearch />} />
+          <Route path="/products/item/:code" element={<ProductDetail />} />
+          <Route path="/products/:category" element={<ProductCategory />} />
+          <Route path="/cart" element={<Cart />} />
+          <Route path="/checkout" element={<Checkout />} />
+          <Route
+            path="/portal"
+            element={
+              <RequirePortalHome>
+                <PortalDashboard />
+              </RequirePortalHome>
+            }
+          />
+          <Route
+            path="/portal/orders"
+            element={
+              <RequireAuth>
+                <PortalOrders />
+              </RequireAuth>
+            }
+          />
+          <Route
+            path="/admin/orders"
+            element={
+              <RequireAdmin>
+                <OrdersAdmin />
+              </RequireAdmin>
+            }
+          />
+          {/* Services */}
+          <Route path="/services" element={<ServicesIndex />} />
+          <Route path="/services/installation" element={<Installation />} />
+          <Route path="/services/request" element={<ServiceRequest />} />
+          {/* Auth */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login/register" element={<Register />} />
+          {/* Support */}
+          <Route path="/support/faq" element={<FAQ />} />
+          <Route path="/support/shipping" element={<Shipping />} />
+          <Route path="/support/warranty" element={<Warranty />} />
+          <Route path="/support/returns" element={<ReturnsRefunds />} />
+          <Route path="/support/payment-security" element={<PaymentSecurity />} />
+          <Route path="/support/consumer-guarantees" element={<ConsumerGuarantees />} />
+          <Route path="/privacy" element={<Privacy />} />
+          <Route path="/terms" element={<Terms />} />
+          {/* Contact */}
+          <Route path="/contact" element={<Contact />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Suspense>
+    </ErrorBoundary>
+  );
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <BrowserRouter>
         <Toaster />
         <Sonner />
-        <ErrorBoundary>
-          <ScrollToTop />
-          <Suspense fallback={<RouteFallback />}>
-            <Routes>
-            <Route path="/" element={<Index />} />
-            {/* About */}
-            <Route path="/about" element={<AboutIndex />} />
-            <Route path="/about/why-partner" element={<WhyPartner />} />
-            <Route path="/about/team" element={<Team />} />
-            <Route path="/about/customers" element={<Customers />} />
-            {/* Products */}
-            <Route path="/products" element={<ProductsIndex />} />
-            <Route path="/products/search" element={<ProductSearch />} />
-            <Route path="/products/item/:code" element={<ProductDetail />} />
-            <Route path="/products/:category" element={<ProductCategory />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route
-              path="/portal"
-              element={
-                <RequirePortalHome>
-                  <PortalDashboard />
-                </RequirePortalHome>
-              }
-            />
-            <Route
-              path="/portal/orders"
-              element={
-                <RequireAuth>
-                  <PortalOrders />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/admin/orders"
-              element={
-                <RequireAdmin>
-                  <OrdersAdmin />
-                </RequireAdmin>
-              }
-            />
-            {/* Services */}
-            <Route path="/services" element={<ServicesIndex />} />
-            <Route path="/services/installation" element={<Installation />} />
-            <Route path="/services/request" element={<ServiceRequest />} />
-            {/* Auth */}
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<Signup />} />
-            <Route path="/login/register" element={<Register />} />
-            {/* Support */}
-            <Route path="/support/faq" element={<FAQ />} />
-            <Route path="/support/shipping" element={<Shipping />} />
-            <Route path="/support/warranty" element={<Warranty />} />
-            <Route path="/support/returns" element={<ReturnsRefunds />} />
-            <Route path="/support/payment-security" element={<PaymentSecurity />} />
-            <Route path="/support/consumer-guarantees" element={<ConsumerGuarantees />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms" element={<Terms />} />
-            {/* Contact */}
-            <Route path="/contact" element={<Contact />} />
-            <Route path="*" element={<NotFound />} />
-            </Routes>
-          </Suspense>
-        </ErrorBoundary>
+        <AppRoutes />
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

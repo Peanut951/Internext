@@ -60,9 +60,16 @@ const DEFAULT_PUBLIC_SHIPPING_PRICE = 35;
 const isProductInStoredCart = (productCode: string) =>
   getCartItems().some((item) => item.code === productCode);
 
+const safeText = (value: unknown) => {
+  if (value === null || value === undefined) {
+    return "";
+  }
+  return String(value).trim();
+};
+
 const getPlainProductName = (product: CatalogProduct) => {
-  const description = product.description.trim();
-  const manufacturer = product.manufacturer.trim();
+  const description = safeText(product.description) || safeText(product.code) || "Product";
+  const manufacturer = safeText(product.manufacturer);
 
   if (!manufacturer) {
     return description;
@@ -87,7 +94,7 @@ const joinHighlights = (highlights: string[], limit = 3) => {
 };
 
 const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
+  const source = `${safeText(product.description)} ${safeText(product.longDescription)}`;
   const plainName = getPlainProductName(product);
   const leadHighlights = joinHighlights(highlights, 3);
   const withHighlights = leadHighlights ? ` Notable details include ${leadHighlights}.` : "";
@@ -109,7 +116,7 @@ const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
 };
 
 const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {
-  const source = `${product.description} ${product.longDescription || ""}`;
+  const source = `${safeText(product.description)} ${safeText(product.longDescription)}`;
   const plainName = getPlainProductName(product);
   const paragraphs = [buildProductIntro(product, highlights)];
   const detailLead = joinHighlights(highlights, 4) || "the listed product specification";
@@ -145,9 +152,12 @@ const getMeasurementRows = (product: CatalogProduct) => [
 ].filter((row): row is { label: string; value: string } => Boolean(row.value));
 
 const getAvailabilityRows = (product: CatalogProduct) => {
+  const availabilityText = safeText(product.availabilityText);
+  const etaDate = safeText(product.etaDate);
+  const etaStatus = safeText(product.etaStatus);
   const rows = [
-    product.availabilityText
-      ? { label: "Status", value: product.availabilityText }
+    availabilityText
+      ? { label: "Status", value: availabilityText }
       : null,
     typeof product.stockQuantity === "number"
       ? { label: "Total Available", value: product.stockQuantity.toLocaleString("en-AU") }
@@ -164,11 +174,11 @@ const getAvailabilityRows = (product: CatalogProduct) => {
     product.stockByWarehouse && product.stockByWarehouse.syd > 0
       ? { label: "Sydney Warehouse", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
       : null,
-    product.etaDate
-      ? { label: "Next ETA", value: product.etaDate }
+    etaDate
+      ? { label: "Next ETA", value: etaDate }
       : null,
-    product.etaStatus && product.etaStatus !== product.availabilityText && product.etaStatus !== product.etaDate
-      ? { label: "ETA Status", value: product.etaStatus }
+    etaStatus && etaStatus !== availabilityText && etaStatus !== etaDate
+      ? { label: "ETA Status", value: etaStatus }
       : null,
   ];
 
@@ -176,35 +186,38 @@ const getAvailabilityRows = (product: CatalogProduct) => {
 };
 
 const getStockSummary = (product: CatalogProduct) => {
+  const etaDate = safeText(product.etaDate);
+  const etaStatus = safeText(product.etaStatus);
   if (typeof product.stockQuantity === "number") {
     if (product.stockQuantity > 0) {
       return `${product.stockQuantity.toLocaleString("en-AU")} available across warehouse stock`;
     }
 
-    if (product.etaDate) {
-      return `Currently out of stock. Next ETA ${product.etaDate}`;
+    if (etaDate) {
+      return `Currently out of stock. Next ETA ${etaDate}`;
     }
 
-    if (product.etaStatus && !/^(check availability|in stock)$/i.test(product.etaStatus)) {
-      return `Currently out of stock. ${product.etaStatus}`;
+    if (etaStatus && !/^(check availability|in stock)$/i.test(etaStatus)) {
+      return `Currently out of stock. ${etaStatus}`;
     }
 
     return "Currently out of stock. Call 1300 567 835 for ETA";
   }
 
-  return product.availabilityText || "Live availability checked before checkout";
+  return safeText(product.availabilityText) || "Live availability checked before checkout";
 };
 
 const getDeliverySummary = (product: CatalogProduct) => {
   if (typeof product.stockQuantity === "number" && product.stockQuantity <= 0) {
-    return product.etaDate ? `Backorder available from ${product.etaDate}` : "Delivery timing confirmed once ETA is available";
+    const etaDate = safeText(product.etaDate);
+    return etaDate ? `Backorder available from ${etaDate}` : "Delivery timing confirmed once ETA is available";
   }
 
   return "Shipping calculated at checkout from product dimensions and delivery postcode";
 };
 
 const getSchemaAvailability = (product: CatalogProduct) => {
-  if (/available to order|in stock/i.test(product.availabilityText || "")) {
+  if (/available to order|in stock/i.test(safeText(product.availabilityText))) {
     return "https://schema.org/InStock";
   }
 
@@ -221,8 +234,10 @@ const toAbsoluteUrl = (value: string) => {
   }
 };
 
-const truncateText = (value: string, maxLength: number) =>
-  value.length > maxLength ? `${value.slice(0, maxLength - 1).trim()}...` : value;
+const truncateText = (value: unknown, maxLength: number) => {
+  const text = safeText(value);
+  return text.length > maxLength ? `${text.slice(0, maxLength - 1).trim()}...` : text;
+};
 
 const normalizeToken = (value: unknown) =>
   String(value || "")
@@ -239,8 +254,8 @@ const getProductGtin = (product: CatalogProduct) =>
   normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
 
 const getProductMpn = (product: CatalogProduct) => {
-  const supplierCode = product.supplierCode?.trim() || "";
-  const code = product.code.trim();
+  const supplierCode = safeText(product.supplierCode);
+  const code = safeText(product.code);
 
   if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
     return supplierCode;
@@ -250,7 +265,7 @@ const getProductMpn = (product: CatalogProduct) => {
 };
 
 const getSeoProductType = (product: CatalogProduct) => {
-  const text = `${product.manufacturer} ${product.description} ${product.longDescription || ""}`.toLowerCase();
+  const text = `${safeText(product.manufacturer)} ${safeText(product.description)} ${safeText(product.longDescription)}`.toLowerCase();
 
   if (/\btoner\b/.test(text)) return "Toner Cartridge";
   if (/\bink\b/.test(text)) return "Ink Cartridge";
@@ -280,8 +295,8 @@ const getSeoProductType = (product: CatalogProduct) => {
 };
 
 const removeLeadingBrandFromTitle = (title: string, brand: string) => {
-  const cleanBrand = brand.trim();
-  const cleanTitle = title.trim();
+  const cleanBrand = safeText(brand);
+  const cleanTitle = safeText(title);
   if (!cleanBrand) return cleanTitle;
 
   const escapedBrand = cleanBrand.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -289,8 +304,8 @@ const removeLeadingBrandFromTitle = (title: string, brand: string) => {
 };
 
 const buildSearchTitleText = (product: CatalogProduct) => {
-  const brand = product.manufacturer.trim();
-  const base = removeLeadingBrandFromTitle(product.description, brand);
+  const brand = safeText(product.manufacturer);
+  const base = removeLeadingBrandFromTitle(safeText(product.description) || safeText(product.code) || "Product", brand);
   const mpn = getProductMpn(product);
   const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
@@ -330,7 +345,7 @@ const setCanonicalLink = (href: string) => {
 };
 
 const getPublicProductUrl = (productCode: string) =>
-  `${SITE_URL}/products/item/${encodeURIComponent(productCode)}`;
+  `${SITE_URL}/products/item/${encodeURIComponent(safeText(productCode))}`;
 
 const getProductMetaDescription = (
   product: CatalogProduct,
@@ -432,7 +447,7 @@ const ProductDetail = () => {
     }
 
     return (
-      product.availabilityText ||
+      safeText(product.availabilityText) ||
       (typeof product.stockQuantity === "number" ? `${product.stockQuantity} available` : "")
     );
   }, [product]);
@@ -462,15 +477,24 @@ const ProductDetail = () => {
     }
     const paragraphs = buildFullDescriptionParagraphs(product, specHighlights);
 
-    if (session?.role === "admin" && product.supplierCode) {
+    const adminSupplierCode = safeText(product.supplierCode);
+    if (session?.role === "admin" && adminSupplierCode) {
       return [
         ...paragraphs,
-        `Admin reference: ${product.supplierCode}`,
+        `Admin reference: ${adminSupplierCode}`,
       ];
     }
 
     return paragraphs;
   }, [product, session?.role, specHighlights]);
+
+  const productName = product
+    ? safeText(product.description) || safeText(product.code) || "Product"
+    : "";
+  const productBrand = product ? safeText(product.manufacturer) || "Unbranded" : "Unbranded";
+  const productCodeLabel = product ? safeText(product.code) : "";
+  const supplierCodeLabel = product ? safeText(product.supplierCode) : "";
+  const liveCatalogError = product ? safeText(product.liveCatalogError) : "";
 
   useEffect(() => {
     setActiveImage(galleryImages[0] || "");
@@ -484,7 +508,7 @@ const ProductDetail = () => {
       return;
     }
 
-    const canonicalUrl = getPublicProductUrl(product.code);
+    const canonicalUrl = getPublicProductUrl(productCodeLabel);
     const searchTitle = buildSearchTitleText(product);
     const pageTitle = truncateText(`${searchTitle} | Internext Australia`, 90);
     const metaDescription = getProductMetaDescription(
@@ -492,6 +516,8 @@ const ProductDetail = () => {
       fullDescriptionParagraphs.join(" "),
       availability,
     );
+    const schemaPrice =
+      typeof product.price === "number" && Number.isFinite(product.price) ? product.price : null;
     const schemaImages = galleryImages
       .filter((image) => image !== PRODUCT_IMAGE_PLACEHOLDER)
       .map(toAbsoluteUrl)
@@ -516,22 +542,22 @@ const ProductDetail = () => {
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
-      sku: product.code,
+      sku: productCodeLabel,
       mpn: getProductMpn(product),
       ...(getProductGtin(product) ? { gtin: getProductGtin(product) } : {}),
       name: searchTitle,
       description: getProductStructuredDescription(product, fullDescriptionParagraphs),
       brand: {
         "@type": "Brand",
-        name: product.manufacturer || "Internext",
+        name: productBrand || "Internext",
       },
       image: schemaImages,
-      offers: product.price
+      offers: schemaPrice !== null
         ? {
             "@type": "Offer",
             url: canonicalUrl,
             priceCurrency: "AUD",
-            price: product.price.toFixed(2),
+            price: schemaPrice.toFixed(2),
             availability: getSchemaAvailability(product),
             itemCondition: "https://schema.org/NewCondition",
             shippingDetails: {
@@ -585,7 +611,7 @@ const ProductDetail = () => {
         {
           "@type": "ListItem",
           position: 2,
-          name: product.description,
+          name: productName,
           item: canonicalUrl,
         },
       ],
@@ -600,7 +626,7 @@ const ProductDetail = () => {
     return () => {
       document.getElementById(scriptId)?.remove();
     };
-  }, [availability, fullDescriptionParagraphs, galleryImages, product]);
+  }, [availability, fullDescriptionParagraphs, galleryImages, product, productBrand, productCodeLabel, productName]);
 
   const addToCart = () => {
     if (!product) {
@@ -612,7 +638,7 @@ const ProductDetail = () => {
       const match = existing.find((item) => item.code === product.code);
       const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
       const nextQuantity = (match?.qty || 0) + qty;
-      const toastProductName = truncateText(product.description, 90);
+      const toastProductName = truncateText(productName, 90);
       const updated: CartItem[] = match
         ? existing.map((item) =>
             item.code === product.code ? { ...pricedProduct, qty: item.qty + qty } : item,
@@ -630,8 +656,8 @@ const ProductDetail = () => {
 
       trackAddToCart({
         item_id: product.code,
-        item_name: product.description,
-        item_brand: product.manufacturer,
+        item_name: productName,
+        item_brand: productBrand,
         price: pricedProduct.price || 0,
         quantity: qty,
       });
@@ -703,7 +729,7 @@ const ProductDetail = () => {
                           {activeImage ? (
                           <img
                             src={activeImage}
-                            alt={product.description}
+                            alt={productName}
                             className="h-full w-full object-contain"
                             loading="eager"
                             onError={handleActiveImageError}
@@ -727,7 +753,7 @@ const ProductDetail = () => {
                             >
                               <img
                                 src={img}
-                                alt={product.description}
+                                alt={productName}
                                 className="h-full w-full object-cover transition-transform duration-200 group-hover:scale-[1.03]"
                                 loading="lazy"
                                 onError={handleProductImageError}
@@ -847,20 +873,20 @@ const ProductDetail = () => {
                     <div className="flex h-full flex-col rounded-2xl border border-border/50 bg-secondary/20 p-5 md:p-6">
                       <div className="mb-5 flex flex-wrap gap-2">
                         <span className="inline-flex items-center rounded-full bg-secondary px-3 py-1 text-xs font-semibold tracking-[0.18em] text-accent uppercase">
-                          {product.manufacturer || "Unbranded"}
+                          {productBrand}
                         </span>
                         <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                          Code: {product.code}
+                          Code: {productCodeLabel}
                         </span>
-                        {session?.role === "admin" && product.supplierCode ? (
+                        {session?.role === "admin" && supplierCodeLabel ? (
                           <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
-                            Ref: {product.supplierCode}
+                            Ref: {supplierCodeLabel}
                           </span>
                         ) : null}
                       </div>
 
                       <h1 className="mb-6 break-words text-2xl font-bold leading-tight text-foreground sm:text-3xl md:text-4xl xl:text-[2.5rem] xl:leading-tight">
-                        {product.description}
+                        {productName}
                       </h1>
 
                       {keyHighlights.length > 0 ? (
@@ -879,9 +905,9 @@ const ProductDetail = () => {
                         </div>
                       ) : null}
 
-                      {product.liveCatalogError ? (
+                      {liveCatalogError ? (
                         <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                          {product.liveCatalogError} Live product information is temporarily unavailable.
+                          {liveCatalogError} Live product information is temporarily unavailable.
                         </div>
                       ) : null}
 
@@ -963,7 +989,7 @@ const ProductDetail = () => {
                             <p className="text-sm font-semibold text-foreground">Need help choosing?</p>
                           </div>
                           <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                            Use the product code <span className="font-medium text-foreground">{product.code}</span> when discussing this item with sales or comparing options across your shortlist.
+                            Use the product code <span className="font-medium text-foreground">{productCodeLabel}</span> when discussing this item with sales or comparing options across your shortlist.
                           </p>
                         </div>
                       </div>

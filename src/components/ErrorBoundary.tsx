@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 
 type ErrorBoundaryProps = {
   children: ReactNode;
+  resetKey?: string;
 };
 
 type ErrorBoundaryState = {
@@ -18,6 +19,12 @@ class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
 
   componentDidCatch(error: Error, info: ErrorInfo) {
     console.error("Internext page error", error, info);
+  }
+
+  componentDidUpdate(previousProps: ErrorBoundaryProps) {
+    if (this.state.hasError && previousProps.resetKey !== this.props.resetKey) {
+      this.setState({ hasError: false });
+    }
   }
 
   render() {
