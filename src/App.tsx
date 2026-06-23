@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import RequireAdmin from "./components/auth/RequireAdmin";
 import RequireAuth from "./components/auth/RequireAuth";
 import RequirePortalHome from "./components/auth/RequirePortalHome";
+import Layout from "./components/layout/Layout";
 import { trackPageView } from "@/lib/analytics";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -54,9 +55,21 @@ const ScrollToTop = () => {
 };
 
 const RouteFallback = () => (
-  <div className="min-h-screen bg-background px-6 py-10 text-sm text-muted-foreground">
-    Loading...
-  </div>
+  <Layout>
+    <section className="section-padding bg-background">
+      <div className="container-custom">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 w-56 rounded-lg bg-secondary" />
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="h-36 rounded-2xl border border-border/50 bg-card shadow-card" />
+            <div className="h-36 rounded-2xl border border-border/50 bg-card shadow-card" />
+            <div className="h-36 rounded-2xl border border-border/50 bg-card shadow-card" />
+          </div>
+          <div className="h-64 rounded-2xl border border-border/50 bg-card shadow-card" />
+        </div>
+      </div>
+    </section>
+  </Layout>
 );
 
 const App = () => (
