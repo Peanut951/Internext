@@ -202,6 +202,10 @@ const CATEGORY_GROUPS: Record<string, string[]> = {
     "scanner-warranties",
   ],
   "security-automation": [
+    "ip-cameras",
+    "nvrs-recorders",
+    "surveillance-kits",
+    "surveillance-accessories",
     "access-control",
     "intercom-systems",
     "ip-communications",

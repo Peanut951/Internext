@@ -176,6 +176,19 @@ const categories = [
   },
 ];
 
+const categoryHrefs: Record<string, string> = {
+  "Audio Visual": "/products/audio-visual",
+  Cameras: "/products/cameras",
+  "IP Surveillance": "/products/ip-surveillance",
+  "Office Products": "/products/office-products",
+  Printers: "/products/printers",
+  "Print Consumables": "/products/print-consumables",
+  Scanners: "/products/scanners",
+  "Security & Automation": "/products/security-automation",
+  "Storage & Networking": "/products/storage-networking",
+  "Unified Communications": "/products/unified-communications",
+};
+
 const ProductsIndex = () => {
   const navigate = useNavigate();
   const { session } = useAuthSession();
@@ -472,19 +485,36 @@ const ProductsIndex = () => {
           </div>
 
           <div className="space-y-8">
-            {categories.map((category) => (
+            {categories.map((category) => {
+              const categoryHref = categoryHrefs[category.title];
+
+              return (
               <div
                 key={category.title}
                 className="rounded-2xl border border-border/50 bg-card p-7 shadow-card transition-all duration-200 hover:shadow-elevated md:p-8"
               >
-                <div className="mb-6 flex items-start gap-4">
-                  <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-secondary text-accent">
-                    <category.icon className="h-7 w-7" />
-                  </div>
-                  <div>
-                    <h2 className="mb-2 text-2xl font-bold text-foreground">{category.title}</h2>
-                    <p className="max-w-3xl text-muted-foreground">{category.desc}</p>
-                  </div>
+                <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                  <Link
+                    to={categoryHref}
+                    className="group flex min-w-0 items-start gap-4 rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                  >
+                    <div className="flex h-14 w-14 flex-shrink-0 items-center justify-center rounded-xl bg-secondary text-accent transition-colors group-hover:bg-accent/10">
+                      <category.icon className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <h2 className="mb-2 text-2xl font-bold text-foreground transition-colors group-hover:text-accent">
+                        {category.title}
+                      </h2>
+                      <p className="max-w-3xl text-muted-foreground">{category.desc}</p>
+                    </div>
+                  </Link>
+
+                  <Button asChild variant="outline" className="w-full flex-shrink-0 sm:w-auto">
+                    <Link to={categoryHref}>
+                      Browse all
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </Button>
                 </div>
 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -502,7 +532,8 @@ const ProductsIndex = () => {
                   ))}
                 </div>
               </div>
-            ))}
+              );
+            })}
 
             {!catalogLoading && catalogError ? (
               <div className="rounded-2xl border border-border/50 bg-card p-8 text-destructive shadow-card">
