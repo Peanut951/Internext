@@ -75,11 +75,15 @@ export const trackPageView = (path: string) => {
     return;
   }
 
-  window.gtag("event", "page_view", {
-    page_path: path,
-    page_location: window.location.href,
-    page_title: document.title,
-  });
+  try {
+    window.gtag("event", "page_view", {
+      page_path: path,
+      page_location: window.location.href,
+      page_title: document.title,
+    });
+  } catch {
+    // Analytics should never interrupt browsing.
+  }
 };
 
 const trackEvent = (eventName: string, params: Record<string, unknown> = {}) => {
@@ -87,10 +91,14 @@ const trackEvent = (eventName: string, params: Record<string, unknown> = {}) => 
     return;
   }
 
-  window.gtag("event", eventName, {
-    currency: "AUD",
-    ...params,
-  });
+  try {
+    window.gtag("event", eventName, {
+      currency: "AUD",
+      ...params,
+    });
+  } catch {
+    // Analytics should never interrupt shopping actions.
+  }
 };
 
 type AnalyticsItem = {

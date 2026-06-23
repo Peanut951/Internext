@@ -81,11 +81,13 @@ const Header = () => {
     syncCart();
     window.addEventListener("storage", syncCart);
     window.addEventListener("focus", syncCart);
+    window.addEventListener("internext-cart-updated", syncCart);
     const intervalId = window.setInterval(syncCart, 1200);
 
     return () => {
       window.removeEventListener("storage", syncCart);
       window.removeEventListener("focus", syncCart);
+      window.removeEventListener("internext-cart-updated", syncCart);
       window.clearInterval(intervalId);
     };
   }, []);

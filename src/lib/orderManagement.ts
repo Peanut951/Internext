@@ -152,9 +152,52 @@ const readJson = <T>(key: string, fallback: T): T => {
 
 const writeJson = (key: string, value: unknown) => {
   if (typeof window === "undefined") {
-    return;
+    return false;
   }
-  window.localStorage.setItem(key, JSON.stringify(value));
+
+  try {
+    window.localStorage.setItem(key, JSON.stringify(value));
+    if (key === CART_STORAGE_KEY) {
+      window.dispatchEvent(new Event("internext-cart-updated"));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
+export const toCartProduct = <T extends CatalogProductLite>(product: T): CatalogProductLite => {
+  const imageUrls = Array.isArray(product.imageUrls)
+    ? product.imageUrls.filter((url): url is string => Boolean(url)).slice(0, 1)
+    : undefined;
+
+  return {
+    code: product.code,
+    manufacturer: product.manufacturer,
+    description: product.description,
+    longDescription: product.longDescription,
+    price: product.price,
+    priceText: product.priceText,
+    resellerPrice: product.resellerPrice,
+    resellerPriceText: product.resellerPriceText,
+    rrp: product.rrp,
+    rrpText: product.rrpText,
+    imageUrl: product.imageUrl || imageUrls?.[0],
+    imageUrls,
+    supplierCode: product.supplierCode,
+    gtin: product.gtin,
+    ean: product.ean,
+    upc: product.upc,
+    barcode: product.barcode,
+    availabilityText: product.availabilityText,
+    etaDate: product.etaDate,
+    etaStatus: product.etaStatus,
+    stockQuantity: product.stockQuantity,
+    weightKg: product.weightKg,
+    heightCm: product.heightCm,
+    widthCm: product.widthCm,
+    depthCm: product.depthCm,
+  };
 };
 
 type OrderTotals = {
@@ -362,7 +405,12 @@ export const clearCartItems = () => {
   if (typeof window === "undefined") {
     return;
   }
-  window.localStorage.removeItem(CART_STORAGE_KEY);
+  try {
+    window.localStorage.removeItem(CART_STORAGE_KEY);
+    window.dispatchEvent(new Event("internext-cart-updated"));
+  } catch {
+    // Keep checkout cleanup non-fatal if storage is unavailable.
+  }
 };
 
 export const getOrders = () =>

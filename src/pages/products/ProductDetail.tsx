@@ -14,6 +14,7 @@ import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
 import { trackAddToCart } from "@/lib/analytics";
+import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 
@@ -54,32 +55,11 @@ type CatalogProduct = {
   liveUpdatedAt?: string;
 };
 
-type CartItem = CatalogProduct & { qty: number };
-
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_PUBLIC_SHIPPING_PRICE = 35;
 
-const getStoredCart = (): CartItem[] => {
-  if (typeof window === "undefined") {
-    return [];
-  }
-  try {
-    const raw = window.localStorage.getItem("internext-cart");
-    return raw ? (JSON.parse(raw) as CartItem[]) : [];
-  } catch {
-    return [];
-  }
-};
-
-const saveStoredCart = (items: CartItem[]) => {
-  if (typeof window === "undefined") {
-    return;
-  }
-  window.localStorage.setItem("internext-cart", JSON.stringify(items));
-};
-
 const isProductInStoredCart = (productCode: string) =>
-  getStoredCart().some((item) => item.code === productCode);
+  getCartItems().some((item) => item.code === productCode);
 
 const getPlainProductName = (product: CatalogProduct) => {
   const description = product.description.trim();
@@ -628,36 +608,53 @@ const ProductDetail = () => {
       return;
     }
 
-    const existing = getStoredCart();
-    const match = existing.find((item) => item.code === product.code);
-    const pricedProduct = getCartPricedProduct(product, session?.role);
-    const nextQuantity = (match?.qty || 0) + qty;
-    const toastProductName = truncateText(product.description, 90);
-    const updated = match
-      ? existing.map((item) =>
-          item.code === product.code ? { ...item, qty: item.qty + qty } : item,
-        )
-      : [...existing, { ...pricedProduct, qty }];
-    saveStoredCart(updated);
-    trackAddToCart({
-      item_id: product.code,
-      item_name: product.description,
-      item_brand: product.manufacturer,
-      price: pricedProduct.price || 0,
-      quantity: qty,
-    });
-    setIsInCart(true);
-    toast({
-      title: match ? "Cart updated" : "Added to cart",
-      description: match
-        ? `${toastProductName} is now ${nextQuantity} in your cart.`
-        : `${qty} x ${toastProductName} added to your cart.`,
-      action: (
-        <ToastAction altText="View cart" asChild>
-          <Link to="/cart">View cart</Link>
-        </ToastAction>
-      ),
-    });
+    try {
+      const existing = getCartItems().map((item) => ({ ...toCartProduct(item), qty: item.qty }));
+      const match = existing.find((item) => item.code === product.code);
+      const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
+      const nextQuantity = (match?.qty || 0) + qty;
+      const toastProductName = truncateText(product.description, 90);
+      const updated: CartItem[] = match
+        ? existing.map((item) =>
+            item.code === product.code ? { ...pricedProduct, qty: item.qty + qty } : item,
+          )
+        : [...existing, { ...pricedProduct, qty }];
+
+      if (!saveCartItems(updated)) {
+        toast({
+          title: "Cart could not be saved",
+          description: "Please refresh the page and try again.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      trackAddToCart({
+        item_id: product.code,
+        item_name: product.description,
+        item_brand: product.manufacturer,
+        price: pricedProduct.price || 0,
+        quantity: qty,
+      });
+      setIsInCart(true);
+      toast({
+        title: match ? "Cart updated" : "Added to cart",
+        description: match
+          ? `${toastProductName} is now ${nextQuantity} in your cart.`
+          : `${qty} x ${toastProductName} added to your cart.`,
+        action: (
+          <ToastAction altText="View cart" asChild>
+            <Link to="/cart">View cart</Link>
+          </ToastAction>
+        ),
+      });
+    } catch {
+      toast({
+        title: "Cart could not be updated",
+        description: "Please refresh the page and try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {

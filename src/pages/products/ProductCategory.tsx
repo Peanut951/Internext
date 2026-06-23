@@ -17,6 +17,7 @@ import {
   getPriceRole,
 } from "@/lib/pricing";
 import { trackAddToCart } from "@/lib/analytics";
+import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 
 const ITEMS_PER_PAGE = 24;
 
@@ -41,8 +42,6 @@ type CatalogProduct = {
   widthCm?: number | null;
   depthCm?: number | null;
 };
-
-type CartItem = CatalogProduct & { qty: number };
 
 type CategoryInfo = {
   title: string;
@@ -799,15 +798,7 @@ const ProductCategory = () => {
   const [sort, setSort] = useState("featured");
   const [page, setPage] = useState(1);
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
-    if (typeof window === "undefined") {
-      return [];
-    }
-    try {
-      const stored = window.localStorage.getItem("internext-cart");
-      return stored ? (JSON.parse(stored) as CartItem[]) : [];
-    } catch {
-      return [];
-    }
+    return getCartItems();
   });
 
   useEffect(() => {
@@ -848,10 +839,7 @@ const ProductCategory = () => {
   }, []);
 
   useEffect(() => {
-    if (typeof window === "undefined") {
-      return;
-    }
-    window.localStorage.setItem("internext-cart", JSON.stringify(cartItems));
+    saveCartItems(cartItems.map((item) => ({ ...toCartProduct(item), qty: item.qty })));
   }, [cartItems]);
 
   const categorizedProducts = useMemo(() => {
@@ -1179,15 +1167,16 @@ const ProductCategory = () => {
   };
 
   const addToCart = (product: CatalogProduct) => {
-    const pricedProduct = getCartPricedProduct(product, session?.role);
+    const pricedProduct = toCartProduct(getCartPricedProduct(product, session?.role));
     setCartItems((prev) => {
-      const existing = prev.find((item) => item.code === product.code);
+      const compactPrev = prev.map((item) => ({ ...toCartProduct(item), qty: item.qty }));
+      const existing = compactPrev.find((item) => item.code === product.code);
       if (existing) {
-        return prev.map((item) =>
-          item.code === product.code ? { ...item, qty: item.qty + 1 } : item,
+        return compactPrev.map((item) =>
+          item.code === product.code ? { ...pricedProduct, qty: item.qty + 1 } : item,
         );
       }
-      return [...prev, { ...pricedProduct, qty: 1 }];
+      return [...compactPrev, { ...pricedProduct, qty: 1 }];
     });
     trackAddToCart({
       item_id: product.code,
