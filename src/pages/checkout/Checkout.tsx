@@ -130,7 +130,7 @@ const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | unde
 
 const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
 const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
-const ORDER_NOTIFICATION_TIMEOUT_MS = 6000;
+const ORDER_NOTIFICATION_TIMEOUT_MS = 30000;
 
 type CheckoutDraft = {
   customer: CheckoutCustomer;
@@ -143,6 +143,9 @@ type CheckoutDraft = {
 };
 
 type OrderNotificationResult = {
+  adminEmailSent?: boolean;
+  adminEmailStatus?: number;
+  adminEmailMessage?: string;
   customerEmailSent?: boolean;
   customerEmailStatus?: number;
   customerEmailTo?: string;
@@ -391,14 +394,20 @@ const sendOrderNotification = async (order: OrderRecord) => {
       }),
     });
     window.clearTimeout(notificationTimeout);
-    const notificationPayload = (await notificationResponse.json()) as OrderNotificationResult & {
-      message?: string;
-    };
+    const notificationPayload = (await notificationResponse
+      .json()
+      .catch(() => ({}))) as OrderNotificationResult & { message?: string };
 
-    if (notificationPayload.customerEmailSent) {
+    if (notificationPayload.adminEmailSent && notificationPayload.customerEmailSent) {
       notificationMessage = `Payment received and order recorded. Confirmation email sent to ${notificationPayload.customerEmailTo || order.customer.email}.`;
-    } else if (notificationPayload.customerEmailMessage) {
-      notificationMessage = `Payment received and order recorded. Customer confirmation email was not sent: ${notificationPayload.customerEmailMessage}`;
+    } else if (notificationPayload.adminEmailMessage || notificationPayload.customerEmailMessage) {
+      notificationMessage = [
+        "Payment received and order recorded.",
+        notificationPayload.adminEmailSent ? "" : notificationPayload.adminEmailMessage,
+        notificationPayload.customerEmailSent ? "" : notificationPayload.customerEmailMessage,
+      ]
+        .filter(Boolean)
+        .join(" ");
     } else if (!notificationResponse.ok) {
       notificationMessage = `Payment received and order recorded. Order notification failed: ${notificationPayload.message || "Unable to contact email workflow."}`;
     }

@@ -5,7 +5,7 @@ type RequestBody = {
 };
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
-const WEBHOOK_TIMEOUT_MS = 8000;
+const WEBHOOK_TIMEOUT_MS = 20000;
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
