@@ -756,8 +756,6 @@ const Checkout = () => {
 
         markSessionHandled(checkoutSessionId);
         clearCheckoutDraft();
-        setPlacedOrder(order);
-        setCartItems([]);
         trackPurchase({
           transactionId: order.orderNumber,
           value: order.totalKnownValue,
@@ -772,10 +770,16 @@ const Checkout = () => {
           })),
         });
         setPaymentStateMessage("Payment received and order recorded. Sending confirmation emails...");
+        const notificationMessage = await sendOrderNotification(order);
+
+        if (!isActive) {
+          return;
+        }
+
+        setPlacedOrder(order);
+        setCartItems([]);
+        setPaymentStateMessage(notificationMessage);
         navigate("/checkout", { replace: true });
-        void sendOrderNotification(order).then((notificationMessage) => {
-          setPaymentStateMessage(notificationMessage);
-        });
       } catch (finalizeError) {
         if (finalizingPaymentSessionRef.current === checkoutSessionId) {
           finalizingPaymentSessionRef.current = null;
