@@ -15,6 +15,26 @@ const requiredFields = ["name", "email", "enquiryType", "message"] as const;
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 
+const getWebhookUrl = () => {
+  const candidates = [
+    readEnv("POWER_AUTOMATE_CONTACT_WEBHOOK_URL"),
+    readEnv("POWER_AUTOMATE_WEBHOOK_URL"),
+  ];
+
+  return candidates.find((candidate) => {
+    if (!candidate || /your[_-]?power[_-]?automate|your-contact-flow-url/i.test(candidate)) {
+      return false;
+    }
+
+    try {
+      const url = new URL(candidate);
+      return url.protocol === "https:" || url.protocol === "http:";
+    } catch {
+      return false;
+    }
+  }) || "";
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -46,9 +66,12 @@ export default async function handler(
     return sendJson(res, 400, { message: `Missing required field: ${missingField}.` });
   }
 
-  const webhookUrl = readEnv("POWER_AUTOMATE_CONTACT_WEBHOOK_URL") || readEnv("POWER_AUTOMATE_WEBHOOK_URL");
+  const webhookUrl = getWebhookUrl();
   if (!webhookUrl) {
-    return sendJson(res, 503, { message: "Contact form forwarding is not configured yet." });
+    return sendJson(res, 503, {
+      message:
+        "Contact form forwarding is not configured. Set POWER_AUTOMATE_CONTACT_WEBHOOK_URL to the full Power Automate HTTP trigger URL.",
+    });
   }
 
   try {
