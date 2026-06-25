@@ -16,7 +16,8 @@ const ReturnsRefunds = () => {
               Returns & Refunds
             </h1>
             <p className="mt-4 text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Clear return conditions for faulty, incorrect, damaged, and change-of-mind purchases.
+              Return conditions for IP technology products, security hardware, networking equipment,
+              print consumables, software, accessories, and special-order distribution stock.
             </p>
           </div>
         </div>
@@ -34,8 +35,9 @@ const ReturnsRefunds = () => {
                   <h2 className="text-xl font-semibold text-foreground">Return Window</h2>
                   <p className="mt-3 leading-7 text-muted-foreground">
                     Return requests for non-faulty items should be lodged within 30 days of purchase.
-                    Products must be unopened, unused, complete, and in original packaging unless the
-                    item is faulty or your rights under Australian Consumer Law apply.
+                    Products must be unopened, unused, uninstalled, complete, and in original packaging
+                    unless the item is faulty or your rights under Australian Consumer Law apply.
+                    Serial-numbered products must match the serial number supplied or recorded at sale.
                   </p>
                 </div>
               </div>
@@ -48,7 +50,7 @@ const ReturnsRefunds = () => {
                   points: [
                     "Report faults as soon as possible after discovery.",
                     "Dead-on-arrival claims should be raised within 14 days of delivery.",
-                    "We may request photos, serial numbers, or troubleshooting notes.",
+                    "We may request photos, serial numbers, diagnostic logs, configuration notes, or vendor troubleshooting results.",
                     "Approved claims may be repaired, replaced, credited, or refunded.",
                   ],
                 },
@@ -56,9 +58,9 @@ const ReturnsRefunds = () => {
                   title: "Change of Mind",
                   points: [
                     "Approval is required before sending goods back.",
-                    "Items must be unopened and resaleable.",
+                    "Items must be unopened, uninstalled, unregistered, complete, and resaleable.",
                     "Return freight is normally the customer's responsibility.",
-                    "A supplier restocking fee may apply.",
+                    "Approved change-of-mind returns are subject to a 15% restocking fee.",
                   ],
                 },
               ].map((section) => (
@@ -79,9 +81,10 @@ const ReturnsRefunds = () => {
             <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card sm:p-7">
               <h2 className="text-xl font-semibold text-foreground">Refund Timing</h2>
               <p className="mt-3 leading-7 text-muted-foreground">
-                Refunds are processed after returned goods are received and assessed. Approved refunds
-                are returned to the original payment method where possible. Bank and payment provider
-                processing times may vary.
+                Refunds are processed after returned goods are received, checked against the approved
+                return authorisation, and assessed for condition, serial number, accessories, and packaging.
+                Approved refunds are returned to the original payment method where possible. Bank and
+                payment provider processing times may vary.
               </p>
             </div>
 
@@ -91,8 +94,9 @@ const ReturnsRefunds = () => {
                 <div>
                   <h2 className="text-lg font-semibold text-foreground">Items That May Be Excluded</h2>
                   <p className="mt-2 leading-7 text-muted-foreground">
-                    Software licences, subscriptions, custom orders, opened consumables, hygiene-sensitive
-                    items, and special-order products may not be returnable unless faulty or required by law.
+                    Software licences, subscriptions, activated cloud services, opened print consumables,
+                    configured or installed hardware, hygiene-sensitive items, custom orders, project stock,
+                    and special-order products may not be returnable unless faulty or required by law.
                   </p>
                 </div>
               </div>

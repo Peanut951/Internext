@@ -12,7 +12,8 @@ const Shipping = () => {
               Shipping & Delivery
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Delivery across Australia with freight calculated from the items and destination at checkout.
+              Delivery across Australia for security, networking, AV, print, consumables, and technology
+              hardware, with freight calculated from the items and destination at checkout.
             </p>
           </div>
         </div>
@@ -78,7 +79,7 @@ const Shipping = () => {
                 { name: "Standard Delivery", desc: "The default freight option calculated from the delivery address and product dimensions.", time: "1-5 business days" },
                 { name: "Express Delivery", desc: "Priority handling where the selected carrier and destination support it.", time: "Varies by area" },
                 { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
-                { name: "Bulky Freight", desc: "Used for large, heavy, or multi-carton items that need special handling.", time: "Quoted at checkout" },
+                { name: "Bulky or Fragile Freight", desc: "Used for racks, displays, printers, servers, projectors, large security kits, or multi-carton items that need special handling.", time: "Quoted at checkout" },
               ].map((option) => (
                 <div key={option.name} className="bg-card rounded-xl p-6 shadow-card border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
@@ -107,7 +108,7 @@ const Shipping = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  Large, bulky, or multi-carton orders may need manual confirmation if the carrier cannot quote automatically.
+                  Large, fragile, high-value, or multi-carton orders may need manual confirmation if the carrier cannot quote automatically.
                 </li>
               </ul>
             </div>
@@ -156,6 +157,10 @@ const Shipping = () => {
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
                   Freight charges are calculated at checkout based on delivery location and order weight/dimensions.
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
+                  Some technology products may ship from different supplier warehouses and may arrive in separate consignments.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />

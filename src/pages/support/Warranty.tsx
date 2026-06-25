@@ -14,7 +14,8 @@ const Warranty = () => {
               Warranty & Returns
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Our warranty and returns policies to protect you and your customers.
+              Warranty and returns guidance for technology distribution products, including IP security,
+              networking, AV, print, software, accessories, and special-order hardware.
             </p>
           </div>
         </div>
@@ -39,7 +40,8 @@ const Warranty = () => {
                     the Australian Consumer Law. You are entitled to a replacement or refund for a major 
                     failure and compensation for any other reasonably foreseeable loss or damage. You are 
                     also entitled to have the goods repaired or replaced if the goods fail to be of 
-                    acceptable quality and the failure does not amount to a major failure.
+                    acceptable quality and the failure does not amount to a major failure. These rights
+                    apply in addition to any manufacturer or vendor warranty.
                   </p>
                 </div>
               </div>
@@ -83,8 +85,8 @@ const Warranty = () => {
               <div className="grid md:grid-cols-4 gap-4">
                 {[
                   { step: "1", title: "Gather Info", desc: "Product model, serial number, purchase date, and issue description" },
-                  { step: "2", title: "Submit Request", desc: "Contact us with the claim details or submit a service request" },
-                  { step: "3", title: "Review", desc: "We assess the claim and provide next steps or return instructions where needed" },
+                  { step: "2", title: "Submit Request", desc: "Contact us with photos, logs, configuration notes, or vendor case details if available" },
+                  { step: "3", title: "Review", desc: "We assess the claim with the supplier or manufacturer and provide return instructions where needed" },
                   { step: "4", title: "Resolution", desc: "Product repaired, replaced, or credited as applicable" },
                 ].map((item) => (
                   <div key={item.step} className="bg-card rounded-xl p-5 shadow-card border border-border/50 text-center">
@@ -104,8 +106,9 @@ const Warranty = () => {
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
                 <h3 className="font-semibold text-foreground mb-3">Non-Faulty Returns</h3>
                 <p className="text-muted-foreground mb-4">
-                  We understand that sometimes products may need to be returned for reasons other than faults. 
-                  Our policy for non-faulty returns is as follows:
+                  Non-faulty returns are subject to approval because many IP technology products are
+                  serial-numbered, vendor-controlled, special-order, licensed, or no longer resaleable once
+                  opened, installed, activated, or configured. Our policy for non-faulty returns is as follows:
                 </p>
                 <ul className="space-y-2 text-muted-foreground mb-4">
                   <li className="flex items-start gap-2">
@@ -114,11 +117,11 @@ const Warranty = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Products must be unopened and in original packaging
+                    Products must be unopened, uninstalled, unregistered, and in original packaging
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    A restocking fee of 15-20% may apply
+                    Approved change-of-mind returns are subject to a 15% restocking fee
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
@@ -126,15 +129,16 @@ const Warranty = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Some products may be excluded from returns (custom orders, special orders)
+                    Custom orders, project stock, special orders, software, licences, subscriptions, opened consumables, and configured hardware may be excluded
                   </li>
                 </ul>
 
                 <div className="bg-secondary rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-muted-foreground">
-                    Software, consumables, and opened hygiene products (headsets, earphones) 
-                    cannot be returned unless faulty.
+                    Software, activated services, licences, opened consumables, configured hardware, and
+                    opened hygiene products such as headsets or earphones cannot be returned unless faulty
+                    or required by law.
                   </p>
                 </div>
               </div>
@@ -151,10 +155,11 @@ const Warranty = () => {
                   {[
                     "Physical damage or breakage",
                     "Damage from incorrect installation",
+                    "Damage from incorrect configuration or unsupported firmware changes",
                     "Damage from power surges",
                     "Normal wear and tear",
-                    "Consumable items (bulbs, batteries)",
-                    "Software issues",
+                    "Consumable items such as toner, ink, batteries, bulbs, labels, and media",
+                    "Software, licensing, compatibility, or integration issues outside the product warranty",
                     "Products with removed serial numbers",
                     "Damage from misuse or neglect",
                   ].map((item) => (

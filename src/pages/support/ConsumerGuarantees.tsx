@@ -14,7 +14,7 @@ const ConsumerGuarantees = () => {
               Consumer Guarantees
             </h1>
             <p className="mt-4 text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Products sold by Internext come with protections that cannot be excluded under Australian law.
+              Technology products sold by Internext come with protections that cannot be excluded under Australian law.
             </p>
           </div>
         </div>
@@ -51,12 +51,12 @@ const ConsumerGuarantees = () => {
                 {
                   icon: FileCheck2,
                   title: "Match Description",
-                  body: "Products should match the product information displayed at the time of purchase.",
+                  body: "Products should match the product information displayed at the time of purchase, subject to manufacturer specifications and approved substitutions.",
                 },
                 {
                   icon: Handshake,
                   title: "Remedies",
-                  body: "Depending on the issue, remedies may include repair, replacement, refund, or credit.",
+                  body: "Depending on the issue, remedies may include repair, replacement, refund, credit, vendor assessment, or manufacturer warranty handling.",
                 },
               ].map((item) => (
                 <div key={item.title} className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
@@ -72,7 +72,10 @@ const ConsumerGuarantees = () => {
               <p className="mt-3 leading-7 text-muted-foreground">
                 Manufacturer warranties operate in addition to your consumer guarantees. Warranty periods,
                 service methods, and claim requirements can vary by brand and product. Internext will help
-                direct eligible claims through the correct supplier or manufacturer process.
+                direct eligible claims through the correct supplier or manufacturer process. For IP security,
+                networking, AV, print, and other technology products, vendors may require model details, serial
+                numbers, firmware versions, photos, logs, proof of purchase, or troubleshooting steps before
+                approving a remedy.
               </p>
             </div>
           </div>

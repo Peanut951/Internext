@@ -11,7 +11,7 @@ const Terms = () => {
               Terms & Conditions
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Terms governing your use of Internext services.
+              Terms governing purchases, accounts, delivery, warranty, and technology distribution services.
             </p>
           </div>
         </div>
@@ -28,7 +28,9 @@ const Terms = () => {
                 </p>
                 <p className="text-muted-foreground">
                   These terms and conditions ("Terms") govern your use of Internext Pty Ltd's 
-                  ("Internext", "we", "us") services, including our website, checkout, and account portals. 
+                  ("Internext", "we", "us") services, including our website, checkout, account portals,
+                  and supply of IP technology, security, AV, networking, print, software, consumables,
+                  accessories, and related distribution products.
                   By accessing our services, you agree to be bound by these Terms.
                 </p>
               </div>
@@ -49,7 +51,8 @@ const Terms = () => {
                   <li>All prices are in Australian dollars. Customer prices are shown including GST, while approved reseller prices may be shown excluding GST.</li>
                   <li>Prices are subject to change without notice until an order is confirmed.</li>
                   <li>We reserve the right to correct pricing errors and cancel affected orders.</li>
-                  <li>Stock availability is subject to change and confirmation at time of order.</li>
+                  <li>Stock availability is subject to live supplier data, warehouse confirmation, allocation, and change at time of order.</li>
+                  <li>Product images, specifications, dimensions, and compatibility notes are supplied from vendors and distributors and should be checked against the manufacturer's current documentation for critical deployments.</li>
                   <li>Orders are subject to credit approval for account customers.</li>
                 </ul>
               </div>
@@ -68,8 +71,9 @@ const Terms = () => {
                 <h2 className="text-xl font-bold text-foreground mb-4">4. Delivery</h2>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
                   <li>Delivery times are estimates only and not guaranteed.</li>
-                  <li>Risk of loss passes to you upon delivery to the carrier.</li>
-                  <li>You must inspect goods upon receipt and report damage within 48 hours.</li>
+                  <li>Large, fragile, high-value, or multi-carton technology orders may require special freight handling.</li>
+                  <li>Risk of loss passes in accordance with applicable law and the selected freight arrangement.</li>
+                  <li>You must inspect goods upon receipt and report visible freight damage, shortages, or incorrect items within 48 hours.</li>
                   <li>Delivery addresses must be accessible during business hours.</li>
                 </ul>
               </div>
@@ -77,8 +81,12 @@ const Terms = () => {
               <div>
                 <h2 className="text-xl font-bold text-foreground mb-4">5. Returns and Warranty</h2>
                 <p className="text-muted-foreground">
-                  Returns and warranty claims are subject to our Returns Policy. Manufacturer 
-                  warranties apply to all products. See our Warranty & Returns page for full details.
+                  Returns and warranty claims are subject to our Returns Policy and Australian Consumer Law.
+                  Manufacturer and vendor warranties apply to many products and may require serial numbers,
+                  proof of purchase, diagnostic steps, photos, logs, or direct vendor assessment. Approved
+                  change-of-mind returns are subject to a 15% restocking fee and may be refused for software,
+                  licences, subscriptions, opened consumables, custom orders, special orders, activated services,
+                  or configured/installed hardware unless faulty or required by law.
                 </p>
               </div>
 
@@ -88,7 +96,9 @@ const Terms = () => {
                   To the maximum extent permitted by law, Internext's liability for any claim 
                   related to products or services is limited to the purchase price of the 
                   relevant products. We are not liable for indirect, consequential, or 
-                  special damages.
+                  special damages, including loss of data, downtime, lost profits, failed installation,
+                  system incompatibility, or third-party service interruption, except where liability
+                  cannot be excluded under law.
                 </p>
               </div>
 
@@ -112,6 +122,7 @@ const Terms = () => {
                   <li>Interfere with the operation of our website</li>
                   <li>Resell products outside of Australia without permission</li>
                   <li>Share account credentials or pricing information</li>
+                  <li>Use products in a way that breaches vendor licence terms, export controls, cyber security laws, surveillance laws, or applicable installation requirements</li>
                 </ul>
               </div>
 

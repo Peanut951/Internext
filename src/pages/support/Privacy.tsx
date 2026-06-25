@@ -11,7 +11,7 @@ const Privacy = () => {
               Privacy Policy
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              How we collect, use, and protect your information.
+              How we collect, use, and protect information when supplying technology products and services.
             </p>
           </div>
         </div>
@@ -43,6 +43,8 @@ const Privacy = () => {
                   <li>Business information where supplied (company name, ABN, industry)</li>
                   <li>Account credentials and preferences</li>
                   <li>Order history and transaction details</li>
+                  <li>Product, serial number, warranty, support, and return claim information</li>
+                  <li>Delivery instructions, site contacts, and project logistics details where supplied</li>
                   <li>Payment information (processed securely by third-party providers)</li>
                   <li>Communications with us (emails, support requests)</li>
                   <li>Website usage data (cookies, analytics, and session diagnostics)</li>
@@ -58,7 +60,8 @@ const Privacy = () => {
                   <li>Process orders and provide our products and services</li>
                   <li>Manage customer, reseller, and administrator accounts</li>
                   <li>Communicate with you about orders, products, and services</li>
-                  <li>Provide customer support and technical assistance</li>
+                  <li>Provide customer support, warranty support, return handling, and technical assistance</li>
+                  <li>Confirm stock, delivery, product compatibility, serial numbers, and supplier or vendor claim requirements</li>
                   <li>Send marketing communications (with your consent)</li>
                   <li>Improve our website and services</li>
                   <li>Comply with legal obligations</li>
@@ -71,9 +74,9 @@ const Privacy = () => {
                   We may share your information with:
                 </p>
                 <ul className="list-disc pl-6 space-y-2 text-muted-foreground">
-                  <li>Courier and logistics partners (for delivery purposes)</li>
+                  <li>Courier and logistics partners (for delivery, tracking, and proof of delivery)</li>
                   <li>Payment processors (for transaction processing)</li>
-                  <li>Vendor partners (for warranty and support services)</li>
+                  <li>Suppliers, distributors, vendors, and manufacturers (for stock fulfilment, warranty, return, licence, and support services)</li>
                   <li>Professional advisors (legal, accounting)</li>
                   <li>Government authorities (when required by law)</li>
                 </ul>

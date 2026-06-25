@@ -14,7 +14,8 @@ const PaymentSecurity = () => {
               Payment Security
             </h1>
             <p className="mt-4 text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              How payments, invoices, GST, and order confirmation are handled through Internext.
+              How payments, invoices, GST, order confirmation, and payment checks are handled for
+              technology distribution orders through Internext.
             </p>
           </div>
         </div>
@@ -40,13 +41,13 @@ const PaymentSecurity = () => {
                 icon: ReceiptText,
                 title: "GST and Order Records",
                 body:
-                  "Order records show item pricing, GST where applicable, freight, and the total charged. Confirmation emails are sent after payment is completed.",
+                  "Order records show item pricing, GST where applicable, freight, and the total charged. Confirmation emails are sent after payment is completed and may include product, freight, and order reference details.",
               },
               {
                 icon: CreditCard,
                 title: "Payment Review",
                 body:
-                  "Orders may be reviewed before dispatch for stock confirmation, address accuracy, payment verification, or fraud-prevention checks.",
+                  "Orders may be reviewed before dispatch for stock confirmation, address accuracy, payment verification, fraud-prevention checks, high-value technology goods, licence eligibility, or unusual delivery instructions.",
               },
             ].map((item) => (
               <div key={item.title} className="rounded-2xl border border-border/50 bg-card p-5 shadow-card sm:p-7">
@@ -64,7 +65,9 @@ const PaymentSecurity = () => {
             <p className="mt-3 leading-7 text-muted-foreground">
               Customers can add products to cart and continue to checkout as a guest or signed-in user.
               When payment is completed, Internext records the order, sends internal order notification,
-              and sends the customer a confirmation email using the email entered at checkout.
+              and sends the customer a confirmation email using the email entered at checkout. Dispatch may
+              still be subject to stock allocation, supplier confirmation, fraud checks, licence requirements,
+              and delivery validation.
             </p>
           </div>
         </div>
