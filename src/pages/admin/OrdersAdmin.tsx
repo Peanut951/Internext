@@ -22,8 +22,6 @@ import {
   formatAud,
   getOrders,
   getSupplierIntegrationSettings,
-  persistSharedOrder,
-  retrySupplierSubmission,
   saveSupplierIntegrationSettings,
   updateSharedOrderFulfillment,
 } from "@/lib/orderManagement";
@@ -1119,7 +1117,7 @@ const OrdersAdmin = () => {
                       <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                         <p className="text-sm font-semibold text-foreground">Workflow actions</p>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Move this order through supplier and delivery states.
+                          Enter shipment details before emailing the customer.
                         </p>
 
                         <div className="mt-4 space-y-3 rounded-xl border border-border/60 bg-background p-3">
@@ -1189,36 +1187,8 @@ const OrdersAdmin = () => {
                         </div>
 
                         <div className="mt-4 flex flex-wrap gap-2 xl:flex-col">
-                          {order.supplierStatus !== "submitted" ? (
-                            <Button
-                              size="sm"
-                              onClick={() =>
-                                withOrderAction(order.id, async () => {
-                                  const updatedOrder = await retrySupplierSubmission(order.id);
-                                  if (updatedOrder) {
-                                    await persistSharedOrder(updatedOrder);
-                                  }
-                                })
-                              }
-                              disabled={actioningOrderId === order.id}
-                              className="w-full justify-center"
-                            >
-                              {actioningOrderId === order.id ? "Sending..." : "Send to Supplier"}
-                            </Button>
-                          ) : null}
-
                           <Button
                             size="sm"
-                            variant="outline"
-                            onClick={() => markFulfillment(order.id, "processing")}
-                            disabled={actioningOrderId === order.id}
-                            className="w-full justify-center"
-                          >
-                            Mark Processing
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
                             onClick={() => markShipped(order)}
                             disabled={actioningOrderId === order.id}
                             className="w-full justify-center"
