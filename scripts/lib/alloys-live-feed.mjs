@@ -4,6 +4,7 @@ import path from "node:path";
 const CUSTOMER_MARGIN_RATE = 0.1;
 const CUSTOMER_GST_RATE = 0.1;
 const RESELLER_MARGIN_RATE = 0.1;
+const MIN_RRP_PRICE_MULTIPLIER = 1.1;
 
 const loadEnvFile = (filePath) => {
   if (!fs.existsSync(filePath)) {
@@ -132,6 +133,9 @@ const formatResellerAud = (value) => (value === null ? "P.O.A." : `${formatAud(v
 const applyTax = (value, taxRate) =>
   value === null ? null : Math.round(value * (1 + taxRate / 100) * 100) / 100;
 
+const removeTax = (value, taxRate) =>
+  value === null ? null : Math.round((value / (1 + taxRate / 100)) * 100) / 100;
+
 const applyCustomerPrice = (value) =>
   value === null
     ? null
@@ -139,6 +143,19 @@ const applyCustomerPrice = (value) =>
 
 const applyResellerPrice = (value) =>
   value === null ? null : Math.round(value * (1 + RESELLER_MARGIN_RATE) * 100) / 100;
+
+const ensureMinimumRrp = (rrp, price) => {
+  if (price === null || price <= 0 || !Number.isFinite(price)) {
+    return rrp;
+  }
+
+  const minimumRrp = Math.round(price * MIN_RRP_PRICE_MULTIPLIER * 100) / 100;
+  if (rrp === null || rrp < minimumRrp || !Number.isFinite(rrp)) {
+    return minimumRrp;
+  }
+
+  return rrp;
+};
 
 const metresToCentimetres = (value) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
@@ -202,7 +219,7 @@ const createLiveItem = ({
 }) => {
   const price = applyCustomerPrice(costExGst);
   const resellerPrice = applyResellerPrice(costExGst);
-  const rrp = applyTax(rrpExGst, taxRate);
+  const rrp = ensureMinimumRrp(applyTax(rrpExGst, taxRate), price);
 
   return {
     code,
@@ -215,7 +232,7 @@ const createLiveItem = ({
     resellerPriceText: formatResellerAud(resellerPrice),
     rrp,
     rrpText: formatAud(rrp),
-    rrpExGst,
+    rrpExGst: removeTax(rrp, taxRate),
     taxRate,
     availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
     etaDate: formatDateDmy(etaDate),

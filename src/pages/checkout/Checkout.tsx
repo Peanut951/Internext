@@ -170,6 +170,80 @@ const isStreetAddressResult = (result: AddressLookupResult) => {
 
 const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | undefined)?.trim() || "";
 
+const getAddressLookupQueries = (query: string) => {
+  const cleanQuery = query.replace(/\s+/g, " ").trim();
+  const parts = cleanQuery
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const queries = [
+    cleanQuery,
+    `${cleanQuery}, Australia`,
+  ];
+
+  if (parts.length >= 2) {
+    const [streetPart, ...areaParts] = parts;
+    const area = areaParts.join(", ");
+    queries.unshift(`${streetPart}, ${area}, NSW, Australia`);
+    queries.unshift(`${streetPart}, ${area}, Australia`);
+  }
+
+  return Array.from(new Set(queries.filter((value) => value.length >= 5)));
+};
+
+const dedupeAddressResults = (results: AddressLookupResult[]) => {
+  const seen = new Set<string>();
+  return results.filter((result) => {
+    const key = [
+      getLineOneFromLookup(result),
+      getSuburbFromLookup(result),
+      getStateFromLookup(result),
+      getPostcodeFromLookup(result),
+    ]
+      .join("|")
+      .toLowerCase();
+
+    if (seen.has(key)) {
+      return false;
+    }
+
+    seen.add(key);
+    return true;
+  });
+};
+
+const fetchGeoapifyResults = async (
+  endpoint: "autocomplete" | "search",
+  text: string,
+  signal: AbortSignal,
+) => {
+  const params = new URLSearchParams({
+    format: "json",
+    limit: "7",
+    filter: "countrycode:au",
+    text,
+    lang: "en",
+    apiKey: GEOAPIFY_API_KEY,
+  });
+
+  const response = await fetch(
+    `https://api.geoapify.com/v1/geocode/${endpoint}?${params.toString()}`,
+    {
+      signal,
+      headers: {
+        Accept: "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Address lookup is currently unavailable.");
+  }
+
+  const payload = (await response.json()) as { results?: AddressLookupResult[] };
+  return payload.results ?? [];
+};
+
 const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
 const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
 const ORDER_NOTIFICATION_TIMEOUT_MS = 30000;
@@ -604,34 +678,32 @@ const Checkout = () => {
       setAddressLookupMessage(null);
 
       try {
-        const params = new URLSearchParams({
-          format: "json",
-          limit: "7",
-          filter: "countrycode:au",
-          text: query,
-          lang: "en",
-          apiKey: GEOAPIFY_API_KEY,
-        });
-
-        const response = await fetch(
-          `https://api.geoapify.com/v1/geocode/autocomplete?${params.toString()}`,
-          {
-            signal: controller.signal,
-            headers: {
-              Accept: "application/json",
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error("Address lookup is currently unavailable.");
-        }
-
-        const payload = (await response.json()) as { results?: AddressLookupResult[] };
-        const rawResults = payload.results ?? [];
-        const results = hasStreetAddressIntent(query)
+        const lookupQueries = getAddressLookupQueries(query);
+        const autocompleteResults = (
+          await Promise.all(
+            lookupQueries.map((lookupQuery) =>
+              fetchGeoapifyResults("autocomplete", lookupQuery, controller.signal),
+            ),
+          )
+        ).flat();
+        const rawAutocompleteResults = dedupeAddressResults(autocompleteResults);
+        let rawResults = rawAutocompleteResults;
+        let results = hasStreetAddressIntent(query)
           ? rawResults.filter(isStreetAddressResult)
           : rawResults;
+
+        if (hasStreetAddressIntent(query) && results.length === 0) {
+          const searchResults = (
+            await Promise.all(
+              lookupQueries.map((lookupQuery) =>
+                fetchGeoapifyResults("search", lookupQuery, controller.signal),
+              ),
+            )
+          ).flat();
+          rawResults = dedupeAddressResults([...rawAutocompleteResults, ...searchResults]);
+          results = rawResults.filter(isStreetAddressResult);
+        }
+
         setAddressSuggestions(results);
         setShowAddressSuggestions(true);
         setAddressLookupMessage(

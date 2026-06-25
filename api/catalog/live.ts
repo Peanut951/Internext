@@ -338,6 +338,7 @@ const removeTax = (value: number | null, taxRate: number) =>
 const CUSTOMER_MARGIN_RATE = 0.1;
 const CUSTOMER_GST_RATE = 0.1;
 const RESELLER_MARGIN_RATE = 0.1;
+const MIN_RRP_PRICE_MULTIPLIER = 1.1;
 const DEFAULT_SERVER_CATALOG_CACHE_MS = 30 * 60 * 1000;
 const DEFAULT_SERVER_CATALOG_STALE_MS = 6 * 60 * 60 * 1000;
 
@@ -360,6 +361,19 @@ const applyCustomerPrice = (value: number | null) =>
 
 const applyResellerPrice = (value: number | null) =>
   value === null ? null : Math.round(value * (1 + RESELLER_MARGIN_RATE) * 100) / 100;
+
+const ensureMinimumRrp = (rrp: number | null, price: number | null) => {
+  if (price === null || price <= 0 || !Number.isFinite(price)) {
+    return rrp;
+  }
+
+  const minimumRrp = Math.round(price * MIN_RRP_PRICE_MULTIPLIER * 100) / 100;
+  if (rrp === null || rrp < minimumRrp || !Number.isFinite(rrp)) {
+    return minimumRrp;
+  }
+
+  return rrp;
+};
 
 const metresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round(value * 100 * 10) / 10;
@@ -428,7 +442,7 @@ const parseLiveCatalog = (csv: string) => {
       const resellerPrice = applyResellerPrice(costExGst);
       const rrpExGst = parseNumber(parts[9]);
       const taxRate = parseNumber(parts[11]) ?? 0;
-      const rrp = applyTax(rrpExGst, taxRate);
+      const rrp = ensureMinimumRrp(applyTax(rrpExGst, taxRate), price);
       const stockQuantity = parseNumber(parts[12]) ?? 0;
       const tail = parts.slice(-7);
       const [stockRecordUpdated, etaDate, etaStatus, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
@@ -444,7 +458,7 @@ const parseLiveCatalog = (csv: string) => {
         resellerPriceText: formatResellerAud(resellerPrice),
         rrp,
         rrpText: formatAud(rrp),
-        rrpExGst,
+        rrpExGst: removeTax(rrp, taxRate),
         taxRate,
         availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
         etaDate: formatDateDmy(etaDate),
@@ -507,7 +521,7 @@ const parseLiveCatalogXml = (xml: string) => {
       const resellerPrice = applyResellerPrice(costExGst);
       const rrpExGst = parseNumber(getXmlTag(row, "PriceRetailEx"));
       const taxRate = parseNumber(getXmlTag(row, "TaxRate")) ?? 0;
-      const rrp = applyTax(rrpExGst, taxRate);
+      const rrp = ensureMinimumRrp(applyTax(rrpExGst, taxRate), price);
       const stockQuantity = parseNumber(getXmlTag(row, "Quantity")) ?? 0;
 
       return {
@@ -521,7 +535,7 @@ const parseLiveCatalogXml = (xml: string) => {
         resellerPriceText: formatResellerAud(resellerPrice),
         rrp,
         rrpText: formatAud(rrp),
-        rrpExGst,
+        rrpExGst: removeTax(rrp, taxRate),
         taxRate,
         availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
         etaDate: formatDateDmy(getXmlTag(row, "ETADate")),
@@ -671,7 +685,8 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
   const costExGst = typeof product.leaderDealerBuyEx === "number" ? product.leaderDealerBuyEx : null;
   const price = applyCustomerPrice(costExGst);
   const resellerPrice = applyResellerPrice(costExGst);
-  const rrp = typeof product.leaderRrpInc === "number" ? product.leaderRrpInc : null;
+  const rawRrp = typeof product.leaderRrpInc === "number" ? product.leaderRrpInc : null;
+  const rrp = ensureMinimumRrp(rawRrp, price);
   const taxRate = 10;
 
   return {
