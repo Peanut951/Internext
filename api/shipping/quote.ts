@@ -28,6 +28,10 @@ type ParcelEstimate = {
 };
 
 const ORIGIN_POSTCODE = "2158";
+const MAX_PARCEL_WEIGHT_KG = 22;
+const MAX_PARCEL_LENGTH_CM = 105;
+const MAX_PARCEL_SIDE_CM = 70;
+const PACKING_ALLOWANCE = 1.15;
 const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | undefined): T | null => {
   if (!body) {
     return null;
@@ -70,6 +74,48 @@ const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
   });
 };
 
+const createConsolidatedParcel = (
+  parcels: ParcelEstimate[],
+  weightScale = 1,
+): ParcelEstimate => {
+  const totals = parcels.reduce(
+    (acc, parcel) => {
+      const qty = Math.max(1, Math.floor(toPositiveNumber(parcel.qty) ?? 1));
+      return {
+        weightKg: acc.weightKg + parcel.weightKg * qty * weightScale,
+        volumeCm3: acc.volumeCm3 + parcel.lengthCm * parcel.widthCm * parcel.heightCm * qty * weightScale,
+        lengthCm: Math.max(acc.lengthCm, parcel.lengthCm),
+        widthCm: Math.max(acc.widthCm, parcel.widthCm),
+        heightCm: Math.max(acc.heightCm, parcel.heightCm),
+      };
+    },
+    { weightKg: 0, volumeCm3: 0, lengthCm: 0, widthCm: 0, heightCm: 0 },
+  );
+
+  const packedVolume = Math.max(totals.volumeCm3 * PACKING_ALLOWANCE, 1000);
+  const cube = Math.cbrt(packedVolume);
+  const lengthCm = Math.min(
+    MAX_PARCEL_LENGTH_CM,
+    Math.max(totals.lengthCm, cube * 1.4),
+  );
+  const widthCm = Math.min(
+    MAX_PARCEL_SIDE_CM,
+    Math.max(totals.widthCm, Math.sqrt(packedVolume / lengthCm) * 0.95),
+  );
+  const heightCm = Math.min(
+    MAX_PARCEL_SIDE_CM,
+    Math.max(totals.heightCm, packedVolume / (lengthCm * widthCm)),
+  );
+
+  return roundParcel({
+    qty: 1,
+    weightKg: totals.weightKg,
+    lengthCm,
+    widthCm,
+    heightCm,
+  });
+};
+
 const calculateParcels = (items: ShippingQuoteItem[] = []) => {
   if (items.length === 0) {
     return [{
@@ -81,10 +127,20 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
     }];
   }
 
-  return items.map((item) => ({
+  const itemParcels = items.map((item) => ({
     ...buildParcelForItem(item),
     qty: Math.max(1, Math.floor(toPositiveNumber(item.qty) ?? 1)),
   }));
+
+  const totalWeight = itemParcels.reduce((sum, parcel) => sum + parcel.weightKg * parcel.qty, 0);
+  const parcelCount = Math.max(1, Math.ceil(totalWeight / MAX_PARCEL_WEIGHT_KG));
+
+  if (parcelCount === 1) {
+    return [createConsolidatedParcel(itemParcels)];
+  }
+
+  const weightScale = 1 / parcelCount;
+  return Array.from({ length: parcelCount }, () => createConsolidatedParcel(itemParcels, weightScale));
 };
 
 const summarizeParcels = (parcels: ParcelEstimate[]) => {
@@ -208,10 +264,7 @@ export default async function handler(
     const parcelQuotes = await Promise.all(
       parcels.map((currentParcel) => quoteParcel(apiBaseUrl, authKey, destinationPostcode, currentParcel)),
     );
-    const totalPrice = parcelQuotes.reduce(
-      (sum, quote) => sum + quote.service.price * quote.parcel.qty,
-      0,
-    );
+    const totalPrice = parcelQuotes.reduce((sum, quote) => sum + quote.service.price, 0);
     const primaryService = parcelQuotes[0].service;
     const serviceName =
       parcelQuotes.length === 1 && parcels[0].qty === 1
