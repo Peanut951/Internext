@@ -18,6 +18,18 @@ const emptyForm = {
   additionalInfo: "",
 };
 
+const formatAbnInput = (value: string) => {
+  const digits = value.replace(/\D/g, "").slice(0, 11);
+  const parts = [
+    digits.slice(0, 2),
+    digits.slice(2, 5),
+    digits.slice(5, 8),
+    digits.slice(8, 11),
+  ].filter(Boolean);
+
+  return parts.join(" ");
+};
+
 const Register = () => {
   const { toast } = useToast();
   const [submitting, setSubmitting] = useState(false);
@@ -27,6 +39,12 @@ const Register = () => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setSubmitError(null);
+
+    if (formData.abn.replace(/\D/g, "").length !== 11) {
+      setSubmitError("Enter a valid 11-digit ABN.");
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -38,9 +56,13 @@ const Register = () => {
         body: JSON.stringify(formData),
       });
 
-      const payload = (await response.json()) as { message?: string };
+      const payload = (await response.json()) as { details?: string; message?: string };
       if (!response.ok) {
-        setSubmitError(payload.message || "Unable to submit the application.");
+        setSubmitError(
+          [payload.message || "Unable to submit the application.", payload.details]
+            .filter(Boolean)
+            .join(" "),
+        );
         setSubmitting(false);
         return;
       }
@@ -114,8 +136,14 @@ const Register = () => {
                   <Input
                     required
                     value={formData.abn}
-                    onChange={(event) => setFormData({ ...formData, abn: event.target.value })}
+                    onChange={(event) =>
+                      setFormData({ ...formData, abn: formatAbnInput(event.target.value) })
+                    }
                     placeholder="XX XXX XXX XXX"
+                    inputMode="numeric"
+                    maxLength={14}
+                    pattern="\d{2}\s\d{3}\s\d{3}\s\d{3}"
+                    title="Enter an 11-digit ABN"
                     className="h-12 border-border/70 bg-secondary/45"
                   />
                 </div>

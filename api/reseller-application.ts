@@ -25,6 +25,69 @@ const sendJson = (
 };
 
 const normalizeField = (value: unknown) => String(value || "").trim();
+const normalizeAbn = (value: unknown) => normalizeField(value).replace(/\D/g, "");
+
+const readEnv = (key: string) => process.env[key]?.trim() || "";
+
+const getWebhookUrl = () => {
+  const candidates = [
+    readEnv("POWER_AUTOMATE_RESELLER_WEBHOOK_URL"),
+    readEnv("POWER_AUTOMATE_CONTACT_WEBHOOK_URL"),
+    readEnv("POWER_AUTOMATE_WEBHOOK_URL"),
+  ];
+
+  return candidates.find((candidate) => {
+    if (
+      !candidate ||
+      /your[_-]?power[_-]?automate|your-flow-url|your-contact-flow-url/i.test(candidate)
+    ) {
+      return false;
+    }
+
+    try {
+      const url = new URL(candidate);
+      return url.protocol === "https:" || url.protocol === "http:";
+    } catch {
+      return false;
+    }
+  }) || "";
+};
+
+const industryLabels: Record<string, string> = {
+  "it-reseller": "IT Reseller",
+  "av-integrator": "AV Integrator",
+  "security-installer": "Security Installer",
+  msp: "Managed Service Provider",
+  "office-dealer": "Office Equipment Dealer",
+  other: "Other",
+};
+
+const monthlyVolumeLabels: Record<string, string> = {
+  "0-5k": "Under $5,000",
+  "5k-20k": "$5,000 - $20,000",
+  "20k-50k": "$20,000 - $50,000",
+  "50k-100k": "$50,000 - $100,000",
+  "100k+": "Over $100,000",
+};
+
+const formatApplicationMessage = (payload: Required<ResellerApplicationPayload>) =>
+  [
+    `Reseller application submitted from internext.com.au`,
+    ``,
+    `Business Name: ${payload.businessName}`,
+    `ABN: ${payload.abn}`,
+    `Website: ${payload.website || "Not supplied"}`,
+    ``,
+    `Contact Name: ${payload.contactName}`,
+    `Email: ${payload.email}`,
+    `Phone: ${payload.phone}`,
+    ``,
+    `Industry: ${industryLabels[payload.industry] || payload.industry}`,
+    `Estimated Monthly Volume: ${monthlyVolumeLabels[payload.monthlyVolume] || payload.monthlyVolume}`,
+    ``,
+    `Additional Information:`,
+    payload.additionalInfo || "Not supplied",
+  ].join("\n");
 
 const requiredFields = [
   "businessName",
@@ -65,7 +128,7 @@ export default async function handler(
 
   const payload = {
     businessName: normalizeField(body?.businessName),
-    abn: normalizeField(body?.abn),
+    abn: normalizeAbn(body?.abn),
     contactName: normalizeField(body?.contactName),
     email: normalizeField(body?.email).toLowerCase(),
     phone: normalizeField(body?.phone),
@@ -80,17 +143,19 @@ export default async function handler(
     return sendJson(res, 400, { message: `Missing required field: ${missingField}.` });
   }
 
-  const webhookUrl =
-    process.env.POWER_AUTOMATE_RESELLER_WEBHOOK_URL ||
-    process.env.POWER_AUTOMATE_WEBHOOK_URL ||
-    "";
+  if (!/^\d{11}$/.test(payload.abn)) {
+    return sendJson(res, 400, { message: "Enter a valid 11-digit ABN." });
+  }
 
+  const webhookUrl = getWebhookUrl();
   if (!webhookUrl) {
     return sendJson(res, 503, {
-      message: "Reseller application forwarding is not configured yet.",
+      message:
+        "Reseller application forwarding is not configured. Set POWER_AUTOMATE_CONTACT_WEBHOOK_URL to the working contact form workflow URL.",
     });
   }
 
+  const message = formatApplicationMessage(payload);
   const forwardPayload = {
     type: "reseller_application",
     submittedAt: new Date().toISOString(),
@@ -98,6 +163,16 @@ export default async function handler(
     host: req.headers?.host || "",
     userAgent: req.headers?.["user-agent"] || "",
     application: payload,
+    contact: {
+      name: payload.contactName,
+      email: payload.email,
+      phone: payload.phone,
+      company: payload.businessName,
+      enquiryType: "reseller-application",
+      message,
+    },
+    subject: `New Internext reseller application - ${payload.businessName}`,
+    text: message,
   };
 
   try {
@@ -112,7 +187,7 @@ export default async function handler(
     if (!response.ok) {
       const responseText = await response.text();
       return sendJson(res, 502, {
-        message: "Power Automate rejected the reseller application submission.",
+        message: `Power Automate rejected the reseller application submission with HTTP ${response.status}.`,
         details: responseText.slice(0, 500),
       });
     }
