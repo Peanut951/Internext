@@ -28,11 +28,6 @@ const stats = [
 
 const aboutLinks = [
   {
-    title: "Meet The Team",
-    text: "See the people behind Internext.",
-    href: "/about/team",
-  },
-  {
     title: "Who We Support",
     text: "Industries and customer segments we work with.",
     href: "/about/customers",
@@ -119,14 +114,14 @@ const AboutIndex = () => {
             <div className="max-w-3xl">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">Explore More</p>
               <h2 className="mt-3 text-3xl font-bold text-foreground md:text-4xl">
-                Meet the team and explore the rest of Internext.
+                Explore how Internext supports your business.
               </h2>
               <p className="mt-4 text-muted-foreground leading-relaxed">
-                Use the links below to view the team, customer segments, and partner model.
+                Use the links below to view customer segments, the partner model, and contact options.
               </p>
             </div>
 
-            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {aboutLinks.map((item) => (
                 <Link
                   key={item.title}
