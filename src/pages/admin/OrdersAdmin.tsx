@@ -82,6 +82,7 @@ const OrdersAdmin = () => {
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
   const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
   const [serialMessages, setSerialMessages] = useState<Record<string, ShipmentMessage>>({});
+  const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
   const { session } = useAuthSession();
 
   const refreshOrders = async () => {
@@ -272,6 +273,13 @@ const OrdersAdmin = () => {
     setFulfillmentFilter("all");
     setDateFrom("");
     setDateTo("");
+  };
+
+  const toggleOrderExpanded = (orderId: string) => {
+    setExpandedOrderIds((current) => ({
+      ...current,
+      [orderId]: !(current[orderId] ?? false),
+    }));
   };
 
   const saveSettings = (event: FormEvent<HTMLFormElement>) => {
@@ -990,7 +998,13 @@ const OrdersAdmin = () => {
                 No orders match the current view.
               </div>
             ) : (
-              filteredOrders.map((order) => (
+              filteredOrders.map((order) => {
+                const isExpanded = expandedOrderIds[order.id] ?? false;
+                const customerName =
+                  `${order.customer.firstName} ${order.customer.lastName}`.trim() ||
+                  order.customer.email;
+
+                return (
                 <div
                   key={order.id}
                   className="overflow-hidden rounded-[1.75rem] border border-border/60 bg-card shadow-card"
@@ -1010,6 +1024,10 @@ const OrdersAdmin = () => {
                           Created {new Date(order.createdAt).toLocaleString("en-AU")} · Updated{" "}
                           {new Date(order.updatedAt).toLocaleString("en-AU")}
                         </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          {customerName} · {order.customer.email} · {order.items.length} line
+                          {order.items.length === 1 ? "" : "s"} · {formatAud(order.totalKnownValue)}
+                        </p>
                       </div>
 
                       <div className="flex flex-wrap items-center gap-2">
@@ -1023,10 +1041,20 @@ const OrdersAdmin = () => {
                         >
                           Fulfillment: {formatStatusLabel(order.fulfillmentStatus)}
                         </span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleOrderExpanded(order.id)}
+                          aria-expanded={isExpanded}
+                        >
+                          {isExpanded ? "Hide Details" : "View Details"}
+                        </Button>
                       </div>
                     </div>
                   </div>
 
+                  {isExpanded ? (
                   <div className="grid gap-6 px-6 py-6 xl:grid-cols-[minmax(0,1.5fr)_292px]">
                     <div className="space-y-5">
                       <div className="grid gap-3 md:grid-cols-2">
@@ -1364,8 +1392,10 @@ const OrdersAdmin = () => {
                       </details>
                     </div>
                   </div>
+                  ) : null}
                 </div>
-              ))
+                );
+              })
             )}
           </div>
         </div>

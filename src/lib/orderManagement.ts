@@ -42,6 +42,7 @@ export type CheckoutCustomer = {
   postcode: string;
   country: string;
   notes?: string;
+  marketingOptIn?: boolean;
 };
 
 export type OrderReseller = {

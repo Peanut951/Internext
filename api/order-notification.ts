@@ -9,6 +9,7 @@ type RequestBody = {
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 const WEBHOOK_TIMEOUT_MS = 20000;
 const ORDERS_TABLE = "orders";
+const MARKETING_CONTACTS_TABLE = "marketing_contacts";
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
@@ -44,6 +45,25 @@ const getNestedString = (source: unknown, key: string) => {
 
   const value = (source as Record<string, unknown>)[key];
   return typeof value === "string" ? value.trim() : "";
+};
+
+const getNestedBoolean = (source: unknown, key: string) => {
+  if (!source || typeof source !== "object") {
+    return false;
+  }
+
+  return (source as Record<string, unknown>)[key] === true;
+};
+
+const normalizeMarketingRole = (value: string) => {
+  const role = value.trim().toLowerCase();
+  if (role === "reseller") {
+    return "reseller";
+  }
+  if (role === "user") {
+    return "user";
+  }
+  return "guest";
 };
 
 const upsertSharedOrder = async (order: Record<string, unknown>) => {
@@ -101,6 +121,67 @@ const upsertSharedOrder = async (order: Record<string, unknown>) => {
     message: response.ok
       ? "Order saved to shared storage."
       : `Supabase order storage returned HTTP ${response.status}.`,
+  };
+};
+
+const upsertMarketingContactFromOrder = async (order: Record<string, unknown>) => {
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      ok: false,
+      status: 0,
+      message: "Supabase marketing contact storage is not configured.",
+    };
+  }
+
+  const customer = order.customer && typeof order.customer === "object" ? order.customer : {};
+  const reseller = order.reseller && typeof order.reseller === "object" ? order.reseller : {};
+  const email = getNestedString(customer, "email").toLowerCase();
+  if (!email) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Customer email is required for marketing contact storage.",
+    };
+  }
+
+  const now = new Date().toISOString();
+  const createdAt = getOrderField(order, "createdAt") || now;
+  const role = normalizeMarketingRole(getNestedString(reseller, "role"));
+  const marketingConsent = getNestedBoolean(customer, "marketingOptIn");
+
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/${MARKETING_CONTACTS_TABLE}?on_conflict=email`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify({
+        email,
+        role,
+        first_name: getNestedString(customer, "firstName"),
+        last_name: getNestedString(customer, "lastName"),
+        company: getNestedString(customer, "company"),
+        phone: getNestedString(customer, "phone"),
+        marketing_consent: marketingConsent,
+        source: role === "guest" ? "guest_checkout" : "checkout",
+        last_order_number: getOrderField(order, "orderNumber"),
+        last_order_at: createdAt,
+        updated_at: now,
+      }),
+    },
+  );
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    message: response.ok
+      ? "Marketing contact saved."
+      : `Supabase marketing contact storage returned HTTP ${response.status}.`,
   };
 };
 
@@ -562,12 +643,18 @@ export default async function handler(
       return sendJson(res, 403, { message: "Admin access is required to update shared orders." });
     }
 
-    const storageResponse = await upsertSharedOrder(body.order);
+    const [storageResponse, marketingContactResponse] = await Promise.all([
+      upsertSharedOrder(body.order),
+      upsertMarketingContactFromOrder(body.order),
+    ]);
     return sendJson(res, storageResponse.ok ? 200 : 502, {
       ok: storageResponse.ok,
       sharedOrderSaved: storageResponse.ok,
       sharedOrderStatus: storageResponse.status,
       sharedOrderMessage: storageResponse.message,
+      marketingContactSaved: marketingContactResponse.ok,
+      marketingContactStatus: marketingContactResponse.status,
+      marketingContactMessage: marketingContactResponse.message,
     });
   }
 
@@ -586,8 +673,10 @@ export default async function handler(
       return sendJson(res, 400, { message: "Customer email address was not provided." });
     }
 
-    const storageResponse = await upsertSharedOrder(body.order);
-    const customerResponse = await postJsonWebhook(customerWebhookUrl, {
+    const [storageResponse, marketingContactResponse, customerResponse] = await Promise.all([
+      upsertSharedOrder(body.order),
+      upsertMarketingContactFromOrder(body.order),
+      postJsonWebhook(customerWebhookUrl, {
       type: "customer_order_shipped",
       submittedAt: new Date().toISOString(),
       source: "internext-admin",
@@ -600,7 +689,8 @@ export default async function handler(
       text: customerEmail.text,
       customerEmail,
       order: body.order,
-    });
+      }),
+    ]);
 
     return sendJson(res, customerResponse.ok ? 200 : 502, {
       ok: customerResponse.ok,
@@ -610,6 +700,9 @@ export default async function handler(
       sharedOrderSaved: storageResponse.ok,
       sharedOrderStatus: storageResponse.status,
       sharedOrderMessage: storageResponse.message,
+      marketingContactSaved: marketingContactResponse.ok,
+      marketingContactStatus: marketingContactResponse.status,
+      marketingContactMessage: marketingContactResponse.message,
       customerEmailMessage: customerResponse.ok
         ? "Customer shipment workflow accepted the request."
         : `Customer shipment workflow failed: ${customerResponse.message}`,
@@ -621,7 +714,10 @@ export default async function handler(
   }
 
   try {
-    const storageResponse = await upsertSharedOrder(body.order);
+    const [storageResponse, marketingContactResponse] = await Promise.all([
+      upsertSharedOrder(body.order),
+      upsertMarketingContactFromOrder(body.order),
+    ]);
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
     const adminPayload = {
@@ -679,6 +775,9 @@ export default async function handler(
       sharedOrderSaved: storageResponse.ok,
       sharedOrderStatus: storageResponse.status,
       sharedOrderMessage: storageResponse.message,
+      marketingContactSaved: marketingContactResponse.ok,
+      marketingContactStatus: marketingContactResponse.status,
+      marketingContactMessage: marketingContactResponse.message,
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
         : `Customer confirmation workflow failed: ${customerResponse.message}`,

@@ -35,6 +35,7 @@ const defaultCustomer: CheckoutCustomer = {
   postcode: "",
   country: "Australia",
   notes: "",
+  marketingOptIn: false,
 };
 
 type AddressLookupResult = {
@@ -1314,6 +1315,29 @@ const Checkout = () => {
                     rows={4}
                   />
                 </div>
+
+                <label className="flex items-start gap-3 rounded-xl border border-border/60 bg-secondary/30 px-4 py-3 text-sm text-muted-foreground">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(customer.marketingOptIn)}
+                    onChange={(event) =>
+                      setCustomer((prev) => ({
+                        ...prev,
+                        marketingOptIn: event.target.checked,
+                      }))
+                    }
+                    className="mt-1 h-4 w-4 rounded border-border"
+                  />
+                  <span>
+                    <span className="block font-medium text-foreground">
+                      Email me Internext product updates and offers
+                    </span>
+                    <span className="mt-1 block">
+                      You can unsubscribe from marketing emails at any time. Order and shipping
+                      emails will still be sent for this purchase.
+                    </span>
+                  </span>
+                </label>
 
                 {error ? (
                   <div className="rounded-lg bg-destructive/10 text-destructive text-sm p-3">
