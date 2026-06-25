@@ -1332,10 +1332,6 @@ const Checkout = () => {
                     <span className="block font-medium text-foreground">
                       Email me Internext product updates and offers
                     </span>
-                    <span className="mt-1 block">
-                      You can unsubscribe from marketing emails at any time. Order and shipping
-                      emails will still be sent for this purchase.
-                    </span>
                   </span>
                 </label>
 
