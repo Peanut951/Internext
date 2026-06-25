@@ -163,14 +163,6 @@ const resolvePortalRole = async (
   user: SupabaseUser,
   normalizedEmail: string,
 ): Promise<UserRole | null> => {
-  const directRole =
-    normalizeRole(user.app_metadata?.role) ||
-    normalizeRole(user.user_metadata?.role);
-
-  if (directRole) {
-    return directRole;
-  }
-
   if (config.serviceRoleKey) {
     try {
       const response = await fetch(
@@ -193,8 +185,16 @@ const resolvePortalRole = async (
         }
       }
     } catch {
-      // Fall through to explicit email-based portal role mapping.
+      // Fall through to auth metadata and explicit email-based portal role mapping.
     }
+  }
+
+  const directRole =
+    normalizeRole(user.app_metadata?.role) ||
+    normalizeRole(user.user_metadata?.role);
+
+  if (directRole) {
+    return directRole;
   }
 
   if (normalizedEmail === config.adminEmail) {
