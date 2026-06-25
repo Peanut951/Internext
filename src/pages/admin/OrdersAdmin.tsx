@@ -18,7 +18,7 @@ import {
   OrderRecord,
   SupplierIntegrationSettings,
   SupplierSubmissionStatus,
-  fetchSharedOrders,
+  fetchSharedOrdersResult,
   formatAud,
   getOrderItemSerialKey,
   getOrders,
@@ -64,11 +64,13 @@ const formatStatusLabel = (value: string) =>
 
 const OrdersAdmin = () => {
   const navigate = useNavigate();
-  const [orders, setOrders] = useState(getOrders());
+  const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [settings, setSettings] = useState<SupplierIntegrationSettings>(
     getSupplierIntegrationSettings(),
   );
   const [savingSettings, setSavingSettings] = useState(false);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<string | null>(null);
   const [actioningOrderId, setActioningOrderId] = useState<string | null>(null);
   const [activeView, setActiveView] = useState<OrderView>("all");
   const [orderSearch, setOrderSearch] = useState("");
@@ -86,7 +88,20 @@ const OrdersAdmin = () => {
   const { session } = useAuthSession();
 
   const refreshOrders = async () => {
-    setOrders(await fetchSharedOrders());
+    setOrdersLoading(true);
+    setOrdersError(null);
+    const result = await fetchSharedOrdersResult({
+      fallbackToLocal: false,
+      mergeWithLocal: false,
+    });
+    setOrders(result.orders);
+    if (!result.ok) {
+      setOrdersError(
+        result.message ||
+          "Unable to load shared orders. Check Supabase order storage and admin session settings.",
+      );
+    }
+    setOrdersLoading(false);
   };
 
   useEffect(() => {
@@ -781,6 +796,12 @@ const OrdersAdmin = () => {
                 </Button>
               </div>
 
+              {ordersError ? (
+                <div className="mt-5 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                  {ordersError}
+                </div>
+              ) : null}
+
               <div className="mt-6 flex flex-wrap gap-3">
                 {[
                   {
@@ -989,7 +1010,11 @@ const OrdersAdmin = () => {
               </div>
             </div>
 
-            {orders.length === 0 ? (
+            {ordersLoading ? (
+              <div className="rounded-2xl border border-border/60 bg-card p-6 text-muted-foreground shadow-card">
+                Loading shared orders...
+              </div>
+            ) : orders.length === 0 ? (
               <div className="rounded-2xl border border-border/60 bg-card p-6 text-muted-foreground shadow-card">
                 No orders yet.
               </div>

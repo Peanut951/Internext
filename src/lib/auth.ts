@@ -25,6 +25,7 @@ type SignUpInput = {
   password: string;
   phone?: string;
   company?: string;
+  marketingOptIn?: boolean;
 };
 
 const AUTH_STORAGE_KEY = "internext-auth-session";

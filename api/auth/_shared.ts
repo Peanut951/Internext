@@ -36,6 +36,7 @@ type CreateUserAccountInput = {
   lastName: string;
   phone?: string;
   company?: string;
+  marketingOptIn?: boolean;
 };
 
 type CreateUserAccountResult =
@@ -241,6 +242,48 @@ const upsertUserProfile = async (
   return null;
 };
 
+const upsertSignupMarketingContact = async (
+  config: SupabaseConfig,
+  input: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    phone: string;
+    company: string;
+    marketingOptIn: boolean;
+  },
+) => {
+  try {
+    const response = await fetch(
+      `${config.supabaseUrl}/rest/v1/marketing_contacts?on_conflict=email`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+          Prefer: "resolution=merge-duplicates,return=minimal",
+        },
+        body: JSON.stringify({
+          email: input.email,
+          role: "user",
+          first_name: input.firstName,
+          last_name: input.lastName,
+          company: input.company,
+          phone: input.phone,
+          marketing_consent: input.marketingOptIn,
+          source: "account_signup",
+          updated_at: new Date().toISOString(),
+        }),
+      },
+    );
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const createSession = (userId: string, email: string, role: UserRole): AuthSession => ({
   userId,
   email,
@@ -392,6 +435,7 @@ export const createUserAccount = async (
   const lastName = input.lastName.trim();
   const phone = input.phone?.trim() || "";
   const company = input.company?.trim() || "";
+  const marketingOptIn = Boolean(input.marketingOptIn);
 
   if (!normalizedEmail || !password || !firstName || !lastName) {
     return {
@@ -435,6 +479,7 @@ export const createUserAccount = async (
           lastName,
           phone,
           company,
+          marketingOptIn,
           role: "user",
         },
       }),
@@ -473,6 +518,15 @@ export const createUserAccount = async (
         message: `Account created, but profile row could not be saved: ${profileError}`,
       };
     }
+
+    await upsertSignupMarketingContact(config, {
+      email: userEmail,
+      firstName,
+      lastName,
+      phone,
+      company,
+      marketingOptIn,
+    });
 
     return {
       ok: true,

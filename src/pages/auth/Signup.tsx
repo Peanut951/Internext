@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
-import { ArrowRight, Lock, Mail, User } from "lucide-react";
+import { ArrowRight, Eye, EyeOff, Lock, Mail, User } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,7 @@ const emptyForm = {
   company: "",
   password: "",
   confirmPassword: "",
+  marketingOptIn: false,
 };
 
 const Signup = () => {
@@ -24,6 +25,8 @@ const Signup = () => {
   const [formData, setFormData] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -42,6 +45,7 @@ const Signup = () => {
       phone: formData.phone,
       company: formData.company,
       password: formData.password,
+      marketingOptIn: formData.marketingOptIn,
     });
 
     if (!result.ok) {
@@ -141,14 +145,22 @@ const Signup = () => {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
                       minLength={8}
                       value={formData.password}
                       onChange={(event) => setFormData({ ...formData, password: event.target.value })}
-                      className="h-12 border-border/70 bg-secondary/45 pl-11"
+                      className="h-12 border-border/70 bg-secondary/45 pl-11 pr-11"
                       autoComplete="new-password"
                     />
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={() => setShowPassword((current) => !current)}
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
                 <div>
@@ -156,17 +168,39 @@ const Signup = () => {
                   <div className="relative">
                     <Lock className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                     <Input
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       required
                       minLength={8}
                       value={formData.confirmPassword}
                       onChange={(event) => setFormData({ ...formData, confirmPassword: event.target.value })}
-                      className="h-12 border-border/70 bg-secondary/45 pl-11"
+                      className="h-12 border-border/70 bg-secondary/45 pl-11 pr-11"
                       autoComplete="new-password"
                     />
+                    <button
+                      type="button"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      onClick={() => setShowConfirmPassword((current) => !current)}
+                      aria-label={showConfirmPassword ? "Hide password" : "Show password"}
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
                 </div>
               </div>
+
+              <label className="flex items-start gap-3 rounded-xl border border-border/60 bg-background px-4 py-3 text-sm">
+                <input
+                  type="checkbox"
+                  checked={formData.marketingOptIn}
+                  onChange={(event) =>
+                    setFormData({ ...formData, marketingOptIn: event.target.checked })
+                  }
+                  className="mt-1 h-4 w-4 rounded border-border"
+                />
+                <span className="font-medium text-foreground">
+                  Email me Internext product updates and offers
+                </span>
+              </label>
 
               {error ? (
                 <p className="rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">

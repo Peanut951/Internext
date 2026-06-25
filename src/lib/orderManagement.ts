@@ -464,9 +464,24 @@ export const mergeOrdersIntoLocalStore = (orders: OrderRecord[]) => {
   return mergedOrders;
 };
 
-export const fetchSharedOrders = async () => {
+type SharedOrdersFetchOptions = {
+  fallbackToLocal?: boolean;
+  mergeWithLocal?: boolean;
+};
+
+type SharedOrdersFetchResult = {
+  ok: boolean;
+  orders: OrderRecord[];
+  message?: string;
+  status?: number;
+};
+
+export const fetchSharedOrdersResult = async ({
+  fallbackToLocal = true,
+  mergeWithLocal = true,
+}: SharedOrdersFetchOptions = {}): Promise<SharedOrdersFetchResult> => {
   if (typeof window === "undefined") {
-    return [];
+    return { ok: true, orders: [] };
   }
 
   try {
@@ -478,15 +493,36 @@ export const fetchSharedOrders = async () => {
       },
     });
 
-    const payload = (await response.json()) as { orders?: OrderRecord[] };
+    const payload = (await response.json().catch(() => ({}))) as {
+      orders?: OrderRecord[];
+      message?: string;
+    };
     if (!response.ok || !Array.isArray(payload.orders)) {
-      return getOrders();
+      return {
+        ok: false,
+        orders: fallbackToLocal ? getOrders() : [],
+        status: response.status,
+        message: payload.message || "Unable to load shared orders.",
+      };
     }
 
-    return mergeOrdersIntoLocalStore(payload.orders);
+    const normalizedOrders = payload.orders.map(normalizeOrderRecord);
+    const orders = mergeWithLocal ? mergeOrderLists(normalizedOrders, getOrders()) : normalizedOrders;
+    saveOrders(orders);
+
+    return { ok: true, orders };
   } catch {
-    return getOrders();
+    return {
+      ok: false,
+      orders: fallbackToLocal ? getOrders() : [],
+      message: "Unable to reach the shared order service.",
+    };
   }
+};
+
+export const fetchSharedOrders = async () => {
+  const result = await fetchSharedOrdersResult();
+  return result.orders;
 };
 
 export const persistSharedOrder = async (order: OrderRecord) => {

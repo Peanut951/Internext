@@ -15,6 +15,7 @@ type AuthBody = {
   lastName?: string;
   phone?: string;
   company?: string;
+  marketingOptIn?: boolean;
 };
 
 const parseBody = (body: string | AuthBody | undefined) => {
@@ -105,6 +106,7 @@ export default async function handler(
     password: String(body.password || ""),
     phone: String(body.phone || ""),
     company: String(body.company || ""),
+    marketingOptIn: Boolean(body.marketingOptIn),
   });
 
   if (result.ok === false) {
