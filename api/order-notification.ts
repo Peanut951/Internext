@@ -60,10 +60,10 @@ const normalizeMarketingRole = (value: string) => {
   if (role === "reseller") {
     return "reseller";
   }
-  if (role === "user") {
-    return "user";
+  if (role === "guest") {
+    return "guest";
   }
-  return "guest";
+  return "user";
 };
 
 const upsertSharedOrder = async (order: Record<string, unknown>) => {

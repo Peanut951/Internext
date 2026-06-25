@@ -42,6 +42,7 @@ using (
 insert into public.marketing_contacts (email, role, source, marketing_consent, updated_at)
 select lower(email), role, 'profile', false, now()
 from public.profiles
+where role in ('user', 'reseller')
 on conflict (email) do update
 set role = excluded.role,
     updated_at = now();
@@ -52,6 +53,14 @@ language plpgsql
 security definer
 as $$
 begin
+  if new.role not in ('user', 'reseller') then
+    delete from public.marketing_contacts
+    where email = lower(new.email)
+      and source = 'profile';
+
+    return new;
+  end if;
+
   insert into public.marketing_contacts (email, role, source, marketing_consent, updated_at)
   values (lower(new.email), new.role, 'profile', false, now())
   on conflict (email) do update
