@@ -129,7 +129,7 @@ const Login = () => {
             ) : null}
 
             <div className="mt-8 rounded-2xl border border-border/60 bg-secondary/30 p-4">
-              <p className="text-sm font-semibold text-foreground">Need an account?</p>
+              <p className="text-sm font-semibold text-foreground">Create an Account</p>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Create a standard customer account to checkout and view your orders.
               </p>
