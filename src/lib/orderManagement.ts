@@ -27,6 +27,7 @@
 };
 
 export type CartItem = CatalogProductLite & { qty: number };
+export type OrderSerialNumbers = Record<string, string[]>;
 
 export type CheckoutCustomer = {
   firstName: string;
@@ -118,6 +119,7 @@ export type OrderRecord = {
   trackingCarrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  serialNumbers?: OrderSerialNumbers;
   supplierStatus: SupplierSubmissionStatus;
   supplierSubmittedAt?: string;
   supplierMessage?: string;
@@ -271,6 +273,7 @@ const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<Ord
     gstAmount,
     shippingTotal,
     totalKnownValue: order.totalKnownValue ?? normalizeMoney(itemsSubtotal + gstAmount + shippingTotal),
+    serialNumbers: order.serialNumbers ?? {},
     supplierPayload: {
       ...order.supplierPayload,
       totals: {
@@ -286,6 +289,11 @@ const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<Ord
     },
   } as OrderRecord;
 };
+
+export const getOrderItemSerialKey = (
+  item: Pick<CartItem, "code" | "supplierCode">,
+  itemIndex: number,
+) => `${itemIndex}:${item.code}:${item.supplierCode ?? ""}`;
 
 const nowIso = () => new Date().toISOString();
 
@@ -636,6 +644,27 @@ export const updateOrderFulfillment = (
   return nextOrders.find((order) => order.id === orderId) ?? null;
 };
 
+export const updateOrderSerialNumbers = (
+  orderId: string,
+  serialNumbers: OrderSerialNumbers,
+) => {
+  const orders = getOrders();
+  const nextOrders = orders.map((order) => {
+    if (order.id !== orderId) {
+      return order;
+    }
+
+    return {
+      ...order,
+      serialNumbers,
+      updatedAt: nowIso(),
+    };
+  });
+
+  saveOrders(nextOrders);
+  return nextOrders.find((order) => order.id === orderId) ?? null;
+};
+
 export const updateSharedOrderFulfillment = async (
   orderId: string,
   payload: {
@@ -646,6 +675,17 @@ export const updateSharedOrderFulfillment = async (
   },
 ) => {
   const updatedOrder = updateOrderFulfillment(orderId, payload);
+  if (updatedOrder) {
+    await persistSharedOrder(updatedOrder);
+  }
+  return updatedOrder;
+};
+
+export const updateSharedOrderSerialNumbers = async (
+  orderId: string,
+  serialNumbers: OrderSerialNumbers,
+) => {
+  const updatedOrder = updateOrderSerialNumbers(orderId, serialNumbers);
   if (updatedOrder) {
     await persistSharedOrder(updatedOrder);
   }

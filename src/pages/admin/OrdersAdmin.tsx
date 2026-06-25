@@ -20,10 +20,13 @@ import {
   SupplierSubmissionStatus,
   fetchSharedOrders,
   formatAud,
+  getOrderItemSerialKey,
   getOrders,
   getSupplierIntegrationSettings,
+  persistSharedOrder,
   saveSupplierIntegrationSettings,
   updateSharedOrderFulfillment,
+  updateSharedOrderSerialNumbers,
 } from "@/lib/orderManagement";
 import { clearAuthSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -77,6 +80,8 @@ const OrdersAdmin = () => {
   const [dateTo, setDateTo] = useState("");
   const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
+  const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
+  const [serialMessages, setSerialMessages] = useState<Record<string, ShipmentMessage>>({});
   const { session } = useAuthSession();
 
   const refreshOrders = async () => {
@@ -310,6 +315,81 @@ const OrdersAdmin = () => {
       const next = { ...current };
       delete next[order.id];
       return next;
+    });
+  };
+
+  const getOrderSerialDraft = (order: OrderRecord) =>
+    serialDrafts[order.id] ?? order.serialNumbers ?? {};
+
+  const getSerialValue = (
+    order: OrderRecord,
+    item: OrderRecord["items"][number],
+    itemIndex: number,
+    unitIndex: number,
+  ) => {
+    const key = getOrderItemSerialKey(item, itemIndex);
+    return getOrderSerialDraft(order)[key]?.[unitIndex] ?? "";
+  };
+
+  const updateSerialDraft = (
+    order: OrderRecord,
+    item: OrderRecord["items"][number],
+    itemIndex: number,
+    unitIndex: number,
+    value: string,
+  ) => {
+    const key = getOrderItemSerialKey(item, itemIndex);
+    const unitCount = Math.max(1, item.qty || 1);
+
+    setSerialDrafts((current) => {
+      const orderSerials = current[order.id] ?? order.serialNumbers ?? {};
+      const values = [...(orderSerials[key] ?? Array(unitCount).fill(""))];
+      values[unitIndex] = value;
+
+      return {
+        ...current,
+        [order.id]: {
+          ...orderSerials,
+          [key]: values,
+        },
+      };
+    });
+
+    setSerialMessages((current) => {
+      const next = { ...current };
+      delete next[order.id];
+      return next;
+    });
+  };
+
+  const saveSerialNumbers = async (order: OrderRecord) => {
+    await withOrderAction(order.id, async () => {
+      const serialNumbers = order.items.reduce<Record<string, string[]>>((acc, item, itemIndex) => {
+        const key = getOrderItemSerialKey(item, itemIndex);
+        const unitCount = Math.max(1, item.qty || 1);
+        const draftValues = getOrderSerialDraft(order)[key] ?? [];
+        acc[key] = Array.from({ length: unitCount }, (_, unitIndex) =>
+          (draftValues[unitIndex] ?? "").trim(),
+        );
+        return acc;
+      }, {});
+
+      const updatedOrder = await updateSharedOrderSerialNumbers(order.id, serialNumbers);
+      if (!updatedOrder) {
+        throw new Error("Order serial numbers could not be saved.");
+      }
+
+      setSerialDrafts((current) => ({
+        ...current,
+        [order.id]: serialNumbers,
+      }));
+      setSerialMessages((current) => ({
+        ...current,
+        [order.id]: {
+          tone: "success",
+          text: "Serial numbers saved for this order.",
+        },
+      }));
     });
   };
 
@@ -1025,43 +1105,88 @@ const OrdersAdmin = () => {
                           <div>
                             <p className="text-sm font-semibold text-foreground">Order lines</p>
                             <p className="text-sm text-muted-foreground">
-                              SKU, quantity, and sell value snapshot
+                              SKU, quantity, sell value, and unit serial numbers
                             </p>
                           </div>
-                          <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
-                            {order.items.length} line{order.items.length === 1 ? "" : "s"}
-                          </span>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium text-muted-foreground">
+                              {order.items.length} line{order.items.length === 1 ? "" : "s"}
+                            </span>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => saveSerialNumbers(order)}
+                              disabled={actioningOrderId === order.id}
+                            >
+                              {actioningOrderId === order.id ? "Saving..." : "Save Serial Numbers"}
+                            </Button>
+                          </div>
                         </div>
 
                         <div className="divide-y divide-border/60">
-                          {order.items.slice(0, 4).map((item) => (
+                          {order.items.map((item, itemIndex) => (
                             <div
-                              key={`${order.id}-${item.code}`}
-                              className="grid gap-3 px-4 py-3 md:grid-cols-[minmax(0,1fr)_72px_120px]"
+                              key={`${order.id}-${itemIndex}-${item.code}`}
+                              className="px-4 py-4"
                             >
-                              <div className="min-w-0">
-                                <p className="text-sm font-semibold leading-6 text-foreground">
-                                  {item.description}
-                                </p>
-                                <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
-                                  {item.manufacturer} · {item.code}
-                                  {item.supplierCode ? ` · Ref ${item.supplierCode}` : ""}
-                                </p>
+                              <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_72px_120px]">
+                                <div className="min-w-0">
+                                  <p className="text-sm font-semibold leading-6 text-foreground">
+                                    {item.description}
+                                  </p>
+                                  <p className="mt-1 text-xs uppercase tracking-[0.12em] text-muted-foreground">
+                                    {item.manufacturer} · {item.code}
+                                    {item.supplierCode ? ` · Ref ${item.supplierCode}` : ""}
+                                  </p>
+                                </div>
+                                <div className="text-sm text-muted-foreground md:text-right">
+                                  Qty {item.qty}
+                                </div>
+                                <div className="text-sm font-medium text-foreground md:text-right">
+                                  {item.price === null ? "POA" : formatAud(item.price * item.qty)}
+                                </div>
                               </div>
-                              <div className="text-sm text-muted-foreground md:text-right">
-                                Qty {item.qty}
-                              </div>
-                              <div className="text-sm font-medium text-foreground md:text-right">
-                                {item.price === null ? "POA" : formatAud(item.price * item.qty)}
+
+                              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                                {Array.from({ length: Math.max(1, item.qty || 1) }, (_, unitIndex) => (
+                                  <label
+                                    key={`${order.id}-${itemIndex}-${unitIndex}`}
+                                    className="space-y-1"
+                                  >
+                                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                      Serial number {item.qty > 1 ? unitIndex + 1 : ""}
+                                    </span>
+                                    <Input
+                                      value={getSerialValue(order, item, itemIndex, unitIndex)}
+                                      onChange={(event) =>
+                                        updateSerialDraft(
+                                          order,
+                                          item,
+                                          itemIndex,
+                                          unitIndex,
+                                          event.target.value,
+                                        )
+                                      }
+                                      placeholder="Enter serial number"
+                                    />
+                                  </label>
+                                ))}
                               </div>
                             </div>
                           ))}
                         </div>
 
-                        {order.items.length > 4 ? (
-                          <div className="border-t border-border/60 px-4 py-3 text-sm text-muted-foreground">
-                            {order.items.length - 4} additional line
-                            {order.items.length - 4 === 1 ? "" : "s"} hidden in this snapshot.
+                        {serialMessages[order.id] ? (
+                          <div className="border-t border-border/60 px-4 py-3">
+                            <p
+                              className={`rounded-lg px-3 py-2 text-sm ${
+                                serialMessages[order.id].tone === "success"
+                                  ? "bg-emerald-50 text-emerald-800"
+                                  : "bg-red-50 text-red-800"
+                              }`}
+                            >
+                              {serialMessages[order.id].text}
+                            </p>
                           </div>
                         ) : null}
                       </div>
