@@ -42,17 +42,29 @@ type AddressLookupResult = {
   formatted: string;
   address_line1?: string;
   address_line2?: string;
+  building?: string;
+  flat?: string;
+  level?: string;
+  name?: string;
   housenumber?: string;
   street?: string;
   suburb?: string;
+  town?: string;
+  village?: string;
   city?: string;
   state?: string;
   state_code?: string;
   postcode?: string;
   country?: string;
   address?: {
+    city?: string;
     postcode?: string;
     country?: string;
+    state?: string;
+    state_code?: string;
+    suburb?: string;
+    town?: string;
+    village?: string;
   };
 };
 
@@ -69,45 +81,44 @@ const getLineOneFromLookup = (result: AddressLookupResult) => {
     return `${houseNumber} ${road}`;
   }
 
-  return road || result.formatted.split(",")[0]?.trim() || "";
+  return road || result.name?.trim() || result.formatted.split(",")[0]?.trim() || "";
 };
 
 const getSuburbFromLookup = (result: AddressLookupResult) =>
   result.suburb?.trim() ||
+  result.address?.suburb?.trim() ||
+  result.town?.trim() ||
+  result.address?.town?.trim() ||
+  result.village?.trim() ||
+  result.address?.village?.trim() ||
   result.city?.trim() ||
+  result.address?.city?.trim() ||
   "";
 
-const getFormattedParts = (result: AddressLookupResult) =>
-  result.formatted
-    .split(",")
-    .map((part) => part.trim())
-    .filter(Boolean);
+const getPostcodeFromLookup = (result: AddressLookupResult) =>
+  result.postcode?.trim() ||
+  result.address?.postcode?.trim() ||
+  "";
 
-const getAddressLineTwoFromLookup = (result: AddressLookupResult, suburb: string) => {
-  const addressLine2 = result.address_line2?.trim();
-  if (addressLine2) {
-    return addressLine2;
-  }
+const getAddressLineTwoFromLookup = (result: AddressLookupResult) => {
+  const parts = [
+    result.flat,
+    result.level ? `Level ${result.level}` : "",
+    result.building,
+  ]
+    .map((part) => part?.trim())
+    .filter((part): part is string => Boolean(part));
 
-  const parts = getFormattedParts(result);
-  const lineOne = getLineOneFromLookup(result).toLowerCase();
-  const suburbLower = suburb.toLowerCase();
-
-  return (
-    parts.find((part) => {
-      const normalized = part.toLowerCase();
-      return normalized !== lineOne && normalized !== suburbLower;
-    }) || ""
-  );
+  return parts.join(", ");
 };
 
 const getStateFromLookup = (result: AddressLookupResult) => {
-  const stateCode = result.state_code?.trim();
+  const stateCode = result.state_code?.trim() || result.address?.state_code?.trim();
   if (stateCode) {
     return stateCode.toUpperCase();
   }
 
-  const state = result.state?.trim();
+  const state = result.state?.trim() || result.address?.state?.trim();
   if (!state) {
     return "";
   }
@@ -812,18 +823,18 @@ const Checkout = () => {
   const applyAddressSuggestion = (result: AddressLookupResult) => {
     const address1 = getLineOneFromLookup(result);
     const suburb = getSuburbFromLookup(result);
-    const address2 = getAddressLineTwoFromLookup(result, suburb);
+    const address2 = getAddressLineTwoFromLookup(result);
     const state = getStateFromLookup(result);
-    const postcode = result.address?.postcode?.trim() || "";
-    const country = result.address?.country?.trim() || "Australia";
+    const postcode = getPostcodeFromLookup(result);
+    const country = result.country?.trim() || result.address?.country?.trim() || "Australia";
 
     setCustomer((prev) => ({
       ...prev,
       address1,
-      address2: address2 || prev.address2,
-      suburb: suburb || prev.suburb,
-      state: state || prev.state,
-      postcode: postcode || prev.postcode,
+      address2,
+      suburb,
+      state,
+      postcode,
       country,
     }));
     setSelectedAddressLabel(address1);
@@ -1239,9 +1250,15 @@ const Checkout = () => {
                       required
                       value={customer.postcode}
                       onChange={(event) =>
-                        setCustomer((prev) => ({ ...prev, postcode: event.target.value }))
+                        setCustomer((prev) => ({
+                          ...prev,
+                          postcode: event.target.value.replace(/\D/g, "").slice(0, 4),
+                        }))
                       }
                       className="bg-secondary border-0"
+                      inputMode="numeric"
+                      maxLength={4}
+                      pattern="\d{4}"
                       autoComplete="postal-code"
                     />
                   </div>
