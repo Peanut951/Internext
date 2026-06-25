@@ -1,10 +1,16 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, CreditCard, Package, ShoppingBag, Truck } from "lucide-react";
 import Layout from "@/components/layout/Layout";
 import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatAud, getOrdersForReseller } from "@/lib/orderManagement";
+import {
+  OrderRecord,
+  fetchSharedOrders,
+  formatAud,
+  getOrdersForReseller,
+} from "@/lib/orderManagement";
 
 const formatStatusLabel = (value: string) =>
   value
@@ -13,10 +19,37 @@ const formatStatusLabel = (value: string) =>
 
 const PortalOrders = () => {
   const { session } = useAuthSession();
+  const [allOrders, setAllOrders] = useState<OrderRecord[]>([]);
 
-  const orders = session
-    ? getOrdersForReseller({ userId: session.userId, email: session.email })
-    : [];
+  useEffect(() => {
+    if (!session) {
+      setAllOrders([]);
+      return;
+    }
+
+    setAllOrders(getOrdersForReseller({ userId: session.userId, email: session.email }));
+    void fetchSharedOrders().then((sharedOrders) => {
+      setAllOrders(sharedOrders);
+    });
+  }, [session?.userId, session?.email]);
+
+  const orders = useMemo(
+    () =>
+      session
+        ? allOrders.filter((order) => {
+            if (session.userId && order.reseller.userId) {
+              return order.reseller.userId === session.userId;
+            }
+
+            const normalizedEmail = session.email.trim().toLowerCase();
+            return (
+              order.reseller.email.trim().toLowerCase() === normalizedEmail ||
+              order.customer.email.trim().toLowerCase() === normalizedEmail
+            );
+          })
+        : [],
+    [allOrders, session],
+  );
 
   const activeOrders = orders.filter((order) =>
     ["new", "processing", "shipped"].includes(order.fulfillmentStatus),

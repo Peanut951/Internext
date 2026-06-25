@@ -1,3 +1,4 @@
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { BarChart3, Box, CreditCard, ShoppingCart, Truck } from "lucide-react";
 import Layout from "@/components/layout/Layout";
@@ -5,18 +6,55 @@ import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { isAdminSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatAud, getCartItems, getOrders, getOrdersForReseller } from "@/lib/orderManagement";
+import {
+  OrderRecord,
+  fetchSharedOrders,
+  formatAud,
+  getCartItems,
+  getOrders,
+  getOrdersForReseller,
+} from "@/lib/orderManagement";
 
 const PortalDashboard = () => {
   const { session } = useAuthSession();
   const adminView = isAdminSession(session);
-  const orders =
-    session && !adminView
-      ? getOrdersForReseller({ userId: session.userId, email: session.email })
-      : getOrders();
+  const [allOrders, setAllOrders] = useState<OrderRecord[]>(getOrders());
+  const orders = useMemo(
+    () =>
+      session && !adminView
+        ? allOrders.filter((order) => {
+            if (session.userId && order.reseller.userId) {
+              return order.reseller.userId === session.userId;
+            }
+
+            const normalizedEmail = session.email.trim().toLowerCase();
+            return (
+              order.reseller.email.trim().toLowerCase() === normalizedEmail ||
+              order.customer.email.trim().toLowerCase() === normalizedEmail
+            );
+          })
+        : allOrders,
+    [adminView, allOrders, session],
+  );
   const cartItems = getCartItems();
   const totalKnownValue = orders.reduce((sum, order) => sum + order.totalKnownValue, 0);
   const openOrders = orders.filter((order) => order.fulfillmentStatus !== "delivered").length;
+
+  useEffect(() => {
+    if (!session) {
+      setAllOrders(getOrders());
+      return;
+    }
+
+    setAllOrders(
+      adminView
+        ? getOrders()
+        : getOrdersForReseller({ userId: session.userId, email: session.email }),
+    );
+    void fetchSharedOrders().then((sharedOrders) => {
+      setAllOrders(sharedOrders);
+    });
+  }, [adminView, session?.userId, session?.email]);
 
   return (
     <Layout>

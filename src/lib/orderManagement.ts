@@ -115,6 +115,7 @@ export type OrderRecord = {
   totalKnownValue: number;
   paymentStatus: "paid";
   fulfillmentStatus: FulfillmentStatus;
+  trackingCarrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
   supplierStatus: SupplierSubmissionStatus;
@@ -433,6 +434,73 @@ export const getOrdersForReseller = (reseller: Pick<OrderReseller, "userId" | "e
 
 const saveOrders = (orders: OrderRecord[]) => writeJson(ORDERS_STORAGE_KEY, orders);
 
+const mergeOrderLists = (primary: OrderRecord[], secondary: OrderRecord[]) => {
+  const seen = new Set<string>();
+  return [...primary, ...secondary]
+    .filter((order) => {
+      const key = order.id || order.orderNumber;
+      if (!key || seen.has(key)) {
+        return false;
+      }
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => Date.parse(b.createdAt) - Date.parse(a.createdAt));
+};
+
+export const mergeOrdersIntoLocalStore = (orders: OrderRecord[]) => {
+  const normalizedOrders = orders.map(normalizeOrderRecord);
+  const mergedOrders = mergeOrderLists(normalizedOrders, getOrders());
+  saveOrders(mergedOrders);
+  return mergedOrders;
+};
+
+export const fetchSharedOrders = async () => {
+  if (typeof window === "undefined") {
+    return [];
+  }
+
+  try {
+    const response = await fetch("/api/order-notification", {
+      method: "GET",
+      credentials: "include",
+      headers: {
+        Accept: "application/json",
+      },
+    });
+
+    const payload = (await response.json()) as { orders?: OrderRecord[] };
+    if (!response.ok || !Array.isArray(payload.orders)) {
+      return getOrders();
+    }
+
+    return mergeOrdersIntoLocalStore(payload.orders);
+  } catch {
+    return getOrders();
+  }
+};
+
+export const persistSharedOrder = async (order: OrderRecord) => {
+  if (typeof window === "undefined") {
+    return false;
+  }
+
+  try {
+    const response = await fetch("/api/order-notification", {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notificationType: "store_order", order }),
+    });
+
+    return response.ok;
+  } catch {
+    return false;
+  }
+};
+
 export const getSupplierIntegrationSettings = () => {
   return {
     ...DEFAULT_INTEGRATION_SETTINGS,
@@ -543,6 +611,7 @@ export const updateOrderFulfillment = (
   orderId: string,
   payload: {
     fulfillmentStatus: FulfillmentStatus;
+    trackingCarrier?: string;
     trackingNumber?: string;
     trackingUrl?: string;
   },
@@ -556,6 +625,7 @@ export const updateOrderFulfillment = (
     return {
       ...order,
       fulfillmentStatus: payload.fulfillmentStatus,
+      trackingCarrier: payload.trackingCarrier ?? order.trackingCarrier,
       trackingNumber: payload.trackingNumber ?? order.trackingNumber,
       trackingUrl: payload.trackingUrl ?? order.trackingUrl,
       updatedAt: nowIso(),
@@ -564,6 +634,22 @@ export const updateOrderFulfillment = (
 
   saveOrders(nextOrders);
   return nextOrders.find((order) => order.id === orderId) ?? null;
+};
+
+export const updateSharedOrderFulfillment = async (
+  orderId: string,
+  payload: {
+    fulfillmentStatus: FulfillmentStatus;
+    trackingCarrier?: string;
+    trackingNumber?: string;
+    trackingUrl?: string;
+  },
+) => {
+  const updatedOrder = updateOrderFulfillment(orderId, payload);
+  if (updatedOrder) {
+    await persistSharedOrder(updatedOrder);
+  }
+  return updatedOrder;
 };
 
 export const formatAud = (amount: number) =>

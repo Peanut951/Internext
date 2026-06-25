@@ -1,11 +1,14 @@
 import { parseJsonBody, sendJson } from "./checkout/_shared.js";
+import { getSessionFromRequest } from "./auth/_shared.js";
 
 type RequestBody = {
   order?: Record<string, unknown>;
+  notificationType?: "paid_order" | "shipment" | "store_order";
 };
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 const WEBHOOK_TIMEOUT_MS = 20000;
+const ORDERS_TABLE = "orders";
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
@@ -14,6 +17,149 @@ const formatAud = (value: unknown) =>
 
 const getNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
 const getString = (value: unknown) => (typeof value === "string" ? value : "");
+
+const getSupabaseOrdersConfig = () => {
+  const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
+  const serviceRoleKey = readEnv("SUPABASE_SERVICE_ROLE_KEY") || readEnv("SERVICE_ROLE_SECRET_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+
+  return {
+    supabaseUrl: supabaseUrl.replace(/\/$/, ""),
+    serviceRoleKey,
+  };
+};
+
+const getOrderField = (order: Record<string, unknown>, key: string) => {
+  const value = order[key];
+  return typeof value === "string" ? value.trim() : "";
+};
+
+const getNestedString = (source: unknown, key: string) => {
+  if (!source || typeof source !== "object") {
+    return "";
+  }
+
+  const value = (source as Record<string, unknown>)[key];
+  return typeof value === "string" ? value.trim() : "";
+};
+
+const upsertSharedOrder = async (order: Record<string, unknown>) => {
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      ok: false,
+      status: 0,
+      message: "Supabase order storage is not configured.",
+    };
+  }
+
+  const id = getOrderField(order, "id") || getOrderField(order, "orderNumber");
+  if (!id) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Order id is required.",
+    };
+  }
+
+  const reseller = order.reseller && typeof order.reseller === "object" ? order.reseller : {};
+  const customer = order.customer && typeof order.customer === "object" ? order.customer : {};
+  const createdAt = getOrderField(order, "createdAt") || new Date().toISOString();
+  const updatedAt = getOrderField(order, "updatedAt") || new Date().toISOString();
+
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}?on_conflict=id`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify({
+        id,
+        order_number: getOrderField(order, "orderNumber"),
+        reseller_email: getNestedString(reseller, "email").toLowerCase(),
+        reseller_user_id: getNestedString(reseller, "userId"),
+        customer_email: getNestedString(customer, "email").toLowerCase(),
+        fulfillment_status: getOrderField(order, "fulfillmentStatus"),
+        supplier_status: getOrderField(order, "supplierStatus"),
+        order_data: order,
+        created_at: createdAt,
+        updated_at: updatedAt,
+      }),
+    },
+  );
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    message: response.ok
+      ? "Order saved to shared storage."
+      : `Supabase order storage returned HTTP ${response.status}.`,
+  };
+};
+
+const fetchSharedOrders = async (req: { headers?: { cookie?: string } }) => {
+  const session = getSessionFromRequest(req);
+  if (!session) {
+    return {
+      status: 401,
+      body: { message: "Sign in is required to view orders." },
+    };
+  }
+
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      status: 500,
+      body: { message: "Supabase order storage is not configured." },
+    };
+  }
+
+  const url = new URL(`${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}`);
+  url.searchParams.set("select", "order_data");
+  url.searchParams.set("order", "created_at.desc");
+  url.searchParams.set("limit", "1000");
+
+  if (session.role !== "admin") {
+    const normalizedEmail = session.email.trim().toLowerCase();
+    url.searchParams.set(
+      "or",
+      `(reseller_user_id.eq.${session.userId},reseller_email.eq.${normalizedEmail},customer_email.eq.${normalizedEmail})`,
+    );
+  }
+
+  const response = await fetch(url, {
+    method: "GET",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    return {
+      status: response.status,
+      body: { message: `Supabase order storage returned HTTP ${response.status}.` },
+    };
+  }
+
+  const rows = (await response.json()) as Array<{ order_data?: unknown }>;
+  return {
+    status: 200,
+    body: {
+      orders: rows
+        .map((row) => row.order_data)
+        .filter((order): order is Record<string, unknown> => Boolean(order && typeof order === "object")),
+    },
+  };
+};
 
 const escapeHtml = (value: unknown) =>
   String(value ?? "")
@@ -226,6 +372,124 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
   };
 };
 
+const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
+  const customer = order.customer && typeof order.customer === "object"
+    ? order.customer as Record<string, unknown>
+    : {};
+  const orderNumber = getString(order.orderNumber) || "your order";
+  const customerName = [customer.firstName, customer.lastName]
+    .map(getString)
+    .filter(Boolean)
+    .join(" ")
+    .trim() || "there";
+  const customerEmail = getString(customer.email).trim();
+  const carrier = getString(order.trackingCarrier).trim();
+  const trackingNumber = getString(order.trackingNumber).trim();
+  const trackingUrl = getString(order.trackingUrl).trim();
+  const items = Array.isArray(order.items) ? order.items : [];
+
+  const itemRows = items
+    .map((item) => {
+      const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      return `
+        <tr>
+          <td style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#111827;font-weight:700;">${escapeHtml(line.description)}</td>
+          <td align="right" style="padding:12px 0;border-bottom:1px solid #e5e7eb;color:#4b5563;">Qty ${escapeHtml(line.qty)}</td>
+        </tr>`;
+    })
+    .join("");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:680px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="background:#1f2937;padding:28px 32px;">
+                <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
+                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;color:#ffffff;">Your order has shipped</h1>
+                <p style="margin:10px 0 0;color:#d1d5db;font-size:15px;">Hi ${escapeHtml(customerName)}, your Internext order is now on its way.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
+                  <tr>
+                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Order number</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(orderNumber)}</div>
+                    </td>
+                    <td width="16"></td>
+                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Shipped</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(formatOrderDate(new Date().toISOString()))}</div>
+                    </td>
+                  </tr>
+                </table>
+
+                <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Tracking details</h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:24px;">
+                  <tr>
+                    <td style="padding:8px 0;color:#4b5563;">Carrier</td>
+                    <td align="right" style="padding:8px 0;color:#111827;font-weight:700;">${escapeHtml(carrier)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:8px 0;color:#4b5563;">Tracking number</td>
+                    <td align="right" style="padding:8px 0;color:#111827;font-weight:700;">${escapeHtml(trackingNumber)}</td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 22px;color:#4b5563;line-height:1.6;">
+                  You can use the tracking link below to follow the delivery progress with ${escapeHtml(carrier)}.
+                </p>
+                <p style="margin:0 0 26px;">
+                  <a href="${escapeHtml(trackingUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;border-radius:10px;padding:13px 18px;font-weight:700;">Track your order</a>
+                </p>
+
+                ${itemRows ? `
+                  <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Items in this shipment</h2>
+                  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                    <tbody>${itemRows}</tbody>
+                  </table>` : ""}
+
+                <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
+                  For delivery questions, call 1300 567 835.
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    "Your Internext order has shipped",
+    `Order: ${orderNumber}`,
+    `Carrier: ${carrier}`,
+    `Tracking number: ${trackingNumber}`,
+    `Tracking link: ${trackingUrl}`,
+    "",
+    "Items:",
+    ...items.map((item) => {
+      const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      return `- ${getString(line.description)} x ${line.qty ?? ""}`;
+    }),
+    "",
+    "For delivery questions, call 1300 567 835.",
+  ].join("\n");
+
+  return {
+    to: customerEmail,
+    subject: `Your Internext order has shipped - ${orderNumber}`,
+    html,
+    text,
+  };
+};
+
 const postJsonWebhook = async (url: string, payload: unknown) => {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), WEBHOOK_TIMEOUT_MS);
@@ -267,7 +531,7 @@ export default async function handler(
   req: {
     method?: string;
     body?: string | RequestBody;
-    headers?: { host?: string; "user-agent"?: string };
+    headers?: { cookie?: string; host?: string; "user-agent"?: string };
   },
   res: {
     statusCode?: number;
@@ -275,14 +539,13 @@ export default async function handler(
     end: (chunk?: string) => void;
   },
 ) {
-  if (req.method !== "POST") {
-    return sendJson(res, 405, { message: "Method not allowed." });
+  if (req.method === "GET") {
+    const result = await fetchSharedOrders(req);
+    return sendJson(res, result.status, result.body);
   }
 
-  const adminWebhookUrl = readEnv("POWER_AUTOMATE_ORDER_WEBHOOK_URL");
-  const customerWebhookUrl = readEnv("POWER_AUTOMATE_CUSTOMER_ORDER_WEBHOOK_URL");
-  if (!adminWebhookUrl && !customerWebhookUrl) {
-    return sendJson(res, 500, { message: "Order notification webhooks are not configured." });
+  if (req.method !== "POST") {
+    return sendJson(res, 405, { message: "Method not allowed." });
   }
 
   const body = parseJsonBody<RequestBody>(req.body);
@@ -290,7 +553,75 @@ export default async function handler(
     return sendJson(res, 400, { message: "An order payload is required." });
   }
 
+  const adminWebhookUrl = readEnv("POWER_AUTOMATE_ORDER_WEBHOOK_URL");
+  const customerWebhookUrl = readEnv("POWER_AUTOMATE_CUSTOMER_ORDER_WEBHOOK_URL");
+
+  if (body.notificationType === "store_order") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to update shared orders." });
+    }
+
+    const storageResponse = await upsertSharedOrder(body.order);
+    return sendJson(res, storageResponse.ok ? 200 : 502, {
+      ok: storageResponse.ok,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
+    });
+  }
+
+  if (body.notificationType === "shipment") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to send shipment emails." });
+    }
+
+    if (!customerWebhookUrl) {
+      return sendJson(res, 500, { message: "Customer order email webhook is not configured." });
+    }
+
+    const customerEmail = buildCustomerShipmentEmail(body.order);
+    if (!customerEmail.to) {
+      return sendJson(res, 400, { message: "Customer email address was not provided." });
+    }
+
+    const storageResponse = await upsertSharedOrder(body.order);
+    const customerResponse = await postJsonWebhook(customerWebhookUrl, {
+      type: "customer_order_shipped",
+      submittedAt: new Date().toISOString(),
+      source: "internext-admin",
+      host: req.headers?.host || "",
+      userAgent: req.headers?.["user-agent"] || "",
+      orderNumber: body.order.orderNumber || "",
+      to: customerEmail.to,
+      subject: customerEmail.subject,
+      html: customerEmail.html,
+      text: customerEmail.text,
+      customerEmail,
+      order: body.order,
+    });
+
+    return sendJson(res, customerResponse.ok ? 200 : 502, {
+      ok: customerResponse.ok,
+      customerEmailSent: customerResponse.ok,
+      customerEmailStatus: customerResponse.status,
+      customerEmailTo: customerEmail.to,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
+      customerEmailMessage: customerResponse.ok
+        ? "Customer shipment workflow accepted the request."
+        : `Customer shipment workflow failed: ${customerResponse.message}`,
+    });
+  }
+
+  if (!adminWebhookUrl && !customerWebhookUrl) {
+    return sendJson(res, 500, { message: "Order notification webhooks are not configured." });
+  }
+
   try {
+    const storageResponse = await upsertSharedOrder(body.order);
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
     const adminPayload = {
@@ -345,6 +676,9 @@ export default async function handler(
       customerEmailSent: customerResponse.ok,
       customerEmailStatus: customerResponse.status,
       customerEmailTo: customerEmail.to,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
         : `Customer confirmation workflow failed: ${customerResponse.message}`,

@@ -1,4 +1,4 @@
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
@@ -15,19 +15,31 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   FulfillmentStatus,
+  OrderRecord,
   SupplierIntegrationSettings,
   SupplierSubmissionStatus,
+  fetchSharedOrders,
   formatAud,
   getOrders,
   getSupplierIntegrationSettings,
+  persistSharedOrder,
   retrySupplierSubmission,
   saveSupplierIntegrationSettings,
-  updateOrderFulfillment,
+  updateSharedOrderFulfillment,
 } from "@/lib/orderManagement";
 import { clearAuthSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 type OrderView = "all" | "needs_supplier" | "active" | "completed";
+type ShipmentFormState = {
+  trackingCarrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+};
+type ShipmentMessage = {
+  tone: "success" | "error";
+  text: string;
+};
 
 const supplierStatusClass: Record<SupplierSubmissionStatus, string> = {
   submitted: "bg-emerald-100 text-emerald-800",
@@ -65,11 +77,27 @@ const OrdersAdmin = () => {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentStatus | "all">("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
+  const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
   const { session } = useAuthSession();
 
-  const refreshOrders = () => {
-    setOrders(getOrders());
+  const refreshOrders = async () => {
+    setOrders(await fetchSharedOrders());
   };
+
+  useEffect(() => {
+    if (session?.role !== "admin") {
+      return;
+    }
+
+    void (async () => {
+      const localOrders = getOrders();
+      if (localOrders.length > 0) {
+        await Promise.all(localOrders.map((order) => persistSharedOrder(order)));
+      }
+      await refreshOrders();
+    })();
+  }, [session?.role]);
 
   const summary = useMemo(() => {
     const open = orders.filter(
@@ -254,26 +282,116 @@ const OrdersAdmin = () => {
     setActioningOrderId(orderId);
     try {
       await action();
-      refreshOrders();
+      await refreshOrders();
     } finally {
       setActioningOrderId(null);
     }
   };
 
+  const getShipmentForm = (order: OrderRecord): ShipmentFormState =>
+    shipmentForms[order.id] ?? {
+      trackingCarrier: order.trackingCarrier ?? "",
+      trackingNumber: order.trackingNumber ?? "",
+      trackingUrl: order.trackingUrl ?? "",
+    };
+
+  const updateShipmentForm = (
+    order: OrderRecord,
+    field: keyof ShipmentFormState,
+    value: string,
+  ) => {
+    setShipmentForms((current) => ({
+      ...current,
+      [order.id]: {
+        ...getShipmentForm(order),
+        ...current[order.id],
+        [field]: value,
+      },
+    }));
+    setShipmentMessages((current) => {
+      const next = { ...current };
+      delete next[order.id];
+      return next;
+    });
+  };
+
+  const sendShipmentEmail = async (order: OrderRecord) => {
+    const response = await fetch("/api/order-notification", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ notificationType: "shipment", order }),
+    });
+    const payload = await response.json().catch(() => ({}));
+
+    if (!response.ok || payload.customerEmailSent === false) {
+      throw new Error(
+        typeof payload.customerEmailMessage === "string"
+          ? payload.customerEmailMessage
+          : typeof payload.message === "string"
+            ? payload.message
+            : "Shipment email workflow did not accept the request.",
+      );
+    }
+  };
+
   const markFulfillment = async (orderId: string, status: FulfillmentStatus) => {
     await withOrderAction(orderId, async () => {
-      if (status === "shipped") {
-        const trackingNumber = window.prompt("Tracking number (optional)", "") ?? "";
-        const trackingUrl = window.prompt("Tracking URL (optional)", "") ?? "";
-        updateOrderFulfillment(orderId, {
-          fulfillmentStatus: "shipped",
-          trackingNumber: trackingNumber || undefined,
-          trackingUrl: trackingUrl || undefined,
-        });
-        return;
+      await updateSharedOrderFulfillment(orderId, { fulfillmentStatus: status });
+    });
+  };
+
+  const markShipped = async (order: OrderRecord) => {
+    const shipmentForm = getShipmentForm(order);
+    const trackingCarrier = shipmentForm.trackingCarrier.trim();
+    const trackingNumber = shipmentForm.trackingNumber.trim();
+    const trackingUrl = shipmentForm.trackingUrl.trim();
+
+    if (!trackingCarrier || !trackingNumber || !trackingUrl) {
+      setShipmentMessages((current) => ({
+        ...current,
+        [order.id]: {
+          tone: "error",
+          text: "Enter the carrier, tracking number, and tracking link before marking this order as shipped.",
+        },
+      }));
+      return;
+    }
+
+    await withOrderAction(order.id, async () => {
+      const updatedOrder = await updateSharedOrderFulfillment(order.id, {
+        fulfillmentStatus: "shipped",
+        trackingCarrier,
+        trackingNumber,
+        trackingUrl,
+      });
+
+      if (!updatedOrder) {
+        throw new Error("Order could not be updated.");
       }
 
-      updateOrderFulfillment(orderId, { fulfillmentStatus: status });
+      try {
+        await sendShipmentEmail(updatedOrder);
+        setShipmentMessages((current) => ({
+          ...current,
+          [order.id]: {
+            tone: "success",
+            text: `Marked shipped and emailed tracking details to ${updatedOrder.customer.email}.`,
+          },
+        }));
+      } catch (error) {
+        setShipmentMessages((current) => ({
+          ...current,
+          [order.id]: {
+            tone: "error",
+            text:
+              error instanceof Error
+                ? `Marked shipped, but the customer shipment email did not send: ${error.message}`
+                : "Marked shipped, but the customer shipment email did not send.",
+          },
+        }));
+      }
     });
   };
 
@@ -962,19 +1080,32 @@ const OrdersAdmin = () => {
                         <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                           <p className="text-sm font-semibold text-foreground">Tracking</p>
                           {order.trackingNumber ? (
-                            <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                              {order.trackingNumber}
-                              {order.trackingUrl ? (
-                                <a
-                                  href={order.trackingUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="ml-2 font-medium text-accent hover:underline"
-                                >
-                                  Open tracking
-                                </a>
+                            <div className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
+                              {order.trackingCarrier ? (
+                                <p>
+                                  Carrier:{" "}
+                                  <span className="font-medium text-foreground">
+                                    {order.trackingCarrier}
+                                  </span>
+                                </p>
                               ) : null}
-                            </p>
+                              <p>
+                                Tracking:{" "}
+                                <span className="font-medium text-foreground">
+                                  {order.trackingNumber}
+                                </span>
+                                {order.trackingUrl ? (
+                                  <a
+                                    href={order.trackingUrl}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="ml-2 font-medium text-accent hover:underline"
+                                  >
+                                    Open tracking
+                                  </a>
+                                ) : null}
+                              </p>
+                            </div>
                           ) : (
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">
                               No tracking information has been added yet.
@@ -991,13 +1122,82 @@ const OrdersAdmin = () => {
                           Move this order through supplier and delivery states.
                         </p>
 
+                        <div className="mt-4 space-y-3 rounded-xl border border-border/60 bg-background p-3">
+                          <div>
+                            <label
+                              htmlFor={`carrier-${order.id}`}
+                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                            >
+                              Carrier
+                            </label>
+                            <Input
+                              id={`carrier-${order.id}`}
+                              value={getShipmentForm(order).trackingCarrier}
+                              onChange={(event) =>
+                                updateShipmentForm(order, "trackingCarrier", event.target.value)
+                              }
+                              placeholder="Australia Post, StarTrack, TNT..."
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={`tracking-number-${order.id}`}
+                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                            >
+                              Tracking number
+                            </label>
+                            <Input
+                              id={`tracking-number-${order.id}`}
+                              value={getShipmentForm(order).trackingNumber}
+                              onChange={(event) =>
+                                updateShipmentForm(order, "trackingNumber", event.target.value)
+                              }
+                              placeholder="Enter tracking reference"
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={`tracking-link-${order.id}`}
+                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                            >
+                              Tracking link
+                            </label>
+                            <Input
+                              id={`tracking-link-${order.id}`}
+                              type="url"
+                              value={getShipmentForm(order).trackingUrl}
+                              onChange={(event) =>
+                                updateShipmentForm(order, "trackingUrl", event.target.value)
+                              }
+                              placeholder="https://..."
+                              className="mt-2"
+                            />
+                          </div>
+                          {shipmentMessages[order.id] ? (
+                            <p
+                              className={`rounded-lg px-3 py-2 text-sm ${
+                                shipmentMessages[order.id].tone === "success"
+                                  ? "bg-emerald-50 text-emerald-800"
+                                  : "bg-red-50 text-red-800"
+                              }`}
+                            >
+                              {shipmentMessages[order.id].text}
+                            </p>
+                          ) : null}
+                        </div>
+
                         <div className="mt-4 flex flex-wrap gap-2 xl:flex-col">
                           {order.supplierStatus !== "submitted" ? (
                             <Button
                               size="sm"
                               onClick={() =>
                                 withOrderAction(order.id, async () => {
-                                  await retrySupplierSubmission(order.id);
+                                  const updatedOrder = await retrySupplierSubmission(order.id);
+                                  if (updatedOrder) {
+                                    await persistSharedOrder(updatedOrder);
+                                  }
                                 })
                               }
                               disabled={actioningOrderId === order.id}
@@ -1019,11 +1219,11 @@ const OrdersAdmin = () => {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => markFulfillment(order.id, "shipped")}
+                            onClick={() => markShipped(order)}
                             disabled={actioningOrderId === order.id}
                             className="w-full justify-center"
                           >
-                            Mark Shipped
+                            {actioningOrderId === order.id ? "Saving..." : "Mark Shipped & Email"}
                           </Button>
                           <Button
                             size="sm"
