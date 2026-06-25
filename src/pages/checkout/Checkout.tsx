@@ -137,6 +137,36 @@ const getStateFromLookup = (result: AddressLookupResult) => {
   return stateMap[state] || state;
 };
 
+const hasStreetAddressIntent = (query: string) =>
+  /\d/.test(query) ||
+  /\b(arcade|ave|avenue|boulevard|blvd|cct|circuit|close|court|ct|crescent|cres|drive|dr|lane|ln|parade|pde|place|pl|road|rd|street|st|terrace|tce|way)\b/i.test(
+    query,
+  );
+
+const isStreetAddressResult = (result: AddressLookupResult) => {
+  if (result.street?.trim() || result.housenumber?.trim()) {
+    return true;
+  }
+
+  const lineOne = getLineOneFromLookup(result).trim().toLowerCase();
+  if (!lineOne) {
+    return false;
+  }
+
+  const suburb = getSuburbFromLookup(result).toLowerCase();
+  const postcode = getPostcodeFromLookup(result);
+
+  if (suburb && lineOne === suburb) {
+    return false;
+  }
+
+  if (suburb && postcode && lineOne.includes(suburb) && lineOne.includes(postcode)) {
+    return false;
+  }
+
+  return /\d/.test(lineOne) || hasStreetAddressIntent(lineOne);
+};
+
 const GEOAPIFY_API_KEY = (import.meta.env.VITE_GEOAPIFY_API_KEY as string | undefined)?.trim() || "";
 
 const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
@@ -597,10 +627,19 @@ const Checkout = () => {
         }
 
         const payload = (await response.json()) as { results?: AddressLookupResult[] };
-        const results = payload.results ?? [];
+        const rawResults = payload.results ?? [];
+        const results = hasStreetAddressIntent(query)
+          ? rawResults.filter(isStreetAddressResult)
+          : rawResults;
         setAddressSuggestions(results);
         setShowAddressSuggestions(true);
-        setAddressLookupMessage(results.length === 0 ? "No matching addresses found." : null);
+        setAddressLookupMessage(
+          results.length === 0
+            ? rawResults.length > 0
+              ? "Keep typing the street address, or enter the suburb and postcode manually below."
+              : "No matching addresses found."
+            : null,
+        );
       } catch (lookupError) {
         if (lookupError instanceof Error && lookupError.name === "AbortError") {
           return;
