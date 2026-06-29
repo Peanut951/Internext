@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
+import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -27,7 +28,7 @@ try {
 
 const productCodes = Array.from(
   new Set(
-    [...staticProducts, ...leaderProducts, ...leaderFeedProducts]
+    filterTangibleCatalogProducts([...staticProducts, ...leaderProducts, ...leaderFeedProducts])
       .map((product) => String(product.code || "").trim())
       .filter(Boolean),
   ),
@@ -55,7 +56,6 @@ const categoryPaths = [
   "laser",
   "large-format",
   "3d-printers",
-  "printer-warranties",
   "inkjet-consumables",
   "laser-consumables",
   "large-format-consumables",

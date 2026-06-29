@@ -106,7 +106,6 @@ const categories = [
       { label: "Laser Printers", href: "/products/laser" },
       { label: "Large Format Printers", href: "/products/large-format" },
       { label: "3D Printers", href: "/products/3d-printers" },
-      { label: "Printer Warranties", href: "/products/printer-warranties" },
     ],
   },
   {

@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { loadMergedCatalogProducts } from "../catalog/live.js";
+import { isTangibleCatalogProduct, loadMergedCatalogProducts } from "../catalog/live.js";
 import { getGoogleShippingDimension, getGoogleShippingWeight } from "../shipping/_estimates.js";
 
 const SITE_URL = "https://www.internext.com.au";
@@ -508,16 +508,7 @@ const isGoogleMerchantPhysicalProduct = (product: {
   description?: string | null;
   longDescription?: string | null;
 }) => {
-  const listingText = getProductListingText(product);
-  const productType = getProductType(product);
-
-  if (productType === "Services and software") {
-    return false;
-  }
-
-  return !/\b(care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|warranty|extended\s*warranty|hardware\s+support|onsite\s+support|subscription|renewal|licen[cs]e|software|training|install(?:ation|ations)?|instal|professional\s+service|bootcamp|managed\s+service|digital\s+download|postscript|pdf\s+upgrade|poly\+.*service)\b/i.test(
-    listingText,
-  );
+  return isTangibleCatalogProduct(product as Record<string, unknown>);
 };
 
 const isLeaderLiveFeedImage = (product: { imageUrl?: string | null; imageUrls?: unknown }) => {

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
+import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const distDir = path.resolve("dist");
@@ -328,11 +329,11 @@ try {
   console.warn(`Alloys live feed unavailable for static product pages: ${error.message}`);
 }
 
-const products = mergeAlloysLivePricing([
+const products = filterTangibleCatalogProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...readJson(path.join(dataDir, "leader-products.json")),
   ...leaderFeedProducts,
-], alloysLiveItems);
+], alloysLiveItems));
 const uniqueProducts = new Map();
 
 for (const product of products) {

@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
+import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -276,14 +277,7 @@ const getProductType = (product) => {
 };
 
 const isGoogleMerchantPhysicalProduct = (product) => {
-  const listingText = getProductListingText(product);
-  const productType = getProductType(product);
-
-  if (productType === "Services and software") return false;
-
-  return !/\b(care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|warranty|extended\s*warranty|hardware\s+support|onsite\s+support|subscription|renewal|licen[cs]e|software|training|install(?:ation|ations)?|instal|professional\s+service|bootcamp|managed\s+service|digital\s+download|postscript|pdf\s+upgrade|poly\+.*service)\b/i.test(
-    listingText,
-  );
+  return isTangibleCatalogProduct(product);
 };
 
 const getGoogleProductCategory = (product) => {
@@ -640,6 +634,7 @@ const products = mergeProducts(mergeAlloysLivePricing([
     const overrideImages = imageOverrideMap.get(String(product.code || "").trim().toUpperCase());
     return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
   })
+  .filter(isTangibleCatalogProduct)
   .filter((product) => typeof product.price === "number" && product.price > 0)
   .filter(isGoogleMerchantPhysicalProduct)
   .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
