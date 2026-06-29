@@ -8,6 +8,7 @@ export type LiveCatalogItem = {
   supplierCode: string;
   manufacturer: string;
   name: string;
+  longDescription?: string;
   price: number | null;
   priceText: string;
   resellerPrice: number | null;
@@ -130,7 +131,50 @@ const cleanText = (value: unknown) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const cleanSupplierDescription = (value: unknown) =>
+  String(value || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\u00a0/g, " ")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+const isDetailedDescription = (value: unknown) => {
+  const text = cleanText(value);
+  return text.length >= 350 || (text.match(/[.!?]/g) || []).length >= 4;
+};
+
+const chooseLongDescription = (preferred: unknown, fallback: unknown) =>
+  isDetailedDescription(preferred)
+    ? String(preferred).trim()
+    : typeof fallback === "string" && fallback.trim()
+      ? fallback.trim()
+      : typeof preferred === "string"
+        ? preferred.trim()
+        : undefined;
+
 const normalizeHeaderName = (value: string) => value.trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const SUPPLIER_DESCRIPTION_FIELDS = [
+  "LongDescription",
+  "Long Description",
+  "FullDescription",
+  "Full Description",
+  "ProductDescription",
+  "Product Description",
+  "MarketingDescription",
+  "Marketing Description",
+  "WebDescription",
+  "Web Description",
+  "ExtendedDescription",
+  "Extended Description",
+  "Description",
+  "Overview",
+  "Features",
+];
 
 const getCsvField = (headers: string[], parts: string[], names: string[]) => {
   for (const name of names) {
@@ -417,20 +461,13 @@ const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: n
 const normalizeEtaStatus = (value: string | undefined) =>
   isBackToBackStatus(value) ? CONTACT_AVAILABILITY_TEXT : formatDateDmy(value);
 
-const splitFeedRows = (csv: string) =>
-  csv
-    .replace(/^\uFEFF/, "")
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-
 const parseLiveCatalog = (csv: string) => {
-  const [header = "", ...rows] = splitFeedRows(csv);
-  const headers = header.split(",").map(normalizeHeaderName);
+  const records = parseCsvRecords(csv.replace(/^\uFEFF/, ""));
+  const [rawHeaders = [], ...rows] = records;
+  const headers = rawHeaders.map(normalizeHeaderName);
 
   return rows
-    .map((row): LiveCatalogItem | null => {
-      const parts = row.split(",");
+    .map((parts): LiveCatalogItem | null => {
       const code = parts[0]?.trim();
 
       if (!code) {
@@ -452,6 +489,7 @@ const parseLiveCatalog = (csv: string) => {
         supplierCode: parts[13]?.trim() || code,
         manufacturer: parts[3]?.trim() || "",
         name: parts[1]?.trim() || "",
+        longDescription: cleanSupplierDescription(getCsvField(headers, parts, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
         price,
         priceText: formatCustomerAud(price),
         resellerPrice,
@@ -505,6 +543,17 @@ const getXmlTag = (row: string, tag: string) => {
   return match ? decodeXmlText(match[1].trim()) : "";
 };
 
+const getFirstXmlTag = (row: string, tags: string[]) => {
+  for (const tag of tags) {
+    const value = getXmlTag(row, tag);
+    if (value.trim()) {
+      return value;
+    }
+  }
+
+  return "";
+};
+
 const parseLiveCatalogXml = (xml: string) => {
   const rows = Array.from(xml.matchAll(/<row>([\s\S]*?)<\/row>/gi), (match) => match[1]);
 
@@ -529,6 +578,7 @@ const parseLiveCatalogXml = (xml: string) => {
         supplierCode: getXmlTag(row, "SupplierPartNumber") || code,
         manufacturer: getXmlTag(row, "Manufacturer"),
         name: getXmlTag(row, "Name"),
+        longDescription: cleanSupplierDescription(getFirstXmlTag(row, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
         price,
         priceText: formatCustomerAud(price),
         resellerPrice,
@@ -694,6 +744,7 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
     supplierCode: product.supplierCode || product.code,
     manufacturer: product.manufacturer || "Leader",
     name: product.description || product.code,
+    longDescription: product.longDescription,
     price,
     priceText: formatCustomerAud(price),
     resellerPrice,
@@ -968,6 +1019,7 @@ const loadMergedCatalogProductsUncached = async (
         rrpExGst: live.rrpExGst,
         taxRate: live.taxRate,
         supplierCode: product.supplierCode || live.supplierCode,
+        longDescription: chooseLongDescription(live.longDescription, product.longDescription),
         availabilityText: live.availabilityText,
         etaDate: live.etaDate,
         etaStatus: live.etaStatus,

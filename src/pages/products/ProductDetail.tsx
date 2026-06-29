@@ -67,6 +67,16 @@ const safeText = (value: unknown) => {
   return String(value).trim();
 };
 
+const splitSupplierDescriptionParagraphs = (value: unknown) =>
+  safeText(value)
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\u00a0/g, " ")
+    .split(/\n{2,}|\r?\n/)
+    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
+    .filter((paragraph) => paragraph.length > 0);
+
 const getPlainProductName = (product: CatalogProduct) => {
   const description = safeText(product.description) || safeText(product.code) || "Product";
   const manufacturer = safeText(product.manufacturer);
@@ -116,6 +126,11 @@ const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
 };
 
 const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {
+  const supplierParagraphs = splitSupplierDescriptionParagraphs(product.longDescription);
+  if (supplierParagraphs.length > 0) {
+    return supplierParagraphs;
+  }
+
   const source = `${safeText(product.description)} ${safeText(product.longDescription)}`;
   const plainName = getPlainProductName(product);
   const paragraphs = [buildProductIntro(product, highlights)];

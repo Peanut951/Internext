@@ -1,7 +1,10 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const catalogPath = path.resolve("public", "data", "catalog-products.json");
+const catalogPaths = [
+  path.resolve("public", "data", "catalog-products.json"),
+  path.resolve("public", "data", "leader-products.json"),
+];
 
 const ACRONYMS = new Set([
   "IP",
@@ -185,7 +188,8 @@ const inferType = (text) => {
   if (/(router|switch|access point|network|nas|storage|hdd|ssd|gateway)/i.test(text)) return "network and infrastructure product";
   if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) return "video surveillance product";
   if (/(display|projector|panel|signage|interactive|screen|whiteboard|videowall|ifp|touch display|touch panel)/i.test(text)) return "audio visual product";
-  if (/(headset|voip|conference|speakerphone|sip|video phone|handset|phone|speaker)/i.test(text)) return "communications product";
+  if (/(sip account|sip accounts|voip|video phone|handset|phone|grp\d|wp\d|gxp\d)/i.test(text)) return "IP phone";
+  if (/(headset|conference|speakerphone|sip|speaker)/i.test(text)) return "communications product";
   if (/(mount|bracket|stand|adapter|module|dock|tray|case)/i.test(text)) return "supporting accessory";
   return "technology product";
 };
@@ -199,7 +203,10 @@ const inferUseCase = (text) => {
   if (/(router|switch|access point|network|nas|storage|hdd|ssd|gateway)/i.test(text)) return "network connectivity, infrastructure stability, and system expansion";
   if (/(camera|cctv|nvr|dvr|surveillance|ptz)/i.test(text)) return "continuous monitoring and incident visibility";
   if (/(display|projector|panel|signage|interactive|screen|whiteboard|videowall|ifp|touch display|touch panel)/i.test(text)) return "presentation, collaboration, signage, and shared visual communication";
-  if (/(headset|voip|conference|speakerphone|sip|video phone|handset|phone|speaker)/i.test(text)) return "business communication and unified communications deployments";
+  if (/(sip account|sip accounts|voip|video phone|handset|phone|grp\d|wp\d|gxp\d)/i.test(text)) {
+    return "desk phone, extension, and unified communications deployments";
+  }
+  if (/(headset|conference|speakerphone|sip|speaker)/i.test(text)) return "business communication and unified communications deployments";
   if (/(mount|bracket|stand|adapter|module|dock|tray|case)/i.test(text)) return "installation, expansion, and equipment fit-out work";
   return "general business technology deployments";
 };
@@ -340,6 +347,7 @@ const extractPrimaryNoun = (text, manufacturer) => {
     "gateway",
     "terminal",
     "phone",
+    "lines",
     "handset",
     "speaker",
     "camera",
@@ -372,6 +380,9 @@ const extractPrimaryNoun = (text, manufacturer) => {
 
   for (const keyword of preferred) {
     if (tokens.includes(keyword)) {
+      if (keyword === "lines") {
+        return "phone";
+      }
       if (keyword === "ifp") {
         return "display";
       }
@@ -394,6 +405,31 @@ const buildFeatureSentence = (details) => {
     return "The published specification points to a practical configuration aimed at dependable everyday use.";
   }
   return `Key specification cues in the listing include ${formatFeatureList(details)}.`;
+};
+
+const buildFeatureLines = (details, text, type) => {
+  const lines = [];
+  for (const detail of details) {
+    lines.push(detail);
+  }
+
+  const addIf = (condition, value) => {
+    if (condition && !lines.some((line) => line.toLowerCase() === value.toLowerCase())) {
+      lines.push(value);
+    }
+  };
+
+  addIf(/poe/i.test(text), "PoE capability where specified for simpler network installation");
+  addIf(/wi-?fi/i.test(text), "Wi-Fi connectivity where listed for flexible deployment");
+  addIf(/duplex/i.test(text), "Duplex operation where supported for more efficient document handling");
+  addIf(/4k|uhd/i.test(text), "4K/UHD capability where specified for sharper visual detail");
+  addIf(/sip|voip/i.test(text), "SIP/VoIP capability for business communications environments");
+  addIf(/ai/i.test(text), "AI-assisted features where listed in the product specification");
+  addIf(/security|access|surveillance|camera|nvr|dvr/i.test(text), "Security-focused operation for monitoring, access, or recording workflows");
+  addIf(/toner|cartridge|drum|ink|ribbon|consumable/i.test(text), "Designed to match compatible print devices and expected replacement cycles");
+  addIf(lines.length === 0, `${type.charAt(0).toUpperCase()}${type.slice(1)} configuration based on the listed product specification`);
+
+  return lines.slice(0, 8);
 };
 
 const buildApplicationSentence = (text, noun) => {
@@ -419,35 +455,62 @@ const buildDifferentiatorSentence = (text, noun) => {
 const buildLongDescription = (product) => {
   const manufacturer = normalizeManufacturer(product.manufacturer);
   const title = polishTitle(product.description);
-  const type = inferType(title);
-  const useCase = inferUseCase(title);
-  const details = extractDetailFragments(title);
-  const noun = extractPrimaryNoun(title, manufacturer);
+  const code = cleanEncoding(product.code);
+  const supplierCode = cleanEncoding(product.supplierCode);
+  const model = supplierCode && supplierCode.toLowerCase() !== code.toLowerCase() ? supplierCode : code.replace(/^[A-Z]{2,4}-/i, "");
+  const sourceText = [title, model, code, supplierCode].filter(Boolean).join(" ");
+  const type = inferType(sourceText);
+  const useCase = inferUseCase(sourceText);
+  const details = extractDetailFragments(sourceText);
+  const noun = extractPrimaryNoun(sourceText, manufacturer);
+  const featureLines = buildFeatureLines(details, sourceText, type);
 
-  const namedTitle = title.toLowerCase().startsWith(manufacturer.toLowerCase())
-    ? title
-    : `${manufacturer} ${title}`;
+  const titleWithModel =
+    model && !new RegExp(`\\b${escapeRegExp(model)}\\b`, "i").test(title)
+      ? `${model} ${title}`
+      : title;
+  const namedTitle = titleWithModel.toLowerCase().startsWith(manufacturer.toLowerCase())
+    ? titleWithModel
+    : `${manufacturer} ${titleWithModel}`;
 
-  const intro = `${namedTitle} is ${articleFor(type)} ${type} intended for ${inferAudience(title)}.`;
-  const application = buildApplicationSentence(title, noun);
-  const features = buildFeatureSentence(details);
-  const differentiator = buildDifferentiatorSentence(title, noun);
-  const useCaseLine = `Typical use includes ${useCase}.`;
-  const codeLine = `Product code: ${cleanEncoding(product.code)}${product.supplierCode ? `; supplier reference: ${cleanEncoding(product.supplierCode)}.` : "."}`;
+  const heading = `${code}\n${namedTitle}`;
+  const intro = `${namedTitle} is ${articleFor(type)} ${type} intended for ${inferAudience(sourceText)}. It is selected for ${useCase}, with the product listing structured around practical compatibility, deployment fit, and ongoing day-to-day reliability.`;
+  const application = `${buildApplicationSentence(sourceText, noun)} Buyers can use the model number and product code to confirm fit against project requirements, existing equipment, or a preferred shortlist before purchasing.`;
+  const features = `Features:\n${featureLines.map((line) => `- ${toSentenceCase(line)}`).join("\n")}`;
+  const differentiator = `${buildDifferentiatorSentence(sourceText, noun)} The product details should be checked against the intended environment, supported host device, mounting location, or system design before installation.`;
+  const operations = `Typical applications include ${useCase}. For business use, this item is best treated as part of a complete procurement decision that considers compatibility, quantity, site requirements, deployment needs, and delivery timing.`;
+  const support = `Internext supplies this item with online ordering, Australian delivery options, secure checkout, and customer assistance for matching the product to a rollout, replacement, or upgrade. Use product code ${code} when discussing this item with Internext.`;
 
-  return [intro, application, features, differentiator, useCaseLine, codeLine]
-    .map(toSentenceCase)
-    .join(" ");
+  return [
+    heading,
+    toSentenceCase(intro),
+    toSentenceCase(application),
+    features,
+    toSentenceCase(differentiator),
+    toSentenceCase(operations),
+    toSentenceCase(support),
+  ].join("\n\n");
 };
 
-const raw = fs.readFileSync(catalogPath, "utf8");
-const catalog = JSON.parse(raw);
+let total = 0;
 
-for (const item of catalog) {
-  item.description = polishTitle(item.description);
-  item.manufacturer = normalizeManufacturer(item.manufacturer);
-  item.longDescription = buildLongDescription(item);
+for (const catalogPath of catalogPaths) {
+  if (!fs.existsSync(catalogPath)) {
+    continue;
+  }
+
+  const raw = fs.readFileSync(catalogPath, "utf8");
+  const catalog = JSON.parse(raw);
+
+  for (const item of catalog) {
+    item.description = polishTitle(item.description);
+    item.manufacturer = normalizeManufacturer(item.manufacturer);
+    item.longDescription = buildLongDescription(item);
+  }
+
+  fs.writeFileSync(catalogPath, JSON.stringify(catalog));
+  total += catalog.length;
+  console.log(`Enhanced descriptions for ${catalog.length} products in ${path.relative(process.cwd(), catalogPath)}.`);
 }
 
-fs.writeFileSync(catalogPath, JSON.stringify(catalog));
-console.log(`Enhanced descriptions for ${catalog.length} products.`);
+console.log(`Enhanced descriptions for ${total} products total.`);

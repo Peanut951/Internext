@@ -48,7 +48,50 @@ const normalizeGtin = (value) => {
   return /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits) ? digits : "";
 };
 
+const cleanSupplierDescription = (value) =>
+  String(value || "")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\u00a0/g, " ")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join("\n\n");
+
+const isDetailedDescription = (value) => {
+  const text = String(value || "").replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  return text.length >= 350 || (text.match(/[.!?]/g) || []).length >= 4;
+};
+
+const chooseLongDescription = (preferred, fallback) =>
+  isDetailedDescription(preferred)
+    ? String(preferred).trim()
+    : typeof fallback === "string" && fallback.trim()
+      ? fallback.trim()
+      : typeof preferred === "string"
+        ? preferred.trim()
+        : undefined;
+
 const normalizeHeaderName = (value) => String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
+
+const SUPPLIER_DESCRIPTION_FIELDS = [
+  "LongDescription",
+  "Long Description",
+  "FullDescription",
+  "Full Description",
+  "ProductDescription",
+  "Product Description",
+  "MarketingDescription",
+  "Marketing Description",
+  "WebDescription",
+  "Web Description",
+  "ExtendedDescription",
+  "Extended Description",
+  "Description",
+  "Overview",
+  "Features",
+];
 
 const parseCsvRecords = (text) => {
   const records = [];
@@ -122,6 +165,17 @@ const decodeXmlText = (value) =>
 const getXmlTag = (row, tag) => {
   const match = row.match(new RegExp(`<${tag}>([\\s\\S]*?)<\\/${tag}>`, "i"));
   return match ? decodeXmlText(match[1].trim()) : "";
+};
+
+const getFirstXmlTag = (row, tags) => {
+  for (const tag of tags) {
+    const value = getXmlTag(row, tag);
+    if (value.trim()) {
+      return value;
+    }
+  }
+
+  return "";
 };
 
 const formatAud = (value) =>
@@ -200,6 +254,7 @@ const createLiveItem = ({
   supplierCode,
   manufacturer,
   name,
+  longDescription,
   costExGst,
   rrpExGst,
   taxRate,
@@ -226,6 +281,7 @@ const createLiveItem = ({
     supplierCode: supplierCode || code,
     manufacturer,
     name,
+    longDescription,
     price,
     priceText: formatCustomerAud(price),
     resellerPrice,
@@ -273,6 +329,7 @@ const parseLiveCatalogCsv = (csv) => {
         supplierCode: parts[13]?.trim() || code,
         manufacturer: parts[3]?.trim() || "",
         name: parts[1]?.trim() || "",
+        longDescription: cleanSupplierDescription(getCsvField(headers, parts, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
         costExGst: parseNumber(parts[8]),
         rrpExGst: parseNumber(parts[9]),
         taxRate: parseNumber(parts[11]) ?? 0,
@@ -322,6 +379,7 @@ const parseLiveCatalogXml = (xml) => {
         supplierCode: getXmlTag(row, "SupplierPartNumber") || code,
         manufacturer: getXmlTag(row, "Manufacturer"),
         name: getXmlTag(row, "Name"),
+        longDescription: cleanSupplierDescription(getFirstXmlTag(row, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
         costExGst: parseNumber(getXmlTag(row, "PriceCostEx")),
         rrpExGst: parseNumber(getXmlTag(row, "PriceRetailEx")),
         taxRate: parseNumber(getXmlTag(row, "TaxRate")) ?? 0,
@@ -408,6 +466,7 @@ export const mergeAlloysLivePricing = (products, liveItems) => {
       rrpExGst: live.rrpExGst,
       taxRate: live.taxRate,
       supplierCode: product.supplierCode || live.supplierCode,
+      longDescription: chooseLongDescription(live.longDescription, product.longDescription),
       availabilityText: live.availabilityText,
       etaDate: live.etaDate,
       etaStatus: live.etaStatus,

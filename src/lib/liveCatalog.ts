@@ -40,6 +40,7 @@ export type CatalogProductWithLive = {
 type LiveCatalogItem = {
   code: string;
   supplierCode: string;
+  longDescription?: string;
   price: number | null;
   priceText: string;
   resellerPrice: number | null;
@@ -92,6 +93,20 @@ const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplier
   [product.code, product.supplierCode]
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
+
+const isDetailedDescription = (value: unknown) => {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  return text.length >= 350 || (text.match(/[.!?]/g) || []).length >= 4;
+};
+
+const chooseLongDescription = (preferred: unknown, fallback: unknown) =>
+  isDetailedDescription(preferred)
+    ? String(preferred).trim()
+    : typeof fallback === "string" && fallback.trim()
+      ? fallback.trim()
+      : typeof preferred === "string"
+        ? preferred.trim()
+        : undefined;
 
 const readCachedProducts = () => {
   if (typeof window === "undefined") {
@@ -167,7 +182,7 @@ export const mergeCatalogProductUpdates = (
       ...update,
       imageUrl: product.imageUrl || update.imageUrl,
       imageUrls: product.imageUrls?.length ? product.imageUrls : update.imageUrls,
-      longDescription: product.longDescription || update.longDescription,
+      longDescription: chooseLongDescription(update.longDescription, product.longDescription),
     };
   });
 
@@ -303,6 +318,7 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         rrpExGst: live.rrpExGst,
         taxRate: live.taxRate,
         supplierCode: product.supplierCode || live.supplierCode,
+        longDescription: chooseLongDescription(live.longDescription, product.longDescription),
         availabilityText: live.availabilityText,
         etaDate: live.etaDate,
         etaStatus: live.etaStatus,
