@@ -184,6 +184,8 @@ const getShoppingTitleProductType = (product: {
   if (/\btablet\b/.test(text)) return "Tablet";
   if (/\bserver\b/.test(text)) return "Server";
   if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
+  if (/\bheadset\b/.test(text)) return "Headset";
+  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
   if (/\bprojector\b/.test(text)) return "Projector";
   if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";
@@ -194,8 +196,6 @@ const getShoppingTitleProductType = (product: {
   if (/\brouter\b/.test(text)) return "Router";
   if (/\b(nas|storage)\b/.test(text)) return "Network Storage";
   if (/\bfirewall\b/.test(text)) return "Firewall";
-  if (/\bheadset\b/.test(text)) return "Headset";
-  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\bups\b/.test(text)) return "UPS";
   if (/\b(battery|power supply|powerboard|pdu)\b/.test(text)) return "Power Accessory";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control Module";
@@ -232,15 +232,16 @@ const buildShoppingTitle = (product: {
   const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
+  const normalizedMpn = normalizeToken(mpn);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
     productType &&
     normalizedType &&
     !normalizedBase.includes(normalizedType)
       ? productType
       : "",
     base,
-    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
 
   return truncate(parts.join(" "), 150);
@@ -484,12 +485,12 @@ const getProductType = (product: {
   if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Computers > Laptops";
   if (/\b(tablet)\b/.test(text)) return "Computers > Tablets";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computers > Desktop computers and servers";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Displays and AV > Displays";
   if (/\b(projector)\b/.test(text)) return "Displays and AV > Projectors";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security > Surveillance";
   if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Security > Access control";
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
-  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Technology accessories > Control modules";
   if (/\b(adapter|adaptor|converter)\b/.test(text)) return "Technology accessories > Adapters and converters";

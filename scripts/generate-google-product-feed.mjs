@@ -260,12 +260,12 @@ const getProductType = (product) => {
   if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Computers > Laptops";
   if (/\b(tablet)\b/.test(text)) return "Computers > Tablets";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computers > Desktop computers and servers";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Displays and AV > Displays";
   if (/\b(projector)\b/.test(text)) return "Displays and AV > Projectors";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security > Surveillance";
   if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Security > Access control";
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Networking > Network hardware";
-  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power > UPS and power accessories";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Technology accessories > Control modules";
   if (/\b(adapter|adaptor|converter)\b/.test(text)) return "Technology accessories > Adapters and converters";
@@ -323,11 +323,11 @@ const estimateShippingProfile = (product) => {
     if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return { weightKg: 5, lengthCm: 65, widthCm: 25, heightCm: 25 };
     if (/\b(laptop|notebook|chromebook)\b/.test(text)) return { weightKg: 3, lengthCm: 45, widthCm: 35, heightCm: 12 };
     if (/\b(tablet)\b/.test(text)) return { weightKg: 1.2, lengthCm: 32, widthCm: 24, heightCm: 8 };
+    if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(text)) return { weightKg: 2, lengthCm: 30, widthCm: 20, heightCm: 15 };
     if (/\b(monitor|display|screen|tv|signage|panel)\b/.test(text)) return { weightKg: 8, lengthCm: 80, widthCm: 55, heightCm: 20 };
     if (/\b(projector|speaker|soundbar|conference)\b/.test(text)) return { weightKg: 5, lengthCm: 45, widthCm: 35, heightCm: 20 };
     if (/\b(printer|multifunction|mfp|copier|scanner|plotter|large format)\b/.test(text)) return { weightKg: 25, lengthCm: 80, widthCm: 60, heightCm: 50 };
     if (/\b(server|workstation|desktop|pc\b|ups|battery)\b/.test(text)) return { weightKg: 12, lengthCm: 60, widthCm: 50, heightCm: 30 };
-    if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(text)) return { weightKg: 2, lengthCm: 30, widthCm: 20, heightCm: 15 };
     return { weightKg: 1, lengthCm: 30, widthCm: 20, heightCm: 10 };
   })();
 
@@ -358,6 +358,8 @@ const getShoppingTitleProductType = (product) => {
   if (/\btablet\b/.test(text)) return "Tablet";
   if (/\b(server)\b/.test(text)) return "Server";
   if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
+  if (/\b(headset)\b/.test(text)) return "Headset";
+  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
   if (/\bprojector\b/.test(text)) return "Projector";
   if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";
@@ -368,8 +370,6 @@ const getShoppingTitleProductType = (product) => {
   if (/\brouter\b/.test(text)) return "Router";
   if (/\b(nas|storage)\b/.test(text)) return "Network Storage";
   if (/\bfirewall\b/.test(text)) return "Firewall";
-  if (/\b(headset)\b/.test(text)) return "Headset";
-  if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\bups\b/.test(text)) return "UPS";
   if (/\b(battery|power supply|powerboard|pdu)\b/.test(text)) return "Power Accessory";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control Module";
@@ -404,8 +404,10 @@ const buildShoppingTitle = (product) => {
   const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
-  const partsWithoutMpn = [
+  const normalizedMpn = normalizeToken(mpn);
+  const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
     productType &&
     normalizedType &&
     !normalizedBase.includes(normalizedType)
@@ -413,13 +415,9 @@ const buildShoppingTitle = (product) => {
       : "",
     base,
   ].filter(Boolean);
-  const parts = [
-    ...partsWithoutMpn,
-    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
-  ].filter(Boolean);
   const title = normalizeTitleCapitalization(parts.join(" "));
 
-  return truncate(hasExcessiveCapitalization(title) ? normalizeTitleCapitalization(partsWithoutMpn.join(" ")) : title, 150);
+  return truncate(hasExcessiveCapitalization(title) ? normalizeTitleCapitalization(parts.join(" ")) : title, 150);
 };
 
 const buildShoppingDescription = (product) => {

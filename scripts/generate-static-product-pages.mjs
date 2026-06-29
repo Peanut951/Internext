@@ -83,12 +83,12 @@ const getSeoProductType = (product) => {
   if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
   if (/\b(tablet)\b/.test(text)) return "Tablet";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computer system";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Commercial display";
   if (/\b(projector)\b/.test(text)) return "Projector";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security camera";
   if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access control device";
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Network hardware";
-  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business communication device";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power accessory";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control module";
   if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
@@ -117,11 +117,12 @@ const buildSearchTitleText = (product) => {
   const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
+  const normalizedMpn = normalizeToken(mpn);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
     productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
     base,
-    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
 
   return parts.join(" ");

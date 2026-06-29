@@ -5,6 +5,7 @@ import { Search, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import {
@@ -295,6 +296,7 @@ const ProductSearch = () => {
                 <div className="mt-6 grid gap-4 md:grid-cols-2">
                   {currentItems.map(({ product }) => {
                     const image = getOptionalProductImage(product);
+                    const productTitle = buildProductDisplayTitle(product);
                     const availability =
                       product.availabilityText ||
                       (typeof product.stockQuantity === "number"
@@ -311,7 +313,7 @@ const ProductSearch = () => {
                             <div className="aspect-square overflow-hidden rounded-xl border border-border/50 bg-white max-sm:max-w-[112px]">
                               <img
                                 src={image}
-                                alt={product.description}
+                                alt={productTitle}
                                 loading="eager"
                                 decoding="async"
                                 onError={handleProductImageError}
@@ -331,7 +333,7 @@ const ProductSearch = () => {
                             </div>
 
                             <h3 className="mt-3 text-lg font-semibold leading-snug text-foreground">
-                              {product.description}
+                              {productTitle}
                             </h3>
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">
                               {getCatalogSummaryText(product)}

@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import { getDisplayPrice } from "@/lib/pricing";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -383,6 +384,7 @@ const ProductsIndex = () => {
                     <div className="max-h-[520px] overflow-y-auto">
                       {searchPreviewMatches.map(({ product }, index) => {
                         const image = getOptionalProductImage(product);
+                        const productTitle = buildProductDisplayTitle(product);
                         const price = getDisplayPrice(product, session?.role);
                         const availability =
                           product.availabilityText ||
@@ -406,7 +408,7 @@ const ProductsIndex = () => {
                               <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border border-border/40 bg-white sm:h-16 sm:w-16">
                                 <img
                                   src={image}
-                                  alt={product.description}
+                                  alt={productTitle}
                                   loading="eager"
                                   decoding="async"
                                   onError={handleProductImageError}
@@ -416,7 +418,7 @@ const ProductsIndex = () => {
                             ) : null}
                             <div className="min-w-0">
                               <p className="break-words font-medium leading-snug text-foreground">
-                                {product.description}
+                                {productTitle}
                               </p>
                               <p className="text-sm break-words text-muted-foreground">
                                 {product.manufacturer || "Unbranded"} - Code: {product.code}

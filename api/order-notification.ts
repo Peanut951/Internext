@@ -10,6 +10,10 @@ const readEnv = (key: string) => process.env[key]?.trim() || "";
 const WEBHOOK_TIMEOUT_MS = 20000;
 const ORDERS_TABLE = "orders";
 const MARKETING_CONTACTS_TABLE = "marketing_contacts";
+const DEFAULT_XERO_SALES_ACCOUNT_CODE = "200";
+const DEFAULT_XERO_SHIPPING_ACCOUNT_CODE = "200";
+const DEFAULT_XERO_TAX_TYPE = "OUTPUT";
+const DEFAULT_XERO_INVOICE_STATUS = "DRAFT";
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
@@ -354,6 +358,126 @@ const buildOrderEmailSummary = (order: Record<string, unknown>) => {
   };
 };
 
+const toIsoDateOnly = (value: unknown) => {
+  const date = new Date(getString(value) || Date.now());
+  if (Number.isNaN(date.getTime())) {
+    return new Date().toISOString().slice(0, 10);
+  }
+
+  return date.toISOString().slice(0, 10);
+};
+
+const addDaysIsoDateOnly = (value: unknown, days: number) => {
+  const date = new Date(getString(value) || Date.now());
+  if (Number.isNaN(date.getTime())) {
+    date.setTime(Date.now());
+  }
+  date.setDate(date.getDate() + days);
+  return date.toISOString().slice(0, 10);
+};
+
+const getCustomerDisplayName = (customer: Record<string, unknown>) =>
+  [
+    getString(customer.company),
+    [customer.firstName, customer.lastName].map(getString).filter(Boolean).join(" "),
+    getString(customer.email),
+  ]
+    .map((value) => value.trim())
+    .find(Boolean) || "Internext Customer";
+
+const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
+  const summary = buildOrderEmailSummary(order);
+  const customer = order.customer && typeof order.customer === "object"
+    ? order.customer as Record<string, unknown>
+    : {};
+  const orderNumber = getString(order.orderNumber) || getString(order.id) || "Internext order";
+  const salesAccountCode = readEnv("XERO_SALES_ACCOUNT_CODE") || DEFAULT_XERO_SALES_ACCOUNT_CODE;
+  const shippingAccountCode = readEnv("XERO_SHIPPING_ACCOUNT_CODE") || DEFAULT_XERO_SHIPPING_ACCOUNT_CODE;
+  const taxType = readEnv("XERO_GST_TAX_TYPE") || DEFAULT_XERO_TAX_TYPE;
+  const invoiceStatus = readEnv("XERO_INVOICE_STATUS") || DEFAULT_XERO_INVOICE_STATUS;
+  const invoiceDate = toIsoDateOnly(order.createdAt);
+  const dueDate = addDaysIsoDateOnly(order.createdAt, 0);
+  const deliveryAddress = [
+    customer.address1,
+    customer.address2,
+    [customer.suburb, customer.state, customer.postcode].map(getString).filter(Boolean).join(" "),
+    customer.country,
+  ]
+    .map(getString)
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .join(", ");
+
+  const itemLines = summary.lines
+    .filter((line) => typeof line.unitPrice === "number" && line.quantity > 0)
+    .map((line) => ({
+      description: String(line.description || line.code || "Internext product").slice(0, 4000),
+      quantity: line.quantity,
+      unitAmount: normalizeMoney(line.unitPrice ?? 0),
+      accountCode: salesAccountCode,
+      taxType,
+      itemCode: String(line.code || "").slice(0, 30),
+      reference: line.code || "",
+    }));
+
+  const shippingLine = summary.shippingTotal > 0
+    ? [{
+        description: "Shipping and handling",
+        quantity: 1,
+        unitAmount: normalizeMoney(summary.shippingTotal),
+        accountCode: shippingAccountCode,
+        taxType,
+        itemCode: "SHIPPING",
+        reference: orderNumber,
+      }]
+    : [];
+
+  return {
+    type: "xero_sales_invoice",
+    submittedAt: new Date().toISOString(),
+    source: "internext-checkout",
+    orderNumber,
+    invoice: {
+      type: "ACCREC",
+      status: invoiceStatus,
+      lineAmountTypes: "Exclusive",
+      currencyCode: "AUD",
+      date: invoiceDate,
+      dueDate,
+      invoiceNumber: orderNumber,
+      reference: orderNumber,
+      contact: {
+        name: getCustomerDisplayName(customer),
+        emailAddress: getString(customer.email),
+        firstName: getString(customer.firstName),
+        lastName: getString(customer.lastName),
+      },
+      lineItems: [...itemLines, ...shippingLine],
+    },
+    totals: {
+      subtotalExGst: summary.itemsSubtotal,
+      shippingExGst: summary.shippingTotal,
+      gst: summary.gstAmount,
+      totalIncGst: summary.totalKnownValue,
+    },
+    customer: {
+      name: getCustomerDisplayName(customer),
+      email: getString(customer.email),
+      phone: getString(customer.phone),
+      company: getString(customer.company),
+      deliveryAddress,
+    },
+    order: {
+      id: order.id || "",
+      orderNumber,
+      createdAt: order.createdAt || "",
+      reseller: order.reseller || {},
+      items: order.items || [],
+      shipping: order.shipping || {},
+    },
+  };
+};
+
 const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
   const customer = order.customer && typeof order.customer === "object"
@@ -694,6 +818,7 @@ export default async function handler(
 
   const adminWebhookUrl = readEnv("POWER_AUTOMATE_ORDER_WEBHOOK_URL");
   const customerWebhookUrl = readEnv("POWER_AUTOMATE_CUSTOMER_ORDER_WEBHOOK_URL");
+  const xeroInvoiceWebhookUrl = readEnv("POWER_AUTOMATE_XERO_INVOICE_WEBHOOK_URL");
 
   if (body.notificationType === "store_order") {
     const session = getSessionFromRequest(req);
@@ -767,7 +892,7 @@ export default async function handler(
     });
   }
 
-  if (!adminWebhookUrl && !customerWebhookUrl) {
+  if (!adminWebhookUrl && !customerWebhookUrl && !xeroInvoiceWebhookUrl) {
     return sendJson(res, 500, { message: "Order notification webhooks are not configured." });
   }
 
@@ -778,6 +903,7 @@ export default async function handler(
     ]);
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
+    const xeroInvoicePayload = buildXeroInvoicePayload(body.order);
     const adminPayload = {
       type: "paid_order",
       submittedAt: new Date().toISOString(),
@@ -801,7 +927,7 @@ export default async function handler(
       customerEmail,
     };
 
-    const [adminResponse, customerResponse] = await Promise.all([
+    const [adminResponse, customerResponse, xeroInvoiceResponse] = await Promise.all([
       adminWebhookUrl
         ? postJsonWebhook(adminWebhookUrl, adminPayload)
         : Promise.resolve({
@@ -817,6 +943,13 @@ export default async function handler(
             message: !customerWebhookUrl
               ? "Customer order email webhook is not configured."
               : "Customer email address was not provided.",
+          }),
+      xeroInvoiceWebhookUrl
+        ? postJsonWebhook(xeroInvoiceWebhookUrl, xeroInvoicePayload)
+        : Promise.resolve({
+            ok: false,
+            status: 0,
+            message: "Xero invoice webhook is not configured.",
           }),
     ]);
 
@@ -839,6 +972,11 @@ export default async function handler(
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
         : `Customer confirmation workflow failed: ${customerResponse.message}`,
+      xeroInvoiceSent: xeroInvoiceResponse.ok,
+      xeroInvoiceStatus: xeroInvoiceResponse.status,
+      xeroInvoiceMessage: xeroInvoiceResponse.ok
+        ? "Xero invoice workflow accepted the request."
+        : `Xero invoice workflow failed: ${xeroInvoiceResponse.message}`,
     });
   } catch {
     return sendJson(res, 502, { message: "Unable to reach the order email workflow." });

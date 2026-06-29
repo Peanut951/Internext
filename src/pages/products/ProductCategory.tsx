@@ -5,6 +5,7 @@ import { Phone, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
 import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
@@ -1474,16 +1475,16 @@ const ProductCategory = () => {
                   {pageItems.map((product) => {
                     const productCode = safeText(product.code, "unknown");
                     const productBrand = safeText(product.manufacturer, "Unbranded");
-                    const productName = safeText(product.description, "Product");
                     const displayProduct = {
                       ...product,
                       code: productCode,
                       manufacturer: productBrand,
-                      description: productName,
+                      description: safeText(product.description, "Product"),
                       price: safeNumber(product.price),
                       resellerPrice: safeNumber(product.resellerPrice),
                       rrp: safeNumber(product.rrp),
                     };
+                    const productName = buildProductDisplayTitle(displayProduct);
                     const priceLabel = getDisplayPrice(displayProduct, session?.role);
                     const productImage = getOptionalProductImage(displayProduct);
                     const summary = getCardSummary(displayProduct);

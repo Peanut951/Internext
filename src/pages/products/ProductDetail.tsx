@@ -17,6 +17,7 @@ import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing"
 import { trackAddToCart } from "@/lib/analytics";
 import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 import { useToast } from "@/hooks/use-toast";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 
 type CatalogProduct = {
   code: string;
@@ -112,7 +113,9 @@ const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
     .replace(/<\/(p|div|li|h[1-6]|ul|ol)>/gi, "\n")
     .replace(/<[^>]*>/g, " ")
     .replace(/\u00a0/g, " ")
+    .replace(/\s+(Features)\s*(?=•|-)/gi, "\n$1:\n")
     .replace(/\s+(Features:)\s*/gi, "\n$1\n")
+    .replace(/\s*•\s*/g, "\n- ")
     .replace(/\s+(Typical applications include|Internext supplies this item|Buyers can use|This model is positioned|It is mainly intended|It is aimed at|Admin reference:)/g, "\n\n$1")
     .replace(/\s+-\s+/g, "\n- ")
     .split(/\r?\n/)
@@ -398,12 +401,12 @@ const getSeoProductType = (product: CatalogProduct) => {
   if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "Laptop";
   if (/\b(tablet)\b/.test(text)) return "Tablet";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computer system";
+  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Commercial display";
   if (/\b(projector)\b/.test(text)) return "Projector";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security camera";
   if (/\b(intercom|access control|rfid|door station)\b/.test(text)) return "Access control device";
   if (/\b(router|switch|access point|network|nas|storage|firewall|wifi|wi-fi)\b/.test(text)) return "Network hardware";
-  if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business communication device";
   if (/\b(ups|battery|power supply|powerboard|pdu)\b/.test(text)) return "Power accessory";
   if (/\b(relay|controller|control module|interface)\b/.test(text)) return "Control module";
   if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "Adapter";
@@ -527,11 +530,12 @@ const buildSearchTitleText = (product: CatalogProduct) => {
   const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
+  const normalizedMpn = normalizeToken(mpn);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
+    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
     productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
     base,
-    mpn && !normalizedBase.includes(normalizeToken(mpn)) ? mpn : "",
   ].filter(Boolean);
 
   return parts.join(" ");
@@ -754,9 +758,7 @@ const ProductDetail = () => {
     [fullDescriptionBlocks],
   );
 
-  const productName = product
-    ? safeText(product.description) || safeText(product.code) || "Product"
-    : "";
+  const productName = product ? buildProductDisplayTitle(product) : "";
   const productBrand = product ? safeText(product.manufacturer) || "Unbranded" : "Unbranded";
   const productCodeLabel = product ? safeText(product.code) : "";
   const supplierCodeLabel = product ? safeText(product.supplierCode) : "";
@@ -1456,8 +1458,7 @@ const ProductDetail = () => {
 
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                       {similarProducts.map(({ product: relatedProduct, image }) => {
-                        const relatedName =
-                          safeText(relatedProduct.description) || safeText(relatedProduct.code) || "Product";
+                        const relatedName = buildProductDisplayTitle(relatedProduct);
                         const relatedBrand = safeText(relatedProduct.manufacturer) || "Unbranded";
                         const relatedCode = safeText(relatedProduct.code);
                         const relatedPrice = getDisplayPrice(relatedProduct, session?.role);
