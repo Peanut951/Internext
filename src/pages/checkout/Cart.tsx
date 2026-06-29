@@ -60,7 +60,7 @@ const getOutOfStockEtaMessage = (item: CartItem) => {
     return `Out of stock. ETA: ${etaStatus}`;
   }
 
-  return "Out of stock. For ETA please call 1300 567 835.";
+  return "Out of stock. For ETA please call 1300 U R NEXT (1300 87 6398).";
 };
 
 const Cart = () => {

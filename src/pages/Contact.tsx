@@ -8,9 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { trackContactFormSubmitted } from "@/lib/analytics";
 
 const contactTypes = [
-  { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 567 835" },
-  { icon: Users, title: "Sales Enquiries", email: "orders@internext.com.au", phone: "1300 567 835" },
-  { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 567 835" },
+  { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 87 6398" },
+  { icon: Users, title: "Sales Enquiries", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 87 6398" },
+  { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 87 6398" },
 ];
 
 const officeMapUrl =
@@ -105,7 +105,10 @@ const Contact = () => {
                   <a href={`mailto:${type.email}`} className="hover:text-accent">{type.email}</a>
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  <a href={`tel:${type.phone.replace(/\s/g, '')}`} className="hover:text-accent">{type.phone}</a>
+                  <a href="tel:1300876398" className="inline-block leading-tight hover:text-accent">
+                    <span className="block">{type.phone}</span>
+                    <span className="block text-xs">({type.phoneNumber})</span>
+                  </a>
                 </p>
               </div>
             ))}
@@ -125,7 +128,7 @@ const Contact = () => {
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Your enquiry is sent to the Internext team with your contact details and message.
                   We aim to respond within 1 business day, and urgent order or warranty questions can
-                  also be followed up by calling 1300 567 835.
+                  also be followed up by calling 1300 U R NEXT (1300 87 6398).
                 </p>
               </div>
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
@@ -248,8 +251,9 @@ const Contact = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-accent flex-shrink-0" />
-                    <a href="tel:1300123456" className="text-foreground hover:text-accent">
-                      1300 567 835
+                    <a href="tel:1300876398" className="inline-block text-foreground hover:text-accent leading-tight">
+                      <span className="block">1300 U R NEXT</span>
+                      <span className="block text-xs text-muted-foreground">(1300 87 6398)</span>
                     </a>
                   </div>
                   <div className="flex items-center gap-3">
