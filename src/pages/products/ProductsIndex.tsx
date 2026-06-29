@@ -407,7 +407,8 @@ const ProductsIndex = () => {
                                 <img
                                   src={image}
                                   alt={product.description}
-                                  loading="lazy"
+                                  loading="eager"
+                                  decoding="async"
                                   onError={handleProductImageError}
                                   className="h-full w-full object-contain"
                                 />

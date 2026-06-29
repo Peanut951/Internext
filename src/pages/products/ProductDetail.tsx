@@ -67,15 +67,76 @@ const safeText = (value: unknown) => {
   return String(value).trim();
 };
 
-const splitSupplierDescriptionParagraphs = (value: unknown) =>
-  safeText(value)
+type DescriptionBlock =
+  | { type: "heading"; text: string }
+  | { type: "paragraph"; text: string }
+  | { type: "list"; items: string[] };
+
+const getDescriptionBlocksText = (blocks: DescriptionBlock[]) =>
+  blocks
+    .flatMap((block) => {
+      if (block.type === "list") {
+        return block.items;
+      }
+      return block.text;
+    })
+    .join(" ");
+
+const descriptionBlocksToParagraphs = (blocks: DescriptionBlock[]) =>
+  blocks.flatMap((block) => {
+    if (block.type === "heading") {
+      return [];
+    }
+    if (block.type === "list") {
+      return block.items;
+    }
+    return block.text;
+  });
+
+const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
+  const normalized = safeText(value)
     .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6])>/gi, "\n")
+    .replace(/<li[^>]*>/gi, "\n- ")
+    .replace(/<\/(p|div|li|h[1-6]|ul|ol)>/gi, "\n")
     .replace(/<[^>]*>/g, " ")
     .replace(/\u00a0/g, " ")
-    .split(/\n{2,}|\r?\n/)
-    .map((paragraph) => paragraph.replace(/\s+/g, " ").trim())
-    .filter((paragraph) => paragraph.length > 0);
+    .replace(/\s+(Features:)\s*/gi, "\n$1\n")
+    .replace(/\s+(Typical applications include|Internext supplies this item|Buyers can use|This model is positioned|It is mainly intended|It is aimed at|Admin reference:)/g, "\n\n$1")
+    .replace(/\s+-\s+/g, "\n- ")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/\s+/g, " ").trim())
+    .filter(Boolean);
+
+  const blocks: DescriptionBlock[] = [];
+  let listItems: string[] = [];
+
+  const flushList = () => {
+    if (listItems.length > 0) {
+      blocks.push({ type: "list", items: listItems });
+      listItems = [];
+    }
+  };
+
+  normalized.forEach((line) => {
+    const bullet = line.match(/^[-•]\s*(.+)$/);
+    if (bullet) {
+      listItems.push(bullet[1].trim());
+      return;
+    }
+
+    flushList();
+
+    if (/^(features|key specifications|specifications|overview|admin reference):$/i.test(line) || (line.endsWith(":") && line.length <= 70)) {
+      blocks.push({ type: "heading", text: line.replace(/:$/, "") });
+      return;
+    }
+
+    blocks.push({ type: "paragraph", text: line });
+  });
+
+  flushList();
+  return blocks;
+};
 
 const getPlainProductName = (product: CatalogProduct) => {
   const description = safeText(product.description) || safeText(product.code) || "Product";
@@ -125,10 +186,10 @@ const buildProductIntro = (product: CatalogProduct, highlights: string[]) => {
   return `${plainName} is positioned as a practical option for professional and commercial deployment.${withHighlights}`;
 };
 
-const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: string[]) => {
-  const supplierParagraphs = splitSupplierDescriptionParagraphs(product.longDescription);
-  if (supplierParagraphs.length > 0) {
-    return supplierParagraphs;
+const buildFullDescriptionBlocks = (product: CatalogProduct, highlights: string[]): DescriptionBlock[] => {
+  const supplierBlocks = splitSupplierDescriptionBlocks(product.longDescription);
+  if (supplierBlocks.length > 0) {
+    return supplierBlocks;
   }
 
   const source = `${safeText(product.description)} ${safeText(product.longDescription)}`;
@@ -148,7 +209,7 @@ const buildFullDescriptionParagraphs = (product: CatalogProduct, highlights: str
     paragraphs.push(`It is best positioned as a practical commercial option where customers are evaluating reliability, deployment fit, and value around ${detailLead}.`);
   }
 
-  return paragraphs;
+  return paragraphs.map((text) => ({ type: "paragraph", text }));
 };
 
 const formatMeasurement = (value: number | null | undefined, unit: string) => {
@@ -486,22 +547,26 @@ const ProductDetail = () => {
   }, [product]);
   const keyHighlights = useMemo(() => specHighlights.slice(0, 6), [specHighlights]);
 
-  const fullDescriptionParagraphs = useMemo(() => {
+  const fullDescriptionBlocks = useMemo(() => {
     if (!product) {
       return [];
     }
-    const paragraphs = buildFullDescriptionParagraphs(product, specHighlights);
+    const blocks = buildFullDescriptionBlocks(product, specHighlights);
 
     const adminSupplierCode = safeText(product.supplierCode);
     if (session?.role === "admin" && adminSupplierCode) {
       return [
-        ...paragraphs,
-        `Admin reference: ${adminSupplierCode}`,
+        ...blocks,
+        { type: "paragraph", text: `Admin reference: ${adminSupplierCode}` },
       ];
     }
 
-    return paragraphs;
+    return blocks;
   }, [product, session?.role, specHighlights]);
+  const fullDescriptionParagraphs = useMemo(
+    () => descriptionBlocksToParagraphs(fullDescriptionBlocks),
+    [fullDescriptionBlocks],
+  );
 
   const productName = product
     ? safeText(product.description) || safeText(product.code) || "Product"
@@ -528,7 +593,7 @@ const ProductDetail = () => {
     const pageTitle = truncateText(`${searchTitle} | Internext Australia`, 90);
     const metaDescription = getProductMetaDescription(
       product,
-      fullDescriptionParagraphs.join(" "),
+      getDescriptionBlocksText(fullDescriptionBlocks),
       availability,
     );
     const schemaPrice =
@@ -641,7 +706,7 @@ const ProductDetail = () => {
     return () => {
       document.getElementById(scriptId)?.remove();
     };
-  }, [availability, fullDescriptionParagraphs, galleryImages, product, productBrand, productCodeLabel, productName]);
+  }, [availability, fullDescriptionBlocks, fullDescriptionParagraphs, galleryImages, product, productBrand, productCodeLabel, productName]);
 
   const addToCart = () => {
     if (!product) {
@@ -747,6 +812,7 @@ const ProductDetail = () => {
                             alt={productName}
                             className="h-full w-full object-contain"
                             loading="eager"
+                            decoding="async"
                             onError={handleActiveImageError}
                           />
                           ) : null}
@@ -805,16 +871,42 @@ const ProductDetail = () => {
                               </h2>
                             </div>
                             <div className="space-y-5 px-5 py-5 md:px-6 md:py-6">
-                              {fullDescriptionParagraphs.map((paragraph, index) => (
-                                <p
-                                  key={`${product.code}-desc-${index}`}
-                                  className={`max-w-none text-base leading-8 ${
-                                    index === 0 ? "text-foreground" : "text-muted-foreground"
-                                  }`}
-                                >
-                                  {paragraph}
-                                </p>
-                              ))}
+                              {fullDescriptionBlocks.map((block, index) => {
+                                if (block.type === "heading") {
+                                  return (
+                                    <h3
+                                      key={`${product.code}-desc-${index}`}
+                                      className="pt-2 text-base font-semibold text-foreground"
+                                    >
+                                      {block.text}
+                                    </h3>
+                                  );
+                                }
+
+                                if (block.type === "list") {
+                                  return (
+                                    <ul
+                                      key={`${product.code}-desc-${index}`}
+                                      className="ml-5 list-disc space-y-2 text-base leading-7 text-muted-foreground"
+                                    >
+                                      {block.items.map((item) => (
+                                        <li key={item}>{item}</li>
+                                      ))}
+                                    </ul>
+                                  );
+                                }
+
+                                return (
+                                  <p
+                                    key={`${product.code}-desc-${index}`}
+                                    className={`max-w-none text-base leading-8 ${
+                                      index === 0 ? "text-foreground" : "text-muted-foreground"
+                                    }`}
+                                  >
+                                    {block.text}
+                                  </p>
+                                );
+                              })}
                             </div>
                           </TabsContent>
 

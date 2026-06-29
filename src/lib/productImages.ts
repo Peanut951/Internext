@@ -18,7 +18,16 @@ type ProductImageSource = {
 export const isDigitalProduct = (product: ProductImageSource) => {
   const text = `${product.manufacturer || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
-  return /\b(warranty|licen[cs]e|subscription|software|support|onsite|install(?:ation|ations)?|instal|service|renewal|postscript|pdf\s+upgrade)\b/.test(text);
+  const hasPhysicalSignal =
+    /\b(?:printer|scanner|mfp|copier|display|monitor|screen|panel|projector|camera|nvr|dvr|recorder|intercom|door\s*station|access\s*control|rfid|phone|handset|headset|speaker|microphone|router|switch|access\s*point|firewall|nas|storage|server|desktop|workstation|notebook|laptop|tablet|ups|battery|charger|adapter|adaptor|cable|cord|lead|mount|bracket|stand|rack|toner|ink|cartridge|drum|ribbon|label|paper|media|filament|chair)\b/.test(
+      text,
+    );
+
+  if (hasPhysicalSignal) {
+    return false;
+  }
+
+  return /\b(?:microsoft\s*365|office\s*365|subscription|renewal|licen[cs]e|digital\s+download|software\s+(?:licen[cs]e|subscription|upgrade)|cloud\s+service|saas|care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|extended\s*warranty|warranty\s+renewal|warranty\s+upgrade|hardware\s+support|onsite\s+support|on-site\s+support|nbd\s+support|next\s+business\s+day\s+support|installation\s+service|professional\s+service|managed\s+service|training\s+(?:service|course|session)|bootcamp|postscript\s+upgrade|pdf\s+upgrade)\b/.test(text);
 };
 
 const sanitizeProductImageUrl = (value?: string | null) => {

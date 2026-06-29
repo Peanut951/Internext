@@ -1518,7 +1518,8 @@ const ProductCategory = () => {
                                 <img
                                   src={productImage}
                                   alt={productName}
-                                  loading="lazy"
+                                  loading="eager"
+                                  decoding="async"
                                   onError={handleProductImageError}
                                   className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
                                 />
