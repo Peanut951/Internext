@@ -520,6 +520,10 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
   const carrier = getString(order.trackingCarrier).trim();
   const trackingNumber = getString(order.trackingNumber).trim();
   const trackingUrl = getString(order.trackingUrl).trim();
+  const expectedArrivalDate =
+    formatOrderDate(order.expectedArrivalDate) ||
+    getString(order.expectedArrivalDate).trim() ||
+    "To be confirmed";
   const items = Array.isArray(order.items) ? order.items : [];
 
   const itemRows = items
@@ -557,8 +561,8 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
                     </td>
                     <td width="16"></td>
                     <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
-                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Shipped</div>
-                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(formatOrderDate(new Date().toISOString()))}</div>
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Expected arrival</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(expectedArrivalDate)}</div>
                     </td>
                   </tr>
                 </table>
@@ -606,6 +610,7 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
     `Carrier: ${carrier}`,
     `Tracking number: ${trackingNumber}`,
     `Tracking link: ${trackingUrl}`,
+    `Expected arrival: ${expectedArrivalDate}`,
     "",
     "Items:",
     ...items.map((item) => {

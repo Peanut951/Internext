@@ -131,7 +131,7 @@ const Privacy = () => {
                 <div className="mt-3 text-muted-foreground">
                   <p>Email: privacy@internext.com.au</p>
                   <p>Phone: 1300 567 835</p>
-                  <p>Address: 7B/256 New Line Rd, Dural NSW 2158</p>
+                  <p>Address: Unit 7, 7B/256 New Line Rd, Dural NSW 2158</p>
                 </div>
               </div>
 

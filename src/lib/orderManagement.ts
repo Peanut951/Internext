@@ -120,6 +120,7 @@ export type OrderRecord = {
   trackingCarrier?: string;
   trackingNumber?: string;
   trackingUrl?: string;
+  expectedArrivalDate?: string;
   serialNumbers?: OrderSerialNumbers;
   supplierStatus: SupplierSubmissionStatus;
   supplierSubmittedAt?: string;
@@ -659,6 +660,7 @@ export const updateOrderFulfillment = (
     trackingCarrier?: string;
     trackingNumber?: string;
     trackingUrl?: string;
+    expectedArrivalDate?: string;
   },
 ) => {
   const orders = getOrders();
@@ -673,6 +675,7 @@ export const updateOrderFulfillment = (
       trackingCarrier: payload.trackingCarrier ?? order.trackingCarrier,
       trackingNumber: payload.trackingNumber ?? order.trackingNumber,
       trackingUrl: payload.trackingUrl ?? order.trackingUrl,
+      expectedArrivalDate: payload.expectedArrivalDate ?? order.expectedArrivalDate,
       updatedAt: nowIso(),
     };
   });
@@ -709,6 +712,7 @@ export const updateSharedOrderFulfillment = async (
     trackingCarrier?: string;
     trackingNumber?: string;
     trackingUrl?: string;
+    expectedArrivalDate?: string;
   },
 ) => {
   const updatedOrder = updateOrderFulfillment(orderId, payload);

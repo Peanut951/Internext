@@ -99,7 +99,7 @@ const Footer = () => {
               <li className="flex items-start gap-3 text-sm">
                 <MapPin className="h-4 w-4 text-accent mt-0.5" />
                 <span className="text-primary-foreground/70">
-                  7B/256 New Line Rd<br />
+                  Unit 7, 7B/256 New Line Rd<br />
                   Dural NSW 2158
                 </span>
               </li>

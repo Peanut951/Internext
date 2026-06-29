@@ -14,7 +14,7 @@ const contactTypes = [
 ];
 
 const officeMapUrl =
-  "https://www.google.com/maps?q=7B%2F256%20New%20Line%20Rd%2C%20Dural%20NSW%202158%2C%20Australia&output=embed";
+  "https://www.google.com/maps?q=Unit%207%2C%207B%2F256%20New%20Line%20Rd%2C%20Dural%20NSW%202158%2C%20Australia&output=embed";
 
 const Contact = () => {
   const { toast } = useToast();
@@ -242,7 +242,7 @@ const Contact = () => {
                   <div className="flex items-start gap-3">
                     <MapPin className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
                     <div>
-                      <p className="text-foreground">7B/256 New Line Rd</p>
+                      <p className="text-foreground">Unit 7, 7B/256 New Line Rd</p>
                       <p className="text-muted-foreground">Dural NSW 2158</p>
                     </div>
                   </div>

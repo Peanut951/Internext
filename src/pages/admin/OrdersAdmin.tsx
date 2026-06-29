@@ -36,6 +36,7 @@ type ShipmentFormState = {
   trackingCarrier: string;
   trackingNumber: string;
   trackingUrl: string;
+  expectedArrivalDate: string;
 };
 type ShipmentMessage = {
   tone: "success" | "error";
@@ -319,6 +320,7 @@ const OrdersAdmin = () => {
       trackingCarrier: order.trackingCarrier ?? "",
       trackingNumber: order.trackingNumber ?? "",
       trackingUrl: order.trackingUrl ?? "",
+      expectedArrivalDate: order.expectedArrivalDate ?? "",
     };
 
   const updateShipmentForm = (
@@ -448,13 +450,14 @@ const OrdersAdmin = () => {
     const trackingCarrier = shipmentForm.trackingCarrier.trim();
     const trackingNumber = shipmentForm.trackingNumber.trim();
     const trackingUrl = shipmentForm.trackingUrl.trim();
+    const expectedArrivalDate = shipmentForm.expectedArrivalDate.trim();
 
-    if (!trackingCarrier || !trackingNumber || !trackingUrl) {
+    if (!trackingCarrier || !trackingNumber || !trackingUrl || !expectedArrivalDate) {
       setShipmentMessages((current) => ({
         ...current,
         [order.id]: {
           tone: "error",
-          text: "Enter the carrier, tracking number, and tracking link before marking this order as shipped.",
+          text: "Enter the carrier, tracking number, tracking link, and expected arrival date before marking this order as shipped.",
         },
       }));
       return;
@@ -466,6 +469,7 @@ const OrdersAdmin = () => {
         trackingCarrier,
         trackingNumber,
         trackingUrl,
+        expectedArrivalDate,
       });
 
       if (!updatedOrder) {
@@ -1281,6 +1285,14 @@ const OrdersAdmin = () => {
                                   </a>
                                 ) : null}
                               </p>
+                              {order.expectedArrivalDate ? (
+                                <p>
+                                  Expected arrival:{" "}
+                                  <span className="font-medium text-foreground">
+                                    {new Date(order.expectedArrivalDate).toLocaleDateString("en-AU")}
+                                  </span>
+                                </p>
+                              ) : null}
                             </div>
                           ) : (
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -1348,6 +1360,23 @@ const OrdersAdmin = () => {
                                 updateShipmentForm(order, "trackingUrl", event.target.value)
                               }
                               placeholder="https://..."
+                              className="mt-2"
+                            />
+                          </div>
+                          <div>
+                            <label
+                              htmlFor={`expected-arrival-${order.id}`}
+                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                            >
+                              Expected arrival date
+                            </label>
+                            <Input
+                              id={`expected-arrival-${order.id}`}
+                              type="date"
+                              value={getShipmentForm(order).expectedArrivalDate}
+                              onChange={(event) =>
+                                updateShipmentForm(order, "expectedArrivalDate", event.target.value)
+                              }
                               className="mt-2"
                             />
                           </div>
