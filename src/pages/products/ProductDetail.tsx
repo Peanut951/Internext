@@ -370,6 +370,104 @@ const getSeoProductType = (product: CatalogProduct) => {
   return "";
 };
 
+const PRODUCT_RECOMMENDATION_STOP_WORDS = new Set([
+  "and",
+  "for",
+  "with",
+  "the",
+  "this",
+  "that",
+  "from",
+  "into",
+  "plus",
+  "inch",
+  "inches",
+  "black",
+  "white",
+  "grey",
+  "gray",
+  "new",
+  "product",
+  "series",
+  "business",
+  "commercial",
+  "professional",
+  "australia",
+  "internext",
+]);
+
+const getRecommendationTokens = (product: CatalogProduct) =>
+  new Set(
+    `${safeText(product.manufacturer)} ${safeText(product.description)} ${safeText(product.longDescription)} ${safeText(product.code)} ${safeText(product.supplierCode)}`
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .map((token) => token.trim())
+      .filter((token) => token.length >= 3 && !PRODUCT_RECOMMENDATION_STOP_WORDS.has(token)),
+  );
+
+const countSharedRecommendationTokens = (left: Set<string>, right: Set<string>) => {
+  let count = 0;
+  left.forEach((token) => {
+    if (right.has(token)) {
+      count += 1;
+    }
+  });
+  return count;
+};
+
+const getCodeFamily = (value: unknown) =>
+  safeText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .split("-")
+    .filter((part) => part.length >= 2)
+    .slice(0, 2)
+    .join("-");
+
+const scoreSimilarProduct = (
+  current: CatalogProduct,
+  candidate: CatalogProduct,
+  currentTokens: Set<string>,
+) => {
+  if (candidate.code === current.code) {
+    return -1;
+  }
+
+  const candidateImage = getProductImageCandidates(candidate)[0];
+  if (!candidateImage) {
+    return -1;
+  }
+
+  const currentBrand = normalizeToken(current.manufacturer);
+  const candidateBrand = normalizeToken(candidate.manufacturer);
+  const currentType = getSeoProductType(current);
+  const candidateType = getSeoProductType(candidate);
+  const sharedTokens = countSharedRecommendationTokens(currentTokens, getRecommendationTokens(candidate));
+  const currentFamily = getCodeFamily(current.code || current.supplierCode);
+  const candidateFamily = getCodeFamily(candidate.code || candidate.supplierCode);
+
+  let score = 0;
+  if (currentBrand && currentBrand === candidateBrand) {
+    score += 6;
+  }
+  if (currentType && currentType === candidateType) {
+    score += 7;
+  }
+  if (currentFamily && candidateFamily && currentFamily === candidateFamily) {
+    score += 4;
+  }
+  score += Math.min(sharedTokens, 8);
+
+  if (typeof current.price === "number" && typeof candidate.price === "number" && current.price > 0) {
+    const priceRatio = candidate.price / current.price;
+    if (priceRatio >= 0.6 && priceRatio <= 1.6) {
+      score += 2;
+    }
+  }
+
+  return score;
+};
+
 const removeLeadingBrandFromTitle = (title: string, brand: string) => {
   const cleanBrand = safeText(brand);
   const cleanTitle = safeText(title);
@@ -470,6 +568,7 @@ const ProductDetail = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [product, setProduct] = useState<CatalogProduct | null>(null);
+  const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
   const [isLivePriceReady, setIsLivePriceReady] = useState(false);
   const [qty, setQty] = useState(1);
   const [isInCart, setIsInCart] = useState(false);
@@ -486,12 +585,14 @@ const ProductDetail = () => {
         const data = (await loadCatalogProductsFast((liveProducts) => {
           const liveProduct = (liveProducts as CatalogProduct[]).find((item) => item.code === productCode) || null;
           if (isMounted && liveProduct) {
+            setAllProducts(liveProducts as CatalogProduct[]);
             setProduct(liveProduct);
             setIsLivePriceReady(true);
           }
         })) as CatalogProduct[];
         const found = data.find((item) => item.code === productCode) || null;
         if (isMounted) {
+          setAllProducts(data);
           setProduct(found);
           setIsLivePriceReady(Boolean(found?.liveUpdatedAt));
           setLoading(false);
@@ -538,6 +639,28 @@ const ProductDetail = () => {
     }
     return [];
   }, [product]);
+
+  const similarProducts = useMemo(() => {
+    if (!product || allProducts.length === 0) {
+      return [];
+    }
+
+    const currentTokens = getRecommendationTokens(product);
+    return allProducts
+      .map((candidate) => ({
+        product: candidate,
+        image: getProductImageCandidates(candidate)[0] || "",
+        score: scoreSimilarProduct(product, candidate, currentTokens),
+      }))
+      .filter((item) => item.score > 0 && item.image)
+      .sort((a, b) => {
+        if (b.score !== a.score) {
+          return b.score - a.score;
+        }
+        return safeText(a.product.description).localeCompare(safeText(b.product.description));
+      })
+      .slice(0, 8);
+  }, [allProducts, product]);
 
   const specHighlights = useMemo(() => {
     if (!product) {
@@ -1103,6 +1226,79 @@ const ProductDetail = () => {
                     </div>
                   </div>
                 </div>
+
+                {similarProducts.length > 0 ? (
+                  <section className="rounded-2xl border border-border/50 bg-card p-5 shadow-card md:p-6">
+                    <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                      <div>
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                          Similar Products
+                        </p>
+                        <h2 className="mt-2 text-2xl font-bold text-foreground">
+                          Compare similar options
+                        </h2>
+                      </div>
+                      <Button variant="outline" asChild>
+                        <Link to="/products">View all products</Link>
+                      </Button>
+                    </div>
+
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                      {similarProducts.map(({ product: relatedProduct, image }) => {
+                        const relatedName =
+                          safeText(relatedProduct.description) || safeText(relatedProduct.code) || "Product";
+                        const relatedBrand = safeText(relatedProduct.manufacturer) || "Unbranded";
+                        const relatedCode = safeText(relatedProduct.code);
+                        const relatedPrice = getDisplayPrice(relatedProduct, session?.role);
+                        const relatedAvailability =
+                          safeText(relatedProduct.availabilityText) ||
+                          (typeof relatedProduct.stockQuantity === "number"
+                            ? `${relatedProduct.stockQuantity.toLocaleString("en-AU")} available`
+                            : "");
+
+                        return (
+                          <Link
+                            key={relatedCode || relatedName}
+                            to={`/products/item/${encodeURIComponent(relatedCode)}`}
+                            className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border/50 bg-background transition hover:-translate-y-0.5 hover:border-accent/40 hover:shadow-card"
+                          >
+                            <div className="flex aspect-square items-center justify-center bg-white p-4">
+                              <img
+                                src={image}
+                                alt={relatedName}
+                                className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
+                                loading="lazy"
+                                decoding="async"
+                                onError={handleProductImageError}
+                              />
+                            </div>
+                            <div className="flex flex-1 flex-col p-4">
+                              <div className="mb-3 flex flex-wrap gap-2">
+                                <span className="inline-flex items-center rounded-full bg-secondary px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-accent">
+                                  {relatedBrand}
+                                </span>
+                                {relatedCode ? (
+                                  <span className="inline-flex items-center rounded-full border border-border/60 px-2.5 py-1 text-[10px] font-medium text-muted-foreground">
+                                    {relatedCode}
+                                  </span>
+                                ) : null}
+                              </div>
+                              <h3 className="line-clamp-3 text-sm font-semibold leading-6 text-foreground group-hover:text-accent">
+                                {relatedName}
+                              </h3>
+                              <div className="mt-auto pt-4">
+                                <p className="text-lg font-bold text-foreground">{relatedPrice}</p>
+                                {relatedAvailability ? (
+                                  <p className="mt-1 text-xs font-medium text-accent">{relatedAvailability}</p>
+                                ) : null}
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </section>
+                ) : null}
 
               </div>
             </div>
