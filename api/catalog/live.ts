@@ -1,3 +1,4 @@
+import { getSessionFromRequest } from "../auth/_shared.js";
 import { readEnv, sendJson } from "../checkout/_shared.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
@@ -26,6 +27,7 @@ export type LiveCatalogItem = {
     bne: number;
     mel: number;
     syd: number;
+    internext?: number;
   };
   stockRecordUpdated: string;
   weightKg: number | null;
@@ -79,6 +81,14 @@ type MergedCatalogResult = {
   items: Array<StaticCatalogProduct & LiveCatalogItem>;
 };
 
+type StockOverride = {
+  code: string;
+  supplierCode?: string;
+  stockQuantity: number;
+  note?: string;
+  updatedAt?: string;
+};
+
 type LeaderCatalogProduct = StaticCatalogProduct & {
   manufacturer: string;
   description: string;
@@ -97,6 +107,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
     bne: number;
     mel: number;
     syd: number;
+    internext?: number;
   };
   etaDate?: string;
   etaStatus?: string;

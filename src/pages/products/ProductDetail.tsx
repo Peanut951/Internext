@@ -659,7 +659,7 @@ const ProductDetail = () => {
         }
         return safeText(a.product.description).localeCompare(safeText(b.product.description));
       })
-      .slice(0, 8);
+      .slice(0, 4);
   }, [allProducts, product]);
 
   const specHighlights = useMemo(() => {
