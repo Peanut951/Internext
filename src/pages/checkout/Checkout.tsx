@@ -892,7 +892,7 @@ const Checkout = () => {
             quantity: item.qty,
           })),
         });
-        setPaymentStateMessage("Payment received and order recorded. Sending confirmation emails...");
+        setPaymentStateMessage("Payment received and order recorded. Sending confirmation email...");
         const notificationMessage = await sendOrderNotification(order);
 
         if (!isActive) {
