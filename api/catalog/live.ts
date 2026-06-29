@@ -121,7 +121,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
   barcode?: string;
 };
 
-const parseNumber = (value: string | undefined) => {
+const parseNumber = (value: unknown) => {
   const parsed = Number(String(value || "").replace(/[^0-9.-]/g, ""));
   return Number.isFinite(parsed) ? parsed : null;
 };
@@ -672,6 +672,181 @@ const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCo
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
+const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
+
+const getSupabaseRestConfig = () => {
+  const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
+  const serviceRoleKey = readEnv("SUPABASE_SERVICE_ROLE_KEY") || readEnv("SERVICE_ROLE_SECRET_KEY");
+
+  if (!supabaseUrl || !serviceRoleKey) {
+    return null;
+  }
+
+  return {
+    supabaseUrl: supabaseUrl.replace(/\/$/, ""),
+    serviceRoleKey,
+  };
+};
+
+const normalizeOverrideRow = (row: Record<string, unknown>): StockOverride | null => {
+  const code = String(row.code || "").trim();
+  if (!code) {
+    return null;
+  }
+
+  const stockQuantity = Math.max(0, Math.floor(parseNumber(row.stock_quantity) ?? 0));
+  return {
+    code,
+    supplierCode: String(row.supplier_code || "").trim() || undefined,
+    stockQuantity,
+    note: String(row.note || "").trim() || undefined,
+    updatedAt: String(row.updated_at || "").trim() || undefined,
+  };
+};
+
+const fetchStockOverrides = async (): Promise<StockOverride[]> => {
+  const config = getSupabaseRestConfig();
+  if (!config) {
+    return [];
+  }
+
+  try {
+    const response = await fetch(
+      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?select=code,supplier_code,stock_quantity,note,updated_at&stock_quantity=gt.0`,
+      {
+        headers: {
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+          Accept: "application/json",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      return [];
+    }
+
+    const rows = (await response.json()) as Record<string, unknown>[];
+    return rows.map(normalizeOverrideRow).filter((row): row is StockOverride => Boolean(row));
+  } catch {
+    return [];
+  }
+};
+
+const buildStockOverrideMap = (overrides: StockOverride[]) => {
+  const overridesByKey = new Map<string, StockOverride>();
+  for (const override of overrides) {
+    for (const key of getProductKeys({ code: override.code, supplierCode: override.supplierCode })) {
+      overridesByKey.set(key, override);
+    }
+  }
+  return overridesByKey;
+};
+
+const getStockOverrideForProduct = (
+  product: Pick<StaticCatalogProduct, "code" | "supplierCode">,
+  overridesByKey: Map<string, StockOverride>,
+) =>
+  getProductKeys(product)
+    .map((key) => overridesByKey.get(key))
+    .find(Boolean);
+
+const applyStockOverrideToProduct = <
+  T extends {
+    stockQuantity?: number;
+    stockByWarehouse?: LiveCatalogItem["stockByWarehouse"];
+    availabilityText?: string;
+    stockRecordUpdated?: string;
+  },
+>(
+  product: T,
+  override?: StockOverride,
+) => {
+  if (!override || override.stockQuantity <= 0) {
+    return product;
+  }
+
+  const supplierStock = typeof product.stockQuantity === "number" ? Math.max(0, product.stockQuantity) : 0;
+  const totalStock = supplierStock + override.stockQuantity;
+
+  return {
+    ...product,
+    availabilityText: "In Stock",
+    stockQuantity: totalStock,
+    stockByWarehouse: {
+      adl: product.stockByWarehouse?.adl ?? 0,
+      bne: product.stockByWarehouse?.bne ?? 0,
+      mel: product.stockByWarehouse?.mel ?? 0,
+      syd: product.stockByWarehouse?.syd ?? 0,
+      internext: override.stockQuantity,
+    },
+    stockRecordUpdated: override.updatedAt || product.stockRecordUpdated,
+  };
+};
+
+const upsertStockOverride = async (input: {
+  code?: unknown;
+  supplierCode?: unknown;
+  stockQuantity?: unknown;
+  note?: unknown;
+  adminEmail?: string;
+}) => {
+  const config = getSupabaseRestConfig();
+  if (!config) {
+    return { ok: false, status: 500, message: "Supabase service role is not configured." };
+  }
+
+  const code = String(input.code || "").trim();
+  if (!code) {
+    return { ok: false, status: 400, message: "Product code is required." };
+  }
+
+  const stockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
+  const row = {
+    code,
+    supplier_code: String(input.supplierCode || "").trim() || null,
+    stock_quantity: stockQuantity,
+    note: String(input.note || "").trim() || null,
+    updated_by: input.adminEmail || null,
+    updated_at: new Date().toISOString(),
+  };
+
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?on_conflict=code`,
+    {
+      method: "POST",
+      headers: {
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        "Content-Type": "application/json",
+        Prefer: "resolution=merge-duplicates,return=representation",
+      },
+      body: JSON.stringify(row),
+    },
+  );
+
+  if (!response.ok) {
+    const message = await response.text().catch(() => "");
+    return {
+      ok: false,
+      status: response.status,
+      message: message || `Stock override save failed with status ${response.status}.`,
+    };
+  }
+
+  delete globalCatalogCache.__internextLiveCatalogCache;
+  delete globalCatalogCache.__internextLiveCatalogPromise;
+  delete globalCatalogCache.__internextMergedCatalogCache;
+  delete globalCatalogCache.__internextMergedCatalogPromise;
+
+  const [saved] = (await response.json().catch(() => [])) as Record<string, unknown>[];
+  return {
+    ok: true,
+    status: 200,
+    override: normalizeOverrideRow(saved || row),
+  };
+};
+
 const cleanClassificationText = (value: unknown) =>
   String(value || "")
     .replace(/\u00a0/g, " ")
@@ -982,9 +1157,12 @@ const loadLiveCatalogItemsUncached = async (
     const alloysItems = feedText.trim().startsWith("<")
       ? parseLiveCatalogXml(feedText)
       : parseLiveCatalog(feedText);
-    const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems]).filter((item) =>
-      isTangibleCatalogProduct(item as unknown as Record<string, unknown>),
-    );
+    const overridesByKey = buildStockOverrideMap(await fetchStockOverrides());
+    const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems])
+      .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
+      .filter((item) =>
+        isTangibleCatalogProduct(item as unknown as Record<string, unknown>),
+      );
     const updatedAt = new Date().toISOString();
     const source = leaderItems.length > 0 ? "combined" : feedText.trim().startsWith("<") ? "xml" : "csv";
     const cacheMs = getServerCatalogCacheMs();
@@ -1070,11 +1248,13 @@ const loadMergedCatalogProductsUncached = async (
 ): Promise<MergedCatalogResult> => {
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
+  let stockOverrides: StockOverride[];
 
   try {
-    [staticProducts, liveCatalog] = await Promise.all([
+    [staticProducts, liveCatalog, stockOverrides] = await Promise.all([
       loadStaticCatalogProducts(),
       loadLiveCatalogItems(),
+      fetchStockOverrides(),
     ]);
   } catch (error) {
     if (cached && cached.staleUntil > now) {
@@ -1091,6 +1271,7 @@ const loadMergedCatalogProductsUncached = async (
     throw error;
   }
   const liveByKey = new Map<string, LiveCatalogItem>();
+  const overridesByKey = buildStockOverrideMap(stockOverrides);
 
   for (const item of liveCatalog.items) {
     for (const key of [item.code, item.supplierCode]) {
@@ -1107,35 +1288,70 @@ const loadMergedCatalogProductsUncached = async (
         .map((key) => liveByKey.get(key))
         .find(Boolean);
 
-      if (!live) {
+      const stockOverride = getStockOverrideForProduct(product, overridesByKey);
+
+      if (!live && !stockOverride) {
         return null;
       }
 
-      return {
-        ...product,
-        price: live.price,
-        priceText: live.priceText,
-        resellerPrice: live.resellerPrice,
-        resellerPriceText: live.resellerPriceText,
-        rrp: live.rrp,
-        rrpText: live.rrpText,
-        rrpExGst: live.rrpExGst,
-        taxRate: live.taxRate,
-        supplierCode: product.supplierCode || live.supplierCode,
-        longDescription: chooseLongDescription(live.longDescription, product.longDescription),
-        availabilityText: live.availabilityText,
-        etaDate: live.etaDate,
-        etaStatus: live.etaStatus,
-        stockQuantity: live.stockQuantity,
-        stockByWarehouse: live.stockByWarehouse,
-        stockRecordUpdated: live.stockRecordUpdated,
-        weightKg: live.weightKg,
-        heightCm: live.heightCm,
-        widthCm: live.widthCm,
-        depthCm: live.depthCm,
-        gtin: getProductGtin(product) || live.gtin,
-        liveUpdatedAt: liveCatalog.updatedAt,
-      };
+      const mergedProduct = live
+        ? {
+            ...product,
+            price: live.price,
+            priceText: live.priceText,
+            resellerPrice: live.resellerPrice,
+            resellerPriceText: live.resellerPriceText,
+            rrp: live.rrp,
+            rrpText: live.rrpText,
+            rrpExGst: live.rrpExGst,
+            taxRate: live.taxRate,
+            supplierCode: product.supplierCode || live.supplierCode,
+            longDescription: chooseLongDescription(live.longDescription, product.longDescription),
+            availabilityText: live.availabilityText,
+            etaDate: live.etaDate,
+            etaStatus: live.etaStatus,
+            stockQuantity: live.stockQuantity,
+            stockByWarehouse: live.stockByWarehouse,
+            stockRecordUpdated: live.stockRecordUpdated,
+            weightKg: live.weightKg,
+            heightCm: live.heightCm,
+            widthCm: live.widthCm,
+            depthCm: live.depthCm,
+            gtin: getProductGtin(product) || live.gtin,
+            liveUpdatedAt: liveCatalog.updatedAt,
+          }
+        : {
+            ...product,
+            price: product.price,
+            priceText: product.priceText || formatCustomerAud(product.price ?? null),
+            resellerPrice: product.resellerPrice ?? product.price,
+            resellerPriceText:
+              product.resellerPriceText ||
+              formatResellerAud(product.resellerPrice ?? product.price ?? null),
+            rrp: product.rrp,
+            rrpText: product.rrpText || formatAud(product.rrp ?? null),
+            rrpExGst: null,
+            taxRate: 10,
+            availabilityText: "Check availability",
+            etaDate: "",
+            etaStatus: "",
+            stockQuantity: 0,
+            stockByWarehouse: {
+              adl: 0,
+              bne: 0,
+              mel: 0,
+              syd: 0,
+            },
+            stockRecordUpdated: "",
+            weightKg: product.weightKg ?? null,
+            heightCm: product.heightCm ?? null,
+            widthCm: product.widthCm ?? null,
+            depthCm: product.depthCm ?? null,
+            gtin: getProductGtin(product),
+            liveUpdatedAt: liveCatalog.updatedAt,
+          };
+
+      return applyStockOverrideToProduct(mergedProduct, stockOverride);
     })
     .filter((item): item is StaticCatalogProduct & LiveCatalogItem =>
       Boolean(item) && isTangibleCatalogProduct(item as Record<string, unknown>),
@@ -1162,6 +1378,8 @@ export default async function handler(
   req: {
     method?: string;
     url?: string;
+    body?: string | Record<string, unknown>;
+    headers?: { cookie?: string };
   },
   res: {
     statusCode?: number;
@@ -1169,6 +1387,33 @@ export default async function handler(
     end: (chunk?: string) => void;
   },
 ) {
+  if (req.method === "POST") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to update catalog stock." });
+    }
+
+    let body: Record<string, unknown>;
+    try {
+      body =
+        typeof req.body === "string"
+          ? JSON.parse(req.body || "{}") as Record<string, unknown>
+          : req.body || {};
+    } catch {
+      return sendJson(res, 400, { message: "Invalid JSON body." });
+    }
+
+    const result = await upsertStockOverride({
+      code: body.code,
+      supplierCode: body.supplierCode,
+      stockQuantity: body.stockQuantity,
+      note: body.note,
+      adminEmail: session.email,
+    });
+
+    return sendJson(res, result.status, result);
+  }
+
   if (req.method !== "GET") {
     return sendJson(res, 405, { message: "Method not allowed." });
   }

@@ -2,6 +2,7 @@ import { type SyntheticEvent, useEffect, useMemo, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { ArrowLeft, CheckCircle2, Headphones, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -45,6 +46,7 @@ type CatalogProduct = {
     bne: number;
     mel: number;
     syd: number;
+    internext?: number;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -52,6 +54,16 @@ type CatalogProduct = {
   widthCm?: number | null;
   depthCm?: number | null;
   liveUpdatedAt?: string;
+};
+
+type AdminStockFormState = {
+  stockQuantity: string;
+  note: string;
+};
+
+type AdminStockMessage = {
+  tone: "success" | "error";
+  text: string;
 };
 
 const SITE_URL = "https://www.internext.com.au";
@@ -227,6 +239,34 @@ const getMeasurementRows = (product: CatalogProduct) => [
   { label: "Depth", value: formatMeasurement(product.depthCm, "cm") },
 ].filter((row): row is { label: string; value: string } => Boolean(row.value));
 
+const getInternextStockQuantity = (product?: CatalogProduct | null) =>
+  typeof product?.stockByWarehouse?.internext === "number"
+    ? product.stockByWarehouse.internext
+    : 0;
+
+const applyAdminStockToProduct = (product: CatalogProduct, internextStock: number): CatalogProduct => {
+  const currentInternextStock = getInternextStockQuantity(product);
+  const supplierStock =
+    typeof product.stockQuantity === "number"
+      ? Math.max(0, product.stockQuantity - currentInternextStock)
+      : 0;
+  const totalStock = supplierStock + internextStock;
+
+  return {
+    ...product,
+    availabilityText: totalStock > 0 ? "In Stock" : product.availabilityText,
+    stockQuantity: totalStock,
+    stockByWarehouse: {
+      adl: product.stockByWarehouse?.adl ?? 0,
+      bne: product.stockByWarehouse?.bne ?? 0,
+      mel: product.stockByWarehouse?.mel ?? 0,
+      syd: product.stockByWarehouse?.syd ?? 0,
+      internext: internextStock,
+    },
+    stockRecordUpdated: new Date().toISOString(),
+  };
+};
+
 const getAvailabilityRows = (product: CatalogProduct) => {
   const availabilityText = safeText(product.availabilityText);
   const etaDate = safeText(product.etaDate);
@@ -249,6 +289,9 @@ const getAvailabilityRows = (product: CatalogProduct) => {
       : null,
     product.stockByWarehouse && product.stockByWarehouse.syd > 0
       ? { label: "Sydney Warehouse", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
+      : null,
+    getInternextStockQuantity(product) > 0
+      ? { label: "Internext Warehouse", value: getInternextStockQuantity(product).toLocaleString("en-AU") }
       : null,
     etaDate
       ? { label: "Next ETA", value: etaDate }
@@ -573,6 +616,12 @@ const ProductDetail = () => {
   const [qty, setQty] = useState(1);
   const [isInCart, setIsInCart] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
+  const [adminStockForm, setAdminStockForm] = useState<AdminStockFormState>({
+    stockQuantity: "",
+    note: "",
+  });
+  const [adminStockSaving, setAdminStockSaving] = useState(false);
+  const [adminStockMessage, setAdminStockMessage] = useState<AdminStockMessage | null>(null);
   const { session } = useAuthSession();
   const { toast } = useToast();
 
@@ -617,6 +666,20 @@ const ProductDetail = () => {
     }
     return isLivePriceReady ? getDisplayPrice(product, session?.role) : "Checking live price...";
   }, [isLivePriceReady, product, session?.role]);
+
+  useEffect(() => {
+    if (session?.role !== "admin" || !product) {
+      return;
+    }
+
+    setAdminStockForm({
+      stockQuantity: getInternextStockQuantity(product)
+        ? String(getInternextStockQuantity(product))
+        : "",
+      note: "",
+    });
+    setAdminStockMessage(null);
+  }, [product?.code, product?.stockByWarehouse?.internext, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -877,6 +940,75 @@ const ProductDetail = () => {
         description: "Please refresh the page and try again.",
         variant: "destructive",
       });
+    }
+  };
+
+  const saveAdminStockOverride = async () => {
+    if (!product) {
+      return;
+    }
+
+    const stockQuantity = Number(adminStockForm.stockQuantity);
+    if (!Number.isInteger(stockQuantity) || stockQuantity < 0) {
+      setAdminStockMessage({
+        tone: "error",
+        text: "Enter a whole stock quantity of 0 or higher.",
+      });
+      return;
+    }
+
+    setAdminStockSaving(true);
+    setAdminStockMessage(null);
+
+    try {
+      const response = await fetch("/api/catalog/live", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          code: product.code,
+          supplierCode: product.supplierCode,
+          stockQuantity,
+          note: adminStockForm.note,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        override?: { stockQuantity?: number };
+      };
+
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to save stock override.");
+      }
+
+      const nextStockQuantity =
+        typeof result.override?.stockQuantity === "number"
+          ? result.override.stockQuantity
+          : stockQuantity;
+      const updateProduct = (item: CatalogProduct) =>
+        item.code === product.code ? applyAdminStockToProduct(item, nextStockQuantity) : item;
+
+      setProduct((current) => (current ? applyAdminStockToProduct(current, nextStockQuantity) : current));
+      setAllProducts((current) => current.map(updateProduct));
+      setAdminStockMessage({
+        tone: "success",
+        text: "Internext stock has been saved for this product.",
+      });
+      toast({
+        title: "Stock updated",
+        description: `${nextStockQuantity.toLocaleString("en-AU")} Internext unit${
+          nextStockQuantity === 1 ? "" : "s"
+        } set for this product.`,
+      });
+    } catch (error) {
+      setAdminStockMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Unable to save stock override.",
+      });
+    } finally {
+      setAdminStockSaving(false);
     }
   };
 
@@ -1212,6 +1344,85 @@ const ProductDetail = () => {
                         <Button variant="outline" className="mt-3 w-full" asChild>
                           <Link to="/products">Browse More Products</Link>
                         </Button>
+
+                        {session?.role === "admin" ? (
+                          <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-4">
+                            <div className="flex items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-foreground">
+                                  Admin stock override
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  Add Internext-owned stock on top of supplier warehouse stock.
+                                </p>
+                              </div>
+                              <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold text-accent">
+                                {getInternextStockQuantity(product).toLocaleString("en-AU")}
+                              </span>
+                            </div>
+
+                            <div className="mt-4 grid gap-3">
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Internext stock quantity
+                                </span>
+                                <Input
+                                  type="number"
+                                  min="0"
+                                  step="1"
+                                  value={adminStockForm.stockQuantity}
+                                  onChange={(event) =>
+                                    setAdminStockForm((current) => ({
+                                      ...current,
+                                      stockQuantity: event.target.value,
+                                    }))
+                                  }
+                                  placeholder="0"
+                                  className="h-11 border-border/70 bg-background"
+                                />
+                              </label>
+
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Internal note
+                                </span>
+                                <textarea
+                                  value={adminStockForm.note}
+                                  onChange={(event) =>
+                                    setAdminStockForm((current) => ({
+                                      ...current,
+                                      note: event.target.value,
+                                    }))
+                                  }
+                                  rows={3}
+                                  placeholder="Optional stock note"
+                                  className="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-accent/35"
+                                />
+                              </label>
+                            </div>
+
+                            {adminStockMessage ? (
+                              <p
+                                className={`mt-3 rounded-lg px-3 py-2 text-sm ${
+                                  adminStockMessage.tone === "success"
+                                    ? "bg-emerald-50 text-emerald-700"
+                                    : "bg-red-50 text-red-700"
+                                }`}
+                              >
+                                {adminStockMessage.text}
+                              </p>
+                            ) : null}
+
+                            <Button
+                              type="button"
+                              className="mt-4 w-full"
+                              onClick={saveAdminStockOverride}
+                              disabled={adminStockSaving}
+                            >
+                              {adminStockSaving ? "Saving stock..." : "Save Internext Stock"}
+                            </Button>
+                          </div>
+                        ) : null}
 
                         <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">
                           <div className="flex items-center gap-2">
