@@ -231,6 +231,33 @@ const formatDateDmy = (value) => {
   return trimmed;
 };
 
+const formatEtaDateDmy = (value) => {
+  const trimmed = String(value || "").trim();
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+
+  const parts = isoMatch
+    ? { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) }
+    : dmyMatch
+      ? { year: Number(dmyMatch[3]), month: Number(dmyMatch[2]), day: Number(dmyMatch[1]) }
+      : null;
+
+  if (!parts) {
+    return trimmed;
+  }
+
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  if (Number.isNaN(date.getTime())) {
+    return formatDateDmy(trimmed);
+  }
+
+  date.setUTCDate(date.getUTCDate() + 5);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const isBackToBackStatus = (value) => /^btb$/i.test(String(value || "").trim());
 
 const normalizeAvailabilityStatus = (value, stockQuantity) => {
@@ -247,7 +274,7 @@ const normalizeAvailabilityStatus = (value, stockQuantity) => {
 };
 
 const normalizeEtaStatus = (value) =>
-  isBackToBackStatus(value) ? "Contact us for availability information" : formatDateDmy(value);
+  isBackToBackStatus(value) ? "Contact us for availability information" : formatEtaDateDmy(value);
 
 const createLiveItem = ({
   code,
@@ -291,7 +318,7 @@ const createLiveItem = ({
     rrpExGst: removeTax(rrp, taxRate),
     taxRate,
     availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
-    etaDate: formatDateDmy(etaDate),
+    etaDate: formatEtaDateDmy(etaDate),
     etaStatus: normalizeEtaStatus(etaStatus),
     stockQuantity,
     stockByWarehouse: {

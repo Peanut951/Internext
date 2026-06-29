@@ -300,7 +300,7 @@ const leaderMillimetresToCentimetres = (value: number | null) =>
 
 const getLeaderEtaDate = (row: Record<string, string>) =>
   [getCsvValue(row, "ETAA"), getCsvValue(row, "ETAQ"), getCsvValue(row, "ETAN"), getCsvValue(row, "ETAV"), getCsvValue(row, "ETAW")]
-    .map(formatDateDmy)
+    .map(formatEtaDateDmy)
     .find(Boolean) || "";
 
 const parseLeaderFeedCsv = (csv: string) => {
@@ -439,6 +439,33 @@ const formatDateDmy = (value: string | undefined) => {
   return trimmed;
 };
 
+const formatEtaDateDmy = (value: string | undefined) => {
+  const trimmed = String(value || "").trim();
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+
+  const parts = isoMatch
+    ? { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) }
+    : dmyMatch
+      ? { year: Number(dmyMatch[3]), month: Number(dmyMatch[2]), day: Number(dmyMatch[1]) }
+      : null;
+
+  if (!parts) {
+    return trimmed;
+  }
+
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  if (Number.isNaN(date.getTime())) {
+    return formatDateDmy(trimmed);
+  }
+
+  date.setUTCDate(date.getUTCDate() + 5);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
+};
+
 const CONTACT_AVAILABILITY_TEXT = "Contact us for availability information";
 const LEADER_AVAILABILITY_TEXT = "Available to order";
 
@@ -459,7 +486,7 @@ const normalizeAvailabilityStatus = (value: string | undefined, stockQuantity: n
 };
 
 const normalizeEtaStatus = (value: string | undefined) =>
-  isBackToBackStatus(value) ? CONTACT_AVAILABILITY_TEXT : formatDateDmy(value);
+  isBackToBackStatus(value) ? CONTACT_AVAILABILITY_TEXT : formatEtaDateDmy(value);
 
 const parseLiveCatalog = (csv: string) => {
   const records = parseCsvRecords(csv.replace(/^\uFEFF/, ""));
@@ -499,7 +526,7 @@ const parseLiveCatalog = (csv: string) => {
         rrpExGst: removeTax(rrp, taxRate),
         taxRate,
         availabilityText: normalizeAvailabilityStatus(etaStatus, stockQuantity),
-        etaDate: formatDateDmy(etaDate),
+        etaDate: formatEtaDateDmy(etaDate),
         etaStatus: normalizeEtaStatus(etaStatus),
         stockQuantity,
         stockByWarehouse: {
@@ -588,7 +615,7 @@ const parseLiveCatalogXml = (xml: string) => {
         rrpExGst: removeTax(rrp, taxRate),
         taxRate,
         availabilityText: normalizeAvailabilityStatus(getXmlTag(row, "ETAStatus"), stockQuantity),
-        etaDate: formatDateDmy(getXmlTag(row, "ETADate")),
+        etaDate: formatEtaDateDmy(getXmlTag(row, "ETADate")),
         etaStatus: normalizeEtaStatus(getXmlTag(row, "ETAStatus")),
         stockQuantity,
         stockByWarehouse: {
