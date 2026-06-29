@@ -118,7 +118,7 @@ const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
   };
 
   normalized.forEach((line) => {
-    const bullet = line.match(/^[-•]\s*(.+)$/);
+    const bullet = line.match(/^[-*]\s*(.+)$/);
     if (bullet) {
       listItems.push(bullet[1].trim());
       return;
