@@ -18,6 +18,43 @@ const formatAud = (value: unknown) =>
 
 const getNumber = (value: unknown) => (typeof value === "number" && Number.isFinite(value) ? value : 0);
 const getString = (value: unknown) => (typeof value === "string" ? value : "");
+const GST_RATE = 0.1;
+const GST_MULTIPLIER = 1 + GST_RATE;
+const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
+
+const splitLineAmount = (unitPrice: number, qty: number, priceText?: string) => {
+  const lineAmount = unitPrice * qty;
+
+  if (/\bex\s*gst\b/i.test(priceText || "")) {
+    const net = lineAmount;
+    const gst = net * GST_RATE;
+    return {
+      unitNet: unitPrice,
+      net,
+      gst,
+      gross: net + gst,
+    };
+  }
+
+  const gross = lineAmount;
+  const net = gross / GST_MULTIPLIER;
+  return {
+    unitNet: unitPrice / GST_MULTIPLIER,
+    net,
+    gst: gross - net,
+    gross,
+  };
+};
+
+const splitIncGstAmount = (grossAmount: number) => {
+  const gross = Math.max(0, grossAmount);
+  const net = gross / GST_MULTIPLIER;
+  return {
+    net,
+    gst: gross - net,
+    gross,
+  };
+};
 
 const getSupabaseOrdersConfig = () => {
   const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
@@ -265,10 +302,42 @@ const formatOrderDate = (value: unknown) => {
 
 const buildOrderEmailSummary = (order: Record<string, unknown>) => {
   const items = Array.isArray(order.items) ? order.items : [];
-  const itemsSubtotal = getNumber(order.itemsSubtotal ?? order.subtotal);
-  const gstAmount = getNumber(order.gstAmount);
-  const shippingTotal = getNumber(order.shippingTotal);
-  const totalKnownValue = getNumber(order.totalKnownValue) || itemsSubtotal + gstAmount + shippingTotal;
+  let calculatedItemsSubtotal = 0;
+  let calculatedItemsGst = 0;
+  const lines = items.map((item) => {
+    const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    const quantity = getNumber(line.qty);
+    const unitPrice = typeof line.price === "number" ? line.price : null;
+    const lineTotals = unitPrice === null
+      ? null
+      : splitLineAmount(unitPrice, quantity, String(line.priceText || ""));
+
+    if (lineTotals) {
+      calculatedItemsSubtotal += lineTotals.net;
+      calculatedItemsGst += lineTotals.gst;
+    }
+
+    return {
+      code: line.code || "",
+      description: line.description || "",
+      quantity,
+      unitPrice: lineTotals?.unitNet ?? null,
+      unitPriceText: lineTotals ? formatAud(normalizeMoney(lineTotals.unitNet)) : "POA",
+      lineTotal: lineTotals?.net ?? null,
+      lineTotalText: lineTotals ? formatAud(normalizeMoney(lineTotals.net)) : "POA",
+      priceBasis: unitPrice === null ? "" : "Ex GST",
+    };
+  });
+  const calculatedSubtotal = normalizeMoney(calculatedItemsSubtotal);
+  const itemsSubtotal = calculatedSubtotal || getNumber(order.itemsSubtotal ?? order.subtotal);
+  const grossShippingTotal = getNumber(order.shippingTotal);
+  const shippingBreakdown = splitIncGstAmount(grossShippingTotal);
+  const shippingTotal = normalizeMoney(shippingBreakdown.net);
+  const calculatedTotalKnownValue = normalizeMoney(
+    itemsSubtotal + calculatedItemsGst + shippingBreakdown.gross,
+  );
+  const totalKnownValue = getNumber(order.totalKnownValue) || calculatedTotalKnownValue;
+  const gstAmount = normalizeMoney(totalKnownValue - itemsSubtotal - shippingTotal);
 
   return {
     orderNumber: order.orderNumber || "",
@@ -281,23 +350,7 @@ const buildOrderEmailSummary = (order: Record<string, unknown>) => {
     totalKnownValue,
     totalKnownValueText: formatAud(totalKnownValue),
     lineCount: items.length,
-    lines: items.map((item) => {
-      const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
-      const quantity = getNumber(line.qty);
-      const unitPrice = typeof line.price === "number" ? line.price : null;
-      const lineTotal = unitPrice === null ? null : unitPrice * quantity;
-
-      return {
-        code: line.code || "",
-        description: line.description || "",
-        quantity,
-        unitPrice,
-        unitPriceText: unitPrice === null ? "POA" : formatAud(unitPrice),
-        lineTotal,
-        lineTotalText: lineTotal === null ? "POA" : formatAud(lineTotal),
-        priceBasis: /\bex\s*gst\b/i.test(String(line.priceText || "")) ? "Ex GST" : "Inc GST",
-      };
-    }),
+    lines,
   };
 };
 
@@ -372,8 +425,8 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
                     <tr>
                       <th align="left" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
                       <th align="center" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
-                      <th align="right" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit price</th>
-                      <th align="right" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Line total</th>
+                      <th align="right" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit price ex GST</th>
+                      <th align="right" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Line total ex GST</th>
                     </tr>
                   </thead>
                   <tbody>${itemRows}</tbody>
@@ -390,7 +443,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
                     <td width="260" style="vertical-align:top;">
                       <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
                         <tr>
-                          <td style="padding:6px 0;color:#4b5563;">Items subtotal</td>
+                          <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
                         </tr>
                         <tr>
@@ -398,7 +451,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
                         </tr>
                         <tr>
-                          <td style="padding:6px 0;color:#4b5563;">Shipping</td>
+                          <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
                         </tr>
                         <tr>
@@ -434,9 +487,9 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
       `${line.quantity} x ${line.description} (${line.code}) - ${line.lineTotalText}`,
     ),
     ``,
-    `Items subtotal: ${summary.itemsSubtotalText}`,
+    `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
     `GST: ${summary.gstAmountText}`,
-    `Shipping: ${summary.shippingTotalText}`,
+    `Shipping ex GST: ${summary.shippingTotalText}`,
     `Total paid: ${summary.totalKnownValueText}`,
     ``,
     `Delivery address:`,
