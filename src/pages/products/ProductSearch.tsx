@@ -278,7 +278,7 @@ const ProductSearch = () => {
             ) : error ? (
               <p className="text-sm text-destructive">{error}</p>
             ) : waitingForLiveMatches ? (
-              <p className="text-sm text-muted-foreground">Searching the live catalogue...</p>
+              <p className="text-sm text-muted-foreground">Searching products...</p>
             ) : matches.length === 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-foreground">No products matched "{currentQuery}".</p>

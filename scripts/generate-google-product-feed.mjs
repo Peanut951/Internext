@@ -438,7 +438,7 @@ const buildShoppingDescription = (product) => {
     price ? `Online price: ${price}.` : "",
     availability ? `Availability: ${availability}.` : "",
     sourceDescription && normalizeToken(sourceDescription) !== normalizeToken(title) ? sourceDescription : "",
-    "Includes secure checkout, Australian delivery options, live availability where supplied, and customer support from Internext.",
+    "Includes secure checkout, Australian delivery options, stock information where supplied, and customer support from Internext.",
   ].filter(Boolean);
 
   return truncate(parts.join(" "), 5000);
@@ -582,12 +582,10 @@ const mergeProducts = (products) => {
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 
-if (process.env.INCLUDE_LEADER_LIVE_GOOGLE_FEED === "true") {
-  try {
-    leaderFeedProducts = await loadLeaderFeedProducts();
-  } catch (error) {
-    console.warn(`Leader feed unavailable for Google product feed: ${error.message}`);
-  }
+try {
+  leaderFeedProducts = await loadLeaderFeedProducts();
+} catch (error) {
+  console.warn(`Leader feed unavailable for generated product snapshot: ${error.message}`);
 }
 
 try {
@@ -596,13 +594,15 @@ try {
   console.warn(`Alloys live feed unavailable for Google product feed: ${error.message}`);
 }
 
-if (alloysLiveItems.length > 0) {
+const generatedCatalogItems = mergeProducts([...alloysLiveItems, ...leaderFeedProducts]);
+
+if (generatedCatalogItems.length > 0) {
   fs.writeFileSync(
     liveOverridesPath,
     `${JSON.stringify(
       {
         updatedAt: new Date().toISOString(),
-        items: alloysLiveItems,
+        items: generatedCatalogItems,
       },
       null,
       2,

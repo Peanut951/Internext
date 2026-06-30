@@ -51,7 +51,7 @@ const Terms = () => {
                   <li>All prices are in Australian dollars. Customer prices are shown including GST, while approved reseller prices may be shown excluding GST.</li>
                   <li>Prices are subject to change without notice until an order is confirmed.</li>
                   <li>We reserve the right to correct pricing errors and cancel affected orders.</li>
-                  <li>Stock availability is subject to live supplier data, warehouse confirmation, allocation, and change at time of order.</li>
+                  <li>Stock availability is subject to supplier data, warehouse confirmation, allocation, and change at time of order.</li>
                   <li>Product images, specifications, dimensions, and compatibility notes are supplied from vendors and distributors and should be checked against the manufacturer's current documentation for critical deployments.</li>
                   <li>Orders are subject to credit approval for account customers.</li>
                 </ul>

@@ -381,7 +381,7 @@ const ProductsIndex = () => {
                   <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
                 ) : waitingForLiveMatches ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">
-                    Searching the live catalogue...
+                    Searching products...
                   </p>
                 ) : searchPreviewMatches.length === 0 ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">

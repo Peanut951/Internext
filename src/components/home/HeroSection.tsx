@@ -12,11 +12,11 @@ const operationalPillars = [
 const spotlightStats = [
   {
     value: "7,500+",
-    label: "Products live in catalogue",
-    eyebrow: "Live Range",
+    label: "Products in catalogue",
+    eyebrow: "Product Range",
     valueClassName: "text-[1.9rem] md:text-[2.1rem]",
     valueDisplay: "7,500+",
-    labelDisplay: "Products live\nin catalogue",
+    labelDisplay: "Products\nin catalogue",
   },
   {
     value: "500+",

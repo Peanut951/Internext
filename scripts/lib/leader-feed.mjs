@@ -199,11 +199,20 @@ export const parseLeaderFeedCsv = (csv) => {
 export const loadLeaderFeedProducts = async (feedUrl = process.env.LEADER_DATA_FEED_URL) => {
   if (!feedUrl) return [];
 
-  const response = await fetch(feedUrl, {
-    headers: {
-      Accept: "application/zip,text/csv,text/plain,*/*",
-    },
-  });
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
+
+  let response;
+  try {
+    response = await fetch(feedUrl, {
+      headers: {
+        Accept: "application/zip,text/csv,text/plain,*/*",
+      },
+      signal: controller.signal,
+    });
+  } finally {
+    clearTimeout(timeout);
+  }
 
   if (!response.ok) {
     throw new Error(`Leader feed returned ${response.status}.`);

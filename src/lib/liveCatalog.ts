@@ -374,25 +374,27 @@ export const loadCatalogProducts = async (options?: { forceRefresh?: boolean }) 
 export const loadCatalogProductsFast = async (
   onLiveProducts?: (products: CatalogProductWithLive[]) => void,
 ) => {
+  const refreshPromise = loadCatalogProducts({ forceRefresh: true })
+    .then((products) => {
+      onLiveProducts?.(products);
+      return products;
+    })
+    .catch(() => null);
+
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
-    void loadCatalogProducts({ forceRefresh: true })
-      .then((products) => onLiveProducts?.(products))
-      .catch(() => {
-        // Fast catalogue views can keep showing the cached products if live refresh fails.
-      });
     return cachedProducts;
   }
 
   try {
     const staticProducts = await loadStaticCatalogProducts();
-    void loadCatalogProducts({ forceRefresh: true })
-      .then((products) => onLiveProducts?.(products))
-      .catch(() => {
-        // Static catalogue data is still useful for first paint while live data recovers.
-      });
     return staticProducts;
   } catch {
+    const refreshedProducts = await refreshPromise;
+    if (refreshedProducts) {
+      return refreshedProducts;
+    }
+
     return loadCatalogProducts();
   }
 };

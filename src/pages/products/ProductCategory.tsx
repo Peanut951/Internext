@@ -1484,7 +1484,7 @@ const ProductCategory = () => {
 
               {!loading && !error && pageItems.length === 0 && liveRefreshing && (
                 <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-                  Searching the live catalogue...
+                  Searching products...
                 </div>
               )}
 

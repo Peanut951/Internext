@@ -3,7 +3,7 @@ import { Users, Target, Award, Globe } from "lucide-react";
 
 const stats = [
   { value: "7,500+", label: "Products in Catalogue" },
-  { value: "Live", label: "Pricing & Availability" },
+  { value: "Current", label: "Pricing & Availability" },
   { value: "AU-wide", label: "Delivery Coverage" },
   { value: "Secure", label: "Online Checkout" },
 ];
@@ -42,7 +42,7 @@ const About = () => {
               About Internext
             </h1>
             <p className="text-xl text-primary-foreground/80 leading-relaxed">
-              Internext helps Australian customers and technology resellers source products with live pricing,
+              Internext helps Australian customers and technology resellers source products with current pricing,
               availability, secure checkout, and practical support.
             </p>
           </div>
@@ -75,7 +75,7 @@ const About = () => {
               </h2>
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
-                  Internext is built around a simple buying experience: search the catalogue, compare live
+                  Internext is built around a simple buying experience: search the catalogue, compare current
                   product information, add items to cart, and complete checkout with delivery calculated from
                   the order and destination.
                 </p>
@@ -143,7 +143,7 @@ const About = () => {
             Ready to get started?
           </h2>
           <p className="text-primary-foreground/70 mb-8 max-w-xl mx-auto">
-            Browse live products, create an account for order history, or contact us for help choosing the
+            Browse products, create an account for order history, or contact us for help choosing the
             right product.
           </p>
           <a 

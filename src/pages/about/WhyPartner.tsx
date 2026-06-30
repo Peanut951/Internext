@@ -19,7 +19,7 @@ const benefits = [
     title: "Strong Stock Availability",
     points: [
       "Australia's largest technology distribution warehouse",
-      "Live stock visibility through our reseller portal",
+      "Stock visibility through our reseller portal",
       "Back-order management and ETA tracking",
       "Special order capabilities for unique requirements",
     ],

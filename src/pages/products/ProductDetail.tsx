@@ -350,7 +350,7 @@ const getStockSummary = (product: CatalogProduct) => {
     return "Currently out of stock. Call 1300 U R NEXT (1300 87 6398) for ETA";
   }
 
-  return safeText(product.availabilityText) || "Live availability checked before checkout";
+  return safeText(product.availabilityText) || "Stock confirmed before checkout";
 };
 
 const getDeliverySummary = (product: CatalogProduct) => {
@@ -712,6 +712,7 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<CatalogProduct | null>(null);
   const [allProducts, setAllProducts] = useState<CatalogProduct[]>([]);
   const [isLivePriceReady, setIsLivePriceReady] = useState(false);
+  const [hasCheckedFullCatalog, setHasCheckedFullCatalog] = useState(false);
   const [qty, setQty] = useState(1);
   const [isInCart, setIsInCart] = useState(false);
   const [activeImage, setActiveImage] = useState<string>("");
@@ -728,6 +729,7 @@ const ProductDetail = () => {
     let isMounted = true;
     setIsInCart(isProductInStoredCart(productCode));
     setIsLivePriceReady(false);
+    setHasCheckedFullCatalog(false);
     setLoading(true);
     setError(null);
     setProduct(null);
@@ -739,6 +741,7 @@ const ProductDetail = () => {
             setAllProducts(liveProducts as CatalogProduct[]);
             setProduct(liveProduct);
             setIsLivePriceReady(true);
+            setHasCheckedFullCatalog(true);
             setLoading(false);
           }
         })) as CatalogProduct[];
@@ -751,7 +754,7 @@ const ProductDetail = () => {
         if (found) {
           setAllProducts(data);
           setProduct(found);
-          setIsLivePriceReady(Boolean(found?.liveUpdatedAt));
+          setIsLivePriceReady(Boolean(found?.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
           setLoading(false);
           return;
         }
@@ -765,11 +768,13 @@ const ProductDetail = () => {
           setAllProducts(liveProducts);
           setProduct(liveFound);
           setIsLivePriceReady(Boolean(liveFound?.liveUpdatedAt));
+          setHasCheckedFullCatalog(true);
           setLoading(false);
         }
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load product.");
+          setHasCheckedFullCatalog(true);
           setLoading(false);
         }
       }
@@ -785,7 +790,7 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "Checking live price...";
+    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "Checking price...";
   }, [isLivePriceReady, product, session?.role]);
 
   useEffect(() => {
@@ -1166,7 +1171,7 @@ const ProductDetail = () => {
             </div>
           )}
 
-          {!loading && !error && !product && (
+          {!loading && !error && !product && hasCheckedFullCatalog && (
             <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
               Product not found.
             </div>
@@ -1318,8 +1323,8 @@ const ProductDetail = () => {
 
                           <TabsContent value="availability" className="m-0">
                             <div className="border-b border-border/50 bg-background/55 px-5 py-4 md:px-6">
-                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
-                                Live Availability
+                          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-accent">
+                                Availability
                               </p>
                               <h2 className="mt-2 text-lg font-semibold text-foreground">
                                 Stock by Location
@@ -1343,7 +1348,7 @@ const ProductDetail = () => {
                               </div>
                             ) : (
                               <p className="px-5 py-5 text-sm text-muted-foreground md:px-6 md:py-6">
-                                Live availability is not available for this product.
+                                Stock details are not available for this product.
                               </p>
                             )}
                           </TabsContent>
@@ -1388,7 +1393,7 @@ const ProductDetail = () => {
 
                       {liveCatalogError ? (
                         <div className="mb-4 rounded-xl border border-destructive/20 bg-destructive/10 px-4 py-3 text-sm text-destructive">
-                          {liveCatalogError} Live product information is temporarily unavailable.
+                          {liveCatalogError} Product information is temporarily unavailable.
                         </div>
                       ) : null}
 
@@ -1450,7 +1455,7 @@ const ProductDetail = () => {
                           </Button>
                         ) : (
                           <Button className="w-full" onClick={addToCart} disabled={!isLivePriceReady}>
-                            {isLivePriceReady ? "Add to Cart" : "Checking live price"}
+                            {isLivePriceReady ? "Add to Cart" : "Checking price"}
                           </Button>
                         )}
 
