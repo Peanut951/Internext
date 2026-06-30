@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -817,6 +817,7 @@ const ProductCategory = () => {
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [featuredRankings, setFeaturedRankings] = useState<Record<string, Record<string, number>>>({});
   const [loading, setLoading] = useState(true);
+  const [liveRefreshing, setLiveRefreshing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [selectedBrands, setSelectedBrands] = useState<string[]>([]);
@@ -833,12 +834,14 @@ const ProductCategory = () => {
     let isMounted = true;
     const loadProducts = async () => {
       try {
+        setLiveRefreshing(true);
         const [catalogProducts, featuredResponse] = await Promise.all([
           loadCatalogProductsFast((liveProducts) => {
             if (isMounted) {
               setProducts((current) =>
                 mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
               );
+              setLiveRefreshing(false);
             }
           }) as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
@@ -852,10 +855,25 @@ const ProductCategory = () => {
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
         }
+
+        try {
+          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+          if (isMounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        } catch {
+          if (isMounted) {
+            setLiveRefreshing(false);
+          }
+        }
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load products.");
           setLoading(false);
+          setLiveRefreshing(false);
         }
       }
     };
@@ -1464,7 +1482,13 @@ const ProductCategory = () => {
                 </div>
               )}
 
-              {!loading && !error && pageItems.length === 0 && (
+              {!loading && !error && pageItems.length === 0 && liveRefreshing && (
+                <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
+                  Searching the live catalogue...
+                </div>
+              )}
+
+              {!loading && !error && pageItems.length === 0 && !liveRefreshing && (
                 <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
                   No products found for this category yet.
                 </div>

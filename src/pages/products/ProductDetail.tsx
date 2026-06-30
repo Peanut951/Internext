@@ -10,7 +10,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProductsFast } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -81,6 +81,24 @@ const safeText = (value: unknown) => {
     return "";
   }
   return String(value).trim();
+};
+
+const normalizeProductLookupKey = (value: unknown) =>
+  safeText(value).toLowerCase();
+
+const findProductByCode = (products: CatalogProduct[], productCode: string) => {
+  const lookupKey = normalizeProductLookupKey(productCode);
+  if (!lookupKey) {
+    return null;
+  }
+
+  return (
+    products.find(
+      (item) =>
+        normalizeProductLookupKey(item.code) === lookupKey ||
+        normalizeProductLookupKey(item.supplierCode) === lookupKey,
+    ) || null
+  );
 };
 
 type DescriptionBlock =
@@ -710,21 +728,43 @@ const ProductDetail = () => {
     let isMounted = true;
     setIsInCart(isProductInStoredCart(productCode));
     setIsLivePriceReady(false);
+    setLoading(true);
+    setError(null);
+    setProduct(null);
     const loadProduct = async () => {
       try {
         const data = (await loadCatalogProductsFast((liveProducts) => {
-          const liveProduct = (liveProducts as CatalogProduct[]).find((item) => item.code === productCode) || null;
+          const liveProduct = findProductByCode(liveProducts as CatalogProduct[], productCode);
           if (isMounted && liveProduct) {
             setAllProducts(liveProducts as CatalogProduct[]);
             setProduct(liveProduct);
             setIsLivePriceReady(true);
+            setLoading(false);
           }
         })) as CatalogProduct[];
-        const found = data.find((item) => item.code === productCode) || null;
-        if (isMounted) {
+
+        const found = findProductByCode(data, productCode);
+        if (!isMounted) {
+          return;
+        }
+
+        if (found) {
           setAllProducts(data);
           setProduct(found);
           setIsLivePriceReady(Boolean(found?.liveUpdatedAt));
+          setLoading(false);
+          return;
+        }
+
+        setAllProducts(data);
+
+        const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+        const liveFound = findProductByCode(liveProducts, productCode);
+
+        if (isMounted) {
+          setAllProducts(liveProducts);
+          setProduct(liveFound);
+          setIsLivePriceReady(Boolean(liveFound?.liveUpdatedAt));
           setLoading(false);
         }
       } catch (err) {

@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
@@ -195,6 +195,7 @@ const ProductsIndex = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [catalogLoading, setCatalogLoading] = useState(true);
+  const [liveRefreshing, setLiveRefreshing] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
@@ -203,16 +204,32 @@ const ProductsIndex = () => {
 
     const loadProducts = async () => {
       try {
+        setLiveRefreshing(true);
         const data = (await loadCatalogProductsFast((liveProducts) => {
           if (isMounted) {
             setProducts((current) =>
               mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
             );
+            setLiveRefreshing(false);
           }
         })) as CatalogProduct[];
         if (isMounted) {
           setProducts(data);
           setCatalogLoading(false);
+        }
+
+        try {
+          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+          if (isMounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        } catch {
+          if (isMounted) {
+            setLiveRefreshing(false);
+          }
         }
       } catch (error) {
         if (isMounted) {
@@ -220,6 +237,7 @@ const ProductsIndex = () => {
             error instanceof Error ? error.message : "Unable to load product catalog.",
           );
           setCatalogLoading(false);
+          setLiveRefreshing(false);
         }
       }
     };
@@ -285,6 +303,8 @@ const ProductsIndex = () => {
 
   const queryTooShort = searchQuery.trim().length > 0 && searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
   const hasSearchQuery = searchQuery.trim().length > 0;
+  const waitingForLiveMatches =
+    hasSearchQuery && !queryTooShort && liveRefreshing && searchPreviewMatches.length === 0;
 
   return (
     <Layout>
@@ -359,6 +379,10 @@ const ProductsIndex = () => {
                   <p className="px-4 py-3 text-sm text-muted-foreground">Loading product search...</p>
                 ) : catalogError ? (
                   <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
+                ) : waitingForLiveMatches ? (
+                  <p className="px-4 py-3 text-sm text-muted-foreground">
+                    Searching the live catalogue...
+                  </p>
                 ) : searchPreviewMatches.length === 0 ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">
                     No products matched "{searchQuery}".

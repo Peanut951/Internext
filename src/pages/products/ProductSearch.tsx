@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
@@ -48,6 +48,7 @@ const ProductSearch = () => {
   const [inputValue, setInputValue] = useState(currentQuery);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveRefreshing, setLiveRefreshing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { session } = useAuthSession();
@@ -61,21 +62,38 @@ const ProductSearch = () => {
 
     const loadProducts = async () => {
       try {
+        setLiveRefreshing(true);
         const data = (await loadCatalogProductsFast((liveProducts) => {
           if (mounted) {
             setProducts((current) =>
               mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
             );
+            setLiveRefreshing(false);
           }
         })) as CatalogProduct[];
         if (mounted) {
           setProducts(data);
           setLoading(false);
         }
+
+        try {
+          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+          if (mounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        } catch {
+          if (mounted) {
+            setLiveRefreshing(false);
+          }
+        }
       } catch (err) {
         if (mounted) {
           setError(err instanceof Error ? err.message : "Unable to load product catalog.");
           setLoading(false);
+          setLiveRefreshing(false);
         }
       }
     };
@@ -151,6 +169,7 @@ const ProductSearch = () => {
   const visibleStart = matches.length === 0 ? 0 : (currentPage - 1) * SEARCH_RESULTS_PER_PAGE + 1;
   const visibleEnd = Math.min(currentPage * SEARCH_RESULTS_PER_PAGE, matches.length);
   const canSearch = currentQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH;
+  const waitingForLiveMatches = canSearch && liveRefreshing && matches.length === 0;
   const pageWindow = Array.from(
     { length: Math.min(5, totalPages) },
     (_, index) => Math.min(
@@ -258,6 +277,8 @@ const ProductSearch = () => {
               <p className="text-sm text-muted-foreground">Loading search results...</p>
             ) : error ? (
               <p className="text-sm text-destructive">{error}</p>
+            ) : waitingForLiveMatches ? (
+              <p className="text-sm text-muted-foreground">Searching the live catalogue...</p>
             ) : matches.length === 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-foreground">No products matched "{currentQuery}".</p>
