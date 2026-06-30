@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useParams } from "react-router-dom";
-import { Phone, X } from "lucide-react";
+import { Phone, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
@@ -1693,7 +1693,7 @@ const ProductCategory = () => {
                     {cartItems.map((item) => (
                       <div key={item.code} className="border border-border/50 rounded-lg p-3">
                         <div className="flex items-start justify-between gap-3">
-                          <div>
+                          <div className="min-w-0">
                             <p className="text-sm font-medium text-foreground break-words">
                               {item.description}
                             </p>
@@ -1702,9 +1702,11 @@ const ProductCategory = () => {
                           <button
                             type="button"
                             onClick={() => removeItem(item.code)}
-                            className="text-xs text-muted-foreground hover:text-accent"
+                            className="inline-flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-md border border-border/60 bg-background text-muted-foreground transition-colors hover:border-destructive/40 hover:bg-destructive/10 hover:text-destructive"
+                            aria-label={`Remove ${item.description} from cart`}
+                            title="Remove from cart"
                           >
-                            Remove
+                            <Trash2 className="h-4 w-4" />
                           </button>
                         </div>
                         <div className="mt-3 flex items-center justify-between">
