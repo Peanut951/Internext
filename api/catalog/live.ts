@@ -672,6 +672,29 @@ const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCo
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
+let leaderPdfExclusionCodes: Set<string> | null = null;
+
+const loadLeaderPdfExclusionCodes = async () => {
+  if (leaderPdfExclusionCodes) {
+    return leaderPdfExclusionCodes;
+  }
+
+  try {
+    const exclusionPath = join(process.cwd(), "public", "data", "leader-pdf-exclusions.json");
+    const raw = await readFile(exclusionPath, "utf8");
+    leaderPdfExclusionCodes = new Set(
+      (JSON.parse(raw) as string[]).map((code) => code.trim().toLowerCase()).filter(Boolean),
+    );
+  } catch {
+    leaderPdfExclusionCodes = new Set();
+  }
+
+  return leaderPdfExclusionCodes;
+};
+
+const isLeaderPdfExcluded = (product: Pick<LeaderCatalogProduct, "code" | "supplierCode">) =>
+  getProductKeys(product).some((key) => leaderPdfExclusionCodes?.has(key));
+
 const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
 
 const getSupabaseRestConfig = () => {
@@ -962,6 +985,8 @@ const loadLeaderCatalogProductsUncached = async (
   let feedProducts: LeaderCatalogProduct[] = [];
 
   try {
+    await loadLeaderPdfExclusionCodes();
+
     if (feedUrl) {
       const response = await fetch(feedUrl, {
         headers: {
@@ -983,12 +1008,14 @@ const loadLeaderCatalogProductsUncached = async (
         throw new Error("Leader feed did not contain a CSV file.");
       }
 
-      feedProducts = parseLeaderFeedCsv(csv);
+      feedProducts = parseLeaderFeedCsv(csv).filter((product) => !isLeaderPdfExcluded(product));
     }
 
     const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
     const raw = await readFile(leaderPath, "utf8");
-    const staticProducts = JSON.parse(raw) as LeaderCatalogProduct[];
+    const staticProducts = (JSON.parse(raw) as LeaderCatalogProduct[]).filter(
+      (product) => !isLeaderPdfExcluded(product),
+    );
     const productsByKey = new Map<string, LeaderCatalogProduct>();
 
     for (const product of [...staticProducts, ...feedProducts]) {
@@ -1019,10 +1046,11 @@ const loadLeaderCatalogProductsUncached = async (
     }
 
     try {
+      await loadLeaderPdfExclusionCodes();
       const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
       const raw = await readFile(leaderPath, "utf8");
-      return (JSON.parse(raw) as LeaderCatalogProduct[]).filter((product) =>
-        isTangibleCatalogProduct(product as Record<string, unknown>),
+      return (JSON.parse(raw) as LeaderCatalogProduct[]).filter(
+        (product) => !isLeaderPdfExcluded(product) && isTangibleCatalogProduct(product as Record<string, unknown>),
       );
     } catch {
       return [] as LeaderCatalogProduct[];

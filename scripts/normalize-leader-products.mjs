@@ -3,27 +3,6 @@ import path from "path";
 
 const root = process.cwd();
 const dataPath = path.join(root, "public", "data", "leader-products.json");
-const imageDir = path.join(root, "public", "images", "leader");
-
-const selectedImages = {
-  "leader-aio.jpg": "leader-pdf-image-008.jpg",
-  "leader-2in1-tablet.jpg": "leader-pdf-image-025.jpg",
-  "leader-convertible.jpg": "leader-pdf-image-068.jpg",
-  "leader-notebook-14.jpg": "leader-pdf-image-087.jpg",
-  "leader-ai-notebook.jpg": "leader-pdf-image-091.jpg",
-  "leader-mini-pc.jpg": "leader-pdf-image-094.jpg",
-  "leader-desktop.jpg": "leader-pdf-image-101.jpg",
-  "leader-notebook-15.jpg": "leader-pdf-image-116.jpg",
-  "leader-gaming-desktop.jpg": "leader-pdf-image-205.jpg",
-};
-
-for (const [target, source] of Object.entries(selectedImages)) {
-  const sourcePath = path.join(imageDir, source);
-  const targetPath = path.join(imageDir, target);
-  if (fs.existsSync(sourcePath)) {
-    fs.copyFileSync(sourcePath, targetPath);
-  }
-}
 
 const replacements = [
   [/Â®/g, "®"],
@@ -87,7 +66,7 @@ const storageShort = (text) => {
 const suffix = (parts) => parts.filter(Boolean).join(", ");
 
 const conciseName = (item) => {
-  if (item.leaderSheet === "Q1 Catalogue 2026 PDF" || item.manufacturer !== "Leader") {
+  if (item.manufacturer !== "Leader") {
     return cleanText(item.description);
   }
 
@@ -99,7 +78,6 @@ const conciseName = (item) => {
 
   if (code === "MNE-OPS-IDL05") return "Leader OPS Module MNE-OPS-IDL05";
   if (code === "SC8-PRO") return "Leader PC Stick SC8-PRO";
-  if (code === "TBL-10W5PRO") return "Leader 10W5PRO 2-in-1 Tablet";
   if (code === "SCT4-Z1-R5P") return "Leader Companion SCT4-Z1 2-in-1 Convertible";
   if (code.startsWith("SRS-R55")) return `Resistance VR Striker R55-15V1 Gaming Notebook${ram === "32GB" ? " 32GB" : ""}`;
   if (code.startsWith("SRAV44")) {
@@ -127,21 +105,7 @@ const conciseName = (item) => {
 };
 
 const imageFor = (item) => {
-  if (item.leaderSheet === "Q1 Catalogue 2026 PDF" || item.manufacturer !== "Leader") {
-    return item.imageUrl || "/product-placeholder.png";
-  }
-
-  const code = item.code;
-  if (code === "TBL-10W5PRO") return "/images/leader/leader-2in1-tablet.jpg";
-  if (code === "SCT4-Z1-R5P") return "/images/leader/leader-convertible.jpg";
-  if (code === "SC8-PRO") return "/images/leader/leader-pc-stick-sc8-pro.jpg";
-  if (code.startsWith("SRAV44")) return "/images/leader/leader-gaming-desktop.jpg";
-  if (code.startsWith("SV245") || code.startsWith("SV275")) return "/images/leader/leader-aio.jpg";
-  if (code.startsWith("SV") || code.startsWith("SS")) return "/images/leader/leader-desktop.jpg";
-  if (code.startsWith("SN") || code === "MNE-OPS-IDL05") return "/images/leader/leader-mini-pc.jpg";
-  if (code.startsWith("SCE4") || code.startsWith("SCP4") || code.startsWith("SCU4")) return "/images/leader/leader-notebook-14.jpg";
-  if (code.startsWith("SRS") || code.startsWith("SCP6") || code.startsWith("SCU6")) return "/images/leader/leader-ai-notebook.png";
-  return "/images/leader/leader-notebook-15.jpg";
+  return item.imageUrl || "/product-placeholder.png";
 };
 
 const items = JSON.parse(fs.readFileSync(dataPath, "utf8")).map((raw) => {

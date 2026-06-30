@@ -1,4 +1,25 @@
+import fs from "node:fs";
+import path from "node:path";
 import { inflateRawSync } from "node:zlib";
+
+const loadLeaderPdfExclusions = () => {
+  try {
+    const exclusionPath = path.resolve("public", "data", "leader-pdf-exclusions.json");
+    return new Set(
+      JSON.parse(fs.readFileSync(exclusionPath, "utf8"))
+        .map((code) => String(code).trim().toLowerCase())
+        .filter(Boolean),
+    );
+  } catch {
+    return new Set();
+  }
+};
+
+const leaderPdfExclusions = loadLeaderPdfExclusions();
+
+const isLeaderPdfExcluded = (product) =>
+  leaderPdfExclusions.has(String(product.code || "").trim().toLowerCase()) ||
+  leaderPdfExclusions.has(String(product.supplierCode || "").trim().toLowerCase());
 
 const normalizeHeaderName = (value) => String(value || "").trim().toLowerCase().replace(/[^a-z0-9]/g, "");
 
@@ -199,5 +220,5 @@ export const loadLeaderFeedProducts = async (feedUrl = process.env.LEADER_DATA_F
     throw new Error("Leader feed did not contain a CSV file.");
   }
 
-  return parseLeaderFeedCsv(csv);
+  return parseLeaderFeedCsv(csv).filter((product) => !isLeaderPdfExcluded(product));
 };
