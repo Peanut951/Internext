@@ -50,6 +50,7 @@ type CatalogProduct = {
     bne: number;
     mel: number;
     syd: number;
+    wa: number;
     internext?: number;
   };
   stockRecordUpdated?: string;
@@ -288,6 +289,7 @@ const applyAdminStockToProduct = (product: CatalogProduct, internextStock: numbe
       bne: product.stockByWarehouse?.bne ?? 0,
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
+      wa: product.stockByWarehouse?.wa ?? 0,
       internext: internextStock,
     },
     stockRecordUpdated: new Date().toISOString(),
@@ -316,6 +318,9 @@ const getAvailabilityRows = (product: CatalogProduct) => {
       : null,
     product.stockByWarehouse && product.stockByWarehouse.syd > 0
       ? { label: "Sydney Warehouse", value: product.stockByWarehouse.syd.toLocaleString("en-AU") }
+      : null,
+    product.stockByWarehouse && product.stockByWarehouse.wa > 0
+      ? { label: "WA Warehouse", value: product.stockByWarehouse.wa.toLocaleString("en-AU") }
       : null,
     getInternextStockQuantity(product) > 0
       ? { label: "Internext Warehouse", value: getInternextStockQuantity(product).toLocaleString("en-AU") }

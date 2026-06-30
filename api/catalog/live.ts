@@ -27,6 +27,7 @@ export type LiveCatalogItem = {
     bne: number;
     mel: number;
     syd: number;
+    wa: number;
     internext?: number;
   };
   stockRecordUpdated: string;
@@ -107,6 +108,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
     bne: number;
     mel: number;
     syd: number;
+    wa: number;
     internext?: number;
   };
   etaDate?: string;
@@ -306,6 +308,21 @@ const parseLeaderQuantity = (value: string | undefined) => {
   return parsed !== null && parsed > 0 ? parsed : 0;
 };
 
+const sumWarehouseStock = (stockByWarehouse: {
+  adl?: number;
+  bne?: number;
+  mel?: number;
+  syd?: number;
+  wa?: number;
+  internext?: number;
+}) =>
+  (stockByWarehouse.adl ?? 0) +
+  (stockByWarehouse.bne ?? 0) +
+  (stockByWarehouse.mel ?? 0) +
+  (stockByWarehouse.syd ?? 0) +
+  (stockByWarehouse.wa ?? 0) +
+  (stockByWarehouse.internext ?? 0);
+
 const leaderMillimetresToCentimetres = (value: number | null) =>
   value === null ? null : Math.round((value / 10) * 10) / 10;
 
@@ -335,9 +352,10 @@ const parseLeaderFeedCsv = (csv: string) => {
         bne: parseLeaderQuantity(getCsvValue(row, "AQ")),
         syd: parseLeaderQuantity(getCsvValue(row, "AN")),
         mel: parseLeaderQuantity(getCsvValue(row, "AV")),
+        wa: parseLeaderQuantity(getCsvValue(row, "AW")),
       };
-      const stockQuantity = parseLeaderQuantity(getCsvValue(row, "AT")) ||
-        stockByWarehouse.adl + stockByWarehouse.bne + stockByWarehouse.syd + stockByWarehouse.mel;
+      const warehouseStockQuantity = sumWarehouseStock(stockByWarehouse);
+      const stockQuantity = warehouseStockQuantity || parseLeaderQuantity(getCsvValue(row, "AT"));
       const etaDate = getLeaderEtaDate(row);
       const manufacturerSku = getCsvValue(row, "MANUFACTURER SKU").trim();
       const barcode = normalizeGtin(getCsvValue(row, "BAR CODE"));
@@ -518,9 +536,21 @@ const parseLiveCatalog = (csv: string) => {
       const rrpExGst = parseNumber(parts[9]);
       const taxRate = parseNumber(parts[11]) ?? 0;
       const rrp = ensureMinimumRrp(applyTax(rrpExGst, taxRate), price);
-      const stockQuantity = parseNumber(parts[12]) ?? 0;
+      const rawStockQuantity = parseNumber(parts[12]) ?? 0;
       const tail = parts.slice(-7);
       const [stockRecordUpdated, etaDate, etaStatus, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
+      const stockByWarehouse = {
+        adl: parseNumber(qtyAdl) ?? 0,
+        bne: parseNumber(qtyBne) ?? 0,
+        mel: parseNumber(qtyMel) ?? 0,
+        syd: parseNumber(qtySyd) ?? 0,
+        wa:
+          parseNumber(
+            getCsvField(headers, parts, ["Qty_WA", "Qty_WAUS", "Qty_PER", "Qty_PERTH", "Qty_WesternAustralia"]),
+          ) ?? 0,
+      };
+      const warehouseStockQuantity = sumWarehouseStock(stockByWarehouse);
+      const stockQuantity = warehouseStockQuantity || rawStockQuantity;
 
       return {
         code,
@@ -540,12 +570,7 @@ const parseLiveCatalog = (csv: string) => {
         etaDate: formatEtaDateDmy(etaDate),
         etaStatus: normalizeEtaStatus(etaStatus),
         stockQuantity,
-        stockByWarehouse: {
-          adl: parseNumber(qtyAdl) ?? 0,
-          bne: parseNumber(qtyBne) ?? 0,
-          mel: parseNumber(qtyMel) ?? 0,
-          syd: parseNumber(qtySyd) ?? 0,
-        },
+        stockByWarehouse,
         stockRecordUpdated: formatDateDmy(stockRecordUpdated),
         weightKg: parsePositiveNumber(parts[17]),
         heightCm: metresToCentimetres(parsePositiveNumber(parts[18])),
@@ -609,7 +634,18 @@ const parseLiveCatalogXml = (xml: string) => {
       const rrpExGst = parseNumber(getXmlTag(row, "PriceRetailEx"));
       const taxRate = parseNumber(getXmlTag(row, "TaxRate")) ?? 0;
       const rrp = ensureMinimumRrp(applyTax(rrpExGst, taxRate), price);
-      const stockQuantity = parseNumber(getXmlTag(row, "Quantity")) ?? 0;
+      const rawStockQuantity = parseNumber(getXmlTag(row, "Quantity")) ?? 0;
+      const stockByWarehouse = {
+        adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
+        bne: parseNumber(getXmlTag(row, "Qty_BNE")) ?? 0,
+        mel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
+        syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
+        wa:
+          parseNumber(getFirstXmlTag(row, ["Qty_WA", "Qty_WAUS", "Qty_PER", "Qty_PERTH", "Qty_WesternAustralia"])) ??
+          0,
+      };
+      const warehouseStockQuantity = sumWarehouseStock(stockByWarehouse);
+      const stockQuantity = warehouseStockQuantity || rawStockQuantity;
 
       return {
         code,
@@ -629,12 +665,7 @@ const parseLiveCatalogXml = (xml: string) => {
         etaDate: formatEtaDateDmy(getXmlTag(row, "ETADate")),
         etaStatus: normalizeEtaStatus(getXmlTag(row, "ETAStatus")),
         stockQuantity,
-        stockByWarehouse: {
-          adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
-          bne: parseNumber(getXmlTag(row, "Qty_BNE")) ?? 0,
-          mel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
-          syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
-        },
+        stockByWarehouse,
         stockRecordUpdated: formatDateDmy(getXmlTag(row, "StockRecordUpdated")),
         weightKg: parsePositiveNumber(getXmlTag(row, "Weight")),
         heightCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Height"))),
@@ -801,6 +832,7 @@ const applyStockOverrideToProduct = <
       bne: product.stockByWarehouse?.bne ?? 0,
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
+      wa: product.stockByWarehouse?.wa ?? 0,
       internext: override.stockQuantity,
     },
     stockRecordUpdated: override.updatedAt || product.stockRecordUpdated,
@@ -1087,6 +1119,7 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
       bne: product.stockByWarehouse?.bne ?? 0,
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
+      wa: product.stockByWarehouse?.wa ?? 0,
     },
     stockRecordUpdated: "",
     etaDate: product.etaDate || "",
@@ -1394,6 +1427,7 @@ const loadMergedCatalogProductsUncached = async (
               bne: 0,
               mel: 0,
               syd: 0,
+              wa: 0,
             },
             stockRecordUpdated: "",
             weightKg: product.weightKg ?? null,

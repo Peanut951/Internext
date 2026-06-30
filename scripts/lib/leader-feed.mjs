@@ -161,10 +161,15 @@ export const parseLeaderFeedCsv = (csv) => {
         bne: parseQuantity(getCsvValue(row, "AQ")),
         syd: parseQuantity(getCsvValue(row, "AN")),
         mel: parseQuantity(getCsvValue(row, "AV")),
+        wa: parseQuantity(getCsvValue(row, "AW")),
       };
-      const stockQuantity =
-        parseQuantity(getCsvValue(row, "AT")) ||
-        stockByWarehouse.adl + stockByWarehouse.bne + stockByWarehouse.syd + stockByWarehouse.mel;
+      const warehouseStockQuantity =
+        stockByWarehouse.adl +
+        stockByWarehouse.bne +
+        stockByWarehouse.syd +
+        stockByWarehouse.mel +
+        stockByWarehouse.wa;
+      const stockQuantity = warehouseStockQuantity || parseQuantity(getCsvValue(row, "AT"));
       const imageUrl = getCsvValue(row, "IMAGE").trim();
       const barcode = normalizeGtin(getCsvValue(row, "BAR CODE"));
       const category = cleanText(getCsvValue(row, "CATEGORY NAME"));

@@ -293,6 +293,7 @@ const createLiveItem = ({
   qtyBne,
   qtyMel,
   qtySyd,
+  qtyWa,
   weightKg,
   heightCm,
   widthCm,
@@ -326,6 +327,7 @@ const createLiveItem = ({
       bne: qtyBne,
       mel: qtyMel,
       syd: qtySyd,
+      wa: qtyWa,
     },
     stockRecordUpdated: formatDateDmy(stockRecordUpdated),
     weightKg,
@@ -350,6 +352,22 @@ const parseLiveCatalogCsv = (csv) => {
 
       const tail = parts.slice(-7);
       const [stockRecordUpdated, etaDate, etaStatus, qtyAdl, qtyBne, qtyMel, qtySyd] = tail;
+      const stockByWarehouse = {
+        adl: parseNumber(qtyAdl) ?? 0,
+        bne: parseNumber(qtyBne) ?? 0,
+        mel: parseNumber(qtyMel) ?? 0,
+        syd: parseNumber(qtySyd) ?? 0,
+        wa:
+          parseNumber(
+            getCsvField(headers, parts, ["Qty_WA", "Qty_WAUS", "Qty_PER", "Qty_PERTH", "Qty_WesternAustralia"]),
+          ) ?? 0,
+      };
+      const warehouseStockQuantity =
+        stockByWarehouse.adl +
+        stockByWarehouse.bne +
+        stockByWarehouse.mel +
+        stockByWarehouse.syd +
+        stockByWarehouse.wa;
 
       return createLiveItem({
         code,
@@ -360,14 +378,15 @@ const parseLiveCatalogCsv = (csv) => {
         costExGst: parseNumber(parts[8]),
         rrpExGst: parseNumber(parts[9]),
         taxRate: parseNumber(parts[11]) ?? 0,
-        stockQuantity: parseNumber(parts[12]) ?? 0,
+        stockQuantity: warehouseStockQuantity || parseNumber(parts[12]) || 0,
         stockRecordUpdated,
         etaDate,
         etaStatus,
-        qtyAdl: parseNumber(qtyAdl) ?? 0,
-        qtyBne: parseNumber(qtyBne) ?? 0,
-        qtyMel: parseNumber(qtyMel) ?? 0,
-        qtySyd: parseNumber(qtySyd) ?? 0,
+        qtyAdl: stockByWarehouse.adl,
+        qtyBne: stockByWarehouse.bne,
+        qtyMel: stockByWarehouse.mel,
+        qtySyd: stockByWarehouse.syd,
+        qtyWa: stockByWarehouse.wa,
         weightKg: parsePositiveNumber(parts[17]),
         heightCm: metresToCentimetres(parsePositiveNumber(parts[18])),
         widthCm: metresToCentimetres(parsePositiveNumber(parts[19])),
@@ -399,7 +418,22 @@ const parseLiveCatalogXml = (xml) => {
         return null;
       }
 
-      const stockQuantity = parseNumber(getXmlTag(row, "Quantity")) ?? 0;
+      const stockByWarehouse = {
+        adl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
+        bne: parseNumber(getXmlTag(row, "Qty_BNE")) ?? 0,
+        mel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
+        syd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
+        wa:
+          parseNumber(getFirstXmlTag(row, ["Qty_WA", "Qty_WAUS", "Qty_PER", "Qty_PERTH", "Qty_WesternAustralia"])) ??
+          0,
+      };
+      const warehouseStockQuantity =
+        stockByWarehouse.adl +
+        stockByWarehouse.bne +
+        stockByWarehouse.mel +
+        stockByWarehouse.syd +
+        stockByWarehouse.wa;
+      const stockQuantity = warehouseStockQuantity || parseNumber(getXmlTag(row, "Quantity")) || 0;
 
       return createLiveItem({
         code,
@@ -414,10 +448,11 @@ const parseLiveCatalogXml = (xml) => {
         stockRecordUpdated: getXmlTag(row, "StockRecordUpdated"),
         etaDate: getXmlTag(row, "ETADate"),
         etaStatus: getXmlTag(row, "ETAStatus"),
-        qtyAdl: parseNumber(getXmlTag(row, "Qty_ADL")) ?? 0,
-        qtyBne: parseNumber(getXmlTag(row, "Qty_BNE")) ?? 0,
-        qtyMel: parseNumber(getXmlTag(row, "Qty_MEL")) ?? 0,
-        qtySyd: parseNumber(getXmlTag(row, "Qty_SYD")) ?? 0,
+        qtyAdl: stockByWarehouse.adl,
+        qtyBne: stockByWarehouse.bne,
+        qtyMel: stockByWarehouse.mel,
+        qtySyd: stockByWarehouse.syd,
+        qtyWa: stockByWarehouse.wa,
         weightKg: parsePositiveNumber(getXmlTag(row, "Weight")),
         heightCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Height"))),
         widthCm: metresToCentimetres(parsePositiveNumber(getXmlTag(row, "Width"))),

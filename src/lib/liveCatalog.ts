@@ -28,6 +28,7 @@ export type CatalogProductWithLive = {
     bne: number;
     mel: number;
     syd: number;
+    wa: number;
     internext?: number;
   };
   stockRecordUpdated?: string;
@@ -59,6 +60,7 @@ type LiveCatalogItem = {
     bne: number;
     mel: number;
     syd: number;
+    wa: number;
     internext?: number;
   };
   stockRecordUpdated: string;
