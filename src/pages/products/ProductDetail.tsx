@@ -24,6 +24,9 @@ type CatalogProduct = {
   manufacturer: string;
   description: string;
   longDescription?: string;
+  category?: string;
+  subcategory?: string;
+  leaderCategory?: string;
   price: number | null;
   priceText?: string;
   resellerPrice?: number | null;
@@ -419,6 +422,70 @@ const getSeoProductType = (product: CatalogProduct) => {
   return "";
 };
 
+const getRecommendationText = (product: CatalogProduct) =>
+  [
+    product.manufacturer,
+    product.description,
+    product.longDescription,
+    product.category,
+    product.subcategory,
+    product.leaderCategory,
+  ]
+    .map(safeText)
+    .join(" ")
+    .toLowerCase();
+
+const getRecommendationKind = (product: CatalogProduct) => {
+  const text = getRecommendationText(product);
+
+  if (/\b(toner|toner cartridge)\b/.test(text)) return "print-toner";
+  if (/\b(ink|ink cartridge)\b/.test(text)) return "print-ink";
+  if (/\bdrum\b/.test(text)) return "print-drum";
+  if (/\bribbon\b/.test(text)) return "print-ribbon";
+  if (/\bprinthead\b/.test(text)) return "printhead";
+  if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return "print-media";
+  if (/\b(scanner|document scanner)\b/.test(text)) return "scanner";
+  if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "printer";
+
+  if (/\b(mount|bracket|stand|trolley|floor stand|wall mount)\b/.test(text)) return "mount-stand-bracket";
+  if (/\bprojector\b/.test(text)) return "projector";
+  if (/\b(interactive|ifp|touch\s*screen|touchscreen)\b/.test(text) && /\b(display|panel|screen|board)\b/.test(text)) {
+    return "interactive-display";
+  }
+  if (/\b(tv|television|bravia)\b/.test(text)) return "tv";
+  if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "commercial-display";
+
+  if (/\b(nvr|dvr|recorder)\b/.test(text)) return "video-recorder";
+  if (/\b(ptz|turret|bullet|dome|camera|cctv|surveillance)\b/.test(text)) return "security-camera";
+  if (/\b(intercom|door station|door phone|access control|rfid|biometric|fingerprint|card reader)\b/.test(text)) {
+    return "access-control";
+  }
+
+  if (/\b(base station|base unit|dect base|wireless base)\b/.test(text)) return "uc-base-station";
+  if (/\bheadset\b/.test(text)) return "uc-headset";
+  if (/\b(conference|speakerphone)\b/.test(text)) return "uc-conference";
+  if (/\bhandset\b/.test(text)) return "uc-handset";
+  if (/\b(ip phone|voip phone|sip phone|deskphone|desk phone|telephone|phone)\b/.test(text)) return "uc-desk-phone";
+
+  if (/\b(access point|wireless ap|wi-fi ap|wifi ap)\b/.test(text)) return "network-access-point";
+  if (/\bswitch\b/.test(text)) return "network-switch";
+  if (/\brouter\b/.test(text)) return "network-router";
+  if (/\bfirewall\b/.test(text)) return "network-firewall";
+  if (/\b(nas|storage)\b/.test(text)) return "network-storage";
+
+  if (/\bups\b/.test(text)) return "ups";
+  if (/\b(battery|power supply|powerboard|pdu)\b/.test(text)) return "power-accessory";
+  if (/\b(relay|controller|control module)\b/.test(text)) return "control-module";
+  if (/\b(adapter|adaptor|converter|interface)\b/.test(text)) return "adapter";
+  if (/\b(cable|cord|lead)\b/.test(text)) return "cable";
+  if (/\b(laptop|notebook|chromebook)\b/.test(text)) return "laptop";
+  if (/\btablet\b/.test(text)) return "tablet";
+  if (/\bserver\b/.test(text)) return "server";
+  if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "desktop";
+
+  return "";
+};
+
 const PRODUCT_RECOMMENDATION_STOP_WORDS = new Set([
   "and",
   "for",
@@ -489,13 +556,20 @@ const scoreSimilarProduct = (
 
   const currentBrand = normalizeToken(current.manufacturer);
   const candidateBrand = normalizeToken(candidate.manufacturer);
+  const currentKind = getRecommendationKind(current);
+  const candidateKind = getRecommendationKind(candidate);
   const currentType = getSeoProductType(current);
   const candidateType = getSeoProductType(candidate);
   const sharedTokens = countSharedRecommendationTokens(currentTokens, getRecommendationTokens(candidate));
   const currentFamily = getCodeFamily(current.code || current.supplierCode);
   const candidateFamily = getCodeFamily(candidate.code || candidate.supplierCode);
 
+  if (!currentKind || currentKind !== candidateKind) {
+    return -1;
+  }
+
   let score = 0;
+  score += 12;
   if (currentBrand && currentBrand === candidateBrand) {
     score += 6;
   }
