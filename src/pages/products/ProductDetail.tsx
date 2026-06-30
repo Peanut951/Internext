@@ -106,16 +106,19 @@ const descriptionBlocksToParagraphs = (blocks: DescriptionBlock[]) =>
     return block.text;
   });
 
+const SUPPLIER_BULLET_PATTERN = /[•·●▪◦]/g;
+
 const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
   const normalized = safeText(value)
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<li[^>]*>/gi, "\n- ")
     .replace(/<\/(p|div|li|h[1-6]|ul|ol)>/gi, "\n")
     .replace(/<[^>]*>/g, " ")
+    .replace(/&bull;|&#8226;|&#x2022;/gi, "•")
     .replace(/\u00a0/g, " ")
-    .replace(/\s+(Features)\s*(?=•|-)/gi, "\n$1:\n")
+    .replace(/\s+(Features)\s*(?=[•·●▪◦-])/gi, "\n$1:\n")
     .replace(/\s+(Features:)\s*/gi, "\n$1\n")
-    .replace(/\s*•\s*/g, "\n- ")
+    .replace(SUPPLIER_BULLET_PATTERN, "\n- ")
     .replace(/\s+(Typical applications include|Internext supplies this item|Buyers can use|This model is positioned|It is mainly intended|It is aimed at|Admin reference:)/g, "\n\n$1")
     .replace(/\s+-\s+/g, "\n- ")
     .split(/\r?\n/)
