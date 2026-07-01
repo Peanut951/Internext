@@ -84,17 +84,17 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-accent" />
-                <a href="tel:1300876398" className="text-primary-foreground/70 hover:text-accent transition-colors leading-tight">
+                <Link to="/contact" className="text-primary-foreground/70 hover:text-accent transition-colors leading-tight">
                   <span className="block">1300 U R NEXT</span>
                   <span className="block text-xs">(1300 87 6398)</span>
-                </a>
+                </Link>
               </li>
 
               <li className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-accent" />
-                <a href="mailto:orders@internext.com.au" className="text-primary-foreground/70 hover:text-accent transition-colors">
+                <Link to="/contact" className="text-primary-foreground/70 hover:text-accent transition-colors">
                   orders@internext.com.au
-                </a>
+                </Link>
               </li>
 
               <li className="flex items-start gap-3 text-sm">

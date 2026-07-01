@@ -14,17 +14,17 @@ const TopBar = () => {
     <div className="bg-primary py-2 text-primary-foreground">
       <div className="container-wide flex items-center justify-between gap-3 text-sm">
         <div className="flex min-w-0 items-center gap-3 sm:gap-6">
-          <a href="tel:1300876398" className="flex items-center gap-2 hover:text-accent transition-colors">
+          <Link to="/contact" className="flex items-center gap-2 hover:text-accent transition-colors">
             <Phone className="h-4 w-4 shrink-0" />
             <span className="whitespace-nowrap leading-tight">
               <span className="block">1300 U R NEXT</span>
               <span className="block text-[0.7rem] text-primary-foreground/70">(1300 87 6398)</span>
             </span>
-          </a>
-          <a href="mailto:sales@internext.com.au" className="hidden min-w-0 items-center gap-2 transition-colors hover:text-accent sm:flex">
+          </Link>
+          <Link to="/contact" className="hidden min-w-0 items-center gap-2 transition-colors hover:text-accent sm:flex">
             <Mail className="h-4 w-4 shrink-0" />
             <span>orders@internext.com.au</span>
-          </a>
+          </Link>
         </div>
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {session ? (

@@ -458,8 +458,22 @@ const getRecommendationText = (product: CatalogProduct) =>
     .join(" ")
     .toLowerCase();
 
+const getRecommendationPrimaryText = (product: CatalogProduct) =>
+  [
+    product.manufacturer,
+    product.description,
+    product.code,
+    product.supplierCode,
+    product.category,
+    product.subcategory,
+    product.leaderCategory,
+  ]
+    .map(safeText)
+    .join(" ")
+    .toLowerCase();
+
 const getRecommendationKind = (product: CatalogProduct) => {
-  const text = getRecommendationText(product);
+  const text = getRecommendationPrimaryText(product);
 
   if (/\b(toner|toner cartridge)\b/.test(text)) return "print-toner";
   if (/\b(ink|ink cartridge)\b/.test(text)) return "print-ink";
@@ -531,17 +545,35 @@ const PRODUCT_RECOMMENDATION_STOP_WORDS = new Set([
   "business",
   "commercial",
   "professional",
+  "compatible",
+  "replacement",
+  "includes",
+  "pack",
+  "ready",
+  "high",
+  "quality",
+  "unit",
+  "device",
   "australia",
   "internext",
 ]);
 
 const getRecommendationTokens = (product: CatalogProduct) =>
   new Set(
-    `${safeText(product.manufacturer)} ${safeText(product.description)} ${safeText(product.longDescription)} ${safeText(product.code)} ${safeText(product.supplierCode)}`
+    `${safeText(product.manufacturer)} ${safeText(product.description)} ${safeText(product.code)} ${safeText(product.supplierCode)} ${safeText(product.category)} ${safeText(product.subcategory)} ${safeText(product.leaderCategory)}`
       .toLowerCase()
       .split(/[^a-z0-9]+/)
       .map((token) => token.trim())
       .filter((token) => token.length >= 3 && !PRODUCT_RECOMMENDATION_STOP_WORDS.has(token)),
+  );
+
+const getModelTokens = (product: CatalogProduct) =>
+  new Set(
+    `${safeText(product.description)} ${safeText(product.code)} ${safeText(product.supplierCode)}`
+      .toLowerCase()
+      .split(/[^a-z0-9]+/)
+      .map((token) => token.trim())
+      .filter((token) => /^(?=.*[a-z])(?=.*[0-9])[a-z0-9]{3,}$/.test(token)),
   );
 
 const countSharedRecommendationTokens = (left: Set<string>, right: Set<string>) => {
@@ -563,6 +595,33 @@ const getCodeFamily = (value: unknown) =>
     .slice(0, 2)
     .join("-");
 
+const SAME_BRAND_REQUIRED_KINDS = new Set([
+  "uc-base-station",
+  "uc-desk-phone",
+  "uc-handset",
+  "uc-headset",
+  "uc-conference",
+  "security-camera",
+  "video-recorder",
+  "access-control",
+  "interactive-display",
+  "commercial-display",
+  "tv",
+]);
+
+const STRICT_FAMILY_KINDS = new Set([
+  "mount-stand-bracket",
+  "adapter",
+  "cable",
+  "power-accessory",
+  "control-module",
+  "print-toner",
+  "print-ink",
+  "print-drum",
+  "print-ribbon",
+  "printhead",
+]);
+
 const scoreSimilarProduct = (
   current: CatalogProduct,
   candidate: CatalogProduct,
@@ -583,25 +642,43 @@ const scoreSimilarProduct = (
   const candidateKind = getRecommendationKind(candidate);
   const currentType = getSeoProductType(current);
   const candidateType = getSeoProductType(candidate);
-  const sharedTokens = countSharedRecommendationTokens(currentTokens, getRecommendationTokens(candidate));
+  const candidateTokens = getRecommendationTokens(candidate);
+  const sharedTokens = countSharedRecommendationTokens(currentTokens, candidateTokens);
+  const sharedModelTokens = countSharedRecommendationTokens(getModelTokens(current), getModelTokens(candidate));
   const currentFamily = getCodeFamily(current.code || current.supplierCode);
   const candidateFamily = getCodeFamily(candidate.code || candidate.supplierCode);
+  const sameBrand = Boolean(currentBrand && currentBrand === candidateBrand);
+  const sameType = Boolean(currentType && currentType === candidateType);
+  const sameFamily = Boolean(currentFamily && candidateFamily && currentFamily === candidateFamily);
 
   if (!currentKind || currentKind !== candidateKind) {
     return -1;
   }
 
+  if (SAME_BRAND_REQUIRED_KINDS.has(currentKind) && !sameBrand) {
+    return -1;
+  }
+
+  if (STRICT_FAMILY_KINDS.has(currentKind) && !sameBrand && !sameFamily && sharedModelTokens === 0) {
+    return -1;
+  }
+
+  if (!sameBrand && !sameFamily && sharedModelTokens === 0 && sharedTokens < 3) {
+    return -1;
+  }
+
   let score = 0;
   score += 12;
-  if (currentBrand && currentBrand === candidateBrand) {
+  if (sameBrand) {
     score += 6;
   }
-  if (currentType && currentType === candidateType) {
+  if (sameType) {
     score += 7;
   }
-  if (currentFamily && candidateFamily && currentFamily === candidateFamily) {
+  if (sameFamily) {
     score += 4;
   }
+  score += sharedModelTokens * 4;
   score += Math.min(sharedTokens, 8);
 
   if (typeof current.price === "number" && typeof candidate.price === "number" && current.price > 0) {

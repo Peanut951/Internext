@@ -102,13 +102,13 @@ const Contact = () => {
                 </div>
                 <h3 className="font-semibold text-foreground mb-3">{type.title}</h3>
                 <p className="text-muted-foreground text-sm mb-1">
-                  <a href={`mailto:${type.email}`} className="hover:text-accent">{type.email}</a>
+                  <span>{type.email}</span>
                 </p>
                 <p className="text-muted-foreground text-sm">
-                  <a href="tel:1300876398" className="inline-block leading-tight hover:text-accent">
+                  <span className="inline-block leading-tight">
                     <span className="block">{type.phone}</span>
                     <span className="block text-xs">({type.phoneNumber})</span>
-                  </a>
+                  </span>
                 </p>
               </div>
             ))}
@@ -251,16 +251,16 @@ const Contact = () => {
                   </div>
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-accent flex-shrink-0" />
-                    <a href="tel:1300876398" className="inline-block text-foreground hover:text-accent leading-tight">
+                    <span className="inline-block text-foreground leading-tight">
                       <span className="block">1300 U R NEXT</span>
                       <span className="block text-xs text-muted-foreground">(1300 87 6398)</span>
-                    </a>
+                    </span>
                   </div>
                   <div className="flex items-center gap-3">
                     <Mail className="h-5 w-5 text-accent flex-shrink-0" />
-                    <a href="mailto:orders@internext.com.au" className="text-foreground hover:text-accent">
+                    <span className="text-foreground">
                       orders@internext.com.au
-                    </a>
+                    </span>
                   </div>
                   <div className="flex items-start gap-3">
                     <Clock className="h-5 w-5 text-accent mt-0.5 flex-shrink-0" />
