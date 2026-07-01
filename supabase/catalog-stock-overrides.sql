@@ -1,7 +1,7 @@
 create table if not exists public.catalog_stock_overrides (
   code text primary key,
   supplier_code text,
-  stock_quantity integer not null default 0 check (stock_quantity >= 0),
+  stock_quantity integer not null default 0,
   note text,
   updated_by text,
   created_at timestamptz not null default now(),
@@ -13,6 +13,9 @@ on public.catalog_stock_overrides (supplier_code);
 
 create index if not exists catalog_stock_overrides_stock_quantity_idx
 on public.catalog_stock_overrides (stock_quantity);
+
+alter table public.catalog_stock_overrides
+drop constraint if exists catalog_stock_overrides_stock_quantity_check;
 
 alter table public.catalog_stock_overrides enable row level security;
 

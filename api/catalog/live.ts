@@ -29,6 +29,7 @@ export type LiveCatalogItem = {
     syd: number;
     wa: number;
     internext?: number;
+    adminAdjustment?: number;
   };
   stockRecordUpdated: string;
   weightKg: number | null;
@@ -110,6 +111,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
     syd: number;
     wa: number;
     internext?: number;
+    adminAdjustment?: number;
   };
   etaDate?: string;
   etaStatus?: string;
@@ -748,7 +750,7 @@ const normalizeOverrideRow = (row: Record<string, unknown>): StockOverride | nul
     return null;
   }
 
-  const stockQuantity = Math.max(0, Math.floor(parseNumber(row.stock_quantity) ?? 0));
+  const stockQuantity = Math.floor(parseNumber(row.stock_quantity) ?? 0);
   return {
     code,
     supplierCode: String(row.supplier_code || "").trim() || undefined,
@@ -766,7 +768,7 @@ const fetchStockOverrides = async (): Promise<StockOverride[]> => {
 
   try {
     const response = await fetch(
-      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?select=code,supplier_code,stock_quantity,note,updated_at&stock_quantity=gt.0`,
+      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?select=code,supplier_code,stock_quantity,note,updated_at`,
       {
         headers: {
           apikey: config.serviceRoleKey,
@@ -816,16 +818,16 @@ const applyStockOverrideToProduct = <
   product: T,
   override?: StockOverride,
 ) => {
-  if (!override || override.stockQuantity <= 0) {
+  if (!override || override.stockQuantity === 0) {
     return product;
   }
 
   const supplierStock = typeof product.stockQuantity === "number" ? Math.max(0, product.stockQuantity) : 0;
-  const totalStock = supplierStock + override.stockQuantity;
+  const totalStock = Math.max(0, supplierStock + override.stockQuantity);
 
   return {
     ...product,
-    availabilityText: "In Stock",
+    availabilityText: totalStock > 0 ? "In Stock" : product.availabilityText,
     stockQuantity: totalStock,
     stockByWarehouse: {
       adl: product.stockByWarehouse?.adl ?? 0,
@@ -833,7 +835,8 @@ const applyStockOverrideToProduct = <
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
       wa: product.stockByWarehouse?.wa ?? 0,
-      internext: override.stockQuantity,
+      internext: Math.max(0, override.stockQuantity),
+      adminAdjustment: override.stockQuantity,
     },
     stockRecordUpdated: override.updatedAt || product.stockRecordUpdated,
   };
@@ -843,6 +846,7 @@ const upsertStockOverride = async (input: {
   code?: unknown;
   supplierCode?: unknown;
   stockQuantity?: unknown;
+  supplierStockQuantity?: unknown;
   note?: unknown;
   adminEmail?: string;
 }) => {
@@ -856,7 +860,9 @@ const upsertStockOverride = async (input: {
     return { ok: false, status: 400, message: "Product code is required." };
   }
 
-  const stockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
+  const desiredStockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
+  const supplierStockQuantity = Math.max(0, Math.floor(parseNumber(input.supplierStockQuantity) ?? 0));
+  const stockQuantity = desiredStockQuantity - supplierStockQuantity;
   const row = {
     code,
     supplier_code: String(input.supplierCode || "").trim() || null,
@@ -899,6 +905,8 @@ const upsertStockOverride = async (input: {
     ok: true,
     status: 200,
     override: normalizeOverrideRow(saved || row),
+    desiredStockQuantity,
+    supplierStockQuantity,
   };
 };
 
@@ -1494,6 +1502,7 @@ export default async function handler(
       code: body.code,
       supplierCode: body.supplierCode,
       stockQuantity: body.stockQuantity,
+      supplierStockQuantity: body.supplierStockQuantity,
       note: body.note,
       adminEmail: session.email,
     });

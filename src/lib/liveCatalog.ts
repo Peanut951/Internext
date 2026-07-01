@@ -30,6 +30,7 @@ export type CatalogProductWithLive = {
     syd: number;
     wa: number;
     internext?: number;
+    adminAdjustment?: number;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -62,6 +63,7 @@ type LiveCatalogItem = {
     syd: number;
     wa: number;
     internext?: number;
+    adminAdjustment?: number;
   };
   stockRecordUpdated: string;
   weightKg: number | null;

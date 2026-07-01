@@ -52,6 +52,7 @@ type CatalogProduct = {
     syd: number;
     wa: number;
     internext?: number;
+    adminAdjustment?: number;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -272,13 +273,23 @@ const getInternextStockQuantity = (product?: CatalogProduct | null) =>
     ? product.stockByWarehouse.internext
     : 0;
 
-const applyAdminStockToProduct = (product: CatalogProduct, internextStock: number): CatalogProduct => {
-  const currentInternextStock = getInternextStockQuantity(product);
-  const supplierStock =
-    typeof product.stockQuantity === "number"
-      ? Math.max(0, product.stockQuantity - currentInternextStock)
-      : 0;
-  const totalStock = supplierStock + internextStock;
+const getAdminStockAdjustment = (product?: CatalogProduct | null) =>
+  typeof product?.stockByWarehouse?.adminAdjustment === "number"
+    ? product.stockByWarehouse.adminAdjustment
+    : getInternextStockQuantity(product);
+
+const getSupplierStockQuantity = (product?: CatalogProduct | null) => {
+  if (!product || typeof product.stockQuantity !== "number") {
+    return 0;
+  }
+
+  return Math.max(0, product.stockQuantity - getAdminStockAdjustment(product));
+};
+
+const applyAdminStockToProduct = (product: CatalogProduct, desiredTotalStock: number): CatalogProduct => {
+  const supplierStock = getSupplierStockQuantity(product);
+  const adminAdjustment = desiredTotalStock - supplierStock;
+  const totalStock = Math.max(0, supplierStock + adminAdjustment);
 
   return {
     ...product,
@@ -290,10 +301,31 @@ const applyAdminStockToProduct = (product: CatalogProduct, internextStock: numbe
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
       wa: product.stockByWarehouse?.wa ?? 0,
-      internext: internextStock,
+      internext: Math.max(0, adminAdjustment),
+      adminAdjustment,
     },
     stockRecordUpdated: new Date().toISOString(),
   };
+};
+
+const getAdminStockDisplayValue = (product?: CatalogProduct | null) =>
+  typeof product?.stockQuantity === "number" ? String(product.stockQuantity) : "";
+
+const getAdminStockAdjustmentSummary = (product?: CatalogProduct | null) => {
+  if (!product || typeof product.stockQuantity !== "number") {
+    return "";
+  }
+
+  const supplierStock = getSupplierStockQuantity(product);
+  const adjustment = getAdminStockAdjustment(product);
+
+  if (adjustment === 0) {
+    return `Supplier stock currently accounts for all ${supplierStock.toLocaleString("en-AU")} units.`;
+  }
+
+  return `Supplier stock ${supplierStock.toLocaleString("en-AU")} ${
+    adjustment > 0 ? "+" : "-"
+  } admin adjustment ${Math.abs(adjustment).toLocaleString("en-AU")} = ${product.stockQuantity.toLocaleString("en-AU")} total.`;
 };
 
 const getAvailabilityRows = (product: CatalogProduct) => {
@@ -445,19 +477,6 @@ const getSeoProductType = (product: CatalogProduct) => {
   return "";
 };
 
-const getRecommendationText = (product: CatalogProduct) =>
-  [
-    product.manufacturer,
-    product.description,
-    product.longDescription,
-    product.category,
-    product.subcategory,
-    product.leaderCategory,
-  ]
-    .map(safeText)
-    .join(" ")
-    .toLowerCase();
-
 const getRecommendationPrimaryText = (product: CatalogProduct) =>
   [
     product.manufacturer,
@@ -484,7 +503,9 @@ const getRecommendationKind = (product: CatalogProduct) => {
   if (/\b(scanner|document scanner)\b/.test(text)) return "scanner";
   if (/\b(printer|multifunction|mfp|copier|plotter|large format)\b/.test(text)) return "printer";
 
-  if (/\b(mount|bracket|stand|trolley|floor stand|wall mount)\b/.test(text)) return "mount-stand-bracket";
+  if (/\btrolley\b/.test(text)) return "trolley";
+  if (/\b(floor stand|display stand|screen stand|tv stand)\b/.test(text)) return "floor-stand";
+  if (/\b(wall mount|wall bracket|bracket|mount)\b/.test(text)) return "mount-bracket";
   if (/\bprojector\b/.test(text)) return "projector";
   if (/\b(interactive|ifp|touch\s*screen|touchscreen)\b/.test(text) && /\b(display|panel|screen|board)\b/.test(text)) {
     return "interactive-display";
@@ -576,6 +597,22 @@ const getModelTokens = (product: CatalogProduct) =>
       .filter((token) => /^(?=.*[a-z])(?=.*[0-9])[a-z0-9]{3,}$/.test(token)),
   );
 
+const getSeriesTokens = (product: CatalogProduct) =>
+  new Set(
+    Array.from(getModelTokens(product))
+      .map((token) => token.match(/^[a-z]+/)?.[0] || "")
+      .filter((token) => token.length >= 3),
+  );
+
+const getSizeTokens = (product: CatalogProduct) =>
+  new Set(
+    safeText(product.description)
+      .toLowerCase()
+      .match(/\b(?:[1-9][0-9]{1,2})(?:\.\d+)?\s?(?:inch|in|")\b/g)
+      ?.map((value) => value.replace(/[^0-9.]/g, ""))
+      .filter(Boolean) || [],
+  );
+
 const countSharedRecommendationTokens = (left: Set<string>, right: Set<string>) => {
   let count = 0;
   left.forEach((token) => {
@@ -610,7 +647,9 @@ const SAME_BRAND_REQUIRED_KINDS = new Set([
 ]);
 
 const STRICT_FAMILY_KINDS = new Set([
-  "mount-stand-bracket",
+  "mount-bracket",
+  "floor-stand",
+  "trolley",
   "adapter",
   "cable",
   "power-accessory",
@@ -645,6 +684,8 @@ const scoreSimilarProduct = (
   const candidateTokens = getRecommendationTokens(candidate);
   const sharedTokens = countSharedRecommendationTokens(currentTokens, candidateTokens);
   const sharedModelTokens = countSharedRecommendationTokens(getModelTokens(current), getModelTokens(candidate));
+  const sharedSeriesTokens = countSharedRecommendationTokens(getSeriesTokens(current), getSeriesTokens(candidate));
+  const sharedSizeTokens = countSharedRecommendationTokens(getSizeTokens(current), getSizeTokens(candidate));
   const currentFamily = getCodeFamily(current.code || current.supplierCode);
   const candidateFamily = getCodeFamily(candidate.code || candidate.supplierCode);
   const sameBrand = Boolean(currentBrand && currentBrand === candidateBrand);
@@ -663,7 +704,24 @@ const scoreSimilarProduct = (
     return -1;
   }
 
-  if (!sameBrand && !sameFamily && sharedModelTokens === 0 && sharedTokens < 3) {
+  if (
+    ["print-toner", "print-ink", "print-drum", "print-ribbon", "printhead"].includes(currentKind) &&
+    sharedModelTokens === 0 &&
+    sharedSeriesTokens === 0
+  ) {
+    return -1;
+  }
+
+  if (
+    ["mount-bracket", "floor-stand", "trolley"].includes(currentKind) &&
+    sharedSizeTokens === 0 &&
+    sharedModelTokens === 0 &&
+    sharedTokens < 4
+  ) {
+    return -1;
+  }
+
+  if (!sameBrand && !sameFamily && sharedModelTokens === 0 && sharedSeriesTokens === 0 && sharedTokens < 3) {
     return -1;
   }
 
@@ -679,10 +737,18 @@ const scoreSimilarProduct = (
     score += 4;
   }
   score += sharedModelTokens * 4;
+  score += sharedSeriesTokens * 2;
+  score += sharedSizeTokens * 3;
   score += Math.min(sharedTokens, 8);
 
   if (typeof current.price === "number" && typeof candidate.price === "number" && current.price > 0) {
     const priceRatio = candidate.price / current.price;
+    if (priceRatio < 0.2 && sharedModelTokens === 0 && !sameFamily) {
+      return -1;
+    }
+    if (priceRatio > 5 && sharedModelTokens === 0 && !sameFamily) {
+      return -1;
+    }
     if (priceRatio >= 0.6 && priceRatio <= 1.6) {
       score += 2;
     }
@@ -881,13 +947,11 @@ const ProductDetail = () => {
     }
 
     setAdminStockForm({
-      stockQuantity: getInternextStockQuantity(product)
-        ? String(getInternextStockQuantity(product))
-        : "",
+      stockQuantity: getAdminStockDisplayValue(product),
       note: "",
     });
     setAdminStockMessage(null);
-  }, [product?.code, product?.stockByWarehouse?.internext, session?.role]);
+  }, [product?.code, product?.stockQuantity, product?.stockByWarehouse?.adminAdjustment, product?.stockByWarehouse?.internext, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -1167,6 +1231,7 @@ const ProductDetail = () => {
     setAdminStockMessage(null);
 
     try {
+      const supplierStockQuantity = getSupplierStockQuantity(product);
       const response = await fetch("/api/catalog/live", {
         method: "POST",
         credentials: "include",
@@ -1177,12 +1242,14 @@ const ProductDetail = () => {
           code: product.code,
           supplierCode: product.supplierCode,
           stockQuantity,
+          supplierStockQuantity,
           note: adminStockForm.note,
         }),
       });
       const result = (await response.json().catch(() => ({}))) as {
         message?: string;
         override?: { stockQuantity?: number };
+        desiredStockQuantity?: number;
       };
 
       if (!response.ok) {
@@ -1190,8 +1257,8 @@ const ProductDetail = () => {
       }
 
       const nextStockQuantity =
-        typeof result.override?.stockQuantity === "number"
-          ? result.override.stockQuantity
+        typeof result.desiredStockQuantity === "number"
+          ? result.desiredStockQuantity
           : stockQuantity;
       const updateProduct = (item: CatalogProduct) =>
         item.code === product.code ? applyAdminStockToProduct(item, nextStockQuantity) : item;
@@ -1200,11 +1267,11 @@ const ProductDetail = () => {
       setAllProducts((current) => current.map(updateProduct));
       setAdminStockMessage({
         tone: "success",
-        text: "Internext stock has been saved for this product.",
+        text: "Admin stock total has been saved for this product.",
       });
       toast({
         title: "Stock updated",
-        description: `${nextStockQuantity.toLocaleString("en-AU")} Internext unit${
+        description: `${nextStockQuantity.toLocaleString("en-AU")} total unit${
           nextStockQuantity === 1 ? "" : "s"
         } set for this product.`,
       });
@@ -1559,18 +1626,25 @@ const ProductDetail = () => {
                                   Admin stock override
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  Add Internext-owned stock on top of supplier warehouse stock.
+                                  Set the total stock shown on the website. Supplier feed changes will still adjust this total automatically.
                                 </p>
                               </div>
                               <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold text-accent">
-                                {getInternextStockQuantity(product).toLocaleString("en-AU")}
+                                {typeof product.stockQuantity === "number"
+                                  ? product.stockQuantity.toLocaleString("en-AU")
+                                  : "0"}
                               </span>
                             </div>
+                            {getAdminStockAdjustmentSummary(product) ? (
+                              <p className="mt-3 rounded-lg border border-border/60 bg-background px-3 py-2 text-xs leading-5 text-muted-foreground">
+                                {getAdminStockAdjustmentSummary(product)}
+                              </p>
+                            ) : null}
 
                             <div className="mt-4 grid gap-3">
                               <label className="space-y-1">
                                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                  Internext stock quantity
+                                  Total website stock
                                 </span>
                                 <Input
                                   type="number"
@@ -1625,7 +1699,7 @@ const ProductDetail = () => {
                               onClick={saveAdminStockOverride}
                               disabled={adminStockSaving}
                             >
-                              {adminStockSaving ? "Saving stock..." : "Save Internext Stock"}
+                              {adminStockSaving ? "Saving stock..." : "Save Total Stock"}
                             </Button>
                           </div>
                         ) : null}
