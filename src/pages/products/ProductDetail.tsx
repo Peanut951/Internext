@@ -53,6 +53,7 @@ type CatalogProduct = {
     wa: number;
     internext?: number;
     adminAdjustment?: number;
+    adminLocation?: string;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -64,6 +65,7 @@ type CatalogProduct = {
 
 type AdminStockFormState = {
   stockQuantity: string;
+  stockLocation: string;
   note: string;
 };
 
@@ -74,6 +76,19 @@ type AdminStockMessage = {
 
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_PUBLIC_SHIPPING_PRICE = 35;
+const DEFAULT_DOCUMENT_TITLE = "Internext";
+const STOCK_OVERRIDE_LOCATIONS = [
+  { value: "internext", label: "Internext Warehouse" },
+  { value: "adl", label: "Adelaide Warehouse" },
+  { value: "bne", label: "Brisbane Warehouse" },
+  { value: "mel", label: "Melbourne Warehouse" },
+  { value: "syd", label: "Sydney Warehouse" },
+  { value: "wa", label: "WA Warehouse" },
+];
+
+const getStockLocationLabel = (value: unknown) =>
+  STOCK_OVERRIDE_LOCATIONS.find((location) => location.value === safeText(value).toLowerCase())?.label ||
+  "Internext Warehouse";
 
 const isProductInStoredCart = (productCode: string) =>
   getCartItems().some((item) => item.code === productCode);
@@ -278,6 +293,9 @@ const getAdminStockAdjustment = (product?: CatalogProduct | null) =>
     ? product.stockByWarehouse.adminAdjustment
     : getInternextStockQuantity(product);
 
+const getAdminStockLocation = (product?: CatalogProduct | null) =>
+  safeText(product?.stockByWarehouse?.adminLocation) || "internext";
+
 const getSupplierStockQuantity = (product?: CatalogProduct | null) => {
   if (!product || typeof product.stockQuantity !== "number") {
     return 0;
@@ -286,24 +304,39 @@ const getSupplierStockQuantity = (product?: CatalogProduct | null) => {
   return Math.max(0, product.stockQuantity - getAdminStockAdjustment(product));
 };
 
-const applyAdminStockToProduct = (product: CatalogProduct, desiredTotalStock: number): CatalogProduct => {
+const applyAdminStockToProduct = (
+  product: CatalogProduct,
+  desiredTotalStock: number,
+  stockLocation = getAdminStockLocation(product),
+): CatalogProduct => {
   const supplierStock = getSupplierStockQuantity(product);
   const adminAdjustment = desiredTotalStock - supplierStock;
   const totalStock = Math.max(0, supplierStock + adminAdjustment);
+  const normalizedLocation = STOCK_OVERRIDE_LOCATIONS.some((location) => location.value === stockLocation)
+    ? stockLocation
+    : "internext";
+  const stockByWarehouse = {
+    adl: product.stockByWarehouse?.adl ?? 0,
+    bne: product.stockByWarehouse?.bne ?? 0,
+    mel: product.stockByWarehouse?.mel ?? 0,
+    syd: product.stockByWarehouse?.syd ?? 0,
+    wa: product.stockByWarehouse?.wa ?? 0,
+    internext: product.stockByWarehouse?.internext ?? 0,
+    adminAdjustment,
+    adminLocation: normalizedLocation,
+  };
+
+  if (normalizedLocation === "internext") {
+    stockByWarehouse.internext = Math.max(0, stockByWarehouse.internext + adminAdjustment);
+  } else {
+    stockByWarehouse[normalizedLocation] = Math.max(0, stockByWarehouse[normalizedLocation] + adminAdjustment);
+  }
 
   return {
     ...product,
     availabilityText: totalStock > 0 ? "In Stock" : product.availabilityText,
     stockQuantity: totalStock,
-    stockByWarehouse: {
-      adl: product.stockByWarehouse?.adl ?? 0,
-      bne: product.stockByWarehouse?.bne ?? 0,
-      mel: product.stockByWarehouse?.mel ?? 0,
-      syd: product.stockByWarehouse?.syd ?? 0,
-      wa: product.stockByWarehouse?.wa ?? 0,
-      internext: Math.max(0, adminAdjustment),
-      adminAdjustment,
-    },
+    stockByWarehouse,
     stockRecordUpdated: new Date().toISOString(),
   };
 };
@@ -325,7 +358,7 @@ const getAdminStockAdjustmentSummary = (product?: CatalogProduct | null) => {
 
   return `Supplier stock ${supplierStock.toLocaleString("en-AU")} ${
     adjustment > 0 ? "+" : "-"
-  } admin adjustment ${Math.abs(adjustment).toLocaleString("en-AU")} = ${product.stockQuantity.toLocaleString("en-AU")} total.`;
+  } ${getStockLocationLabel(getAdminStockLocation(product))} adjustment ${Math.abs(adjustment).toLocaleString("en-AU")} = ${product.stockQuantity.toLocaleString("en-AU")} total.`;
 };
 
 const getAvailabilityRows = (product: CatalogProduct) => {
@@ -866,12 +899,19 @@ const ProductDetail = () => {
   const [activeImage, setActiveImage] = useState<string>("");
   const [adminStockForm, setAdminStockForm] = useState<AdminStockFormState>({
     stockQuantity: "",
+    stockLocation: "internext",
     note: "",
   });
   const [adminStockSaving, setAdminStockSaving] = useState(false);
   const [adminStockMessage, setAdminStockMessage] = useState<AdminStockMessage | null>(null);
   const { session } = useAuthSession();
   const { toast } = useToast();
+
+  useEffect(() => {
+    return () => {
+      document.title = DEFAULT_DOCUMENT_TITLE;
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
@@ -948,10 +988,11 @@ const ProductDetail = () => {
 
     setAdminStockForm({
       stockQuantity: getAdminStockDisplayValue(product),
+      stockLocation: getAdminStockLocation(product),
       note: "",
     });
     setAdminStockMessage(null);
-  }, [product?.code, product?.stockQuantity, product?.stockByWarehouse?.adminAdjustment, product?.stockByWarehouse?.internext, session?.role]);
+  }, [product?.code, product?.stockQuantity, product?.stockByWarehouse?.adminAdjustment, product?.stockByWarehouse?.adminLocation, product?.stockByWarehouse?.internext, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -1243,6 +1284,7 @@ const ProductDetail = () => {
           supplierCode: product.supplierCode,
           stockQuantity,
           supplierStockQuantity,
+          stockLocation: adminStockForm.stockLocation,
           note: adminStockForm.note,
         }),
       });
@@ -1261,9 +1303,9 @@ const ProductDetail = () => {
           ? result.desiredStockQuantity
           : stockQuantity;
       const updateProduct = (item: CatalogProduct) =>
-        item.code === product.code ? applyAdminStockToProduct(item, nextStockQuantity) : item;
+        item.code === product.code ? applyAdminStockToProduct(item, nextStockQuantity, adminStockForm.stockLocation) : item;
 
-      setProduct((current) => (current ? applyAdminStockToProduct(current, nextStockQuantity) : current));
+      setProduct((current) => (current ? applyAdminStockToProduct(current, nextStockQuantity, adminStockForm.stockLocation) : current));
       setAllProducts((current) => current.map(updateProduct));
       setAdminStockMessage({
         tone: "success",
@@ -1273,7 +1315,7 @@ const ProductDetail = () => {
         title: "Stock updated",
         description: `${nextStockQuantity.toLocaleString("en-AU")} total unit${
           nextStockQuantity === 1 ? "" : "s"
-        } set for this product.`,
+        } set for ${getStockLocationLabel(adminStockForm.stockLocation)}.`,
       });
     } catch (error) {
       setAdminStockMessage({
@@ -1660,6 +1702,28 @@ const ProductDetail = () => {
                                   placeholder="0"
                                   className="h-11 border-border/70 bg-background"
                                 />
+                              </label>
+
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Stock location
+                                </span>
+                                <select
+                                  value={adminStockForm.stockLocation}
+                                  onChange={(event) =>
+                                    setAdminStockForm((current) => ({
+                                      ...current,
+                                      stockLocation: event.target.value,
+                                    }))
+                                  }
+                                  className="h-11 w-full rounded-md border border-border/70 bg-background px-3 text-sm shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-accent/35"
+                                >
+                                  {STOCK_OVERRIDE_LOCATIONS.map((location) => (
+                                    <option key={location.value} value={location.value}>
+                                      {location.label}
+                                    </option>
+                                  ))}
+                                </select>
                               </label>
 
                               <label className="space-y-1">

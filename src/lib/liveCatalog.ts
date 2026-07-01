@@ -31,6 +31,7 @@ export type CatalogProductWithLive = {
     wa: number;
     internext?: number;
     adminAdjustment?: number;
+    adminLocation?: string;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -64,6 +65,7 @@ type LiveCatalogItem = {
     wa: number;
     internext?: number;
     adminAdjustment?: number;
+    adminLocation?: string;
   };
   stockRecordUpdated: string;
   weightKg: number | null;

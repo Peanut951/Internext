@@ -30,6 +30,7 @@ export type LiveCatalogItem = {
     wa: number;
     internext?: number;
     adminAdjustment?: number;
+    adminLocation?: string;
   };
   stockRecordUpdated: string;
   weightKg: number | null;
@@ -87,6 +88,7 @@ type StockOverride = {
   code: string;
   supplierCode?: string;
   stockQuantity: number;
+  stockLocation?: string;
   note?: string;
   updatedAt?: string;
 };
@@ -112,6 +114,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
     wa: number;
     internext?: number;
     adminAdjustment?: number;
+    adminLocation?: string;
   };
   etaDate?: string;
   etaStatus?: string;
@@ -729,6 +732,12 @@ const isLeaderPdfExcluded = (product: Pick<LeaderCatalogProduct, "code" | "suppl
   getProductKeys(product).some((key) => leaderPdfExclusionCodes?.has(key));
 
 const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
+const STOCK_OVERRIDE_LOCATIONS = new Set(["internext", "adl", "bne", "mel", "syd", "wa"]);
+
+const normalizeStockOverrideLocation = (value: unknown) => {
+  const location = String(value || "").trim().toLowerCase();
+  return STOCK_OVERRIDE_LOCATIONS.has(location) ? location : "internext";
+};
 
 const getSupabaseRestConfig = () => {
   const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
@@ -755,6 +764,7 @@ const normalizeOverrideRow = (row: Record<string, unknown>): StockOverride | nul
     code,
     supplierCode: String(row.supplier_code || "").trim() || undefined,
     stockQuantity,
+    stockLocation: normalizeStockOverrideLocation(row.stock_location),
     note: String(row.note || "").trim() || undefined,
     updatedAt: String(row.updated_at || "").trim() || undefined,
   };
@@ -768,7 +778,7 @@ const fetchStockOverrides = async (): Promise<StockOverride[]> => {
 
   try {
     const response = await fetch(
-      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?select=code,supplier_code,stock_quantity,note,updated_at`,
+      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?select=code,supplier_code,stock_quantity,stock_location,note,updated_at`,
       {
         headers: {
           apikey: config.serviceRoleKey,
@@ -824,20 +834,29 @@ const applyStockOverrideToProduct = <
 
   const supplierStock = typeof product.stockQuantity === "number" ? Math.max(0, product.stockQuantity) : 0;
   const totalStock = Math.max(0, supplierStock + override.stockQuantity);
+  const stockLocation = normalizeStockOverrideLocation(override.stockLocation);
+  const stockByWarehouse = {
+    adl: product.stockByWarehouse?.adl ?? 0,
+    bne: product.stockByWarehouse?.bne ?? 0,
+    mel: product.stockByWarehouse?.mel ?? 0,
+    syd: product.stockByWarehouse?.syd ?? 0,
+    wa: product.stockByWarehouse?.wa ?? 0,
+    internext: product.stockByWarehouse?.internext ?? 0,
+    adminAdjustment: override.stockQuantity,
+    adminLocation: stockLocation,
+  };
+
+  if (stockLocation === "internext") {
+    stockByWarehouse.internext = Math.max(0, stockByWarehouse.internext + override.stockQuantity);
+  } else {
+    stockByWarehouse[stockLocation] = Math.max(0, stockByWarehouse[stockLocation] + override.stockQuantity);
+  }
 
   return {
     ...product,
     availabilityText: totalStock > 0 ? "In Stock" : product.availabilityText,
     stockQuantity: totalStock,
-    stockByWarehouse: {
-      adl: product.stockByWarehouse?.adl ?? 0,
-      bne: product.stockByWarehouse?.bne ?? 0,
-      mel: product.stockByWarehouse?.mel ?? 0,
-      syd: product.stockByWarehouse?.syd ?? 0,
-      wa: product.stockByWarehouse?.wa ?? 0,
-      internext: Math.max(0, override.stockQuantity),
-      adminAdjustment: override.stockQuantity,
-    },
+    stockByWarehouse,
     stockRecordUpdated: override.updatedAt || product.stockRecordUpdated,
   };
 };
@@ -847,6 +866,7 @@ const upsertStockOverride = async (input: {
   supplierCode?: unknown;
   stockQuantity?: unknown;
   supplierStockQuantity?: unknown;
+  stockLocation?: unknown;
   note?: unknown;
   adminEmail?: string;
 }) => {
@@ -863,10 +883,12 @@ const upsertStockOverride = async (input: {
   const desiredStockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
   const supplierStockQuantity = Math.max(0, Math.floor(parseNumber(input.supplierStockQuantity) ?? 0));
   const stockQuantity = desiredStockQuantity - supplierStockQuantity;
+  const stockLocation = normalizeStockOverrideLocation(input.stockLocation);
   const row = {
     code,
     supplier_code: String(input.supplierCode || "").trim() || null,
     stock_quantity: stockQuantity,
+    stock_location: stockLocation,
     note: String(input.note || "").trim() || null,
     updated_by: input.adminEmail || null,
     updated_at: new Date().toISOString(),
@@ -907,6 +929,7 @@ const upsertStockOverride = async (input: {
     override: normalizeOverrideRow(saved || row),
     desiredStockQuantity,
     supplierStockQuantity,
+    stockLocation,
   };
 };
 
@@ -1503,6 +1526,7 @@ export default async function handler(
       supplierCode: body.supplierCode,
       stockQuantity: body.stockQuantity,
       supplierStockQuantity: body.supplierStockQuantity,
+      stockLocation: body.stockLocation,
       note: body.note,
       adminEmail: session.email,
     });
