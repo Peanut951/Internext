@@ -472,6 +472,40 @@ const buildXeroSalesInvoiceRows = (
   return itemRows;
 };
 
+const buildSalesInvoiceTemplateRows = (
+  order: Record<string, unknown>,
+  summary = buildOrderEmailSummary(order),
+) =>
+  buildXeroSalesInvoiceRows(order, summary).map((row) => ({
+    "*ContactName": row.contact_name,
+    EmailAddress: row.email_address,
+    POAddressLine1: row.po_address_line1,
+    POAddressLine2: row.po_address_line2,
+    POAddressLine3: row.po_address_line3,
+    POAddressLine4: row.po_address_line4,
+    POCity: row.po_city,
+    PORegion: row.po_region,
+    POPostalCode: row.po_postal_code,
+    POCountry: row.po_country,
+    "*InvoiceNumber": row.invoice_number,
+    Reference: row.reference,
+    "*InvoiceDate": row.invoice_date,
+    "*DueDate": row.due_date,
+    InventoryItemCode: row.inventory_item_code,
+    "*Description": row.description,
+    "*Quantity": row.quantity,
+    "*UnitAmount": row.unit_amount,
+    Discount: row.discount,
+    "*AccountCode": row.account_code,
+    "*TaxType": row.tax_type,
+    TrackingName1: row.tracking_name1,
+    TrackingOption1: row.tracking_option1,
+    TrackingName2: row.tracking_name2,
+    TrackingOption2: row.tracking_option2,
+    Currency: row.currency,
+    BrandingTheme: row.branding_theme,
+  }));
+
 const buildXeroInventoryItemRowsFromOrder = (
   order: Record<string, unknown>,
   summary = buildOrderEmailSummary(order),
@@ -606,6 +640,7 @@ const upsertXeroSalesInvoiceRowsFromOrder = async (
 const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
   const csvRows = buildXeroSalesInvoiceRows(order, summary);
+  const salesInvoiceTemplateRows = buildSalesInvoiceTemplateRows(order, summary);
   const customer = order.customer && typeof order.customer === "object"
     ? order.customer as Record<string, unknown>
     : {};
@@ -658,6 +693,39 @@ const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
     orderNumber,
     csvTemplate: "SalesInvoiceTemplate.csv",
     csvRows,
+    salesInvoiceTemplate: {
+      fileName: "SalesInvoiceTemplate.csv",
+      headers: [
+        "*ContactName",
+        "EmailAddress",
+        "POAddressLine1",
+        "POAddressLine2",
+        "POAddressLine3",
+        "POAddressLine4",
+        "POCity",
+        "PORegion",
+        "POPostalCode",
+        "POCountry",
+        "*InvoiceNumber",
+        "Reference",
+        "*InvoiceDate",
+        "*DueDate",
+        "InventoryItemCode",
+        "*Description",
+        "*Quantity",
+        "*UnitAmount",
+        "Discount",
+        "*AccountCode",
+        "*TaxType",
+        "TrackingName1",
+        "TrackingOption1",
+        "TrackingName2",
+        "TrackingOption2",
+        "Currency",
+        "BrandingTheme",
+      ],
+      rows: salesInvoiceTemplateRows,
+    },
     invoice: {
       type: "ACCREC",
       status: invoiceStatus,
@@ -1125,6 +1193,7 @@ export default async function handler(
       ...body.order,
       xeroSalesInvoiceTemplate: "SalesInvoiceTemplate.csv",
       xeroSalesInvoiceRows: xeroInvoicePayload.csvRows,
+      salesInvoiceTemplate: xeroInvoicePayload.salesInvoiceTemplate,
     };
     const [storageResponse, marketingContactResponse, inventoryItemsResponse, invoiceRowsResponse] = await Promise.all([
       upsertSharedOrder(orderForStorage),
