@@ -3,7 +3,13 @@ import { getSessionFromRequest } from "./auth/_shared.js";
 
 type RequestBody = {
   order?: Record<string, unknown>;
-  notificationType?: "paid_order" | "shipment" | "store_order" | "sync_xero_inventory";
+  notificationType?:
+    | "paid_order"
+    | "shipment"
+    | "store_order"
+    | "sync_xero_inventory"
+    | "create_xero_invoice"
+    | "remove_xero_invoice";
   sync?: {
     offset?: number;
     limit?: number;
@@ -766,6 +772,47 @@ const upsertXeroSalesInvoiceRowsFromOrder = async (
     "No invoice rows were available to save.",
   );
 
+const deleteXeroSalesInvoiceRowsForOrder = async (order: Record<string, unknown>) => {
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      ok: false,
+      status: 0,
+      message: "Supabase storage is not configured.",
+    };
+  }
+
+  const orderId = getOrderField(order, "id") || getOrderField(order, "orderNumber");
+  if (!orderId) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Order id is required to remove invoice rows.",
+    };
+  }
+
+  const url = new URL(`${config.supabaseUrl}/rest/v1/${XERO_SALES_INVOICE_LINES_TABLE}`);
+  url.searchParams.set("order_id", `eq.${orderId}`);
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      Prefer: "return=minimal",
+    },
+  });
+  const errorText = response.ok ? "" : await response.text().catch(() => "");
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    message: response.ok
+      ? "Invoice rows removed from Xero sales invoice storage."
+      : `Supabase invoice row deletion returned HTTP ${response.status}${errorText ? `: ${errorText}` : ""}.`,
+  };
+};
+
 const syncXeroInventoryBatch = async (
   sync: RequestBody["sync"] = {},
   host = "",
@@ -1280,6 +1327,75 @@ export default async function handler(
 
   if (!body?.order) {
     return sendJson(res, 400, { message: "An order payload is required." });
+  }
+
+  if (body.notificationType === "create_xero_invoice") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to create invoice rows." });
+    }
+
+    const emailSummary = buildOrderEmailSummary(body.order);
+    const xeroInvoicePayload = buildXeroInvoicePayload(body.order);
+    const orderForStorage = {
+      ...body.order,
+      updatedAt: new Date().toISOString(),
+      xeroSalesInvoiceTemplate: "SalesInvoiceTemplate.csv",
+      xeroSalesInvoiceRows: xeroInvoicePayload.csvRows,
+      salesInvoiceTemplate: xeroInvoicePayload.salesInvoiceTemplate,
+    };
+    const [storageResponse, inventoryItemsResponse, invoiceRowsResponse] = await Promise.all([
+      upsertSharedOrder(orderForStorage),
+      upsertXeroInventoryItemsFromOrder(body.order, emailSummary),
+      upsertXeroSalesInvoiceRowsFromOrder(body.order, emailSummary),
+    ]);
+
+    return sendJson(res, invoiceRowsResponse.ok ? 200 : 502, {
+      ok: invoiceRowsResponse.ok,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
+      xeroInventoryItemsSaved: inventoryItemsResponse.ok,
+      xeroInventoryItemsStatus: inventoryItemsResponse.status,
+      xeroInventoryItemsMessage: inventoryItemsResponse.message,
+      xeroInvoiceRowsSaved: invoiceRowsResponse.ok,
+      xeroInvoiceRowsStatus: invoiceRowsResponse.status,
+      xeroInvoiceRowsMessage: invoiceRowsResponse.message,
+      rowCount: xeroInvoicePayload.csvRows.length,
+      message: invoiceRowsResponse.ok
+        ? `Created ${xeroInvoicePayload.csvRows.length} invoice row${xeroInvoicePayload.csvRows.length === 1 ? "" : "s"} for ${emailSummary.orderNumber}.`
+        : invoiceRowsResponse.message,
+    });
+  }
+
+  if (body.notificationType === "remove_xero_invoice") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to remove invoice rows." });
+    }
+
+    const orderForStorage = {
+      ...body.order,
+      updatedAt: new Date().toISOString(),
+    };
+    delete orderForStorage.xeroSalesInvoiceRows;
+    delete orderForStorage.xeroSalesInvoiceTemplate;
+    delete orderForStorage.salesInvoiceTemplate;
+    const [deleteResponse, storageResponse] = await Promise.all([
+      deleteXeroSalesInvoiceRowsForOrder(body.order),
+      upsertSharedOrder(orderForStorage),
+    ]);
+
+    return sendJson(res, deleteResponse.ok ? 200 : 502, {
+      ok: deleteResponse.ok,
+      xeroInvoiceRowsRemoved: deleteResponse.ok,
+      xeroInvoiceRowsStatus: deleteResponse.status,
+      xeroInvoiceRowsMessage: deleteResponse.message,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
+      message: deleteResponse.ok ? "Invoice rows removed for this order." : deleteResponse.message,
+    });
   }
 
   if (body.notificationType === "store_order") {

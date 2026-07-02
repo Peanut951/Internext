@@ -83,6 +83,7 @@ const OrdersAdmin = () => {
   const [dateTo, setDateTo] = useState("");
   const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
+  const [invoiceMessages, setInvoiceMessages] = useState<Record<string, ShipmentMessage>>({});
   const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
   const [serialMessages, setSerialMessages] = useState<Record<string, ShipmentMessage>>({});
   const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
@@ -498,6 +499,67 @@ const OrdersAdmin = () => {
         }));
       }
     });
+  };
+
+  const manageInvoiceRows = async (
+    order: OrderRecord,
+    notificationType: "create_xero_invoice" | "remove_xero_invoice",
+  ) => {
+    const isCreate = notificationType === "create_xero_invoice";
+    setInvoiceMessages((current) => {
+      const next = { ...current };
+      delete next[order.id];
+      return next;
+    });
+
+    try {
+      await withOrderAction(order.id, async () => {
+        const response = await fetch("/api/order-notification", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ notificationType, order }),
+        });
+        const payload = await response.json().catch(() => ({}));
+
+        if (!response.ok || payload.ok === false) {
+          throw new Error(
+            typeof payload.message === "string"
+              ? payload.message
+              : isCreate
+                ? "Invoice could not be created."
+                : "Invoice could not be removed.",
+          );
+        }
+
+        setInvoiceMessages((current) => ({
+          ...current,
+          [order.id]: {
+            tone: "success",
+            text:
+              typeof payload.message === "string"
+                ? payload.message
+                : isCreate
+                  ? "Invoice rows created for this order."
+                  : "Invoice rows removed for this order.",
+          },
+        }));
+      });
+    } catch (error) {
+      setInvoiceMessages((current) => ({
+        ...current,
+        [order.id]: {
+          tone: "error",
+          text:
+            error instanceof Error
+              ? error.message
+              : isCreate
+                ? "Invoice could not be created."
+                : "Invoice could not be removed.",
+        },
+      }));
+    }
   };
 
   const handleSignOut = async () => {
@@ -1410,6 +1472,46 @@ const OrdersAdmin = () => {
                             className="w-full justify-center"
                           >
                             Mark Delivered
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
+                        <p className="text-sm font-semibold text-foreground">Invoice actions</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Create or remove the Xero-ready invoice rows saved for this order. No
+                          customer email is sent from these actions.
+                        </p>
+
+                        {invoiceMessages[order.id] ? (
+                          <p
+                            className={`mt-4 rounded-lg px-3 py-2 text-sm ${
+                              invoiceMessages[order.id].tone === "success"
+                                ? "bg-emerald-50 text-emerald-800"
+                                : "bg-red-50 text-red-800"
+                            }`}
+                          >
+                            {invoiceMessages[order.id].text}
+                          </p>
+                        ) : null}
+
+                        <div className="mt-4 flex flex-wrap gap-2 xl:flex-col">
+                          <Button
+                            size="sm"
+                            onClick={() => manageInvoiceRows(order, "create_xero_invoice")}
+                            disabled={actioningOrderId === order.id}
+                            className="w-full justify-center"
+                          >
+                            {actioningOrderId === order.id ? "Saving..." : "Create Invoice"}
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => manageInvoiceRows(order, "remove_xero_invoice")}
+                            disabled={actioningOrderId === order.id}
+                            className="w-full justify-center"
+                          >
+                            {actioningOrderId === order.id ? "Saving..." : "Remove Invoice"}
                           </Button>
                         </div>
                       </div>
