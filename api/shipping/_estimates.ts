@@ -131,17 +131,18 @@ export const estimateShippingProfile = (product: ShippingEstimateProduct): Shipp
   const lengthCm = toPositiveNumber(product.depthCm) ?? parsedDimensions?.lengthCm ?? categoryEstimate.lengthCm;
   const widthCm = toPositiveNumber(product.widthCm) ?? parsedDimensions?.widthCm ?? categoryEstimate.widthCm;
   const heightCm = toPositiveNumber(product.heightCm) ?? parsedDimensions?.heightCm ?? categoryEstimate.heightCm;
+  const hasActualWeight = Boolean(toPositiveNumber(product.weightKg) ?? parsedWeight);
+  const hasActualDimensions = Boolean(
+    (toPositiveNumber(product.depthCm) && toPositiveNumber(product.widthCm) && toPositiveNumber(product.heightCm)) ||
+      parsedDimensions,
+  );
 
   return {
     weightKg: Math.max(0.1, round(weightKg)),
     lengthCm: Math.max(1, round(lengthCm, 1)),
     widthCm: Math.max(1, round(widthCm, 1)),
     heightCm: Math.max(1, round(heightCm, 1)),
-    estimated:
-      !toPositiveNumber(product.weightKg) ||
-      !toPositiveNumber(product.depthCm) ||
-      !toPositiveNumber(product.widthCm) ||
-      !toPositiveNumber(product.heightCm),
+    estimated: !hasActualWeight || !hasActualDimensions,
   };
 };
 

@@ -143,6 +143,14 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
   return Array.from({ length: parcelCount }, () => createConsolidatedParcel(itemParcels, weightScale));
 };
 
+const getItemsMissingShippingDimensions = (items: ShippingQuoteItem[] = []) =>
+  items
+    .filter((item) => estimateShippingProfile(item).estimated)
+    .map((item) => ({
+      code: item.code || "",
+      description: item.description || item.manufacturer || item.code || "Product",
+    }));
+
 const summarizeParcels = (parcels: ParcelEstimate[]) => {
   const summary = parcels.reduce<ParcelEstimate>(
     (acc, parcel) => ({
@@ -254,6 +262,25 @@ export default async function handler(
 
   if (!/^\d{4}$/.test(destinationPostcode)) {
     return sendJson(res, 400, { message: "A valid Australian destination postcode is required." });
+  }
+
+  const missingDimensions = getItemsMissingShippingDimensions(body?.items || []);
+  if (missingDimensions.length > 0) {
+    const sample = missingDimensions
+      .slice(0, 3)
+      .map((item) => item.code || item.description)
+      .filter(Boolean)
+      .join(", ");
+
+    return sendJson(res, 422, {
+      message:
+        missingDimensions.length === 1
+          ? `Shipping weight or dimensions are missing for ${sample}. Contact Internext for an accurate freight quote.`
+          : `Shipping weight or dimensions are missing for ${missingDimensions.length} items${
+              sample ? `, including ${sample}` : ""
+            }. Contact Internext for an accurate freight quote.`,
+      missingDimensions,
+    });
   }
 
   const parcels = calculateParcels(body?.items || []);

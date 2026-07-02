@@ -408,6 +408,7 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
       availabilityText: live.availabilityText,
       etaDate: live.etaDate,
       etaStatus: live.etaStatus,
+      longDescription: live.longDescription,
       stockQuantity: live.stockQuantity,
       weightKg: live.weightKg,
       heightCm: live.heightCm,
