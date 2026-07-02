@@ -25,6 +25,7 @@ type ParcelEstimate = {
   heightCm: number;
   qty: number;
   itemCode?: string;
+  itemText?: string;
 };
 
 const ORIGIN_POSTCODE = "2158";
@@ -32,6 +33,8 @@ const MAX_PARCEL_WEIGHT_KG = 22;
 const MAX_PARCEL_LENGTH_CM = 105;
 const MAX_PARCEL_SIDE_CM = 70;
 const PACKING_ALLOWANCE = 1.15;
+const PACKING_WEIGHT_ALLOWANCE_KG = 0.25;
+const CUBIC_WEIGHT_DIVISOR_CM = 4000;
 const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | undefined): T | null => {
   if (!body) {
     return null;
@@ -63,15 +66,75 @@ const roundParcel = (parcel: ParcelEstimate): ParcelEstimate => ({
 
 const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
   const estimate = estimateShippingProfile(item);
+  const itemText = `${item.manufacturer || ""} ${item.description || ""} ${item.longDescription || ""}`.toLowerCase();
 
   return roundParcel({
     itemCode: item.code,
+    itemText,
     qty: 1,
     weightKg: estimate.weightKg,
     lengthCm: estimate.lengthCm,
     widthCm: estimate.widthCm,
     heightCm: estimate.heightCm,
   });
+};
+
+const getMinimumPackedWeightKg = (itemText = "") => {
+  if (/\b(tablet|ipad)\b/.test(itemText)) {
+    return 2;
+  }
+
+  if (/\b(laptop|notebook|chromebook)\b/.test(itemText)) {
+    return 4;
+  }
+
+  if (/\b(monitor|display|screen|tv|signage|panel)\b/.test(itemText)) {
+    return 6;
+  }
+
+  if (/\b(printer|multifunction|mfp|copier|scanner|plotter|large format)\b/.test(itemText)) {
+    return 8;
+  }
+
+  if (/\b(projector|speaker|soundbar|conference)\b/.test(itemText)) {
+    return 4;
+  }
+
+  if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(itemText)) {
+    return 1.2;
+  }
+
+  if (/\b(ink|toner|cartridge|drum|ribbon|printhead)\b/.test(itemText)) {
+    return 0.7;
+  }
+
+  if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount)\b/.test(itemText)) {
+    return 0.5;
+  }
+
+  return 0.5;
+};
+
+const getMinimumShippingFloor = (items: ShippingQuoteItem[] = []) => {
+  const text = items
+    .map((item) => `${item.manufacturer || ""} ${item.description || ""} ${item.longDescription || ""}`)
+    .join(" ")
+    .toLowerCase();
+
+  if (/\b(tablet|ipad|laptop|notebook|chromebook|monitor|display|screen|tv|signage|panel|projector)\b/.test(text)) {
+    return 24;
+  }
+
+  if (/\b(printer|multifunction|mfp|copier|scanner|plotter|large format)\b/.test(text)) {
+    return 30;
+  }
+
+  return 0;
+};
+
+const getChargeableWeightKg = (parcel: ParcelEstimate) => {
+  const cubicWeight = (parcel.lengthCm * parcel.widthCm * parcel.heightCm) / CUBIC_WEIGHT_DIVISOR_CM;
+  return Math.max(parcel.weightKg, cubicWeight);
 };
 
 const createConsolidatedParcel = (
@@ -81,8 +144,10 @@ const createConsolidatedParcel = (
   const totals = parcels.reduce(
     (acc, parcel) => {
       const qty = Math.max(1, Math.floor(toPositiveNumber(parcel.qty) ?? 1));
+      const minimumPackedWeight = getMinimumPackedWeightKg(parcel.itemText) * qty * weightScale;
+      const packedWeight = (parcel.weightKg + PACKING_WEIGHT_ALLOWANCE_KG) * qty * weightScale;
       return {
-        weightKg: acc.weightKg + parcel.weightKg * qty * weightScale,
+        weightKg: acc.weightKg + Math.max(packedWeight, minimumPackedWeight),
         volumeCm3: acc.volumeCm3 + parcel.lengthCm * parcel.widthCm * parcel.heightCm * qty * weightScale,
         lengthCm: Math.max(acc.lengthCm, parcel.lengthCm),
         widthCm: Math.max(acc.widthCm, parcel.widthCm),
@@ -109,7 +174,7 @@ const createConsolidatedParcel = (
 
   return roundParcel({
     qty: 1,
-    weightKg: totals.weightKg,
+    weightKg: Math.max(totals.weightKg, packedVolume / CUBIC_WEIGHT_DIVISOR_CM),
     lengthCm,
     widthCm,
     heightCm,
@@ -200,13 +265,14 @@ const quoteParcel = async (
   destinationPostcode: string,
   parcel: ParcelEstimate,
 ) => {
+  const chargeableWeightKg = Math.max(parcel.weightKg, getChargeableWeightKg(parcel));
   const params = new URLSearchParams({
     from_postcode: ORIGIN_POSTCODE,
     to_postcode: destinationPostcode,
     length: String(parcel.lengthCm),
     width: String(parcel.widthCm),
     height: String(parcel.heightCm),
-    weight: String(parcel.weightKg),
+    weight: String(Math.round(chargeableWeightKg * 100) / 100),
   });
 
   const response = await fetch(
@@ -285,13 +351,15 @@ export default async function handler(
 
   const parcels = calculateParcels(body?.items || []);
   const parcel = summarizeParcels(parcels);
+  const shippingFloor = getMinimumShippingFloor(body?.items || []);
   const apiBaseUrl = readEnv("AUSPOST_API_BASE_URL") || "https://digitalapi.auspost.com.au";
 
   try {
     const parcelQuotes = await Promise.all(
       parcels.map((currentParcel) => quoteParcel(apiBaseUrl, authKey, destinationPostcode, currentParcel)),
     );
-    const totalPrice = parcelQuotes.reduce((sum, quote) => sum + quote.service.price, 0);
+    const quotedPrice = parcelQuotes.reduce((sum, quote) => sum + quote.service.price, 0);
+    const totalPrice = Math.max(quotedPrice, shippingFloor);
     const primaryService = parcelQuotes[0].service;
     const serviceName =
       parcelQuotes.length === 1 && parcels[0].qty === 1
@@ -309,6 +377,8 @@ export default async function handler(
         price: totalPrice,
         priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
       },
+      quotedPrice,
+      shippingFloor,
       parcelQuotes,
     });
   } catch (error) {
