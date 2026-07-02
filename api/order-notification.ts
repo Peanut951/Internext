@@ -3,7 +3,11 @@ import { getSessionFromRequest } from "./auth/_shared.js";
 
 type RequestBody = {
   order?: Record<string, unknown>;
-  notificationType?: "paid_order" | "shipment" | "store_order";
+  notificationType?: "paid_order" | "shipment" | "store_order" | "sync_xero_inventory";
+  sync?: {
+    offset?: number;
+    limit?: number;
+  };
 };
 
 const readEnv = (key: string) => process.env[key]?.trim() || "";
@@ -567,6 +571,131 @@ const buildXeroInventoryItemRowsFromOrder = (
   return rows;
 };
 
+const getNullableNumber = (value: unknown) => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getProductItemCode = (product: Record<string, unknown>) =>
+  getXeroItemCode(getString(product.code) || getString(product.supplierCode));
+
+const getProductExGstPrice = (product: Record<string, unknown>) => {
+  const price = getNullableNumber(product.price);
+  if (price === null) {
+    return null;
+  }
+
+  return /\bex\s*gst\b/i.test(getString(product.priceText))
+    ? normalizeMoney(price)
+    : normalizeMoney(price / GST_MULTIPLIER);
+};
+
+const getProductDescription = (product: Record<string, unknown>) =>
+  (
+    getString(product.longDescription) ||
+    getString(product.description) ||
+    getString(product.name) ||
+    getString(product.code) ||
+    "Internext product"
+  )
+    .trim()
+    .slice(0, 4000);
+
+const getProductName = (product: Record<string, unknown>) =>
+  (getString(product.description) || getString(product.name) || getString(product.code) || "Internext product")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, 255);
+
+const readCatalogJsonArray = async (relativePath: string, host = "") => {
+  try {
+    const [{ readFile }, path] = await Promise.all([
+      import("node:fs/promises"),
+      import("node:path"),
+    ]);
+    const filePath = path.join(process.cwd(), relativePath);
+    const parsed = JSON.parse(await readFile(filePath, "utf8"));
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    if (!host) {
+      return [];
+    }
+
+    const publicPath = relativePath.replace(/^public[\\/]/, "").replace(/\\/g, "/");
+    const response = await fetch(`https://${host}/${publicPath}`);
+    if (!response.ok) {
+      return [];
+    }
+
+    const parsed = await response.json().catch(() => []);
+    return Array.isArray(parsed) ? parsed : [];
+  }
+};
+
+const loadInventorySyncProducts = async (host = "") => {
+  const [catalogProducts, leaderProducts] = await Promise.all([
+    readCatalogJsonArray("public/data/catalog-products.json", host),
+    readCatalogJsonArray("public/data/leader-products.json", host),
+  ]);
+  const productsByCode = new Map<string, Record<string, unknown>>();
+
+  for (const rawProduct of [...catalogProducts, ...leaderProducts]) {
+    if (!rawProduct || typeof rawProduct !== "object") {
+      continue;
+    }
+
+    const product = rawProduct as Record<string, unknown>;
+    const code = getProductItemCode(product);
+    if (!code) {
+      continue;
+    }
+
+    const existing = productsByCode.get(code);
+    if (!existing || (existing.price == null && product.price != null)) {
+      productsByCode.set(code, product);
+    }
+  }
+
+  return Array.from(productsByCode.values()).sort((a, b) =>
+    getProductItemCode(a).localeCompare(getProductItemCode(b)),
+  );
+};
+
+const buildXeroInventoryItemRowsFromProducts = (products: Array<Record<string, unknown>>) => {
+  const salesAccountCode = readEnv("XERO_SALES_ACCOUNT_CODE") || DEFAULT_XERO_SALES_ACCOUNT_CODE;
+  const purchaseAccountCode = readEnv("XERO_PURCHASES_ACCOUNT_CODE") || "";
+  const salesTaxRate = readEnv("XERO_SALES_TAX_RATE") || DEFAULT_XERO_TAX_TYPE;
+  const purchasesTaxRate = readEnv("XERO_PURCHASES_TAX_RATE") || "";
+  const inventoryAssetAccount = readEnv("XERO_INVENTORY_ASSET_ACCOUNT_CODE") || "";
+  const costOfGoodsSoldAccount = readEnv("XERO_COGS_ACCOUNT_CODE") || "";
+  const now = new Date().toISOString();
+
+  return products
+    .map((product) => {
+      const itemCode = getProductItemCode(product);
+      const description = getProductDescription(product);
+
+      return {
+        item_code: itemCode,
+        item_name: getProductName(product),
+        purchases_description: description,
+        purchases_unit_price: getNullableNumber(product.supplierPrice ?? product.leaderDealerBuyEx ?? product.alloysPrice),
+        purchases_account: purchaseAccountCode,
+        purchases_tax_rate: purchasesTaxRate,
+        sales_description: description,
+        sales_unit_price: getProductExGstPrice(product),
+        sales_account: salesAccountCode,
+        sales_tax_rate: salesTaxRate,
+        inventory_asset_account: inventoryAssetAccount,
+        cost_of_goods_sold_account: costOfGoodsSoldAccount,
+        source: getString(product.source) || (product.leaderCategory ? "leader" : "catalog_sync"),
+        product_data: product,
+        updated_at: now,
+      };
+    })
+    .filter((row) => row.item_code);
+};
+
 const upsertSupabaseRows = async (
   table: string,
   onConflict: string,
@@ -636,6 +765,39 @@ const upsertXeroSalesInvoiceRowsFromOrder = async (
     buildXeroSalesInvoiceRows(order, summary),
     "No invoice rows were available to save.",
   );
+
+const syncXeroInventoryBatch = async (
+  sync: RequestBody["sync"] = {},
+  host = "",
+) => {
+  const allProducts = await loadInventorySyncProducts(host);
+  const offset = Math.max(0, Math.floor(Number(sync?.offset) || 0));
+  const limit = Math.min(1000, Math.max(50, Math.floor(Number(sync?.limit) || 500)));
+  const batchProducts = allProducts.slice(offset, offset + limit);
+  const rows = buildXeroInventoryItemRowsFromProducts(batchProducts);
+  const response = await upsertSupabaseRows(
+    XERO_INVENTORY_ITEMS_TABLE,
+    "item_code",
+    rows,
+    "No inventory items were available to save.",
+  );
+  const nextOffset = offset + batchProducts.length;
+
+  return {
+    ok: response.ok,
+    status: response.ok ? 200 : 502,
+    body: {
+      ok: response.ok,
+      total: allProducts.length,
+      offset,
+      limit,
+      synced: rows.length,
+      nextOffset,
+      done: nextOffset >= allProducts.length,
+      message: response.message,
+    },
+  };
+};
 
 const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
@@ -1101,13 +1263,24 @@ export default async function handler(
   }
 
   const body = parseJsonBody<RequestBody>(req.body);
-  if (!body?.order) {
-    return sendJson(res, 400, { message: "An order payload is required." });
-  }
 
   const adminWebhookUrl = readEnv("POWER_AUTOMATE_ORDER_WEBHOOK_URL");
   const customerWebhookUrl = readEnv("POWER_AUTOMATE_CUSTOMER_ORDER_WEBHOOK_URL");
   const xeroInvoiceWebhookUrl = readEnv("POWER_AUTOMATE_XERO_INVOICE_WEBHOOK_URL");
+
+  if (body?.notificationType === "sync_xero_inventory") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to sync Xero inventory items." });
+    }
+
+    const result = await syncXeroInventoryBatch(body.sync, req.headers?.host || "");
+    return sendJson(res, result.status, result.body);
+  }
+
+  if (!body?.order) {
+    return sendJson(res, 400, { message: "An order payload is required." });
+  }
 
   if (body.notificationType === "store_order") {
     const session = getSessionFromRequest(req);
