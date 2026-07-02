@@ -85,8 +85,7 @@ const Footer = () => {
               <li className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-accent" />
                 <Link to="/contact" className="text-primary-foreground/70 hover:text-accent transition-colors leading-tight">
-                  <span className="block">1300 U R NEXT</span>
-                  <span className="block text-xs">(1300 87 6398)</span>
+                  <span className="block">1300 876 398</span>
                 </Link>
               </li>
 

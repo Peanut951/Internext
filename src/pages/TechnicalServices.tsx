@@ -122,8 +122,7 @@ const TechnicalServices = () => {
                   <div>
                     <div className="font-medium text-foreground">Technical Hotline</div>
                     <div className="text-muted-foreground leading-tight">
-                      <span className="block">1300 U R NEXT</span>
-                      <span className="block text-xs">(1300 87 6398)</span>
+                      <span className="block">1300 876 398</span>
                     </div>
                   </div>
                 </div>

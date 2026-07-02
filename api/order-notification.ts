@@ -10,10 +10,13 @@ const readEnv = (key: string) => process.env[key]?.trim() || "";
 const WEBHOOK_TIMEOUT_MS = 20000;
 const ORDERS_TABLE = "orders";
 const MARKETING_CONTACTS_TABLE = "marketing_contacts";
+const XERO_INVENTORY_ITEMS_TABLE = "xero_inventory_items";
+const XERO_SALES_INVOICE_LINES_TABLE = "xero_sales_invoice_lines";
 const DEFAULT_XERO_SALES_ACCOUNT_CODE = "200";
 const DEFAULT_XERO_SHIPPING_ACCOUNT_CODE = "200";
 const DEFAULT_XERO_TAX_TYPE = "OUTPUT";
 const DEFAULT_XERO_INVOICE_STATUS = "DRAFT";
+const DEFAULT_XERO_CURRENCY = "AUD";
 
 const formatAud = (value: unknown) =>
   typeof value === "number"
@@ -385,8 +388,224 @@ const getCustomerDisplayName = (customer: Record<string, unknown>) =>
     .map((value) => value.trim())
     .find(Boolean) || "Internext Customer";
 
+const getXeroItemCode = (value: unknown) => {
+  const code = getString(value).replace(/\s+/g, " ").trim();
+  return code ? code.slice(0, 30) : "";
+};
+
+const getCustomerAddressParts = (customer: Record<string, unknown>) => ({
+  po_address_line1: getString(customer.address1),
+  po_address_line2: getString(customer.address2),
+  po_address_line3: "",
+  po_address_line4: "",
+  po_city: getString(customer.suburb),
+  po_region: getString(customer.state),
+  po_postal_code: getString(customer.postcode),
+  po_country: getString(customer.country) || "Australia",
+});
+
+const buildXeroSalesInvoiceRows = (
+  order: Record<string, unknown>,
+  summary = buildOrderEmailSummary(order),
+) => {
+  const customer = order.customer && typeof order.customer === "object"
+    ? order.customer as Record<string, unknown>
+    : {};
+  const orderId = getString(order.id) || getString(order.orderNumber);
+  const orderNumber = getString(order.orderNumber) || orderId || "Internext order";
+  const invoiceDate = toIsoDateOnly(order.createdAt);
+  const dueDate = addDaysIsoDateOnly(order.createdAt, 0);
+  const contactName = getCustomerDisplayName(customer);
+  const addressParts = getCustomerAddressParts(customer);
+  const salesAccountCode = readEnv("XERO_SALES_ACCOUNT_CODE") || DEFAULT_XERO_SALES_ACCOUNT_CODE;
+  const shippingAccountCode = readEnv("XERO_SHIPPING_ACCOUNT_CODE") || DEFAULT_XERO_SHIPPING_ACCOUNT_CODE;
+  const taxType = readEnv("XERO_GST_TAX_TYPE") || DEFAULT_XERO_TAX_TYPE;
+  const currency = readEnv("XERO_CURRENCY") || DEFAULT_XERO_CURRENCY;
+  const brandingTheme = readEnv("XERO_BRANDING_THEME");
+
+  const baseRow = {
+    order_id: orderId || orderNumber,
+    order_number: orderNumber,
+    contact_name: contactName,
+    email_address: getString(customer.email),
+    ...addressParts,
+    invoice_number: orderNumber,
+    reference: orderNumber,
+    invoice_date: invoiceDate,
+    due_date: dueDate,
+    discount: null,
+    tax_type: taxType,
+    tracking_name1: "",
+    tracking_option1: "",
+    tracking_name2: "",
+    tracking_option2: "",
+    currency,
+    branding_theme: brandingTheme,
+    source_order: order,
+    updated_at: new Date().toISOString(),
+  };
+
+  const itemRows = summary.lines
+    .filter((line) => typeof line.unitPrice === "number" && line.quantity > 0)
+    .map((line, index) => ({
+      ...baseRow,
+      line_index: index,
+      inventory_item_code: getXeroItemCode(line.code),
+      description: String(line.description || line.code || "Internext product").slice(0, 4000),
+      quantity: line.quantity,
+      unit_amount: normalizeMoney(line.unitPrice ?? 0),
+      account_code: salesAccountCode,
+    }));
+
+  if (summary.shippingTotal > 0) {
+    itemRows.push({
+      ...baseRow,
+      line_index: itemRows.length,
+      inventory_item_code: "SHIPPING",
+      description: "Shipping and handling",
+      quantity: 1,
+      unit_amount: normalizeMoney(summary.shippingTotal),
+      account_code: shippingAccountCode,
+    });
+  }
+
+  return itemRows;
+};
+
+const buildXeroInventoryItemRowsFromOrder = (
+  order: Record<string, unknown>,
+  summary = buildOrderEmailSummary(order),
+) => {
+  const salesAccountCode = readEnv("XERO_SALES_ACCOUNT_CODE") || DEFAULT_XERO_SALES_ACCOUNT_CODE;
+  const purchaseAccountCode = readEnv("XERO_PURCHASES_ACCOUNT_CODE") || "";
+  const salesTaxRate = readEnv("XERO_SALES_TAX_RATE") || DEFAULT_XERO_TAX_TYPE;
+  const purchasesTaxRate = readEnv("XERO_PURCHASES_TAX_RATE") || "";
+  const inventoryAssetAccount = readEnv("XERO_INVENTORY_ASSET_ACCOUNT_CODE") || "";
+  const costOfGoodsSoldAccount = readEnv("XERO_COGS_ACCOUNT_CODE") || "";
+  const now = new Date().toISOString();
+
+  const rows = summary.lines
+    .filter((line) => typeof line.unitPrice === "number" && line.quantity > 0)
+    .map((line) => {
+      const itemCode = getXeroItemCode(line.code);
+      const description = String(line.description || line.code || "Internext product").slice(0, 4000);
+
+      return {
+        item_code: itemCode,
+        item_name: description.slice(0, 255),
+        purchases_description: description,
+        purchases_unit_price: null,
+        purchases_account: purchaseAccountCode,
+        purchases_tax_rate: purchasesTaxRate,
+        sales_description: description,
+        sales_unit_price: normalizeMoney(line.unitPrice ?? 0),
+        sales_account: salesAccountCode,
+        sales_tax_rate: salesTaxRate,
+        inventory_asset_account: inventoryAssetAccount,
+        cost_of_goods_sold_account: costOfGoodsSoldAccount,
+        source: "paid_order",
+        product_data: line,
+        updated_at: now,
+      };
+    })
+    .filter((row) => row.item_code);
+
+  if (summary.shippingTotal > 0) {
+    rows.push({
+      item_code: "SHIPPING",
+      item_name: "Shipping and handling",
+      purchases_description: "Shipping and handling",
+      purchases_unit_price: null,
+      purchases_account: purchaseAccountCode,
+      purchases_tax_rate: purchasesTaxRate,
+      sales_description: "Shipping and handling",
+      sales_unit_price: normalizeMoney(summary.shippingTotal),
+      sales_account: readEnv("XERO_SHIPPING_ACCOUNT_CODE") || DEFAULT_XERO_SHIPPING_ACCOUNT_CODE,
+      sales_tax_rate: salesTaxRate,
+      inventory_asset_account: inventoryAssetAccount,
+      cost_of_goods_sold_account: costOfGoodsSoldAccount,
+      source: "paid_order",
+      product_data: { orderNumber: getString(order.orderNumber) },
+      updated_at: now,
+    });
+  }
+
+  return rows;
+};
+
+const upsertSupabaseRows = async (
+  table: string,
+  onConflict: string,
+  rows: Array<Record<string, unknown>>,
+  emptyMessage: string,
+) => {
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      ok: false,
+      status: 0,
+      message: "Supabase storage is not configured.",
+    };
+  }
+
+  if (rows.length === 0) {
+    return {
+      ok: true,
+      status: 204,
+      message: emptyMessage,
+    };
+  }
+
+  const response = await fetch(
+    `${config.supabaseUrl}/rest/v1/${table}?on_conflict=${encodeURIComponent(onConflict)}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        apikey: config.serviceRoleKey,
+        Authorization: `Bearer ${config.serviceRoleKey}`,
+        Prefer: "resolution=merge-duplicates,return=minimal",
+      },
+      body: JSON.stringify(rows),
+    },
+  );
+
+  const errorText = response.ok ? "" : await response.text().catch(() => "");
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    message: response.ok
+      ? `${rows.length} row${rows.length === 1 ? "" : "s"} saved to ${table}.`
+      : `Supabase ${table} storage returned HTTP ${response.status}${errorText ? `: ${errorText}` : ""}.`,
+  };
+};
+
+const upsertXeroInventoryItemsFromOrder = async (
+  order: Record<string, unknown>,
+  summary = buildOrderEmailSummary(order),
+) =>
+  upsertSupabaseRows(
+    XERO_INVENTORY_ITEMS_TABLE,
+    "item_code",
+    buildXeroInventoryItemRowsFromOrder(order, summary),
+    "No inventory items were available to save.",
+  );
+
+const upsertXeroSalesInvoiceRowsFromOrder = async (
+  order: Record<string, unknown>,
+  summary = buildOrderEmailSummary(order),
+) =>
+  upsertSupabaseRows(
+    XERO_SALES_INVOICE_LINES_TABLE,
+    "order_id,line_index",
+    buildXeroSalesInvoiceRows(order, summary),
+    "No invoice rows were available to save.",
+  );
+
 const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
+  const csvRows = buildXeroSalesInvoiceRows(order, summary);
   const customer = order.customer && typeof order.customer === "object"
     ? order.customer as Record<string, unknown>
     : {};
@@ -437,6 +656,8 @@ const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
     submittedAt: new Date().toISOString(),
     source: "internext-checkout",
     orderNumber,
+    csvTemplate: "SalesInvoiceTemplate.csv",
+    csvRows,
     invoice: {
       type: "ACCREC",
       status: invoiceStatus,
@@ -589,7 +810,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
                   We will email you again when your order status changes or tracking details are available.
-                  For questions, call 1300 U R NEXT (1300 87 6398).
+                  For questions, call 1300 876 398.
                 </p>
               </td>
             </tr>
@@ -619,7 +840,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
     `Delivery address:`,
     ...shippingAddress,
     ``,
-    `For questions, call 1300 U R NEXT (1300 87 6398).`,
+    `For questions, call 1300 876 398.`,
   ].join("\n");
 
   return {
@@ -717,7 +938,7 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
                   </table>` : ""}
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
-                  For delivery questions, call 1300 U R NEXT (1300 87 6398).
+                  For delivery questions, call 1300 876 398.
                 </p>
               </td>
             </tr>
@@ -742,7 +963,7 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
       return `- ${getString(line.description)} x ${line.qty ?? ""}`;
     }),
     "",
-    "For delivery questions, call 1300 U R NEXT (1300 87 6398).",
+    "For delivery questions, call 1300 876 398.",
   ].join("\n");
 
   return {
@@ -897,13 +1118,20 @@ export default async function handler(
   }
 
   try {
-    const [storageResponse, marketingContactResponse] = await Promise.all([
-      upsertSharedOrder(body.order),
-      upsertMarketingContactFromOrder(body.order),
-    ]);
     const emailSummary = buildOrderEmailSummary(body.order);
     const customerEmail = buildCustomerConfirmationEmail(body.order);
     const xeroInvoicePayload = buildXeroInvoicePayload(body.order);
+    const orderForStorage = {
+      ...body.order,
+      xeroSalesInvoiceTemplate: "SalesInvoiceTemplate.csv",
+      xeroSalesInvoiceRows: xeroInvoicePayload.csvRows,
+    };
+    const [storageResponse, marketingContactResponse, inventoryItemsResponse, invoiceRowsResponse] = await Promise.all([
+      upsertSharedOrder(orderForStorage),
+      upsertMarketingContactFromOrder(body.order),
+      upsertXeroInventoryItemsFromOrder(body.order, emailSummary),
+      upsertXeroSalesInvoiceRowsFromOrder(body.order, emailSummary),
+    ]);
     const adminPayload = {
       type: "paid_order",
       submittedAt: new Date().toISOString(),
@@ -911,7 +1139,7 @@ export default async function handler(
       host: req.headers?.host || "",
       userAgent: req.headers?.["user-agent"] || "",
       order: {
-        ...body.order,
+        ...orderForStorage,
         emailSummary,
       },
     };
@@ -969,6 +1197,12 @@ export default async function handler(
       marketingContactSaved: marketingContactResponse.ok,
       marketingContactStatus: marketingContactResponse.status,
       marketingContactMessage: marketingContactResponse.message,
+      xeroInventoryItemsSaved: inventoryItemsResponse.ok,
+      xeroInventoryItemsStatus: inventoryItemsResponse.status,
+      xeroInventoryItemsMessage: inventoryItemsResponse.message,
+      xeroInvoiceRowsSaved: invoiceRowsResponse.ok,
+      xeroInvoiceRowsStatus: invoiceRowsResponse.status,
+      xeroInvoiceRowsMessage: invoiceRowsResponse.message,
       customerEmailMessage: customerResponse.ok
         ? "Customer confirmation workflow accepted the request."
         : `Customer confirmation workflow failed: ${customerResponse.message}`,

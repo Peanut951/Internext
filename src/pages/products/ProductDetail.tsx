@@ -417,7 +417,7 @@ const getStockSummary = (product: CatalogProduct) => {
       return `Currently out of stock. ${etaStatus}`;
     }
 
-    return "Currently out of stock. Call 1300 U R NEXT (1300 87 6398) for ETA";
+    return "Currently out of stock. Call 1300 876 398 for ETA";
   }
 
   return safeText(product.availabilityText) || "Stock confirmed before checkout";

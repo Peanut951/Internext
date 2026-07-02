@@ -204,8 +204,7 @@ const ServiceRequest = () => {
                 <div className="inline-flex items-center gap-2 text-accent font-semibold">
                   <Phone className="h-4 w-4" />
                   <span className="leading-tight">
-                    <span className="block">1300 U R NEXT</span>
-                    <span className="block text-xs">(1300 87 6398)</span>
+                    <span className="block">1300 876 398</span>
                   </span>
                 </div>
               </div>
