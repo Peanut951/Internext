@@ -17,7 +17,8 @@ const TopBar = () => {
           <Link to="/contact" className="flex items-center gap-2 hover:text-accent transition-colors">
             <Phone className="h-4 w-4 shrink-0" />
             <span className="whitespace-nowrap leading-tight">
-              <span className="block">1300 876 398</span>
+              <span className="block">1300 U R NEXT</span>
+              <span className="block text-[0.7rem] text-primary-foreground/70">(1300 876 398)</span>
             </span>
           </Link>
           <Link to="/contact" className="hidden min-w-0 items-center gap-2 transition-colors hover:text-accent sm:flex">

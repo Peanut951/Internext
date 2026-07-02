@@ -8,9 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { trackContactFormSubmitted } from "@/lib/analytics";
 
 const contactTypes = [
-  { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 876 398" },
-  { icon: Users, title: "Sales Enquiries", email: "orders@internext.com.au", phone: "1300 876 398" },
-  { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 876 398" },
+  { icon: Building2, title: "General Enquiries", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 876 398" },
+  { icon: Users, title: "Sales Enquiries", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 876 398" },
+  { icon: Headphones, title: "Technical Support", email: "orders@internext.com.au", phone: "1300 U R NEXT", phoneNumber: "1300 876 398" },
 ];
 
 const officeMapUrl =
@@ -127,7 +127,7 @@ const Contact = () => {
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Your enquiry is sent to the Internext team with your contact details and message.
                   We aim to respond within 1 business day, and urgent order or warranty questions can
-                  also be followed up by calling 1300 876 398.
+                  also be followed up by calling 1300 U R NEXT (1300 876 398).
                 </p>
               </div>
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50">
@@ -251,7 +251,8 @@ const Contact = () => {
                   <div className="flex items-center gap-3">
                     <Phone className="h-5 w-5 text-accent flex-shrink-0" />
                     <span className="inline-block text-foreground leading-tight">
-                      <span className="block">1300 876 398</span>
+                      <span className="block">1300 U R NEXT</span>
+                      <span className="block text-xs text-muted-foreground">(1300 876 398)</span>
                     </span>
                   </div>
                   <div className="flex items-center gap-3">

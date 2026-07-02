@@ -1040,7 +1040,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
                   We will email you again when your order status changes or tracking details are available.
-                  For questions, call 1300 876 398.
+                  For questions, call 1300 U R NEXT (1300 876 398).
                 </p>
               </td>
             </tr>
@@ -1070,7 +1070,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
     `Delivery address:`,
     ...shippingAddress,
     ``,
-    `For questions, call 1300 876 398.`,
+    `For questions, call 1300 U R NEXT (1300 876 398).`,
   ].join("\n");
 
   return {
@@ -1168,7 +1168,7 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
                   </table>` : ""}
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
-                  For delivery questions, call 1300 876 398.
+                  For delivery questions, call 1300 U R NEXT (1300 876 398).
                 </p>
               </td>
             </tr>
@@ -1193,7 +1193,7 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
       return `- ${getString(line.description)} x ${line.qty ?? ""}`;
     }),
     "",
-    "For delivery questions, call 1300 876 398.",
+    "For delivery questions, call 1300 U R NEXT (1300 876 398).",
   ].join("\n");
 
   return {
