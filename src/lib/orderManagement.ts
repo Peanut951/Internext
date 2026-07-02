@@ -705,6 +705,12 @@ export const updateOrderSerialNumbers = (
   return nextOrders.find((order) => order.id === orderId) ?? null;
 };
 
+export const removeOrder = (orderId: string) => {
+  const nextOrders = getOrders().filter((order) => order.id !== orderId);
+  saveOrders(nextOrders);
+  return nextOrders;
+};
+
 export const updateSharedOrderFulfillment = async (
   orderId: string,
   payload: {

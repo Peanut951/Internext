@@ -8,6 +8,7 @@ type RequestBody = {
     | "shipment"
     | "store_order"
     | "sync_xero_inventory"
+    | "remove_invoice"
     | "create_xero_invoice"
     | "remove_xero_invoice";
   sync?: {
@@ -813,6 +814,47 @@ const deleteXeroSalesInvoiceRowsForOrder = async (order: Record<string, unknown>
   };
 };
 
+const deleteSharedOrderForOrder = async (order: Record<string, unknown>) => {
+  const config = getSupabaseOrdersConfig();
+  if (!config) {
+    return {
+      ok: false,
+      status: 0,
+      message: "Supabase order storage is not configured.",
+    };
+  }
+
+  const orderId = getOrderField(order, "id") || getOrderField(order, "orderNumber");
+  if (!orderId) {
+    return {
+      ok: false,
+      status: 400,
+      message: "Order id is required to remove an invoice.",
+    };
+  }
+
+  const url = new URL(`${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}`);
+  url.searchParams.set("id", `eq.${orderId}`);
+
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      Prefer: "return=minimal",
+    },
+  });
+  const errorText = response.ok ? "" : await response.text().catch(() => "");
+
+  return {
+    ok: response.ok,
+    status: response.status,
+    message: response.ok
+      ? "Invoice removed from shared order storage."
+      : `Supabase order deletion returned HTTP ${response.status}${errorText ? `: ${errorText}` : ""}.`,
+  };
+};
+
 const syncXeroInventoryBatch = async (
   sync: RequestBody["sync"] = {},
   host = "",
@@ -1327,6 +1369,34 @@ export default async function handler(
 
   if (!body?.order) {
     return sendJson(res, 400, { message: "An order payload is required." });
+  }
+
+  if (body.notificationType === "remove_invoice") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to remove invoices." });
+    }
+
+    const [orderDeleteResponse, invoiceRowsDeleteResponse] = await Promise.all([
+      deleteSharedOrderForOrder(body.order),
+      deleteXeroSalesInvoiceRowsForOrder(body.order),
+    ]);
+    const ok = orderDeleteResponse.ok && invoiceRowsDeleteResponse.ok;
+
+    return sendJson(res, ok ? 200 : 502, {
+      ok,
+      invoiceRemoved: orderDeleteResponse.ok,
+      invoiceRemoveStatus: orderDeleteResponse.status,
+      invoiceRemoveMessage: orderDeleteResponse.message,
+      xeroInvoiceRowsRemoved: invoiceRowsDeleteResponse.ok,
+      xeroInvoiceRowsStatus: invoiceRowsDeleteResponse.status,
+      xeroInvoiceRowsMessage: invoiceRowsDeleteResponse.message,
+      message: ok
+        ? "Invoice removed from Internext order storage."
+        : orderDeleteResponse.ok
+          ? invoiceRowsDeleteResponse.message
+          : orderDeleteResponse.message,
+    });
   }
 
   if (body.notificationType === "create_xero_invoice") {

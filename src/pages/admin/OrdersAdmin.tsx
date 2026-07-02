@@ -13,9 +13,11 @@ import Layout from "@/components/layout/Layout";
 import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   FulfillmentStatus,
   OrderRecord,
+  OrderReseller,
   SupplierIntegrationSettings,
   SupplierSubmissionStatus,
   fetchSharedOrdersResult,
@@ -24,6 +26,7 @@ import {
   getOrders,
   getSupplierIntegrationSettings,
   persistSharedOrder,
+  removeOrder,
   saveSupplierIntegrationSettings,
   updateSharedOrderFulfillment,
   updateSharedOrderSerialNumbers,
@@ -41,6 +44,47 @@ type ShipmentFormState = {
 type ShipmentMessage = {
   tone: "success" | "error";
   text: string;
+};
+type ManualInvoiceDraft = {
+  firstName: string;
+  lastName: string;
+  company: string;
+  email: string;
+  phone: string;
+  address1: string;
+  address2: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  itemCode: string;
+  itemBrand: string;
+  itemDescription: string;
+  quantity: string;
+  unitPrice: string;
+  shippingTotal: string;
+  notes: string;
+};
+
+const emptyManualInvoiceDraft: ManualInvoiceDraft = {
+  firstName: "",
+  lastName: "",
+  company: "",
+  email: "",
+  phone: "",
+  address1: "",
+  address2: "",
+  suburb: "",
+  state: "NSW",
+  postcode: "",
+  country: "Australia",
+  itemCode: "",
+  itemBrand: "Internext",
+  itemDescription: "",
+  quantity: "1",
+  unitPrice: "",
+  shippingTotal: "0",
+  notes: "",
 };
 
 const supplierStatusClass: Record<SupplierSubmissionStatus, string> = {
@@ -81,9 +125,13 @@ const OrdersAdmin = () => {
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentStatus | "all">("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [manualInvoiceOpen, setManualInvoiceOpen] = useState(false);
+  const [manualInvoiceDraft, setManualInvoiceDraft] =
+    useState<ManualInvoiceDraft>(emptyManualInvoiceDraft);
+  const [manualInvoiceSaving, setManualInvoiceSaving] = useState(false);
+  const [manualInvoiceMessage, setManualInvoiceMessage] = useState<ShipmentMessage | null>(null);
   const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
-  const [invoiceMessages, setInvoiceMessages] = useState<Record<string, ShipmentMessage>>({});
   const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
   const [serialMessages, setSerialMessages] = useState<Record<string, ShipmentMessage>>({});
   const [expandedOrderIds, setExpandedOrderIds] = useState<Record<string, boolean>>({});
@@ -299,6 +347,185 @@ const OrdersAdmin = () => {
     }));
   };
 
+  const updateManualInvoiceDraft = (field: keyof ManualInvoiceDraft, value: string) => {
+    setManualInvoiceDraft((current) => ({ ...current, [field]: value }));
+    setManualInvoiceMessage(null);
+  };
+
+  const createManualOrderNumber = () => {
+    const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+    const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
+    return `INX-${datePart}-${randomPart}`;
+  };
+
+  const createManualInvoiceId = () => {
+    if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+  };
+
+  const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
+
+  const createManualInvoice = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setManualInvoiceSaving(true);
+    setManualInvoiceMessage(null);
+
+    const quantity = Math.max(1, Math.floor(Number(manualInvoiceDraft.quantity) || 1));
+    const unitPrice = Number(manualInvoiceDraft.unitPrice);
+    const shippingTotal = Math.max(0, Number(manualInvoiceDraft.shippingTotal) || 0);
+    const itemDescription = manualInvoiceDraft.itemDescription.trim();
+    const itemCode = manualInvoiceDraft.itemCode.trim() || "MANUAL";
+    const customerEmail = manualInvoiceDraft.email.trim().toLowerCase();
+
+    if (!customerEmail || !itemDescription || !Number.isFinite(unitPrice) || unitPrice < 0) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text: "Enter a customer email, item description, and valid unit price before creating the invoice.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+
+    const timestamp = new Date().toISOString();
+    const orderNumber = createManualOrderNumber();
+    const itemsSubtotal = normalizeMoney(unitPrice * quantity);
+    const gstAmount = normalizeMoney(itemsSubtotal * 0.1);
+    const totalKnownValue = normalizeMoney(itemsSubtotal + gstAmount + shippingTotal);
+    const reseller: OrderReseller = {
+      userId: session?.userId,
+      email: session?.email || "admin@internext.com.au",
+      role: "admin",
+    };
+    const item = {
+      code: itemCode,
+      manufacturer: manualInvoiceDraft.itemBrand.trim() || "Internext",
+      description: itemDescription,
+      price: normalizeMoney(unitPrice),
+      priceText: "Ex GST",
+      rrp: null,
+      supplierCode: itemCode,
+      qty: quantity,
+    };
+    const customer = {
+      firstName: manualInvoiceDraft.firstName.trim(),
+      lastName: manualInvoiceDraft.lastName.trim(),
+      company: manualInvoiceDraft.company.trim(),
+      email: customerEmail,
+      phone: manualInvoiceDraft.phone.trim(),
+      address1: manualInvoiceDraft.address1.trim(),
+      address2: manualInvoiceDraft.address2.trim(),
+      suburb: manualInvoiceDraft.suburb.trim(),
+      state: manualInvoiceDraft.state.trim(),
+      postcode: manualInvoiceDraft.postcode.trim(),
+      country: manualInvoiceDraft.country.trim() || "Australia",
+      notes: manualInvoiceDraft.notes.trim(),
+    };
+    const supplierPayload = {
+      orderNumber,
+      createdAt: timestamp,
+      reseller: {
+        businessName: "Internext",
+        website: window.location.origin,
+        portalUserEmail: reseller.email,
+        portalUserRole: reseller.role,
+      },
+      customer,
+      items: [
+        {
+          code: item.code,
+          supplierCode: item.supplierCode,
+          description: item.description,
+          brand: item.manufacturer,
+          quantity,
+          unitPrice,
+        },
+      ],
+      totals: {
+        subtotal: itemsSubtotal,
+        itemsSubtotal,
+        gstAmount,
+        shippingTotal,
+        shippingName: shippingTotal > 0 ? "Manual shipping" : undefined,
+        poaLines: 0,
+        totalKnownValue,
+      },
+    };
+    const manualOrder: OrderRecord = {
+      id: createManualInvoiceId(),
+      orderNumber,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+      reseller,
+      customer,
+      items: [item],
+      subtotal: itemsSubtotal,
+      itemsSubtotal,
+      gstAmount,
+      shippingTotal,
+      shippingName: shippingTotal > 0 ? "Manual shipping" : undefined,
+      poaLines: 0,
+      totalKnownValue,
+      paymentStatus: "paid",
+      fulfillmentStatus: "new",
+      supplierStatus: "queued",
+      supplierMessage: "Manual invoice created in the admin portal.",
+      supplierPayload,
+    };
+
+    const saved = await persistSharedOrder(manualOrder);
+    if (!saved) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text: "Invoice could not be saved to Supabase. Check your admin session and environment variables.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+
+    setOrders((current) => [manualOrder, ...current.filter((order) => order.id !== manualOrder.id)]);
+    setManualInvoiceDraft(emptyManualInvoiceDraft);
+    setManualInvoiceOpen(false);
+    setManualInvoiceMessage({
+      tone: "success",
+      text: `Invoice ${orderNumber} created and added to the order list.`,
+    });
+    await refreshOrders();
+    setManualInvoiceSaving(false);
+  };
+
+  const removeInvoice = async (order: OrderRecord) => {
+    const confirmed = window.confirm(
+      `Remove invoice ${order.orderNumber}? This deletes it from Internext shared order storage and it will disappear for all admins.`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    await withOrderAction(order.id, async () => {
+      const response = await fetch("/api/order-notification", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ notificationType: "remove_invoice", order }),
+      });
+      const payload = await response.json().catch(() => ({}));
+
+      if (!response.ok || payload.ok === false) {
+        throw new Error(
+          typeof payload.message === "string"
+            ? payload.message
+            : "Invoice could not be removed from shared storage.",
+        );
+      }
+
+      removeOrder(order.id);
+      setOrders((current) => current.filter((currentOrder) => currentOrder.id !== order.id));
+    });
+  };
+
   const saveSettings = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setSavingSettings(true);
@@ -499,67 +726,6 @@ const OrdersAdmin = () => {
         }));
       }
     });
-  };
-
-  const manageInvoiceRows = async (
-    order: OrderRecord,
-    notificationType: "create_xero_invoice" | "remove_xero_invoice",
-  ) => {
-    const isCreate = notificationType === "create_xero_invoice";
-    setInvoiceMessages((current) => {
-      const next = { ...current };
-      delete next[order.id];
-      return next;
-    });
-
-    try {
-      await withOrderAction(order.id, async () => {
-        const response = await fetch("/api/order-notification", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ notificationType, order }),
-        });
-        const payload = await response.json().catch(() => ({}));
-
-        if (!response.ok || payload.ok === false) {
-          throw new Error(
-            typeof payload.message === "string"
-              ? payload.message
-              : isCreate
-                ? "Invoice could not be created."
-                : "Invoice could not be removed.",
-          );
-        }
-
-        setInvoiceMessages((current) => ({
-          ...current,
-          [order.id]: {
-            tone: "success",
-            text:
-              typeof payload.message === "string"
-                ? payload.message
-                : isCreate
-                  ? "Invoice rows created for this order."
-                  : "Invoice rows removed for this order.",
-          },
-        }));
-      });
-    } catch (error) {
-      setInvoiceMessages((current) => ({
-        ...current,
-        [order.id]: {
-          tone: "error",
-          text:
-            error instanceof Error
-              ? error.message
-              : isCreate
-                ? "Invoice could not be created."
-                : "Invoice could not be removed.",
-        },
-      }));
-    }
   };
 
   const handleSignOut = async () => {
@@ -1062,6 +1228,282 @@ const OrdersAdmin = () => {
                 </div>
               </div>
 
+              <div className="mt-6 rounded-2xl border border-border/60 bg-background p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">Manual invoice</p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Create an Internext invoice and add it to the shared order list.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={() => setManualInvoiceOpen((current) => !current)}
+                    disabled={manualInvoiceSaving}
+                  >
+                    {manualInvoiceOpen ? "Close Invoice Form" : "Create Invoice"}
+                  </Button>
+                </div>
+
+                {manualInvoiceMessage ? (
+                  <p
+                    className={`mt-4 rounded-lg px-3 py-2 text-sm ${
+                      manualInvoiceMessage.tone === "success"
+                        ? "bg-emerald-50 text-emerald-800"
+                        : "bg-red-50 text-red-800"
+                    }`}
+                  >
+                    {manualInvoiceMessage.text}
+                  </p>
+                ) : null}
+
+                {manualInvoiceOpen ? (
+                  <form onSubmit={createManualInvoice} className="mt-5 space-y-5">
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          First name
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.firstName}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("firstName", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Last name
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.lastName}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("lastName", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Email *
+                        </label>
+                        <Input
+                          type="email"
+                          value={manualInvoiceDraft.email}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("email", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Phone
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.phone}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("phone", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Company
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.company}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("company", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Address line 1
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.address1}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("address1", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Address line 2
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.address2}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("address2", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Suburb
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.suburb}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("suburb", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          State
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.state}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("state", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Postcode
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.postcode}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("postcode", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Item code
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.itemCode}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("itemCode", event.target.value)
+                          }
+                          placeholder="SKU or reference"
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Brand
+                        </label>
+                        <Input
+                          value={manualInvoiceDraft.itemBrand}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("itemBrand", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Quantity
+                        </label>
+                        <Input
+                          type="number"
+                          min="1"
+                          step="1"
+                          value={manualInvoiceDraft.quantity}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("quantity", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Unit price ex GST *
+                        </label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={manualInvoiceDraft.unitPrice}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("unitPrice", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                          required
+                        />
+                      </div>
+                      <div className="md:col-span-2 xl:col-span-3">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Item description *
+                        </label>
+                        <Textarea
+                          value={manualInvoiceDraft.itemDescription}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("itemDescription", event.target.value)
+                          }
+                          className="min-h-24 border-border/70 bg-secondary/20"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Shipping
+                        </label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={manualInvoiceDraft.shippingTotal}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("shippingTotal", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                      <div className="md:col-span-2 xl:col-span-4">
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Notes
+                        </label>
+                        <Textarea
+                          value={manualInvoiceDraft.notes}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("notes", event.target.value)
+                          }
+                          className="min-h-20 border-border/70 bg-secondary/20"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-3">
+                      <Button type="submit" disabled={manualInvoiceSaving}>
+                        {manualInvoiceSaving ? "Creating..." : "Create Invoice"}
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => {
+                          setManualInvoiceDraft(emptyManualInvoiceDraft);
+                          setManualInvoiceOpen(false);
+                          setManualInvoiceMessage(null);
+                        }}
+                        disabled={manualInvoiceSaving}
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </form>
+                ) : null}
+              </div>
+
               <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
                 {queueMetrics.map((metric) => (
                   <div
@@ -1140,6 +1582,15 @@ const OrdersAdmin = () => {
                           aria-expanded={isExpanded}
                         >
                           {isExpanded ? "Hide Details" : "View Details"}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => removeInvoice(order)}
+                          disabled={actioningOrderId === order.id}
+                        >
+                          {actioningOrderId === order.id ? "Removing..." : "Remove Invoice"}
                         </Button>
                       </div>
                     </div>
@@ -1472,46 +1923,6 @@ const OrdersAdmin = () => {
                             className="w-full justify-center"
                           >
                             Mark Delivered
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
-                        <p className="text-sm font-semibold text-foreground">Invoice actions</p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Create or remove the Xero-ready invoice rows saved for this order. No
-                          customer email is sent from these actions.
-                        </p>
-
-                        {invoiceMessages[order.id] ? (
-                          <p
-                            className={`mt-4 rounded-lg px-3 py-2 text-sm ${
-                              invoiceMessages[order.id].tone === "success"
-                                ? "bg-emerald-50 text-emerald-800"
-                                : "bg-red-50 text-red-800"
-                            }`}
-                          >
-                            {invoiceMessages[order.id].text}
-                          </p>
-                        ) : null}
-
-                        <div className="mt-4 flex flex-wrap gap-2 xl:flex-col">
-                          <Button
-                            size="sm"
-                            onClick={() => manageInvoiceRows(order, "create_xero_invoice")}
-                            disabled={actioningOrderId === order.id}
-                            className="w-full justify-center"
-                          >
-                            {actioningOrderId === order.id ? "Saving..." : "Create Invoice"}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => manageInvoiceRows(order, "remove_xero_invoice")}
-                            disabled={actioningOrderId === order.id}
-                            className="w-full justify-center"
-                          >
-                            {actioningOrderId === order.id ? "Saving..." : "Remove Invoice"}
                           </Button>
                         </div>
                       </div>
