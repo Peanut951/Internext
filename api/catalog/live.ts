@@ -475,7 +475,29 @@ const formatDateDmy = (value: string | undefined) => {
 
 const formatEtaDateDmy = (value: string | undefined) => {
   const trimmed = String(value || "").trim();
-  return formatDateDmy(trimmed);
+  const isoMatch = trimmed.match(/^(\d{4})-(\d{1,2})-(\d{1,2})$/);
+  const dmyMatch = trimmed.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+
+  const parts = isoMatch
+    ? { year: Number(isoMatch[1]), month: Number(isoMatch[2]), day: Number(isoMatch[3]) }
+    : dmyMatch
+      ? { year: Number(dmyMatch[3]), month: Number(dmyMatch[2]), day: Number(dmyMatch[1]) }
+      : null;
+
+  if (!parts) {
+    return trimmed;
+  }
+
+  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day));
+  if (Number.isNaN(date.getTime())) {
+    return formatDateDmy(trimmed);
+  }
+
+  date.setUTCDate(date.getUTCDate() + 5);
+  const day = String(date.getUTCDate()).padStart(2, "0");
+  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+  const year = date.getUTCFullYear();
+  return `${day}/${month}/${year}`;
 };
 
 const CONTACT_AVAILABILITY_TEXT = "Contact us for availability information";

@@ -38,7 +38,6 @@ type CatalogProduct = {
   supplierCode?: string;
   availabilityText?: string;
   stockQuantity?: number;
-  liveUpdatedAt?: string;
   weightKg?: number | null;
   heightCm?: number | null;
   widthCm?: number | null;
@@ -1518,12 +1517,11 @@ const ProductCategory = () => {
                     const productImage = getOptionalProductImage(displayProduct);
                     const summary = getCardSummary(displayProduct);
                     const highlights = getCardHighlights(displayProduct);
-                    const availability = product.liveUpdatedAt
-                      ? safeText(product.availabilityText) ||
-                        (typeof product.stockQuantity === "number"
-                          ? `${product.stockQuantity} available`
-                          : "")
-                      : "";
+                    const availability =
+                      safeText(product.availabilityText) ||
+                      (typeof product.stockQuantity === "number"
+                        ? `${product.stockQuantity} available`
+                        : "");
                     const isInCart = cartItems.some((item) => item.code === productCode);
                     return (
                       <div

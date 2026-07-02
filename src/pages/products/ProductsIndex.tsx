@@ -36,7 +36,6 @@ type CatalogProduct = {
   imageUrl?: string;
   availabilityText?: string;
   stockQuantity?: number;
-  liveUpdatedAt?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -415,12 +414,11 @@ const ProductsIndex = () => {
                         const image = getOptionalProductImage(product);
                         const productTitle = buildProductDisplayTitle(product);
                         const price = getDisplayPrice(product, session?.role);
-                        const availability = product.liveUpdatedAt
-                          ? product.availabilityText ||
-                            (typeof product.stockQuantity === "number"
-                              ? `${product.stockQuantity} available`
-                              : "")
-                          : "";
+                        const availability =
+                          product.availabilityText ||
+                          (typeof product.stockQuantity === "number"
+                            ? `${product.stockQuantity} available`
+                            : "");
 
                         return (
                           <Link

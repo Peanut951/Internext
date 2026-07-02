@@ -948,7 +948,7 @@ const ProductDetail = () => {
         if (found) {
           setAllProducts(data);
           setProduct(found);
-          setIsLivePriceReady(false);
+          setIsLivePriceReady(Boolean(found?.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
           setLoading(false);
           return;
         }
@@ -1001,7 +1001,7 @@ const ProductDetail = () => {
   }, [product?.code, product?.stockQuantity, product?.stockByWarehouse?.adminAdjustment, product?.stockByWarehouse?.adminLocation, product?.stockByWarehouse?.internext, session?.role]);
 
   const availability = useMemo(() => {
-    if (!product || !isLivePriceReady) {
+    if (!product) {
       return "";
     }
 
@@ -1009,15 +1009,15 @@ const ProductDetail = () => {
       safeText(product.availabilityText) ||
       (typeof product.stockQuantity === "number" ? `${product.stockQuantity} available` : "")
     );
-  }, [isLivePriceReady, product]);
+  }, [product]);
 
   const availabilityRows = useMemo(() => {
-    if (!product || !isLivePriceReady) {
+    if (!product) {
       return [];
     }
 
     return getAvailabilityRows(product);
-  }, [isLivePriceReady, product]);
+  }, [product]);
 
   const galleryImages = useMemo(() => {
     if (!product) {
@@ -1130,10 +1130,6 @@ const ProductDetail = () => {
       setNamedMeta('meta[name="twitter:image"]', "name", "twitter:image", schemaImages[0]);
     }
 
-    const offerAvailability = isLivePriceReady
-      ? getSchemaAvailability(product)
-      : "https://schema.org/LimitedAvailability";
-
     const structuredData = {
       "@context": "https://schema.org",
       "@type": "Product",
@@ -1153,7 +1149,7 @@ const ProductDetail = () => {
             url: canonicalUrl,
             priceCurrency: "AUD",
             price: schemaPrice.toFixed(2),
-            availability: offerAvailability,
+            availability: getSchemaAvailability(product),
             itemCondition: "https://schema.org/NewCondition",
             shippingDetails: {
               "@type": "OfferShippingDetails",
@@ -1221,7 +1217,7 @@ const ProductDetail = () => {
     return () => {
       document.getElementById(scriptId)?.remove();
     };
-  }, [availability, fullDescriptionBlocks, fullDescriptionParagraphs, galleryImages, isLivePriceReady, product, productBrand, productCodeLabel, productName]);
+  }, [availability, fullDescriptionBlocks, fullDescriptionParagraphs, galleryImages, product, productBrand, productCodeLabel, productName]);
 
   const addToCart = () => {
     if (!product) {
@@ -1557,9 +1553,7 @@ const ProductDetail = () => {
                               </div>
                             ) : (
                               <p className="px-5 py-5 text-sm text-muted-foreground md:px-6 md:py-6">
-                                {isLivePriceReady
-                                  ? "Stock details are not available for this product."
-                                  : "Checking availability."}
+                                Stock details are not available for this product.
                               </p>
                             )}
                           </TabsContent>
@@ -1627,20 +1621,14 @@ const ProductDetail = () => {
                             <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                             <div>
                               <p className="font-medium text-foreground">Delivery</p>
-                              <p className="mt-1 text-muted-foreground">
-                                {isLivePriceReady
-                                  ? getDeliverySummary(product)
-                                  : "Shipping calculated at checkout from product dimensions and delivery postcode"}
-                              </p>
+                              <p className="mt-1 text-muted-foreground">{getDeliverySummary(product)}</p>
                             </div>
                           </div>
                           <div className="flex items-start gap-3 rounded-xl border border-border/60 bg-secondary/30 p-3">
                             <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                             <div>
                               <p className="font-medium text-foreground">Stock check</p>
-                              <p className="mt-1 text-muted-foreground">
-                                {isLivePriceReady ? getStockSummary(product) : "Checking availability."}
-                              </p>
+                              <p className="mt-1 text-muted-foreground">{getStockSummary(product)}</p>
                             </div>
                           </div>
                         </div>
@@ -1830,12 +1818,11 @@ const ProductDetail = () => {
                         const relatedBrand = safeText(relatedProduct.manufacturer) || "Unbranded";
                         const relatedCode = safeText(relatedProduct.code);
                         const relatedPrice = getDisplayPrice(relatedProduct, session?.role);
-                        const relatedAvailability = relatedProduct.liveUpdatedAt
-                          ? safeText(relatedProduct.availabilityText) ||
-                            (typeof relatedProduct.stockQuantity === "number"
-                              ? `${relatedProduct.stockQuantity.toLocaleString("en-AU")} available`
-                              : "")
-                          : "";
+                        const relatedAvailability =
+                          safeText(relatedProduct.availabilityText) ||
+                          (typeof relatedProduct.stockQuantity === "number"
+                            ? `${relatedProduct.stockQuantity.toLocaleString("en-AU")} available`
+                            : "");
 
                         return (
                           <Link

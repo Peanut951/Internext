@@ -97,24 +97,18 @@ let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
 let staticCatalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 
-const stripVolatileProductData = (product: CatalogProductWithLive): CatalogProductWithLive => {
+const stripCachedEtaData = (product: CatalogProductWithLive): CatalogProductWithLive => {
   const {
-    availabilityText: _availabilityText,
     etaDate: _etaDate,
     etaStatus: _etaStatus,
-    liveCatalogError: _liveCatalogError,
-    stockQuantity: _stockQuantity,
-    stockByWarehouse: _stockByWarehouse,
-    stockRecordUpdated: _stockRecordUpdated,
-    liveUpdatedAt: _liveUpdatedAt,
-    ...stableProduct
+    ...productWithoutCachedEta
   } = product;
 
-  return stableProduct;
+  return productWithoutCachedEta;
 };
 
-const stripVolatileProductsData = (products: CatalogProductWithLive[]) =>
-  products.map(stripVolatileProductData);
+const stripCachedEtaProductsData = (products: CatalogProductWithLive[]) =>
+  products.map(stripCachedEtaData);
 
 const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
   [product.code, product.supplierCode]
@@ -174,7 +168,7 @@ const writeCachedProducts = (products: CatalogProductWithLive[]) => {
       CATALOG_CACHE_KEY,
       JSON.stringify({
         cachedAt: Date.now(),
-        products: stripVolatileProductsData(products),
+        products: stripCachedEtaProductsData(products),
       } satisfies CachedCatalogProducts),
     );
   } catch {
@@ -244,7 +238,7 @@ const loadStaticCatalogProducts = async () => {
           const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
           return mergeCatalogProductUpdates(
             products,
-            stripVolatileProductsData(
+            stripCachedEtaProductsData(
               liveOverrides.items.map((item) => ({
                 ...item,
                 liveUpdatedAt: item.liveUpdatedAt || updatedAt,
