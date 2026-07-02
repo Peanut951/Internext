@@ -28,6 +28,7 @@ type CatalogProduct = {
   imageUrl?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  liveUpdatedAt?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -61,10 +62,12 @@ const ProductSearch = () => {
     let mounted = true;
 
     const loadProducts = async () => {
+      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
         const data = (await loadCatalogProductsFast((liveProducts) => {
           if (mounted) {
+            hasAppliedVerifiedProducts = true;
             setProducts((current) =>
               mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
             );
@@ -72,7 +75,9 @@ const ProductSearch = () => {
           }
         })) as CatalogProduct[];
         if (mounted) {
-          setProducts(data);
+          if (!hasAppliedVerifiedProducts) {
+            setProducts(data);
+          }
           setLoading(false);
         }
 
@@ -318,11 +323,12 @@ const ProductSearch = () => {
                   {currentItems.map(({ product }) => {
                     const image = getOptionalProductImage(product);
                     const productTitle = buildProductDisplayTitle(product);
-                    const availability =
-                      product.availabilityText ||
-                      (typeof product.stockQuantity === "number"
-                        ? `${product.stockQuantity} available`
-                        : "");
+                    const availability = product.liveUpdatedAt
+                      ? product.availabilityText ||
+                        (typeof product.stockQuantity === "number"
+                          ? `${product.stockQuantity} available`
+                          : "")
+                      : "";
                     return (
                       <Link
                         key={product.code}

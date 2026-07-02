@@ -36,6 +36,7 @@ type CatalogProduct = {
   imageUrl?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  liveUpdatedAt?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -203,10 +204,12 @@ const ProductsIndex = () => {
     let isMounted = true;
 
     const loadProducts = async () => {
+      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
         const data = (await loadCatalogProductsFast((liveProducts) => {
           if (isMounted) {
+            hasAppliedVerifiedProducts = true;
             setProducts((current) =>
               mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
             );
@@ -214,7 +217,9 @@ const ProductsIndex = () => {
           }
         })) as CatalogProduct[];
         if (isMounted) {
-          setProducts(data);
+          if (!hasAppliedVerifiedProducts) {
+            setProducts(data);
+          }
           setCatalogLoading(false);
         }
 
@@ -410,11 +415,12 @@ const ProductsIndex = () => {
                         const image = getOptionalProductImage(product);
                         const productTitle = buildProductDisplayTitle(product);
                         const price = getDisplayPrice(product, session?.role);
-                        const availability =
-                          product.availabilityText ||
-                          (typeof product.stockQuantity === "number"
-                            ? `${product.stockQuantity} available`
-                            : "");
+                        const availability = product.liveUpdatedAt
+                          ? product.availabilityText ||
+                            (typeof product.stockQuantity === "number"
+                              ? `${product.stockQuantity} available`
+                              : "")
+                          : "";
 
                         return (
                           <Link

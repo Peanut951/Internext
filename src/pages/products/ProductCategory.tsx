@@ -38,6 +38,7 @@ type CatalogProduct = {
   supplierCode?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  liveUpdatedAt?: string;
   weightKg?: number | null;
   heightCm?: number | null;
   widthCm?: number | null;
@@ -833,11 +834,13 @@ const ProductCategory = () => {
   useEffect(() => {
     let isMounted = true;
     const loadProducts = async () => {
+      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
         const [catalogProducts, featuredResponse] = await Promise.all([
           loadCatalogProductsFast((liveProducts) => {
             if (isMounted) {
+              hasAppliedVerifiedProducts = true;
               setProducts((current) =>
                 mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
               );
@@ -851,7 +854,9 @@ const ProductCategory = () => {
           ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
           : { rankings: {} };
         if (isMounted) {
-          setProducts(catalogProducts);
+          if (!hasAppliedVerifiedProducts) {
+            setProducts(catalogProducts);
+          }
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
         }
@@ -1513,11 +1518,12 @@ const ProductCategory = () => {
                     const productImage = getOptionalProductImage(displayProduct);
                     const summary = getCardSummary(displayProduct);
                     const highlights = getCardHighlights(displayProduct);
-                    const availability =
-                      safeText(product.availabilityText) ||
-                      (typeof product.stockQuantity === "number"
-                        ? `${product.stockQuantity} available`
-                        : "");
+                    const availability = product.liveUpdatedAt
+                      ? safeText(product.availabilityText) ||
+                        (typeof product.stockQuantity === "number"
+                          ? `${product.stockQuantity} available`
+                          : "")
+                      : "";
                     const isInCart = cartItems.some((item) => item.code === productCode);
                     return (
                       <div

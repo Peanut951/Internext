@@ -90,12 +90,31 @@ type CachedCatalogProducts = {
   products: CatalogProductWithLive[];
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products-v2";
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v3";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
 let staticCatalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
+
+const stripVolatileProductData = (product: CatalogProductWithLive): CatalogProductWithLive => {
+  const {
+    availabilityText: _availabilityText,
+    etaDate: _etaDate,
+    etaStatus: _etaStatus,
+    liveCatalogError: _liveCatalogError,
+    stockQuantity: _stockQuantity,
+    stockByWarehouse: _stockByWarehouse,
+    stockRecordUpdated: _stockRecordUpdated,
+    liveUpdatedAt: _liveUpdatedAt,
+    ...stableProduct
+  } = product;
+
+  return stableProduct;
+};
+
+const stripVolatileProductsData = (products: CatalogProductWithLive[]) =>
+  products.map(stripVolatileProductData);
 
 const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
   [product.code, product.supplierCode]
@@ -155,7 +174,7 @@ const writeCachedProducts = (products: CatalogProductWithLive[]) => {
       CATALOG_CACHE_KEY,
       JSON.stringify({
         cachedAt: Date.now(),
-        products,
+        products: stripVolatileProductsData(products),
       } satisfies CachedCatalogProducts),
     );
   } catch {
@@ -225,10 +244,12 @@ const loadStaticCatalogProducts = async () => {
           const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
           return mergeCatalogProductUpdates(
             products,
-            liveOverrides.items.map((item) => ({
-              ...item,
-              liveUpdatedAt: item.liveUpdatedAt || updatedAt,
-            })),
+            stripVolatileProductsData(
+              liveOverrides.items.map((item) => ({
+                ...item,
+                liveUpdatedAt: item.liveUpdatedAt || updatedAt,
+              })),
+            ),
           );
         } catch {
           return products;
