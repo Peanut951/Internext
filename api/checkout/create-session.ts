@@ -13,6 +13,7 @@ const MIN_SHIPPING_TOTAL = 15;
 
 type RequestBody = {
   origin?: string;
+  orderNumber?: string;
   resellerEmail?: string;
   customer?: {
     firstName?: string;
@@ -110,6 +111,7 @@ export default async function handler(
 
   const params = buildStripeCheckoutParams({
     origin,
+    orderNumber: String(body.orderNumber || ""),
     customer: {
       firstName: String(body.customer?.firstName || ""),
       lastName: String(body.customer?.lastName || ""),

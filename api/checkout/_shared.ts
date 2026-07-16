@@ -144,19 +144,21 @@ export const validateCheckoutPayload = (
 
 export const buildStripeCheckoutParams = (payload: {
   origin: string;
+  orderNumber?: string;
   customer: CheckoutCustomer;
   items: CheckoutLineItem[];
   resellerEmail?: string;
   shipping?: CheckoutShipping;
 }) => {
   const params = new URLSearchParams();
+  const orderNumber = payload.orderNumber?.trim();
   params.set("mode", "payment");
   params.set("success_url", `${payload.origin}/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
   params.set("cancel_url", `${payload.origin}/checkout?checkout=cancelled`);
   params.set("billing_address_collection", "required");
   params.set("phone_number_collection[enabled]", "true");
   params.set("customer_email", payload.customer.email.trim());
-  params.set("client_reference_id", payload.customer.email.trim());
+  params.set("client_reference_id", orderNumber || payload.customer.email.trim());
   params.set("metadata[customer_email]", payload.customer.email.trim());
   params.set(
     "metadata[customer_name]",
@@ -167,6 +169,14 @@ export const buildStripeCheckoutParams = (payload: {
     "payment_intent_data[metadata][customer_name]",
     `${payload.customer.firstName.trim()} ${payload.customer.lastName.trim()}`.trim(),
   );
+
+  if (orderNumber) {
+    params.set("metadata[order_number]", orderNumber);
+    params.set("metadata[invoice_number]", orderNumber);
+    params.set("payment_intent_data[metadata][order_number]", orderNumber);
+    params.set("payment_intent_data[metadata][invoice_number]", orderNumber);
+    params.set("payment_intent_data[description]", `Internext invoice ${orderNumber}`);
+  }
 
   if (payload.customer.phone?.trim()) {
     params.set("metadata[customer_phone]", payload.customer.phone.trim());

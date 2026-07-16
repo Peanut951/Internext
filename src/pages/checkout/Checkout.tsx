@@ -11,6 +11,7 @@ import {
   OrderRecord,
   OrderReseller,
   formatAud,
+  generateOrderNumber,
   getCartItems,
   placeOrder,
   saveCartItems,
@@ -249,6 +250,7 @@ const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
 const ORDER_NOTIFICATION_TIMEOUT_MS = 30000;
 
 type CheckoutDraft = {
+  orderNumber: string;
   customer: CheckoutCustomer;
   reseller?: OrderReseller;
   items: CartItem[];
@@ -872,7 +874,9 @@ const Checkout = () => {
         saveCartItems(draft.items);
         setCartItems(draft.items);
 
-        const order = await placeOrder(draft.customer, draft.reseller, draft.shipping);
+        const order = await placeOrder(draft.customer, draft.reseller, draft.shipping, {
+          orderNumber: draft.orderNumber,
+        });
 
         if (!isActive) {
           return;
@@ -1009,7 +1013,10 @@ const Checkout = () => {
           }
         : undefined;
 
+      const orderNumber = generateOrderNumber();
+
       saveCheckoutDraft({
+        orderNumber,
         customer,
         reseller,
         items: cartItems,
@@ -1028,6 +1035,7 @@ const Checkout = () => {
         },
         body: JSON.stringify({
           origin: window.location.origin,
+          orderNumber,
           resellerEmail: reseller?.email,
           customer: {
             firstName: customer.firstName,

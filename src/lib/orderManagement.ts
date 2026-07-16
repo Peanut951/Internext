@@ -299,7 +299,7 @@ export const getOrderItemSerialKey = (
 
 const nowIso = () => new Date().toISOString();
 
-const generateOrderNumber = () => {
+export const generateOrderNumber = () => {
   const datePart = new Date()
     .toISOString()
     .slice(0, 10)
@@ -565,6 +565,7 @@ export const placeOrder = async (
   customer: CheckoutCustomer,
   reseller?: OrderReseller,
   shipping?: OrderShippingInput,
+  options?: { orderNumber?: string },
 ): Promise<OrderRecord> => {
   const items = getCartItems();
   if (items.length === 0) {
@@ -572,7 +573,7 @@ export const placeOrder = async (
   }
 
   const timestamp = nowIso();
-  const orderNumber = generateOrderNumber();
+  const orderNumber = options?.orderNumber?.trim() || generateOrderNumber();
   const totals = calculateTotals(items, shipping);
   const orderReseller: OrderReseller = reseller ?? {
     email: customer.email,
