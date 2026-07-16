@@ -44,6 +44,11 @@ type ShipmentMessage = {
   tone: "success" | "error";
   text: string;
 };
+type ManualInvoiceLine = {
+  name: string;
+  quantity: string;
+  unitPrice: string;
+};
 type ManualInvoiceDraft = {
   firstName: string;
   lastName: string;
@@ -56,13 +61,16 @@ type ManualInvoiceDraft = {
   state: string;
   postcode: string;
   country: string;
-  itemCode: string;
-  itemBrand: string;
-  itemDescription: string;
-  quantity: string;
-  unitPrice: string;
-  shippingTotal: string;
+  items: ManualInvoiceLine[];
   notes: string;
+};
+
+type ManualShippingQuote = {
+  service?: {
+    name?: string;
+    price?: number;
+  };
+  message?: string;
 };
 
 const emptyManualInvoiceDraft: ManualInvoiceDraft = {
@@ -77,12 +85,7 @@ const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   state: "NSW",
   postcode: "",
   country: "Australia",
-  itemCode: "",
-  itemBrand: "Internext",
-  itemDescription: "",
-  quantity: "1",
-  unitPrice: "",
-  shippingTotal: "0",
+  items: [{ name: "", quantity: "1", unitPrice: "" }],
   notes: "",
 };
 
@@ -330,6 +333,70 @@ const OrdersAdmin = () => {
     setManualInvoiceMessage(null);
   };
 
+  const updateManualInvoiceLine = (
+    index: number,
+    field: keyof ManualInvoiceLine,
+    value: string,
+  ) => {
+    setManualInvoiceDraft((current) => ({
+      ...current,
+      items: current.items.map((item, itemIndex) =>
+        itemIndex === index ? { ...item, [field]: value } : item,
+      ),
+    }));
+    setManualInvoiceMessage(null);
+  };
+
+  const addManualInvoiceLine = () => {
+    setManualInvoiceDraft((current) => ({
+      ...current,
+      items: [...current.items, { name: "", quantity: "1", unitPrice: "" }],
+    }));
+    setManualInvoiceMessage(null);
+  };
+
+  const removeManualInvoiceLine = (index: number) => {
+    setManualInvoiceDraft((current) => ({
+      ...current,
+      items:
+        current.items.length === 1
+          ? current.items
+          : current.items.filter((_, itemIndex) => itemIndex !== index),
+    }));
+    setManualInvoiceMessage(null);
+  };
+
+  const quoteManualInvoiceShipping = async (
+    postcode: string,
+    items: Array<{ code: string; description: string; qty: number }>,
+  ) => {
+    const response = await fetch("/api/shipping/quote", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        destinationPostcode: postcode,
+        items: items.map((item) => ({
+          code: item.code,
+          manufacturer: "Internext",
+          description: item.description,
+          qty: item.qty,
+        })),
+      }),
+    });
+    const payload = (await response.json().catch(() => ({}))) as ManualShippingQuote;
+
+    if (!response.ok || typeof payload.service?.price !== "number") {
+      throw new Error(payload.message || "Unable to calculate shipping for this invoice.");
+    }
+
+    return {
+      name: payload.service.name || "Australia Post",
+      price: payload.service.price,
+    };
+  };
+
   const createManualOrderNumber = () => {
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -350,17 +417,33 @@ const OrdersAdmin = () => {
     setManualInvoiceSaving(true);
     setManualInvoiceMessage(null);
 
-    const quantity = Math.max(1, Math.floor(Number(manualInvoiceDraft.quantity) || 1));
-    const unitPrice = Number(manualInvoiceDraft.unitPrice);
-    const shippingTotal = Math.max(0, Number(manualInvoiceDraft.shippingTotal) || 0);
-    const itemDescription = manualInvoiceDraft.itemDescription.trim();
-    const itemCode = manualInvoiceDraft.itemCode.trim() || "MANUAL";
     const customerEmail = manualInvoiceDraft.email.trim().toLowerCase();
+    const invoiceLines = manualInvoiceDraft.items.map((line, index) => ({
+      code: `MANUAL-${index + 1}`,
+      description: line.name.trim(),
+      qty: Math.max(1, Math.floor(Number(line.quantity) || 1)),
+      price: Number(line.unitPrice),
+    }));
 
-    if (!customerEmail || !itemDescription || !Number.isFinite(unitPrice) || unitPrice < 0) {
+    if (
+      !customerEmail ||
+      invoiceLines.length === 0 ||
+      invoiceLines.some((line) => !line.description || !Number.isFinite(line.price) || line.price < 0)
+    ) {
       setManualInvoiceMessage({
         tone: "error",
-        text: "Enter a customer email, item description, and valid unit price before creating the invoice.",
+        text: "Enter a customer email plus product name, quantity, and valid unit price for every invoice line.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+
+    const postcode = manualInvoiceDraft.postcode.trim();
+    const isAustralianAddress = manualInvoiceDraft.country.trim().toLowerCase() === "australia";
+    if (!/^\d{4}$/.test(postcode) || !isAustralianAddress) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text: "Enter a valid Australian postcode so shipping can be calculated before the invoice is emailed.",
       });
       setManualInvoiceSaving(false);
       return;
@@ -368,24 +451,41 @@ const OrdersAdmin = () => {
 
     const timestamp = new Date().toISOString();
     const orderNumber = createManualOrderNumber();
-    const itemsSubtotal = normalizeMoney(unitPrice * quantity);
+    const itemsSubtotal = normalizeMoney(
+      invoiceLines.reduce((total, line) => total + line.price * line.qty, 0),
+    );
     const gstAmount = normalizeMoney(itemsSubtotal * 0.1);
+    let shipping: { name: string; price: number };
+    try {
+      shipping = await quoteManualInvoiceShipping(postcode, invoiceLines);
+    } catch (error) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text:
+          error instanceof Error
+            ? error.message
+            : "Unable to calculate shipping for this invoice.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+    const shippingTotal = normalizeMoney(shipping.price);
     const totalKnownValue = normalizeMoney(itemsSubtotal + gstAmount + shippingTotal);
     const reseller: OrderReseller = {
       userId: session?.userId,
       email: session?.email || "admin@internext.com.au",
       role: "admin",
     };
-    const item = {
-      code: itemCode,
-      manufacturer: manualInvoiceDraft.itemBrand.trim() || "Internext",
-      description: itemDescription,
-      price: normalizeMoney(unitPrice),
+    const items = invoiceLines.map((line) => ({
+      code: line.code,
+      manufacturer: "Internext",
+      description: line.description,
+      price: normalizeMoney(line.price),
       priceText: "Ex GST",
       rrp: null,
-      supplierCode: itemCode,
-      qty: quantity,
-    };
+      supplierCode: line.code,
+      qty: line.qty,
+    }));
     const customer = {
       firstName: manualInvoiceDraft.firstName.trim(),
       lastName: manualInvoiceDraft.lastName.trim(),
@@ -410,22 +510,20 @@ const OrdersAdmin = () => {
         portalUserRole: reseller.role,
       },
       customer,
-      items: [
-        {
-          code: item.code,
-          supplierCode: item.supplierCode,
-          description: item.description,
-          brand: item.manufacturer,
-          quantity,
-          unitPrice,
-        },
-      ],
+      items: items.map((item) => ({
+        code: item.code,
+        supplierCode: item.supplierCode,
+        description: item.description,
+        brand: item.manufacturer,
+        quantity: item.qty,
+        unitPrice: item.price,
+      })),
       totals: {
         subtotal: itemsSubtotal,
         itemsSubtotal,
         gstAmount,
         shippingTotal,
-        shippingName: shippingTotal > 0 ? "Manual shipping" : undefined,
+        shippingName: shipping.name,
         poaLines: 0,
         totalKnownValue,
       },
@@ -437,12 +535,12 @@ const OrdersAdmin = () => {
       updatedAt: timestamp,
       reseller,
       customer,
-      items: [item],
+      items,
       subtotal: itemsSubtotal,
       itemsSubtotal,
       gstAmount,
       shippingTotal,
-      shippingName: shippingTotal > 0 ? "Manual shipping" : undefined,
+      shippingName: shipping.name,
       poaLines: 0,
       totalKnownValue,
       paymentStatus: "awaiting_payment",
@@ -1361,91 +1459,88 @@ const OrdersAdmin = () => {
                       </div>
                     </div>
 
+                    <div className="space-y-3">
+                      <div className="flex flex-wrap items-center justify-between gap-3">
+                        <div>
+                          <h4 className="text-sm font-semibold text-foreground">Invoice products</h4>
+                          <p className="text-sm text-muted-foreground">
+                            Shipping is calculated from the delivery postcode when the invoice is created.
+                          </p>
+                        </div>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={addManualInvoiceLine}
+                          disabled={manualInvoiceSaving}
+                        >
+                          Add Product
+                        </Button>
+                      </div>
+
+                      {manualInvoiceDraft.items.map((item, index) => (
+                        <div
+                          key={index}
+                          className="grid gap-3 rounded-2xl border border-border/60 bg-secondary/20 p-3 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]"
+                        >
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">
+                              Product name *
+                            </label>
+                            <Input
+                              value={item.name}
+                              onChange={(event) =>
+                                updateManualInvoiceLine(index, "name", event.target.value)
+                              }
+                              className="h-11 border-border/70 bg-background"
+                              required
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">
+                              Quantity
+                            </label>
+                            <Input
+                              type="number"
+                              min="1"
+                              step="1"
+                              value={item.quantity}
+                              onChange={(event) =>
+                                updateManualInvoiceLine(index, "quantity", event.target.value)
+                              }
+                              className="h-11 border-border/70 bg-background"
+                            />
+                          </div>
+                          <div>
+                            <label className="mb-2 block text-sm font-medium text-foreground">
+                              Unit price ex GST *
+                            </label>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={item.unitPrice}
+                              onChange={(event) =>
+                                updateManualInvoiceLine(index, "unitPrice", event.target.value)
+                              }
+                              className="h-11 border-border/70 bg-background"
+                              required
+                            />
+                          </div>
+                          <div className="flex items-end">
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={() => removeManualInvoiceLine(index)}
+                              disabled={manualInvoiceSaving || manualInvoiceDraft.items.length === 1}
+                            >
+                              Remove
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Item code
-                        </label>
-                        <Input
-                          value={manualInvoiceDraft.itemCode}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("itemCode", event.target.value)
-                          }
-                          placeholder="SKU or reference"
-                          className="h-11 border-border/70 bg-secondary/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Brand
-                        </label>
-                        <Input
-                          value={manualInvoiceDraft.itemBrand}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("itemBrand", event.target.value)
-                          }
-                          className="h-11 border-border/70 bg-secondary/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Quantity
-                        </label>
-                        <Input
-                          type="number"
-                          min="1"
-                          step="1"
-                          value={manualInvoiceDraft.quantity}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("quantity", event.target.value)
-                          }
-                          className="h-11 border-border/70 bg-secondary/20"
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Unit price ex GST *
-                        </label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={manualInvoiceDraft.unitPrice}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("unitPrice", event.target.value)
-                          }
-                          className="h-11 border-border/70 bg-secondary/20"
-                          required
-                        />
-                      </div>
-                      <div className="md:col-span-2 xl:col-span-3">
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Item description *
-                        </label>
-                        <Textarea
-                          value={manualInvoiceDraft.itemDescription}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("itemDescription", event.target.value)
-                          }
-                          className="min-h-24 border-border/70 bg-secondary/20"
-                          required
-                        />
-                      </div>
-                      <div>
-                        <label className="mb-2 block text-sm font-medium text-foreground">
-                          Shipping
-                        </label>
-                        <Input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={manualInvoiceDraft.shippingTotal}
-                          onChange={(event) =>
-                            updateManualInvoiceDraft("shippingTotal", event.target.value)
-                          }
-                          className="h-11 border-border/70 bg-secondary/20"
-                        />
-                      </div>
                       <div className="md:col-span-2 xl:col-span-4">
                         <label className="mb-2 block text-sm font-medium text-foreground">
                           Notes

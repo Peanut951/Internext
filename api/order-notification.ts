@@ -1051,8 +1051,8 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
   const itemRows = summary.lines
     .map((line) => `
       <tr>
-        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;">
-          <div style="font-weight:700;color:#111827;">${escapeHtml(line.description)}</div>
+        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;word-break:break-word;overflow-wrap:anywhere;">
+          <div style="font-weight:700;color:#111827;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(line.description)}</div>
           <div style="font-size:12px;color:#6b7280;margin-top:4px;">Code: ${escapeHtml(line.code)}</div>
         </td>
         <td align="center" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.quantity)}</td>
@@ -1067,7 +1067,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
             <tr>
               <td style="background:#1f2937;padding:28px 32px;">
                 <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
@@ -1223,74 +1223,53 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
             <tr>
               <td style="background:#1f2937;padding:28px 32px;">
                 <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
-                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;color:#ffffff;">Invoice ready for payment</h1>
-                <p style="margin:10px 0 0;color:#d1d5db;font-size:15px;">Hi ${escapeHtml(customerName)}, your Internext invoice is ready.</p>
+                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;color:#ffffff;">Payment request</h1>
+                <p style="margin:10px 0 0;color:#d1d5db;font-size:15px;">Hi ${escapeHtml(customerName)}, your Internext order is ready for secure payment.</p>
               </td>
             </tr>
             <tr>
               <td style="padding:28px 32px;">
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
-                  <tr>
-                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
-                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Invoice number</div>
-                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(orderNumber)}</div>
-                    </td>
-                    <td width="16"></td>
-                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
-                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Total due</div>
-                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(summary.totalKnownValueText)}</div>
-                    </td>
-                  </tr>
-                </table>
-
                 <p style="margin:0 0 20px;color:#4b5563;line-height:1.6;">
-                  Please use the secure Stripe payment link below to pay this invoice. The invoice will be marked as paid in Internext only after Stripe confirms payment.
+                  Please use the secure Stripe payment link below to complete payment. Your order will be marked as paid in Internext only after Stripe confirms payment.
                 </p>
                 <p style="margin:0 0 28px;">
                   <a href="${escapeHtml(paymentUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">Pay invoice securely</a>
                 </p>
 
-                <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Invoice items</h2>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Items ordered</h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;">
                   <thead>
                     <tr>
-                      <th align="left" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
-                      <th align="center" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
-                      <th align="right" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit price ex GST</th>
-                      <th align="right" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Line total ex GST</th>
+                      <th align="left" width="52%" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
+                      <th align="center" width="12%" style="padding:0 8px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
+                      <th align="right" width="18%" style="padding:0 8px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit</th>
+                      <th align="right" width="18%" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Total</th>
                     </tr>
                   </thead>
                   <tbody>${itemRows}</tbody>
                 </table>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:24px;">
+                <h2 style="margin:24px 0 10px;font-size:18px;color:#111827;">Delivery details</h2>
+                <p style="margin:0 0 20px;color:#4b5563;line-height:1.6;">
+                  ${shippingAddress.map(escapeHtml).join("<br>") || "No delivery address supplied"}
+                </p>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
                   <tr>
-                    <td style="vertical-align:top;padding-right:20px;">
-                      <h2 style="margin:0 0 10px;font-size:18px;color:#111827;">Delivery details</h2>
-                      <p style="margin:0;color:#4b5563;line-height:1.6;">
-                        ${shippingAddress.map(escapeHtml).join("<br>") || "No delivery address supplied"}
-                      </p>
-                    </td>
-                    <td width="260" style="vertical-align:top;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
-                        <tr>
-                          <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
-                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:6px 0;color:#4b5563;">GST</td>
-                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
-                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
-                        </tr>
-                        <tr>
-                          <td style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
-                          <td align="right" style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-size:18px;font-weight:900;">${escapeHtml(summary.totalKnownValueText)}</td>
-                        </tr>
-                      </table>
-                    </td>
+                    <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
+                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#4b5563;">GST</td>
+                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
+                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
+                    <td align="right" style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-size:18px;font-weight:900;">${escapeHtml(summary.totalKnownValueText)}</td>
                   </tr>
                 </table>
 
@@ -1311,13 +1290,13 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
 </html>`;
 
   const text = [
-    `Internext invoice ${orderNumber}`,
+    `Internext payment request`,
     `Total due: ${summary.totalKnownValueText}`,
     "",
-    `Hi ${customerName}, your Internext invoice is ready for payment.`,
+    `Hi ${customerName}, your Internext order is ready for secure payment.`,
     `Pay securely: ${paymentUrl}`,
     "",
-    "Invoice items:",
+    "Items ordered:",
     ...summary.lines.map((line) =>
       `${line.quantity} x ${line.description} (${line.code}) - ${line.lineTotalText}`,
     ),
@@ -1335,7 +1314,7 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
 
   return {
     to: customerEmail,
-    subject: `Internext invoice ${orderNumber} ready for payment`,
+    subject: `Internext payment request`,
     html,
     text,
   };
