@@ -395,13 +395,6 @@ export const loadCatalogProducts = async (options?: { forceRefresh?: boolean }) 
 export const loadCatalogProductsFast = async (
   onLiveProducts?: (products: CatalogProductWithLive[]) => void,
 ) => {
-  const refreshPromise = loadCatalogProducts({ forceRefresh: true })
-    .then((products) => {
-      onLiveProducts?.(products);
-      return products;
-    })
-    .catch(() => null);
-
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
     return cachedProducts;
@@ -411,11 +404,8 @@ export const loadCatalogProductsFast = async (
     const staticProducts = await loadStaticCatalogProducts();
     return staticProducts;
   } catch {
-    const refreshedProducts = await refreshPromise;
-    if (refreshedProducts) {
-      return refreshedProducts;
-    }
-
-    return loadCatalogProducts();
+    const products = await loadCatalogProducts();
+    onLiveProducts?.(products);
+    return products;
   }
 };

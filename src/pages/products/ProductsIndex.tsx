@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
@@ -198,6 +198,7 @@ const ProductsIndex = () => {
   const [liveRefreshing, setLiveRefreshing] = useState(true);
   const [catalogError, setCatalogError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
     let isMounted = true;
@@ -297,16 +298,16 @@ const ProductsIndex = () => {
   };
 
   const allSearchMatches = useMemo(
-    () => searchCatalogProducts(products, searchQuery),
-    [products, searchQuery],
+    () => searchCatalogProducts(products, deferredSearchQuery),
+    [products, deferredSearchQuery],
   );
   const searchPreviewMatches = useMemo(
     () => allSearchMatches.slice(0, SEARCH_PREVIEW_LIMIT),
     [allSearchMatches],
   );
 
-  const queryTooShort = searchQuery.trim().length > 0 && searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
-  const hasSearchQuery = searchQuery.trim().length > 0;
+  const queryTooShort = deferredSearchQuery.trim().length > 0 && deferredSearchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
+  const hasSearchQuery = deferredSearchQuery.trim().length > 0;
   const waitingForLiveMatches =
     hasSearchQuery && !queryTooShort && liveRefreshing && searchPreviewMatches.length === 0;
 

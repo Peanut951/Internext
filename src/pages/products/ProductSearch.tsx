@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Search, ArrowRight, X } from "lucide-react";
@@ -52,6 +52,7 @@ const ProductSearch = () => {
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { session } = useAuthSession();
+  const deferredQuery = useDeferredValue(currentQuery);
 
   useEffect(() => {
     setInputValue(currentQuery);
@@ -136,7 +137,7 @@ const ProductSearch = () => {
     });
   };
 
-  const matches = useMemo(() => searchCatalogProducts(products, currentQuery), [products, currentQuery]);
+  const matches = useMemo(() => searchCatalogProducts(products, deferredQuery), [products, deferredQuery]);
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(matches.length / SEARCH_RESULTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);

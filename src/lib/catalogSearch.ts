@@ -21,6 +21,11 @@ export type CatalogSearchMatch<T extends SearchableCatalogProduct> = {
 
 export const MIN_CATALOG_SEARCH_LENGTH = 2;
 
+const searchIndexCache = new WeakMap<
+  SearchableCatalogProduct[],
+  IndexedProduct<SearchableCatalogProduct>[]
+>();
+
 export const normalizeCatalogSearchText = (value: string) =>
   value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -50,7 +55,12 @@ const getTokenScore = <T extends SearchableCatalogProduct>(item: IndexedProduct<
 };
 
 export const buildCatalogSearchIndex = <T extends SearchableCatalogProduct>(products: T[]) => {
-  return products.map((product) => {
+  const cached = searchIndexCache.get(products as SearchableCatalogProduct[]);
+  if (cached) {
+    return cached as IndexedProduct<T>[];
+  }
+
+  const index = products.map((product) => {
     const code = normalizeCatalogSearchText(product.code || "");
     const description = normalizeCatalogSearchText(product.description || "");
     const manufacturer = normalizeCatalogSearchText(product.manufacturer || "");
@@ -65,6 +75,13 @@ export const buildCatalogSearchIndex = <T extends SearchableCatalogProduct>(prod
       haystack: [description, code, manufacturer, supplierCode].join(" ").trim(),
     } satisfies IndexedProduct<T>;
   });
+
+  searchIndexCache.set(
+    products as SearchableCatalogProduct[],
+    index as IndexedProduct<SearchableCatalogProduct>[],
+  );
+
+  return index;
 };
 
 export const searchCatalogProducts = <T extends SearchableCatalogProduct>(
