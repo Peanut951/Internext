@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
@@ -203,13 +203,37 @@ const ProductsIndex = () => {
     let isMounted = true;
 
     const loadProducts = async () => {
+      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
-        const data = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          if (isMounted) {
+            hasAppliedVerifiedProducts = true;
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        })) as CatalogProduct[];
         if (isMounted) {
-          setProducts(data);
+          if (!hasAppliedVerifiedProducts) {
+            setProducts(data);
+          }
           setCatalogLoading(false);
-          setLiveRefreshing(false);
+        }
+
+        try {
+          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+          if (isMounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        } catch {
+          if (isMounted) {
+            setLiveRefreshing(false);
+          }
         }
       } catch (error) {
         if (isMounted) {

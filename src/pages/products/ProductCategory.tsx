@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -833,10 +833,19 @@ const ProductCategory = () => {
   useEffect(() => {
     let isMounted = true;
     const loadProducts = async () => {
+      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
         const [catalogProducts, featuredResponse] = await Promise.all([
-          loadCatalogProducts({ forceRefresh: true }) as Promise<CatalogProduct[]>,
+          loadCatalogProductsFast((liveProducts) => {
+            if (isMounted) {
+              hasAppliedVerifiedProducts = true;
+              setProducts((current) =>
+                mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+              );
+              setLiveRefreshing(false);
+            }
+          }) as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
         ]);
 
@@ -844,10 +853,25 @@ const ProductCategory = () => {
           ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
           : { rankings: {} };
         if (isMounted) {
-          setProducts(catalogProducts);
+          if (!hasAppliedVerifiedProducts) {
+            setProducts(catalogProducts);
+          }
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
-          setLiveRefreshing(false);
+        }
+
+        try {
+          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+          if (isMounted) {
+            setProducts((current) =>
+              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+            );
+            setLiveRefreshing(false);
+          }
+        } catch {
+          if (isMounted) {
+            setLiveRefreshing(false);
+          }
         }
       } catch (err) {
         if (isMounted) {

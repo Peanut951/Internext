@@ -10,7 +10,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -923,17 +923,64 @@ const ProductDetail = () => {
     setProduct(null);
     setAllProducts([]);
     const loadProduct = async () => {
+      let hasAppliedVerifiedProduct = false;
       try {
-        const data = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+        const data = (await loadCatalogProductsFast((liveProducts) => {
+          const liveProduct = findProductByCode(liveProducts as CatalogProduct[], productCode);
+          if (isMounted && liveProduct) {
+            hasAppliedVerifiedProduct = true;
+            setAllProducts(liveProducts as CatalogProduct[]);
+            setProduct(liveProduct);
+            setIsLivePriceReady(true);
+            setHasCheckedFullCatalog(true);
+            setLoading(false);
+          }
+        })) as CatalogProduct[];
 
         const found = findProductByCode(data, productCode);
         if (!isMounted) {
           return;
         }
 
-        setAllProducts(data);
-        setProduct(found);
-        setIsLivePriceReady(Boolean(found));
+        if (hasAppliedVerifiedProduct) {
+          return;
+        }
+
+        if (found) {
+          setAllProducts(data);
+          setProduct(found);
+          setIsLivePriceReady(
+            Boolean(found.liveUpdatedAt) ||
+              safeText(found.manufacturer).toLowerCase() === "leader",
+          );
+          setLoading(false);
+
+          try {
+            const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+            const liveFound = findProductByCode(liveProducts, productCode);
+            if (isMounted && liveFound) {
+              setAllProducts(liveProducts);
+              setProduct(liveFound);
+              setIsLivePriceReady(true);
+              setHasCheckedFullCatalog(true);
+            }
+          } catch {
+            if (isMounted) {
+              setHasCheckedFullCatalog(true);
+            }
+          }
+          return;
+        }
+
+        const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
+        const liveFound = findProductByCode(liveProducts, productCode);
+        if (!isMounted) {
+          return;
+        }
+
+        setAllProducts(liveProducts);
+        setProduct(liveFound);
+        setIsLivePriceReady(Boolean(liveFound));
         setHasCheckedFullCatalog(true);
         setLoading(false);
       } catch (err) {
