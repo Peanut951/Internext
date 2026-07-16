@@ -17,7 +17,7 @@ import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing"
 import { trackAddToCart } from "@/lib/analytics";
 import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 import { useToast } from "@/hooks/use-toast";
-import { buildProductDisplayTitle } from "@/lib/productTitles";
+import { buildProductDisplayTitle, getProductMpnForTitle } from "@/lib/productTitles";
 
 type CatalogProduct = {
   code: string;
@@ -470,14 +470,7 @@ const getProductGtin = (product: CatalogProduct) =>
   normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
 
 const getProductMpn = (product: CatalogProduct) => {
-  const supplierCode = safeText(product.supplierCode);
-  const code = safeText(product.code);
-
-  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
-    return supplierCode;
-  }
-
-  return code;
+  return getProductMpnForTitle(product);
 };
 
 const getSeoProductType = (product: CatalogProduct) => {
@@ -800,21 +793,7 @@ const removeLeadingBrandFromTitle = (title: string, brand: string) => {
 };
 
 const buildSearchTitleText = (product: CatalogProduct) => {
-  const brand = safeText(product.manufacturer);
-  const base = removeLeadingBrandFromTitle(safeText(product.description) || safeText(product.code) || "Product", brand);
-  const mpn = getProductMpn(product);
-  const productType = getSeoProductType(product);
-  const normalizedBase = normalizeToken(base);
-  const normalizedType = normalizeToken(productType);
-  const normalizedMpn = normalizeToken(mpn);
-  const parts = [
-    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
-    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
-    productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
-    base,
-  ].filter(Boolean);
-
-  return parts.join(" ");
+  return buildProductDisplayTitle(product);
 };
 
 const setNamedMeta = (selector: string, attribute: "name" | "property", key: string, content: string) => {

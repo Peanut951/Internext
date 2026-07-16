@@ -26,6 +26,7 @@ const stripHtml = (value) =>
 
 const removeSupplierReferences = (value) =>
   stripHtml(value)
+    .replace(/^\s*\d{8,14}\s+/, "")
     .replace(/\s*Product code:\s*[^.;]+[.;]?/gi, "")
     .replace(/\s*supplier reference:\s*[^.;]+[.;]?/gi, "")
     .replace(/\s*;?\s*supplier reference\s+[^.;]+[.;]?/gi, "")
@@ -54,12 +55,48 @@ const normalizeGtin = (value) => {
 const getProductGtin = (product) =>
   normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
 
+const isBarcodeLikeCode = (value) => /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(String(value || "").trim());
+
+const stripInternalCodePrefix = (code, brand) => {
+  const cleanCode = stripHtml(code);
+  const cleanBrand = normalizeToken(brand);
+  const prefix =
+    cleanBrand === "akuvox" ? /^AK[-_]+/i
+    : cleanBrand === "grandstream" ? /^GR[-_]+/i
+    : cleanBrand === "yealink" ? /^IPY[-_]+/i
+    : null;
+
+  if (!prefix || !prefix.test(cleanCode)) {
+    return cleanCode;
+  }
+
+  const stripped = cleanCode.replace(prefix, "").trim();
+  return /[a-z]/i.test(stripped) && /\d/.test(stripped) ? stripped : cleanCode;
+};
+
+const getDisplayModelCode = (code, brand) => {
+  const cleanBrand = normalizeToken(brand);
+  const normalizedCode = normalizeToken(code);
+
+  if (cleanBrand === "akuvox" && normalizedCode.startsWith("it88")) {
+    return "IT88";
+  }
+
+  return code;
+};
+
 const getProductMpn = (product) => {
   const supplierCode = String(product.supplierCode || "").trim();
-  const code = String(product.code || "").trim();
+  const brand = String(product.manufacturer || "").trim();
+  const code = getDisplayModelCode(stripInternalCodePrefix(String(product.code || "").trim(), brand), brand);
+  const cleanSupplierCode = getDisplayModelCode(stripInternalCodePrefix(supplierCode, brand), brand);
 
-  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
-    return supplierCode;
+  if (
+    cleanSupplierCode.length >= 3 &&
+    !isBarcodeLikeCode(cleanSupplierCode) &&
+    normalizeToken(cleanSupplierCode) !== normalizeToken(code)
+  ) {
+    return cleanSupplierCode;
   }
 
   return code;
@@ -107,21 +144,41 @@ const removeLeadingBrandFromTitle = (title, brand) => {
   return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
 };
 
+const normalizeBaseTitleForProduct = (base, product, mpn) => {
+  const brand = normalizeToken(product.manufacturer);
+  const normalizedMpn = normalizeToken(mpn);
+
+  if (brand === "akuvox" && normalizedMpn.startsWith("it88") && /\bindoor unit\b/i.test(base)) {
+    const size = /\b10\s*(?:"|inch|in\b)?/i.test(base) ? `10" ` : "";
+    const code = stripHtml(product.code);
+    const mounting = /inwall|in-wall/i.test(code) ? " - In-Wall" : /onwall|on-wall/i.test(code) ? " - On-Wall" : "";
+    const version = /\(([^)]+)\)/.exec(base)?.[0] || (/android/i.test(base) ? "(Android Version)" : "");
+    return `${size}Smart Indoor Monitor${mounting} ${version}`.replace(/\s+/g, " ").trim();
+  }
+
+  return base;
+};
+
 const buildSearchTitleText = (product) => {
   const brand = stripHtml(product.manufacturer || "");
-  const base = removeLeadingBrandFromTitle(
+  const rawBase = removeLeadingBrandFromTitle(
     removeSupplierReferences(product.description || product.name || product.code),
     brand,
-  );
+  ).replace(/^\s*\d{8,14}\s+/, "");
   const mpn = getProductMpn(product);
+  const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
   const productType = getSeoProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
   const normalizedMpn = normalizeToken(mpn);
+  const skipProductType =
+    normalizeToken(brand) === "akuvox" &&
+    normalizedMpn.startsWith("it88") &&
+    /indoor monitor/i.test(base);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
     mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
-    productType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
+    productType && !skipProductType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
     base,
   ].filter(Boolean);
 

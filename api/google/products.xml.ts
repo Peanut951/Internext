@@ -118,6 +118,7 @@ const truncate = (value: string, maxLength: number) =>
 
 const removeSupplierReferences = (value: unknown) =>
   stripHtml(value)
+    .replace(/^\s*\d{8,14}\s+/, "")
     .replace(/\s*Product code:\s*[^.;]+[.;]?/gi, "")
     .replace(/\s*supplier reference:\s*[^.;]+[.;]?/gi, "")
     .replace(/\s*;?\s*supplier reference\s+[^.;]+[.;]?/gi, "")
@@ -142,15 +143,52 @@ const getProductGtin = (product: {
   barcode?: unknown;
 }) => normalizeGtin(product.gtin) || normalizeGtin(product.ean) || normalizeGtin(product.upc) || normalizeGtin(product.barcode);
 
+const isBarcodeLikeCode = (value: string) => /^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(value.trim());
+
+const stripInternalCodePrefix = (code: string, brand: string) => {
+  const cleanCode = stripHtml(code);
+  const cleanBrand = normalizeToken(brand);
+  const prefix =
+    cleanBrand === "akuvox" ? /^AK[-_]+/i
+    : cleanBrand === "grandstream" ? /^GR[-_]+/i
+    : cleanBrand === "yealink" ? /^IPY[-_]+/i
+    : null;
+
+  if (!prefix || !prefix.test(cleanCode)) {
+    return cleanCode;
+  }
+
+  const stripped = cleanCode.replace(prefix, "").trim();
+  return /[a-z]/i.test(stripped) && /\d/.test(stripped) ? stripped : cleanCode;
+};
+
+const getDisplayModelCode = (code: string, brand: string) => {
+  const cleanBrand = normalizeToken(brand);
+  const normalizedCode = normalizeToken(code);
+
+  if (cleanBrand === "akuvox" && normalizedCode.startsWith("it88")) {
+    return "IT88";
+  }
+
+  return code;
+};
+
 const getProductMpn = (product: {
   code?: string | null;
   supplierCode?: string | null;
+  manufacturer?: string | null;
 }) => {
   const supplierCode = String(product.supplierCode || "").trim();
-  const code = String(product.code || "").trim();
+  const brand = String(product.manufacturer || "").trim();
+  const code = getDisplayModelCode(stripInternalCodePrefix(String(product.code || "").trim(), brand), brand);
+  const cleanSupplierCode = getDisplayModelCode(stripInternalCodePrefix(supplierCode, brand), brand);
 
-  if (supplierCode.length >= 3 && normalizeToken(supplierCode) !== normalizeToken(code)) {
-    return supplierCode;
+  if (
+    cleanSupplierCode.length >= 3 &&
+    !isBarcodeLikeCode(cleanSupplierCode) &&
+    normalizeToken(cleanSupplierCode) !== normalizeToken(code)
+  ) {
+    return cleanSupplierCode;
   }
 
   return code;
@@ -215,6 +253,28 @@ const removeLeadingBrandFromTitle = (title: string, brand: string) => {
   return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
 };
 
+const normalizeBaseTitleForProduct = (
+  base: string,
+  product: {
+    code?: string | null;
+    manufacturer?: string | null;
+  },
+  mpn: string,
+) => {
+  const brand = normalizeToken(product.manufacturer);
+  const normalizedMpn = normalizeToken(mpn);
+
+  if (brand === "akuvox" && normalizedMpn.startsWith("it88") && /\bindoor unit\b/i.test(base)) {
+    const size = /\b10\s*(?:"|inch|in\b)?/i.test(base) ? `10" ` : "";
+    const code = stripHtml(product.code);
+    const mounting = /inwall|in-wall/i.test(code) ? " - In-Wall" : /onwall|on-wall/i.test(code) ? " - On-Wall" : "";
+    const version = /\(([^)]+)\)/.exec(base)?.[0] || (/android/i.test(base) ? "(Android Version)" : "");
+    return `${size}Smart Indoor Monitor${mounting} ${version}`.replace(/\s+/g, " ").trim();
+  }
+
+  return base;
+};
+
 const buildShoppingTitle = (product: {
   code?: string | null;
   supplierCode?: string | null;
@@ -224,19 +284,25 @@ const buildShoppingTitle = (product: {
   longDescription?: string | null;
 }) => {
   const brand = stripHtml(product.manufacturer || "");
-  const base = removeLeadingBrandFromTitle(
+  const rawBase = removeLeadingBrandFromTitle(
     removeSupplierReferences(product.description || product.name || product.code),
     brand,
-  );
+  ).replace(/^\s*\d{8,14}\s+/, "");
   const mpn = getProductMpn(product);
+  const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
   const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
   const normalizedMpn = normalizeToken(mpn);
+  const skipProductType =
+    normalizeToken(brand) === "akuvox" &&
+    normalizedMpn.startsWith("it88") &&
+    /indoor monitor/i.test(base);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
     mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
     productType &&
+    !skipProductType &&
     normalizedType &&
     !normalizedBase.includes(normalizedType)
       ? productType
