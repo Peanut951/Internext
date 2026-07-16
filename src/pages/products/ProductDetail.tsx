@@ -1,5 +1,5 @@
 import { type SyntheticEvent, useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -886,6 +886,7 @@ const getProductStructuredDescription = (product: CatalogProduct, paragraphs: st
 
 const ProductDetail = () => {
   const { code } = useParams();
+  const navigate = useNavigate();
   const productCode = code || "";
 
   const [loading, setLoading] = useState(true);
@@ -1295,6 +1296,15 @@ const ProductDetail = () => {
     setQty(Math.max(1, Math.min(9999, Math.floor(value))));
   };
 
+  const goBack = () => {
+    if (typeof window !== "undefined" && window.history.length > 1) {
+      navigate(-1);
+      return;
+    }
+
+    navigate("/products");
+  };
+
   const saveAdminStockOverride = async () => {
     if (!product) {
       return;
@@ -1385,10 +1395,14 @@ const ProductDetail = () => {
       <section className="section-padding bg-background">
         <div className="container-catalog">
           <div className="mb-6">
-            <Link to="/products" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent">
+            <button
+              type="button"
+              onClick={goBack}
+              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent"
+            >
               <ArrowLeft className="h-4 w-4" />
-              Back to Products
-            </Link>
+              Back
+            </button>
           </div>
 
           {loading && (
