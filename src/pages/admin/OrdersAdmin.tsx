@@ -19,7 +19,6 @@ import {
   OrderRecord,
   OrderReseller,
   SupplierIntegrationSettings,
-  SupplierSubmissionStatus,
   fetchSharedOrdersResult,
   formatAud,
   getOrderItemSerialKey,
@@ -34,7 +33,7 @@ import {
 import { clearAuthSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
-type OrderView = "all" | "needs_supplier" | "active" | "completed";
+type OrderView = "all" | "active" | "completed";
 type ShipmentFormState = {
   trackingCarrier: string;
   trackingNumber: string;
@@ -87,13 +86,6 @@ const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   notes: "",
 };
 
-const supplierStatusClass: Record<SupplierSubmissionStatus, string> = {
-  submitted: "bg-emerald-100 text-emerald-800",
-  queued: "bg-amber-100 text-amber-800",
-  not_configured: "bg-orange-100 text-orange-800",
-  failed: "bg-red-100 text-red-800",
-};
-
 const fulfillmentStatusClass: Record<FulfillmentStatus, string> = {
   new: "bg-slate-100 text-slate-800",
   processing: "bg-blue-100 text-blue-800",
@@ -121,7 +113,6 @@ const OrdersAdmin = () => {
   const [orderSearch, setOrderSearch] = useState("");
   const [resellerFilter, setResellerFilter] = useState("all");
   const [customerFilter, setCustomerFilter] = useState("all");
-  const [supplierFilter, setSupplierFilter] = useState<SupplierSubmissionStatus | "all">("all");
   const [fulfillmentFilter, setFulfillmentFilter] = useState<FulfillmentStatus | "all">("all");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
@@ -172,19 +163,17 @@ const OrdersAdmin = () => {
     const open = orders.filter(
       (order) => !["delivered", "cancelled"].includes(order.fulfillmentStatus),
     ).length;
-    const needsSupplierAttention = orders.filter(
-      (order) => order.supplierStatus !== "submitted",
-    ).length;
-    const submitted = orders.filter((order) => order.supplierStatus === "submitted").length;
-    return { total: orders.length, open, needsSupplierAttention, submitted };
+    const newOrders = orders.filter((order) => order.fulfillmentStatus === "new").length;
+    const shipped = orders.filter((order) => order.fulfillmentStatus === "shipped").length;
+    return { total: orders.length, open, newOrders, shipped };
   }, [orders]);
 
   const queueMetrics = useMemo(
     () => [
       {
-        label: "Queued supplier",
-        value: orders.filter((order) => order.supplierStatus === "queued").length,
-        note: "manual handoff still pending",
+        label: "New orders",
+        value: orders.filter((order) => order.fulfillmentStatus === "new").length,
+        note: "awaiting dispatch review",
       },
       {
         label: "Processing",
@@ -232,7 +221,6 @@ const OrdersAdmin = () => {
     orderSearch.trim() ||
       resellerFilter !== "all" ||
       customerFilter !== "all" ||
-      supplierFilter !== "all" ||
       fulfillmentFilter !== "all" ||
       dateFrom ||
       dateTo,
@@ -242,9 +230,6 @@ const OrdersAdmin = () => {
     let nextOrders = orders;
 
     switch (activeView) {
-      case "needs_supplier":
-        nextOrders = orders.filter((order) => order.supplierStatus !== "submitted");
-        break;
       case "active":
         nextOrders = orders.filter((order) =>
           ["new", "processing", "shipped"].includes(order.fulfillmentStatus),
@@ -281,10 +266,6 @@ const OrdersAdmin = () => {
         return false;
       }
 
-      if (supplierFilter !== "all" && order.supplierStatus !== supplierFilter) {
-        return false;
-      }
-
       if (fulfillmentFilter !== "all" && order.fulfillmentStatus !== fulfillmentFilter) {
         return false;
       }
@@ -303,7 +284,6 @@ const OrdersAdmin = () => {
         order.customer.suburb,
         order.customer.state,
         order.customer.postcode,
-        order.supplierStatus,
         order.fulfillmentStatus,
         ...order.items.flatMap((item) => [
           item.code,
@@ -327,14 +307,12 @@ const OrdersAdmin = () => {
     orderSearch,
     orders,
     resellerFilter,
-    supplierFilter,
   ]);
 
   const clearOrderFilters = () => {
     setOrderSearch("");
     setResellerFilter("all");
     setCustomerFilter("all");
-    setSupplierFilter("all");
     setFulfillmentFilter("all");
     setDateFrom("");
     setDateTo("");
@@ -747,11 +725,11 @@ const OrdersAdmin = () => {
                   Reseller Operations
                 </p>
                 <h1 className="mt-3 max-w-3xl text-3xl font-bold leading-[0.96] text-white md:text-[2.6rem]">
-                  Supplier handoff and order visibility in one reseller workspace.
+                  Invoice visibility and order fulfilment in one workspace.
                 </h1>
                 <p className="mt-4 max-w-3xl text-base leading-7 text-white md:text-[1.05rem]">
-                  Use this portal to move between customer order review, supplier submission, and
-                  fulfillment updates without jumping between disconnected tools.
+                  Use this portal to review customer orders, manage invoice records, add tracking,
+                  and move orders through fulfilment.
                 </p>
 
                 <div className="mt-5 flex flex-wrap gap-3">
@@ -785,15 +763,15 @@ const OrdersAdmin = () => {
                     icon: Truck,
                   },
                   {
-                    label: "Sent to supplier",
-                    value: summary.submitted,
-                    note: "already handed off",
+                    label: "Shipped",
+                    value: summary.shipped,
+                    note: "tracking can be reviewed",
                     icon: Workflow,
                   },
                   {
-                    label: "Needs attention",
-                    value: summary.needsSupplierAttention,
-                    note: "awaiting supplier action",
+                    label: "New orders",
+                    value: summary.newOrders,
+                    note: "awaiting dispatch review",
                     icon: ShieldCheck,
                   },
                 ].map((item) => (
@@ -866,10 +844,10 @@ const OrdersAdmin = () => {
                 <div className="mt-3 grid gap-3 sm:grid-cols-2">
                   <div className="rounded-xl border border-white/10 bg-slate-950/20 px-3 py-3">
                     <p className="text-xs uppercase tracking-[0.16em] text-white/55">
-                      Supplier action
+                      New orders
                     </p>
                     <p className="mt-1 text-lg font-semibold text-white">
-                      {summary.needsSupplierAttention}
+                      {summary.newOrders}
                     </p>
                   </div>
                   <div className="rounded-xl border border-white/10 bg-slate-950/20 px-3 py-3">
@@ -880,9 +858,8 @@ const OrdersAdmin = () => {
                   </div>
                 </div>
                 <p className="mt-3 text-sm leading-6 text-white/80">
-                  {summary.needsSupplierAttention} order
-                  {summary.needsSupplierAttention === 1 ? "" : "s"} currently need supplier action
-                  and {summary.open} remain active in fulfillment.
+                  {summary.newOrders} order{summary.newOrders === 1 ? "" : "s"} awaiting review
+                  and {summary.open} remain active in fulfilment.
                 </p>
               </div>
             </div>
@@ -900,12 +877,12 @@ const OrdersAdmin = () => {
               className="rounded-[1.75rem] border border-border/60 bg-card p-6 shadow-card md:p-7"
             >
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
-                Supplier Integration
+                Automation Integration
               </p>
-              <h2 className="mt-3 text-2xl font-semibold text-foreground">Submission Settings</h2>
+              <h2 className="mt-3 text-2xl font-semibold text-foreground">Optional Webhook Settings</h2>
               <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                Choose whether supplier submission stays manual in the portal or automatically sends
-                after checkout through a webhook.
+                Optional legacy automation settings. Leave this empty unless an external order
+                workflow is being connected.
               </p>
 
               <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -927,14 +904,14 @@ const OrdersAdmin = () => {
                 </div>
                 <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">
-                    Supplier Webhook URL
+                    External Webhook URL
                   </label>
                   <Input
                     value={settings.webhookUrl}
                     onChange={(event) =>
                       setSettings((prev) => ({ ...prev, webhookUrl: event.target.value }))
                     }
-                    placeholder="https://supplier.example.com/api/orders"
+                    placeholder="https://example.com/api/orders"
                     className="h-12 border-border/70 bg-secondary/45"
                   />
                 </div>
@@ -981,8 +958,7 @@ const OrdersAdmin = () => {
               <h2 className="mt-3 text-2xl font-semibold text-foreground">Portal guidance</h2>
               <div className="mt-5 space-y-4">
                 {[
-                  "Manual Queue keeps supplier submission under your control inside the portal.",
-                  "Webhook mode is for automated supplier forwarding after checkout.",
+                  "New paid orders appear in the order list for review.",
                   "Tracking details can be added when an order moves into shipped status.",
                 ].map((item) => (
                   <div
@@ -995,12 +971,11 @@ const OrdersAdmin = () => {
                 ))}
                 <div className="rounded-2xl border border-border/60 bg-background p-4">
                   <p className="text-sm font-semibold text-foreground">
-                    Orders needing supplier attention
+                    New orders awaiting review
                   </p>
                   <p className="mt-1 text-sm leading-6 text-muted-foreground">
-                    {summary.needsSupplierAttention} order
-                    {summary.needsSupplierAttention === 1 ? "" : "s"} currently need supplier
-                    action.
+                    {summary.newOrders} order{summary.newOrders === 1 ? "" : "s"} currently
+                    awaiting dispatch review.
                   </p>
                 </div>
               </div>
@@ -1018,8 +993,8 @@ const OrdersAdmin = () => {
                     Order handling workspace
                   </h2>
                   <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-                    Review customer detail, see what is waiting on supplier action, and move each
-                    order through fulfillment without opening separate tools.
+                    Review customer detail, add serial and tracking information, and move each
+                    order through fulfilment without opening separate tools.
                   </p>
                 </div>
 
@@ -1040,11 +1015,6 @@ const OrdersAdmin = () => {
                     id: "all" as const,
                     label: "All orders",
                     count: orders.length,
-                  },
-                  {
-                    id: "needs_supplier" as const,
-                    label: "Needs supplier",
-                    count: orders.filter((order) => order.supplierStatus !== "submitted").length,
                   },
                   {
                     id: "active" as const,
@@ -1179,28 +1149,6 @@ const OrdersAdmin = () => {
                           {name}
                         </option>
                       ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="mb-2 block text-sm font-medium text-foreground">
-                      Supplier status
-                    </label>
-                    <select
-                      value={supplierFilter}
-                      onChange={(event) =>
-                        setSupplierFilter(event.target.value as SupplierSubmissionStatus | "all")
-                      }
-                      className="h-11 w-full rounded-xl border border-border/70 bg-background px-3 text-sm"
-                    >
-                      <option value="all">All supplier statuses</option>
-                      {(["queued", "submitted", "not_configured", "failed"] as const).map(
-                        (status) => (
-                          <option key={status} value={status}>
-                            {formatStatusLabel(status)}
-                          </option>
-                        ),
-                      )}
                     </select>
                   </div>
 
@@ -1565,11 +1513,6 @@ const OrdersAdmin = () => {
 
                       <div className="flex flex-wrap items-center gap-2">
                         <span
-                          className={`rounded-full px-2.5 py-1 text-xs font-semibold ${supplierStatusClass[order.supplierStatus]}`}
-                        >
-                          Supplier: {formatStatusLabel(order.supplierStatus)}
-                        </span>
-                        <span
                           className={`rounded-full px-2.5 py-1 text-xs font-semibold ${fulfillmentStatusClass[order.fulfillmentStatus]}`}
                         >
                           Fulfillment: {formatStatusLabel(order.fulfillmentStatus)}
@@ -1665,7 +1608,7 @@ const OrdersAdmin = () => {
                             {order.poaLines > 0 ? ` · ${order.poaLines} POA line(s)` : ""}
                           </p>
                           <p className="mt-3 text-sm text-muted-foreground">
-                            Supplier ref visible in payload and ready for handoff.
+                            Item references are visible in the order payload for internal review.
                           </p>
                         </div>
                       </div>
@@ -1763,10 +1706,10 @@ const OrdersAdmin = () => {
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
-                          <p className="text-sm font-semibold text-foreground">Supplier message</p>
+                          <p className="text-sm font-semibold text-foreground">Internal note</p>
                           <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             {order.supplierMessage ||
-                              "No supplier message recorded for this order yet."}
+                              "No internal note recorded for this order yet."}
                           </p>
                         </div>
 
@@ -1932,14 +1875,6 @@ const OrdersAdmin = () => {
                         <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-1">
                           <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
                             <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
-                              Supplier state
-                            </p>
-                            <p className="mt-2 text-sm font-semibold text-foreground">
-                              {formatStatusLabel(order.supplierStatus)}
-                            </p>
-                          </div>
-                          <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-                            <p className="text-xs uppercase tracking-[0.16em] text-muted-foreground">
                               Fulfillment state
                             </p>
                             <p className="mt-2 text-sm font-semibold text-foreground">
@@ -1951,7 +1886,7 @@ const OrdersAdmin = () => {
 
                       <details className="rounded-2xl border border-border/60 bg-background p-4">
                         <summary className="cursor-pointer text-sm font-semibold text-foreground">
-                          View supplier payload
+                          View order payload
                         </summary>
                         <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-secondary p-3 text-xs">
                           {JSON.stringify(order.supplierPayload, null, 2)}

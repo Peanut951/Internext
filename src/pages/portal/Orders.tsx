@@ -150,9 +150,6 @@ const PortalOrders = () => {
 
                     <div className="flex flex-wrap gap-2">
                       <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                        Supplier: {formatStatusLabel(order.supplierStatus)}
-                      </span>
-                      <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
                         Fulfillment: {formatStatusLabel(order.fulfillmentStatus)}
                       </span>
                     </div>
@@ -238,9 +235,9 @@ const PortalOrders = () => {
 
                     <div className="space-y-4">
                       <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
-                        <p className="text-sm font-semibold text-foreground">Supplier note</p>
+                        <p className="text-sm font-semibold text-foreground">Order note</p>
                         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                          {order.supplierMessage || "No supplier message available yet."}
+                          {order.supplierMessage || "No order note available yet."}
                         </p>
                       </div>
 
