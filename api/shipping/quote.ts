@@ -35,6 +35,7 @@ const MAX_PARCEL_SIDE_CM = 70;
 const PACKING_ALLOWANCE = 1.15;
 const PACKING_WEIGHT_ALLOWANCE_KG = 0.25;
 const CUBIC_WEIGHT_DIVISOR_CM = 4000;
+const MIN_SHIPPING_TOTAL = 15;
 const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | undefined): T | null => {
   if (!body) {
     return null;
@@ -100,16 +101,16 @@ const getMinimumPackedWeightKg = (itemText = "") => {
     return 4;
   }
 
-  if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(itemText)) {
-    return 1.2;
-  }
-
   if (/\b(ink|toner|cartridge|drum|ribbon|printhead)\b/.test(itemText)) {
     return 0.7;
   }
 
-  if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount)\b/.test(itemText)) {
+  if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount|wall\s*mount|stand|desk\s*stand|deskstand|base\s*station\s*stand)\b/.test(itemText)) {
     return 0.5;
+  }
+
+  if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(itemText)) {
+    return 1.2;
   }
 
   return 0.5;
@@ -121,7 +122,7 @@ const getMinimumShippingFloor = (items: ShippingQuoteItem[] = []) => {
     .join(" ")
     .toLowerCase();
 
-  if (/\b(tablet|ipad|laptop|notebook|chromebook|monitor|display|screen|tv|signage|panel|projector)\b/.test(text)) {
+  if (/\b(monitor|display|screen|tv|signage|panel|projector)\b/.test(text)) {
     return 24;
   }
 
@@ -129,7 +130,7 @@ const getMinimumShippingFloor = (items: ShippingQuoteItem[] = []) => {
     return 30;
   }
 
-  return 0;
+  return MIN_SHIPPING_TOTAL;
 };
 
 const getChargeableWeightKg = (parcel: ParcelEstimate) => {
@@ -330,24 +331,7 @@ export default async function handler(
     return sendJson(res, 400, { message: "A valid Australian destination postcode is required." });
   }
 
-  const missingDimensions = getItemsMissingShippingDimensions(body?.items || []);
-  if (missingDimensions.length > 0) {
-    const sample = missingDimensions
-      .slice(0, 3)
-      .map((item) => item.code || item.description)
-      .filter(Boolean)
-      .join(", ");
-
-    return sendJson(res, 422, {
-      message:
-        missingDimensions.length === 1
-          ? `Shipping weight or dimensions are missing for ${sample}. Contact Internext for an accurate freight quote.`
-          : `Shipping weight or dimensions are missing for ${missingDimensions.length} items${
-              sample ? `, including ${sample}` : ""
-            }. Contact Internext for an accurate freight quote.`,
-      missingDimensions,
-    });
-  }
+  const estimatedDimensions = getItemsMissingShippingDimensions(body?.items || []);
 
   const parcels = calculateParcels(body?.items || []);
   const parcel = summarizeParcels(parcels);
@@ -379,6 +363,7 @@ export default async function handler(
       },
       quotedPrice,
       shippingFloor,
+      estimatedDimensions,
       parcelQuotes,
     });
   } catch (error) {

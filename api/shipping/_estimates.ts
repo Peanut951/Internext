@@ -82,7 +82,7 @@ const estimateByCategory = (product: ShippingEstimateProduct) => {
     return { weightKg: 0.8, lengthCm: 35, widthCm: 15, heightCm: 15 };
   }
 
-  if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount)\b/.test(text)) {
+  if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount|wall\s*mount|stand|desk\s*stand|deskstand|base\s*station\s*stand)\b/.test(text)) {
     return { weightKg: 0.5, lengthCm: 25, widthCm: 18, heightCm: 8 };
   }
 

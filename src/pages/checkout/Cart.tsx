@@ -2,6 +2,7 @@
 import { Link } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import PortalNav from "@/components/auth/PortalNav";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
@@ -117,6 +118,15 @@ const Cart = () => {
       .filter((item) => item.qty > 0);
 
     setAndPersist(nextItems);
+  };
+
+  const setQty = (code: string, quantity: number) => {
+    const nextQuantity = Math.max(1, Math.min(9999, Math.floor(Number.isFinite(quantity) ? quantity : 1)));
+    setAndPersist(
+      items.map((item) =>
+        item.code === code ? { ...item, qty: nextQuantity } : item,
+      ),
+    );
   };
 
   const clearCart = () => setAndPersist([]);
@@ -288,7 +298,17 @@ const Cart = () => {
                             >
                               -
                             </button>
-                            <span className="w-8 text-center font-semibold">{item.qty}</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={9999}
+                              step={1}
+                              value={item.qty}
+                              onFocus={(event) => event.currentTarget.select()}
+                              onChange={(event) => setQty(item.code, Number(event.target.value))}
+                              className="h-8 w-16 border-0 bg-transparent p-0 text-center font-semibold shadow-none [appearance:textfield] focus-visible:ring-0 [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              aria-label={`Quantity for ${item.description}`}
+                            />
                             <button
                               type="button"
                               onClick={() => updateQty(item.code, 1)}

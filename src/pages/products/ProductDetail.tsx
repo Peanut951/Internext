@@ -10,7 +10,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -921,50 +921,21 @@ const ProductDetail = () => {
     setLoading(true);
     setError(null);
     setProduct(null);
+    setAllProducts([]);
     const loadProduct = async () => {
-      let hasAppliedVerifiedProduct = false;
       try {
-        const data = (await loadCatalogProductsFast((liveProducts) => {
-          const liveProduct = findProductByCode(liveProducts as CatalogProduct[], productCode);
-          if (isMounted && liveProduct) {
-            hasAppliedVerifiedProduct = true;
-            setAllProducts(liveProducts as CatalogProduct[]);
-            setProduct(liveProduct);
-            setIsLivePriceReady(true);
-            setHasCheckedFullCatalog(true);
-            setLoading(false);
-          }
-        })) as CatalogProduct[];
+        const data = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
 
         const found = findProductByCode(data, productCode);
         if (!isMounted) {
           return;
         }
 
-        if (hasAppliedVerifiedProduct) {
-          return;
-        }
-
-        if (found) {
-          setAllProducts(data);
-          setProduct(found);
-          setIsLivePriceReady(Boolean(found?.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
-          setLoading(false);
-          return;
-        }
-
         setAllProducts(data);
-
-        const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
-        const liveFound = findProductByCode(liveProducts, productCode);
-
-        if (isMounted) {
-          setAllProducts(liveProducts);
-          setProduct(liveFound);
-          setIsLivePriceReady(Boolean(liveFound?.liveUpdatedAt));
-          setHasCheckedFullCatalog(true);
-          setLoading(false);
-        }
+        setProduct(found);
+        setIsLivePriceReady(Boolean(found));
+        setHasCheckedFullCatalog(true);
+        setLoading(false);
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load product.");
@@ -1266,6 +1237,15 @@ const ProductDetail = () => {
         variant: "destructive",
       });
     }
+  };
+
+  const updateQuantity = (value: number) => {
+    if (!Number.isFinite(value)) {
+      setQty(1);
+      return;
+    }
+
+    setQty(Math.max(1, Math.min(9999, Math.floor(value))));
   };
 
   const saveAdminStockOverride = async () => {
@@ -1638,15 +1618,25 @@ const ProductDetail = () => {
                           <div className="inline-flex items-center gap-2 rounded-xl border border-border/60 bg-secondary/35 p-1">
                             <button
                               type="button"
-                              onClick={() => setQty((value) => Math.max(1, value - 1))}
+                              onClick={() => updateQuantity(qty - 1)}
                               className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
-                            <span className="w-8 text-center font-semibold">{qty}</span>
+                            <Input
+                              type="number"
+                              min={1}
+                              max={9999}
+                              step={1}
+                              value={qty}
+                              onFocus={(event) => event.currentTarget.select()}
+                              onChange={(event) => updateQuantity(Number(event.target.value))}
+                              className="h-9 w-20 border-border bg-background text-center font-semibold [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              aria-label="Quantity"
+                            />
                             <button
                               type="button"
-                              onClick={() => setQty((value) => value + 1)}
+                              onClick={() => updateQuantity(qty + 1)}
                               className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
                             >
                               <Plus className="h-4 w-4" />

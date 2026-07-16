@@ -319,7 +319,7 @@ const estimateShippingProfile = (product) => {
   const categoryEstimate = (() => {
     if (/\b(warranty|licen[cs]e|subscription|support|onsite|software|service|renewal)\b/.test(text)) return { weightKg: 0.1, lengthCm: 1, widthCm: 1, heightCm: 1 };
     if (/\b(ink|toner|cartridge|drum|ribbon|printhead)\b/.test(text)) return { weightKg: 0.8, lengthCm: 35, widthCm: 15, heightCm: 15 };
-    if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount)\b/.test(text)) return { weightKg: 0.5, lengthCm: 25, widthCm: 18, heightCm: 8 };
+    if (/\b(cable|cord|lead|adapter|remote|mouse|keyboard|bracket|mount|wall\s*mount|stand|desk\s*stand|deskstand|base\s*station\s*stand)\b/.test(text)) return { weightKg: 0.5, lengthCm: 25, widthCm: 18, heightCm: 8 };
     if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return { weightKg: 5, lengthCm: 65, widthCm: 25, heightCm: 25 };
     if (/\b(laptop|notebook|chromebook)\b/.test(text)) return { weightKg: 3, lengthCm: 45, widthCm: 35, heightCm: 12 };
     if (/\b(tablet)\b/.test(text)) return { weightKg: 1.2, lengthCm: 32, widthCm: 24, heightCm: 8 };

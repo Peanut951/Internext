@@ -9,6 +9,8 @@ import {
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
 
+const MIN_SHIPPING_TOTAL = 15;
+
 type RequestBody = {
   origin?: string;
   resellerEmail?: string;
@@ -121,7 +123,7 @@ export default async function handler(
       typeof body.shipping?.price === "number" && body.shipping.price > 0
         ? {
             name: String(body.shipping.name || "Shipping"),
-            price: body.shipping.price,
+            price: Math.max(body.shipping.price, MIN_SHIPPING_TOTAL),
           }
         : undefined,
   });

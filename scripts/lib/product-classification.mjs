@@ -58,9 +58,9 @@ export const isTangibleCatalogProduct = (product) => {
   }
 
   const leadingIntangiblePattern =
-    /^(?:[a-z0-9&.+-]+\s+){0,3}(?:\d+\s*)?(?:additional|extra|extended|post|onsite|on-site|nbd|next\s+business\s+day|warranty|support|care\s*pack|cover\s*plus|coverplus|service\s*pack|renewal|licen[cs]e|subscription|software|cloud\s+service|managed\s+service|professional\s+service|installation\s+service)\b/i;
+    /^(?:[a-z0-9&.+-]+\s+){0,4}(?:\d+\s*)?(?:additional|extra|extended|post|onsite|on-site|nbd|next\s+business\s+day|warranty|support|care\s*pack|cover\s*plus|coverplus|service\s*pack|phone\s+service|renewal|licen[cs]e|subscription|software|cloud\s+service|managed\s+service|professional\s+service|installation\s+service)\b/i;
   const intangiblePattern =
-    /\b(?:microsoft\s*365|office\s*365|defender\s+suite|subscription|renewal|licen[cs]e|digital\s+download|software\s+(?:licen[cs]e|subscription|upgrade|assurance)|cloud\s+service|saas|care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|post\s*warranty|extended\s*warranty|warranty\s+(?:renewal|upgrade|extension|service|pack)|hardware\s+support|onsite\s+support|on-site\s+support|nbd\s+support|next\s+business\s+day\s+support|installation\s+service|professional\s+service|managed\s+service|training\s+(?:service|course|session)|bootcamp|postscript\s+upgrade|pdf\s+upgrade|additional\s+(?:year|years)|total\s+of\s+\d+\s+(?:year|years)|response\s+service|repair\s+service|exchange\s+service)\b/i;
+    /\b(?:microsoft\s*365|office\s*365|defender\s+suite|subscription|renewal|licen[cs]e|digital\s+download|software\s+(?:licen[cs]e|subscription|upgrade|assurance)|cloud\s+service|saas|care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|phone\s+service|post\s*warranty|extended\s*warranty|warranty\s+(?:renewal|upgrade|extension|service|pack)|hardware\s+support|onsite\s+support|on-site\s+support|nbd\s+support|next\s+business\s+day\s+support|installation\s+service|professional\s+service|managed\s+service|training\s+(?:service|course|session)|bootcamp|postscript\s+upgrade|pdf\s+upgrade|additional\s+(?:year|years)|total\s+of\s+\d+\s+(?:year|years)|response\s+service|repair\s+service|exchange\s+service|\b(?:\d+\s*)?(?:year|yr|month|mth)\s+(?:phone\s+)?service\b|\b(?:phone\s+)?service\s+(?:agreement|contract|plan|pack|renewal|support)\b)\b/i;
 
   const startsLikeIntangible =
     leadingIntangiblePattern.test(offerText) || leadingIntangiblePattern.test(debrandedOfferText);
@@ -70,8 +70,8 @@ export const isTangibleCatalogProduct = (product) => {
   }
 
   if (
-    /\bwarranty\b/i.test(offerText) &&
-    /\b(?:additional|addl|extra|extended|post|renewal|upgrade|extension|support|onsite|on-site|nbd|response|repair|exchange|care|pack|service|total\s+of|swap\s+out|year|years|yr|yrs|mth|month|months)\b/i.test(offerText) &&
+    /\b(?:warranty|service)\b/i.test(offerText) &&
+    /\b(?:additional|addl|extra|extended|post|renewal|upgrade|extension|support|onsite|on-site|nbd|response|repair|exchange|care|pack|agreement|contract|plan|total\s+of|swap\s+out|year|years|yr|yrs|mth|month|months)\b/i.test(offerText) &&
     (!hasPhysicalProductSignal(offerText) || startsLikeIntangible)
   ) {
     return false;

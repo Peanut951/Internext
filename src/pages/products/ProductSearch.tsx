@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
@@ -61,37 +61,13 @@ const ProductSearch = () => {
     let mounted = true;
 
     const loadProducts = async () => {
-      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
-        const data = (await loadCatalogProductsFast((liveProducts) => {
-          if (mounted) {
-            hasAppliedVerifiedProducts = true;
-            setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
-            );
-            setLiveRefreshing(false);
-          }
-        })) as CatalogProduct[];
+        const data = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
         if (mounted) {
-          if (!hasAppliedVerifiedProducts) {
-            setProducts(data);
-          }
+          setProducts(data);
           setLoading(false);
-        }
-
-        try {
-          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
-          if (mounted) {
-            setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
-            );
-            setLiveRefreshing(false);
-          }
-        } catch {
-          if (mounted) {
-            setLiveRefreshing(false);
-          }
+          setLiveRefreshing(false);
         }
       } catch (err) {
         if (mounted) {
