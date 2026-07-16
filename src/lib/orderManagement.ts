@@ -115,7 +115,7 @@ export type OrderRecord = {
   shippingName?: string;
   poaLines: number;
   totalKnownValue: number;
-  paymentStatus: "paid";
+  paymentStatus: "paid" | "awaiting_payment" | "unpaid" | "cancelled";
   fulfillmentStatus: FulfillmentStatus;
   trackingCarrier?: string;
   trackingNumber?: string;
@@ -126,6 +126,9 @@ export type OrderRecord = {
   supplierSubmittedAt?: string;
   supplierMessage?: string;
   supplierPayload: SupplierOrderPayload;
+  stripeCheckoutSessionId?: string;
+  stripePaymentUrl?: string;
+  paidAt?: string;
 };
 
 const CART_STORAGE_KEY = "internext-cart";

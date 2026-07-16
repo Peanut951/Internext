@@ -843,12 +843,6 @@ const Checkout = () => {
       return;
     }
 
-    const draft = readCheckoutDraft();
-    if (!draft) {
-      setError("Payment completed, but the local checkout draft is missing. Contact us with your payment receipt.");
-      return;
-    }
-
     finalizingPaymentSessionRef.current = checkoutSessionId;
     let isActive = true;
 
@@ -866,9 +860,30 @@ const Checkout = () => {
           body: JSON.stringify({ sessionId: checkoutSessionId }),
         });
 
-        const confirmPayload = (await confirmResponse.json()) as { message?: string };
+        const confirmPayload = (await confirmResponse.json()) as {
+          message?: string;
+          invoicePayment?: boolean;
+          invoiceMarkedPaid?: boolean;
+          orderNumber?: string;
+        };
         if (!confirmResponse.ok) {
           throw new Error(confirmPayload.message || "Unable to verify the Stripe payment.");
+        }
+
+        const draft = readCheckoutDraft();
+        if (!draft) {
+          if (confirmPayload.invoicePayment && confirmPayload.invoiceMarkedPaid) {
+            markSessionHandled(checkoutSessionId);
+            setPaymentStateMessage(
+              `Payment received for invoice ${confirmPayload.orderNumber || ""}. Internext has marked the invoice as paid.`,
+            );
+            navigate("/checkout", { replace: true });
+            return;
+          }
+
+          throw new Error(
+            "Payment completed, but the local checkout draft is missing. Contact us with your payment receipt.",
+          );
         }
 
         saveCartItems(draft.items);

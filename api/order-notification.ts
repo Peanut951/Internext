@@ -1,4 +1,10 @@
-import { parseJsonBody, sendJson } from "./checkout/_shared.js";
+import {
+  buildStripeCheckoutParams,
+  createStripeCheckoutSession,
+  getRequestOrigin,
+  parseJsonBody,
+  sendJson,
+} from "./checkout/_shared.js";
 import { getSessionFromRequest } from "./auth/_shared.js";
 
 type RequestBody = {
@@ -9,8 +15,10 @@ type RequestBody = {
     | "store_order"
     | "sync_xero_inventory"
     | "remove_invoice"
+    | "send_payment_invoice"
     | "create_xero_invoice"
     | "remove_xero_invoice";
+  origin?: string;
   sync?: {
     offset?: number;
     limit?: number;
@@ -1170,6 +1178,184 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
   };
 };
 
+const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: string) => {
+  const summary = buildOrderEmailSummary(order);
+  const customer = order.customer && typeof order.customer === "object"
+    ? order.customer as Record<string, unknown>
+    : {};
+  const orderNumber = getString(order.orderNumber) || "your invoice";
+  const customerName = [customer.firstName, customer.lastName]
+    .map(getString)
+    .filter(Boolean)
+    .join(" ")
+    .trim() || "there";
+  const customerEmail = getString(customer.email).trim();
+  const shippingAddress = [
+    customer.address1,
+    customer.address2,
+    [customer.suburb, customer.state, customer.postcode].map(getString).filter(Boolean).join(" "),
+    customer.country,
+  ]
+    .map(getString)
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  const itemRows = summary.lines
+    .map((line) => `
+      <tr>
+        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;">
+          <div style="font-weight:700;color:#111827;">${escapeHtml(line.description)}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:4px;">Code: ${escapeHtml(line.code)}</div>
+        </td>
+        <td align="center" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.quantity)}</td>
+        <td align="right" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.unitPriceText)} ${escapeHtml(line.priceBasis)}</td>
+        <td align="right" style="padding:14px 0;border-bottom:1px solid #e5e7eb;font-weight:700;color:#111827;">${escapeHtml(line.lineTotalText)}</td>
+      </tr>`)
+    .join("");
+
+  const html = `<!doctype html>
+<html>
+  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+            <tr>
+              <td style="background:#1f2937;padding:28px 32px;">
+                <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
+                <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;color:#ffffff;">Invoice ready for payment</h1>
+                <p style="margin:10px 0 0;color:#d1d5db;font-size:15px;">Hi ${escapeHtml(customerName)}, your Internext invoice is ready.</p>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-bottom:24px;">
+                  <tr>
+                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Invoice number</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(orderNumber)}</div>
+                    </td>
+                    <td width="16"></td>
+                    <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Total due</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(summary.totalKnownValueText)}</div>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:0 0 20px;color:#4b5563;line-height:1.6;">
+                  Please use the secure Stripe payment link below to pay this invoice. The invoice will be marked as paid in Internext only after Stripe confirms payment.
+                </p>
+                <p style="margin:0 0 28px;">
+                  <a href="${escapeHtml(paymentUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">Pay invoice securely</a>
+                </p>
+
+                <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Invoice items</h2>
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
+                  <thead>
+                    <tr>
+                      <th align="left" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
+                      <th align="center" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
+                      <th align="right" style="padding:0 10px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit price ex GST</th>
+                      <th align="right" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Line total ex GST</th>
+                    </tr>
+                  </thead>
+                  <tbody>${itemRows}</tbody>
+                </table>
+
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin-top:24px;">
+                  <tr>
+                    <td style="vertical-align:top;padding-right:20px;">
+                      <h2 style="margin:0 0 10px;font-size:18px;color:#111827;">Delivery details</h2>
+                      <p style="margin:0;color:#4b5563;line-height:1.6;">
+                        ${shippingAddress.map(escapeHtml).join("<br>") || "No delivery address supplied"}
+                      </p>
+                    </td>
+                    <td width="260" style="vertical-align:top;">
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
+                        <tr>
+                          <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
+                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#4b5563;">GST</td>
+                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
+                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
+                          <td align="right" style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-size:18px;font-weight:900;">${escapeHtml(summary.totalKnownValueText)}</td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
+                  If the button does not open, paste this link into your browser:<br>
+                  <a href="${escapeHtml(paymentUrl)}" style="color:#2563eb;">${escapeHtml(paymentUrl)}</a>
+                </p>
+                <p style="margin:16px 0 0;color:#4b5563;line-height:1.6;">
+                  For questions, call 1300 U R NEXT (1300 876 398).
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`;
+
+  const text = [
+    `Internext invoice ${orderNumber}`,
+    `Total due: ${summary.totalKnownValueText}`,
+    "",
+    `Hi ${customerName}, your Internext invoice is ready for payment.`,
+    `Pay securely: ${paymentUrl}`,
+    "",
+    "Invoice items:",
+    ...summary.lines.map((line) =>
+      `${line.quantity} x ${line.description} (${line.code}) - ${line.lineTotalText}`,
+    ),
+    "",
+    `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
+    `GST: ${summary.gstAmountText}`,
+    `Shipping ex GST: ${summary.shippingTotalText}`,
+    `Total due: ${summary.totalKnownValueText}`,
+    "",
+    "Delivery address:",
+    ...(shippingAddress.length ? shippingAddress : ["No delivery address supplied"]),
+    "",
+    "For questions, call 1300 U R NEXT (1300 876 398).",
+  ].join("\n");
+
+  return {
+    to: customerEmail,
+    subject: `Internext invoice ${orderNumber} ready for payment`,
+    html,
+    text,
+  };
+};
+
+const buildPaymentInvoiceCheckoutItems = (order: Record<string, unknown>) => {
+  const items = Array.isArray(order.items) ? order.items : [];
+  return items.map((item) => {
+    const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+    return {
+      code: getString(line.code) || getString(line.supplierCode) || "ITEM",
+      description: getString(line.description) || getString(line.code) || "Internext invoice item",
+      manufacturer: getString(line.manufacturer) || getString(line.brand) || "Internext",
+      qty: Math.max(1, Math.floor(getNumber(line.qty) || 1)),
+      price: typeof line.price === "number" ? line.price : null,
+      priceText: getString(line.priceText) || "Ex GST",
+    };
+  });
+};
+
 const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
   const customer = order.customer && typeof order.customer === "object"
@@ -1537,6 +1723,123 @@ export default async function handler(
 
   if (!body?.order) {
     return sendJson(res, 400, { message: "An order payload is required." });
+  }
+
+  if (body.notificationType === "send_payment_invoice") {
+    const session = getSessionFromRequest(req);
+    if (session?.role !== "admin") {
+      return sendJson(res, 403, { message: "Admin access is required to create and send invoices." });
+    }
+
+    if (!customerWebhookUrl) {
+      return sendJson(res, 500, { message: "Customer order email webhook is not configured." });
+    }
+
+    const orderId = getOrderField(body.order, "id") || getOrderField(body.order, "orderNumber");
+    const orderNumber = getOrderField(body.order, "orderNumber");
+    const customer = body.order.customer && typeof body.order.customer === "object"
+      ? body.order.customer as Record<string, unknown>
+      : {};
+    const customerEmail = getNestedString(customer, "email");
+    const checkoutItems = buildPaymentInvoiceCheckoutItems(body.order);
+    const payableItems = checkoutItems.filter((item) => item.price !== null && item.price >= 0);
+
+    if (!orderId || !orderNumber) {
+      return sendJson(res, 400, { message: "Invoice id and invoice number are required." });
+    }
+
+    if (!customerEmail) {
+      return sendJson(res, 400, { message: "Customer email address was not provided." });
+    }
+
+    if (payableItems.length === 0) {
+      return sendJson(res, 400, { message: "At least one fixed-price invoice item is required." });
+    }
+
+    const origin = getRequestOrigin(req.headers, body.origin || "");
+    const checkoutParams = buildStripeCheckoutParams({
+      origin,
+      orderNumber,
+      customer: {
+        firstName: getNestedString(customer, "firstName") || getNestedString(customer, "company") || "Internext",
+        lastName: getNestedString(customer, "lastName") || "Customer",
+        email: customerEmail,
+        phone: getNestedString(customer, "phone"),
+        company: getNestedString(customer, "company"),
+      },
+      items: payableItems,
+      resellerEmail: session.email,
+      shipping:
+        getNumber(body.order.shippingTotal) > 0
+          ? {
+              name: getString(body.order.shippingName) || "Shipping",
+              price: getNumber(body.order.shippingTotal),
+            }
+          : undefined,
+      successUrl: `${origin}/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancelUrl: `${origin}/checkout?checkout=cancelled`,
+    });
+    checkoutParams.set("metadata[internext_payment_type]", "admin_invoice");
+    checkoutParams.set("metadata[invoice_order_id]", orderId);
+    checkoutParams.set("payment_intent_data[metadata][internext_payment_type]", "admin_invoice");
+    checkoutParams.set("payment_intent_data[metadata][invoice_order_id]", orderId);
+
+    const stripeSession = await createStripeCheckoutSession(checkoutParams);
+    if (!stripeSession.ok) {
+      return sendJson(res, 502, { message: stripeSession.message });
+    }
+
+    const now = new Date().toISOString();
+    const orderForStorage = {
+      ...body.order,
+      paymentStatus: "awaiting_payment",
+      updatedAt: now,
+      stripeCheckoutSessionId: stripeSession.id,
+      stripePaymentUrl: stripeSession.url,
+    };
+    const customerEmailPayload = buildPaymentInvoiceEmail(orderForStorage, stripeSession.url);
+
+    const [storageResponse, marketingContactResponse, customerResponse] = await Promise.all([
+      upsertSharedOrder(orderForStorage),
+      upsertMarketingContactFromOrder(orderForStorage),
+      postJsonWebhook(customerWebhookUrl, {
+        type: "customer_payment_invoice",
+        submittedAt: now,
+        source: "internext-admin",
+        host: req.headers?.host || "",
+        userAgent: req.headers?.["user-agent"] || "",
+        orderNumber,
+        paymentUrl: stripeSession.url,
+        to: customerEmailPayload.to,
+        subject: customerEmailPayload.subject,
+        html: customerEmailPayload.html,
+        text: customerEmailPayload.text,
+        customerEmail: customerEmailPayload,
+        order: orderForStorage,
+      }),
+    ]);
+
+    return sendJson(res, customerResponse.ok ? 200 : 502, {
+      ok: customerResponse.ok,
+      order: orderForStorage,
+      paymentUrl: stripeSession.url,
+      stripeSessionId: stripeSession.id,
+      sharedOrderSaved: storageResponse.ok,
+      sharedOrderStatus: storageResponse.status,
+      sharedOrderMessage: storageResponse.message,
+      marketingContactSaved: marketingContactResponse.ok,
+      marketingContactStatus: marketingContactResponse.status,
+      marketingContactMessage: marketingContactResponse.message,
+      customerEmailSent: customerResponse.ok,
+      customerEmailStatus: customerResponse.status,
+      customerEmailTo: customerEmailPayload.to,
+      customerEmailMessage: customerResponse.ok
+        ? "Customer payment invoice workflow accepted the request."
+        : `Customer payment invoice workflow failed: ${customerResponse.message}`,
+      message: customerResponse.ok
+        ? `Invoice ${orderNumber} was emailed with a Stripe payment link.`
+        : customerResponse.message,
+    });
   }
 
   if (body.notificationType === "remove_invoice") {

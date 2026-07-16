@@ -445,29 +445,58 @@ const OrdersAdmin = () => {
       shippingName: shippingTotal > 0 ? "Manual shipping" : undefined,
       poaLines: 0,
       totalKnownValue,
-      paymentStatus: "paid",
+      paymentStatus: "awaiting_payment",
       fulfillmentStatus: "new",
       supplierStatus: "queued",
       supplierMessage: "Manual invoice created in the admin portal.",
       supplierPayload,
     };
 
-    const saved = await persistSharedOrder(manualOrder);
-    if (!saved) {
+    let response: Response;
+    try {
+      response = await fetch("/api/order-notification", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          notificationType: "send_payment_invoice",
+          origin: window.location.origin,
+          order: manualOrder,
+        }),
+      });
+    } catch {
       setManualInvoiceMessage({
         tone: "error",
-        text: "Invoice could not be saved to Supabase. Check your admin session and environment variables.",
+        text: "Invoice could not be created because the invoice email service could not be reached.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+    const payload = (await response.json().catch(() => ({}))) as {
+      message?: string;
+      order?: OrderRecord;
+      paymentUrl?: string;
+    };
+
+    if (!response.ok || !payload.order) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text:
+          payload.message ||
+          "Invoice could not be created or emailed. Check Stripe, Supabase, and customer email workflow settings.",
       });
       setManualInvoiceSaving(false);
       return;
     }
 
-    setOrders((current) => [manualOrder, ...current.filter((order) => order.id !== manualOrder.id)]);
+    setOrders((current) => [payload.order as OrderRecord, ...current.filter((order) => order.id !== manualOrder.id)]);
     setManualInvoiceDraft(emptyManualInvoiceDraft);
     setManualInvoiceOpen(false);
     setManualInvoiceMessage({
       tone: "success",
-      text: `Invoice ${orderNumber} created and added to the order list.`,
+      text: `Invoice ${orderNumber} created and emailed with a Stripe payment link. It will stay awaiting payment until Stripe confirms payment.`,
     });
     await refreshOrders();
     setManualInvoiceSaving(false);
@@ -1433,7 +1462,7 @@ const OrdersAdmin = () => {
 
                     <div className="flex flex-wrap items-center gap-3">
                       <Button type="submit" disabled={manualInvoiceSaving}>
-                        {manualInvoiceSaving ? "Creating..." : "Create Invoice"}
+                        {manualInvoiceSaving ? "Creating..." : "Create Invoice & Email Payment Link"}
                       </Button>
                       <Button
                         type="button"
@@ -1484,6 +1513,12 @@ const OrdersAdmin = () => {
                 const customerName =
                   `${order.customer.firstName} ${order.customer.lastName}`.trim() ||
                   order.customer.email;
+                const paymentLabel =
+                  order.paymentStatus === "paid" ? "Paid" : "Awaiting payment";
+                const paymentClass =
+                  order.paymentStatus === "paid"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-amber-50 text-amber-700";
 
                 return (
                 <div
@@ -1497,8 +1532,8 @@ const OrdersAdmin = () => {
                           <h3 className="text-lg font-semibold text-foreground">
                             {order.orderNumber}
                           </h3>
-                          <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-muted-foreground">
-                            Paid
+                          <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${paymentClass}`}>
+                            {paymentLabel}
                           </span>
                         </div>
                         <p className="mt-1 text-sm text-muted-foreground">

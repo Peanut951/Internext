@@ -149,12 +149,17 @@ export const buildStripeCheckoutParams = (payload: {
   items: CheckoutLineItem[];
   resellerEmail?: string;
   shipping?: CheckoutShipping;
+  successUrl?: string;
+  cancelUrl?: string;
 }) => {
   const params = new URLSearchParams();
   const orderNumber = payload.orderNumber?.trim();
   params.set("mode", "payment");
-  params.set("success_url", `${payload.origin}/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`);
-  params.set("cancel_url", `${payload.origin}/checkout?checkout=cancelled`);
+  params.set(
+    "success_url",
+    payload.successUrl || `${payload.origin}/checkout?checkout=success&session_id={CHECKOUT_SESSION_ID}`,
+  );
+  params.set("cancel_url", payload.cancelUrl || `${payload.origin}/checkout?checkout=cancelled`);
   params.set("billing_address_collection", "required");
   params.set("phone_number_collection[enabled]", "true");
   params.set("customer_email", payload.customer.email.trim());
@@ -322,6 +327,7 @@ export const retrieveStripeCheckoutSession = async (sessionId: string) => {
       amount_total?: number | null;
       currency?: string | null;
       customer_details?: { email?: string | null } | null;
+      metadata?: Record<string, string> | null;
       error?: { message?: string };
     };
 
@@ -348,6 +354,7 @@ export const retrieveStripeCheckoutSession = async (sessionId: string) => {
         amountTotal: payload.amount_total ?? 0,
         currency: payload.currency || "aud",
         customerEmail: payload.customer_details?.email || "",
+        metadata: payload.metadata || {},
       },
     };
   } catch (error) {
