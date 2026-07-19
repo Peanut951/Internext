@@ -42,6 +42,7 @@ type CatalogProduct = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  liveUpdatedAt?: string;
 };
 
 type CategoryInfo = {
@@ -92,6 +93,9 @@ const safeNumber = (value: unknown) => {
 
   return null;
 };
+
+const hasVerifiedProductPrice = (product: CatalogProduct) =>
+  Boolean(product.liveUpdatedAt) || safeText(product.manufacturer).toLowerCase() === "leader";
 
 const normalizeKey = (value: unknown) => safeText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -863,9 +867,7 @@ const ProductCategory = () => {
         try {
           const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
           if (isMounted) {
-            setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
-            );
+            setProducts(liveProducts);
             setLiveRefreshing(false);
           }
         } catch {
@@ -888,8 +890,13 @@ const ProductCategory = () => {
     };
   }, []);
 
+  const verifiedProducts = useMemo(
+    () => (liveRefreshing ? products.filter(hasVerifiedProductPrice) : products),
+    [liveRefreshing, products],
+  );
+
   const categorizedProducts = useMemo(() => {
-    return products.map((product) => {
+    return verifiedProducts.map((product) => {
       const searchText = normalizeKey(
         [product.description, product.code, product.manufacturer, product.supplierCode]
           .filter(Boolean)
@@ -920,7 +927,7 @@ const ProductCategory = () => {
       }
       return { ...product, category: assigned, searchText };
     });
-  }, [products]);
+  }, [verifiedProducts]);
 
   const slugsForPage = useMemo(() => CATEGORY_GROUPS[activeCategory] ?? [activeCategory], [activeCategory]);
   const categoryProducts = useMemo(() => {

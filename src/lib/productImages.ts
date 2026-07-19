@@ -2,7 +2,11 @@ import type { SyntheticEvent } from "react";
 
 export const PRODUCT_IMAGE_PLACEHOLDER = "/product-placeholder.png";
 
-const INVALID_IMAGE_PATTERNS = [/\/controls\/bit\.gif(?:\?.*)?$/i, /\/bit\.gif(?:\?.*)?$/i];
+const INVALID_IMAGE_PATTERNS = [
+  /\/controls\/bit\.gif(?:\?.*)?$/i,
+  /\/bit\.gif(?:\?.*)?$/i,
+  /\/product-placeholder\.(?:svg|png)(?:\?.*)?$/i,
+];
 const SUPPORTED_IMAGE_EXTENSION_PATTERN = /\.(jpe?g|png|gif)$/i;
 
 type ProductImageSource = {

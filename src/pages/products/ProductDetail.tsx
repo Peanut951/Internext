@@ -1002,7 +1002,7 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "Checking price...";
+    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "";
   }, [isLivePriceReady, product, session?.role]);
 
   useEffect(() => {
@@ -1710,7 +1710,7 @@ const ProductDetail = () => {
                           </Button>
                         ) : (
                           <Button className="w-full" onClick={addToCart} disabled={!isLivePriceReady}>
-                            {isLivePriceReady ? "Add to Cart" : "Checking price"}
+                            {isLivePriceReady ? "Add to Cart" : "Unavailable"}
                           </Button>
                         )}
 

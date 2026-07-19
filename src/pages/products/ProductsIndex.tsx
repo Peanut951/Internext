@@ -36,6 +36,7 @@ type CatalogProduct = {
   imageUrl?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  liveUpdatedAt?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -49,6 +50,9 @@ const QUICK_SEARCHES = [
 ];
 
 const SEARCH_PREVIEW_LIMIT = 24;
+
+const hasVerifiedSearchPrice = (product: CatalogProduct) =>
+  Boolean(product.liveUpdatedAt) || product.manufacturer.trim().toLowerCase() === "leader";
 
 const categories = [
   {
@@ -226,9 +230,7 @@ const ProductsIndex = () => {
         try {
           const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
           if (isMounted) {
-            setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
-            );
+            setProducts(liveProducts);
             setLiveRefreshing(false);
           }
         } catch {
@@ -297,9 +299,13 @@ const ProductsIndex = () => {
     setSearchQuery(value);
   };
 
+  const searchableProducts = useMemo(
+    () => (liveRefreshing ? products.filter(hasVerifiedSearchPrice) : products),
+    [liveRefreshing, products],
+  );
   const allSearchMatches = useMemo(
-    () => searchCatalogProducts(products, deferredSearchQuery),
-    [products, deferredSearchQuery],
+    () => searchCatalogProducts(searchableProducts, deferredSearchQuery),
+    [searchableProducts, deferredSearchQuery],
   );
   const searchPreviewMatches = useMemo(
     () => allSearchMatches.slice(0, SEARCH_PREVIEW_LIMIT),

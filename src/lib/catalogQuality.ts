@@ -55,8 +55,24 @@ const normalizeWhitespace = (value: string) =>
     .replace(/\s+/g, " ")
     .trim();
 
+const cleanMojibake = (value: string) =>
+  String(value || "")
+    .replace(/\u00c2\u00ae/g, "")
+    .replace(/\u00c2\u2122/g, "")
+    .replace(/\u00c2\u00b0/g, " degree")
+    .replace(/\u00c2/g, "")
+    .replace(/\u00e2\u201e\u00a2/g, "")
+    .replace(/\u00e2\u20ac\u00a2/g, " - ")
+    .replace(/\u00e2\u20ac\u201c/g, "-")
+    .replace(/\u00e2\u20ac\u201d/g, "-")
+    .replace(/\u00e2\u20ac\u2122/g, "'")
+    .replace(/\u00e2\u20ac\u0153/g, "\"")
+    .replace(/\u00e2\u20ac\ufffd/g, "\"")
+    .replace(/\u00c3\u2014/g, "x")
+    .replace(/\u00ef\u00bc\u0152/g, ",");
+
 const cleanEncodingNoise = (value: string) =>
-  normalizeWhitespace(value)
+  normalizeWhitespace(cleanMojibake(value))
     .replace(/[\uFFFD]+/g, "")
     .replace(/\bWiFi\b/gi, "Wi-Fi")
     .replace(/\bWin\s?11\b/gi, "Windows 11")
