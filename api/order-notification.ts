@@ -1793,7 +1793,6 @@ export default async function handler(
         subject: customerEmailPayload.subject,
         html: customerEmailPayload.html,
         text: customerEmailPayload.text,
-        customerEmail: customerEmailPayload,
         order: orderForStorage,
       }),
     ]);
@@ -1968,7 +1967,6 @@ export default async function handler(
       subject: customerEmail.subject,
       html: customerEmail.html,
       text: customerEmail.text,
-      customerEmail,
       order: body.order,
       }),
     ]);
@@ -2022,7 +2020,6 @@ export default async function handler(
       subject: adminEmail.subject,
       html: adminEmail.html,
       text: adminEmail.text,
-      adminEmail,
       order: {
         ...orderForStorage,
         emailSummary,
@@ -2037,7 +2034,6 @@ export default async function handler(
       subject: customerEmail.subject,
       html: customerEmail.html,
       text: customerEmail.text,
-      customerEmail,
     };
 
     const [adminResponse, customerResponse, xeroInvoiceResponse] = await Promise.all([

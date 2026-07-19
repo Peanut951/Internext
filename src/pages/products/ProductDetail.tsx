@@ -927,26 +927,46 @@ const ProductDetail = () => {
         }
 
         if (found) {
-          setAllProducts(data);
-          setProduct(found);
-          setIsLivePriceReady(
+          const hasVerifiedFastPrice =
             Boolean(found.liveUpdatedAt) ||
-              safeText(found.manufacturer).toLowerCase() === "leader",
-          );
-          setLoading(false);
+            safeText(found.manufacturer).toLowerCase() === "leader";
+
+          if (hasVerifiedFastPrice) {
+            setAllProducts(data);
+            setProduct(found);
+            setIsLivePriceReady(true);
+            setLoading(false);
+          }
 
           try {
             const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
             const liveFound = findProductByCode(liveProducts, productCode);
-            if (isMounted && liveFound) {
-              setAllProducts(liveProducts);
+            if (!isMounted) return;
+
+            setAllProducts(liveProducts);
+            setHasCheckedFullCatalog(true);
+
+            if (liveFound) {
               setProduct(liveFound);
               setIsLivePriceReady(true);
-              setHasCheckedFullCatalog(true);
+              setLoading(false);
+              return;
+            }
+
+            if (!hasVerifiedFastPrice) {
+              setProduct(null);
+              setIsLivePriceReady(false);
+              setLoading(false);
             }
           } catch {
             if (isMounted) {
               setHasCheckedFullCatalog(true);
+              if (!hasVerifiedFastPrice) {
+                setProduct(null);
+                setIsLivePriceReady(false);
+                setLoading(false);
+                setError("Unable to verify this product right now.");
+              }
             }
           }
           return;

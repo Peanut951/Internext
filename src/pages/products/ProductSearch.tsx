@@ -28,6 +28,7 @@ type CatalogProduct = {
   imageUrl?: string;
   availabilityText?: string;
   stockQuantity?: number;
+  liveUpdatedAt?: string;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -40,6 +41,9 @@ const QUICK_SEARCHES = [
   "Axis camera",
   "Hisense display",
 ];
+
+const hasVerifiedSearchPrice = (product: CatalogProduct) =>
+  Boolean(product.liveUpdatedAt) || product.manufacturer.trim().toLowerCase() === "leader";
 
 const ProductSearch = () => {
   const navigate = useNavigate();
@@ -84,9 +88,7 @@ const ProductSearch = () => {
         try {
           const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
           if (mounted) {
-            setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
-            );
+            setProducts(liveProducts);
             setLiveRefreshing(false);
           }
         } catch {
@@ -137,7 +139,14 @@ const ProductSearch = () => {
     });
   };
 
-  const matches = useMemo(() => searchCatalogProducts(products, deferredQuery), [products, deferredQuery]);
+  const searchableProducts = useMemo(
+    () => (liveRefreshing ? products.filter(hasVerifiedSearchPrice) : products),
+    [liveRefreshing, products],
+  );
+  const matches = useMemo(
+    () => searchCatalogProducts(searchableProducts, deferredQuery),
+    [searchableProducts, deferredQuery],
+  );
   const page = Math.max(1, Number(searchParams.get("page") || "1"));
   const totalPages = Math.max(1, Math.ceil(matches.length / SEARCH_RESULTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);

@@ -1,8 +1,17 @@
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import {
+  MIN_CATALOG_SEARCH_LENGTH,
+  searchCatalogProducts,
+} from "@/lib/catalogSearch";
+import {
+  loadCatalogProducts,
+  loadCatalogProductsFast,
+  type CatalogProductWithLive,
+} from "@/lib/liveCatalog";
 
 /**
  * Navigation items for the site. The Product Range dropdown lists
@@ -54,12 +63,30 @@ const navItems = [
   { label: "Contact Us", href: "/contact" },
 ];
 
+const formatSuggestionPrice = (product: CatalogProductWithLive) => {
+  if (product.priceText) {
+    return product.priceText;
+  }
+
+  if (typeof product.price === "number") {
+    return `$${product.price.toFixed(2)}`;
+  }
+
+  return null;
+};
+
+const hasVerifiedSuggestionPrice = (product: CatalogProductWithLive) =>
+  Boolean(product.liveUpdatedAt) || product.manufacturer.trim().toLowerCase() === "leader";
+
 const Header = () => {
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
   const [cartCount, setCartCount] = useState(0);
   const [searchQuery, setSearchQuery] = useState("");
+  const [searchProducts, setSearchProducts] = useState<CatalogProductWithLive[]>([]);
+  const [searchProductsRefreshing, setSearchProductsRefreshing] = useState(true);
+  const [searchSuggestionsOpen, setSearchSuggestionsOpen] = useState(false);
   const { session } = useAuthSession();
 
   useEffect(() => {
@@ -92,17 +119,133 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSearchProducts = async () => {
+      try {
+        const products = await loadCatalogProductsFast();
+        if (isMounted) {
+          setSearchProducts(products);
+        }
+      } catch {
+        if (isMounted) {
+          setSearchProducts([]);
+        }
+      }
+
+      try {
+        const products = await loadCatalogProducts({ forceRefresh: true });
+        if (isMounted) {
+          setSearchProducts(products);
+        }
+      } catch {
+        // Keep the fast catalogue for search suggestions if the refresh is unavailable.
+      } finally {
+        if (isMounted) {
+          setSearchProductsRefreshing(false);
+        }
+      }
+    };
+
+    loadSearchProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const searchSuggestions = useMemo(() => {
+    const products = searchProductsRefreshing
+      ? searchProducts.filter(hasVerifiedSuggestionPrice)
+      : searchProducts;
+
+    if (searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH || !products.length) {
+      return [];
+    }
+
+    return searchCatalogProducts(products, searchQuery)
+      .slice(0, 6)
+      .map(({ product }) => product);
+  }, [searchProducts, searchProductsRefreshing, searchQuery]);
+
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const query = searchQuery.trim();
     if (!query) {
       navigate("/products");
+      setSearchSuggestionsOpen(false);
       return;
     }
 
     navigate(`/products/search?q=${encodeURIComponent(query)}&page=1`);
+    setSearchSuggestionsOpen(false);
     setMobileMenuOpen(false);
   };
+
+  const openSuggestion = (product: CatalogProductWithLive) => {
+    const code = product.code || product.supplierCode;
+    if (!code) {
+      return;
+    }
+
+    navigate(`/products/item/${encodeURIComponent(code)}`);
+    setSearchQuery("");
+    setSearchSuggestionsOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const searchSuggestionsPanel = (
+    <div className="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-md border border-border bg-card shadow-elevated">
+      {searchSuggestions.length ? (
+        <div className="max-h-[420px] overflow-y-auto py-2">
+          {searchSuggestions.map((product) => {
+            const price = formatSuggestionPrice(product);
+            const code = product.code || product.supplierCode || product.description;
+
+            return (
+              <button
+                key={`${code}-${product.description}`}
+                type="button"
+                onMouseDown={(event) => event.preventDefault()}
+                onClick={() => openSuggestion(product)}
+                className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-secondary focus-visible:bg-secondary focus-visible:outline-none"
+              >
+                <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background">
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt=""
+                      className="h-full w-full object-contain"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <Search className="h-5 w-5 text-muted-foreground" />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="line-clamp-2 block text-sm font-semibold text-foreground">
+                    {product.description}
+                  </span>
+                  <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+                    <span>{product.manufacturer}</span>
+                    <span>{code}</span>
+                  </span>
+                </span>
+                {price ? (
+                  <span className="hidden shrink-0 text-sm font-semibold text-foreground sm:block">
+                    {price}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="px-4 py-3 text-sm text-muted-foreground">No matching products.</div>
+      )}
+    </div>
+  );
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-card shadow-sm">
@@ -117,27 +260,36 @@ const Header = () => {
             />
           </Link>
 
-          <form
-            onSubmit={submitSearch}
-            className="hidden min-w-0 items-stretch md:flex"
-            role="search"
+          <div
+            className="relative hidden min-w-0 md:block"
+            onBlur={() => window.setTimeout(() => setSearchSuggestionsOpen(false), 120)}
           >
-            <input
-              type="search"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Product Search"
-              className="h-11 min-w-0 flex-1 rounded-l-none border border-r-0 border-border bg-background px-4 text-sm outline-none transition focus:border-accent"
-              aria-label="Product search"
-            />
-            <button
-              type="submit"
-              className="flex h-11 w-16 items-center justify-center border border-border bg-background text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
-              aria-label="Search products"
-            >
-              <Search className="h-5 w-5" />
-            </button>
-          </form>
+            <form onSubmit={submitSearch} className="flex min-w-0 items-stretch" role="search">
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => {
+                  setSearchQuery(event.target.value);
+                  setSearchSuggestionsOpen(true);
+                }}
+                onFocus={() => setSearchSuggestionsOpen(true)}
+                placeholder="Product Search"
+                className="h-11 min-w-0 flex-1 rounded-l-none border border-r-0 border-border bg-background px-4 text-sm outline-none transition focus:border-accent"
+                aria-label="Product search"
+                autoComplete="off"
+              />
+              <button
+                type="submit"
+                className="flex h-11 w-16 items-center justify-center border border-border bg-background text-muted-foreground transition hover:bg-secondary hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent"
+                aria-label="Search products"
+              >
+                <Search className="h-5 w-5" />
+              </button>
+            </form>
+            {searchSuggestionsOpen && searchQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH
+              ? searchSuggestionsPanel
+              : null}
+          </div>
 
           <div className="hidden flex-none items-center justify-end xl:flex">
             <Button variant="outline" size="sm" className="h-9 rounded-full px-0" asChild>
@@ -214,23 +366,36 @@ const Header = () => {
       <div className="container-wide">
         {mobileMenuOpen && (
           <nav className="xl:hidden mt-4 max-h-[calc(100vh-5rem)] overflow-y-auto pb-4 border-t border-border pt-4 animate-fade-in">
-            <form onSubmit={submitSearch} className="mb-3 flex items-stretch px-4" role="search">
-              <input
-                type="search"
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                placeholder="Product Search"
-                className="h-11 min-w-0 flex-1 border border-r-0 border-border bg-background px-3 text-sm outline-none focus:border-accent"
-                aria-label="Product search"
-              />
-              <button
-                type="submit"
-                className="flex h-11 w-12 items-center justify-center border border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground"
-                aria-label="Search products"
-              >
-                <Search className="h-5 w-5" />
-              </button>
-            </form>
+            <div
+              className="relative mb-3 px-4"
+              onBlur={() => window.setTimeout(() => setSearchSuggestionsOpen(false), 120)}
+            >
+              <form onSubmit={submitSearch} className="flex items-stretch" role="search">
+                <input
+                  type="search"
+                  value={searchQuery}
+                  onChange={(event) => {
+                    setSearchQuery(event.target.value);
+                    setSearchSuggestionsOpen(true);
+                  }}
+                  onFocus={() => setSearchSuggestionsOpen(true)}
+                  placeholder="Product Search"
+                  className="h-11 min-w-0 flex-1 border border-r-0 border-border bg-background px-3 text-sm outline-none focus:border-accent"
+                  aria-label="Product search"
+                  autoComplete="off"
+                />
+                <button
+                  type="submit"
+                  className="flex h-11 w-12 items-center justify-center border border-border bg-background text-muted-foreground hover:bg-secondary hover:text-foreground"
+                  aria-label="Search products"
+                >
+                  <Search className="h-5 w-5" />
+                </button>
+              </form>
+              {searchSuggestionsOpen && searchQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH
+                ? searchSuggestionsPanel
+                : null}
+            </div>
             <Link
               to="/cart"
               className="flex items-center justify-between px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"
