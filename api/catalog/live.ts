@@ -38,6 +38,7 @@ export type LiveCatalogItem = {
   widthCm: number | null;
   depthCm: number | null;
   gtin: string;
+  liveUpdatedAt?: string;
 };
 
 type LiveCatalogCache = {
@@ -72,7 +73,7 @@ type MergedCatalogCache = {
   staleUntil: number;
   updatedAt: string;
   source: "xml" | "csv" | "combined";
-  items: Array<StaticCatalogProduct & LiveCatalogItem>;
+  items: MergedCatalogItem[];
 };
 
 type MergedCatalogResult = {
@@ -81,7 +82,39 @@ type MergedCatalogResult = {
   source: MergedCatalogCache["source"];
   cached: boolean;
   stale?: boolean;
-  items: Array<StaticCatalogProduct & LiveCatalogItem>;
+  items: MergedCatalogItem[];
+};
+
+type MergedCatalogItem = StaticCatalogProduct & {
+  code: string;
+  supplierCode?: string;
+  manufacturer?: string;
+  name?: string;
+  description?: string;
+  longDescription?: string;
+  imageUrl?: string;
+  imageUrls?: unknown;
+  googleImageOverrides?: unknown;
+  price: number | null;
+  priceText: string;
+  resellerPrice: number | null;
+  resellerPriceText: string;
+  rrp: number | null;
+  rrpText: string;
+  rrpExGst: number | null;
+  taxRate: number;
+  availabilityText: string;
+  etaDate: string;
+  etaStatus: string;
+  stockQuantity?: number;
+  stockByWarehouse: LiveCatalogItem["stockByWarehouse"];
+  stockRecordUpdated: string;
+  weightKg: number | null;
+  heightCm: number | null;
+  widthCm: number | null;
+  depthCm: number | null;
+  gtin: string;
+  liveUpdatedAt: string;
 };
 
 type StockOverride = {
@@ -1411,7 +1444,15 @@ const loadMergedCatalogProductsUncached = async (
         return null;
       }
 
-      const mergedProduct = live
+      const staticPrice = parseNumber(product.price);
+      const staticResellerPrice = parseNumber(product.resellerPrice) ?? staticPrice;
+      const staticRrp = parseNumber(product.rrp);
+      const staticWeightKg = parseNumber(product.weightKg);
+      const staticHeightCm = parseNumber(product.heightCm);
+      const staticWidthCm = parseNumber(product.widthCm);
+      const staticDepthCm = parseNumber(product.depthCm);
+
+      const mergedProduct: MergedCatalogItem = live
         ? {
             ...product,
             price: live.price,
@@ -1439,14 +1480,14 @@ const loadMergedCatalogProductsUncached = async (
           }
         : {
             ...product,
-            price: product.price,
-            priceText: product.priceText || formatCustomerAud(product.price ?? null),
-            resellerPrice: product.resellerPrice ?? product.price,
+            code: product.code,
+            price: staticPrice,
+            priceText: String(product.priceText || formatCustomerAud(staticPrice)),
+            resellerPrice: staticResellerPrice,
             resellerPriceText:
-              product.resellerPriceText ||
-              formatResellerAud(product.resellerPrice ?? product.price ?? null),
-            rrp: product.rrp,
-            rrpText: product.rrpText || formatAud(product.rrp ?? null),
+              String(product.resellerPriceText || formatResellerAud(staticResellerPrice)),
+            rrp: staticRrp,
+            rrpText: String(product.rrpText || formatAud(staticRrp)),
             rrpExGst: null,
             taxRate: 10,
             availabilityText: "Check availability",
@@ -1461,17 +1502,17 @@ const loadMergedCatalogProductsUncached = async (
               wa: 0,
             },
             stockRecordUpdated: "",
-            weightKg: product.weightKg ?? null,
-            heightCm: product.heightCm ?? null,
-            widthCm: product.widthCm ?? null,
-            depthCm: product.depthCm ?? null,
+            weightKg: staticWeightKg,
+            heightCm: staticHeightCm,
+            widthCm: staticWidthCm,
+            depthCm: staticDepthCm,
             gtin: getProductGtin(product),
             liveUpdatedAt: liveCatalog.updatedAt,
           };
 
       return applyStockOverrideToProduct(mergedProduct, stockOverride);
     })
-    .filter((item): item is StaticCatalogProduct & LiveCatalogItem =>
+    .filter((item): item is MergedCatalogItem =>
       Boolean(item) && isTangibleCatalogProduct(item as Record<string, unknown>),
     );
 

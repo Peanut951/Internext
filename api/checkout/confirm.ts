@@ -72,7 +72,7 @@ const markStoredInvoicePaid = async (
   }
 
   const now = new Date().toISOString();
-  const paidOrder = {
+  const paidOrder: Record<string, unknown> = {
     ...order,
     paymentStatus: "paid",
     paidAt: now,

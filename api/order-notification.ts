@@ -525,6 +525,24 @@ const buildSalesInvoiceTemplateRows = (
     BrandingTheme: row.branding_theme,
   }));
 
+type XeroInventoryItemRow = {
+  item_code: string;
+  item_name: string;
+  purchases_description: string;
+  purchases_unit_price: number | null;
+  purchases_account: string;
+  purchases_tax_rate: string;
+  sales_description: string;
+  sales_unit_price: number;
+  sales_account: string;
+  sales_tax_rate: string;
+  inventory_asset_account: string;
+  cost_of_goods_sold_account: string;
+  source: string;
+  product_data: unknown;
+  updated_at: string;
+};
+
 const buildXeroInventoryItemRowsFromOrder = (
   order: Record<string, unknown>,
   summary = buildOrderEmailSummary(order),
@@ -537,7 +555,7 @@ const buildXeroInventoryItemRowsFromOrder = (
   const costOfGoodsSoldAccount = readEnv("XERO_COGS_ACCOUNT_CODE") || "";
   const now = new Date().toISOString();
 
-  const rows = summary.lines
+  const rows: XeroInventoryItemRow[] = summary.lines
     .filter((line) => typeof line.unitPrice === "number" && line.quantity > 0)
     .map((line) => {
       const itemCode = getXeroItemCode(line.code);
@@ -1856,7 +1874,7 @@ export default async function handler(
 
     const emailSummary = buildOrderEmailSummary(body.order);
     const xeroInvoicePayload = buildXeroInvoicePayload(body.order);
-    const orderForStorage = {
+    const orderForStorage: Record<string, unknown> = {
       ...body.order,
       updatedAt: new Date().toISOString(),
       xeroSalesInvoiceTemplate: "SalesInvoiceTemplate.csv",
@@ -1893,7 +1911,7 @@ export default async function handler(
       return sendJson(res, 403, { message: "Admin access is required to remove invoice rows." });
     }
 
-    const orderForStorage = {
+    const orderForStorage: Record<string, unknown> = {
       ...body.order,
       updatedAt: new Date().toISOString(),
     };

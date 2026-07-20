@@ -205,7 +205,8 @@ export const loadLeaderFeedProducts = async (feedUrl = process.env.LEADER_DATA_F
   if (!feedUrl) return [];
 
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 15000);
+  const timeoutMs = Number(process.env.LEADER_DATA_FEED_TIMEOUT_MS || 30000);
+  const timeout = setTimeout(() => controller.abort(), Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000);
 
   let response;
   try {
