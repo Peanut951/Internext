@@ -11,9 +11,8 @@ const TopBar = () => {
   const portalLabel = canAccessResellerPortal ? "Reseller Portal" : "User Portal";
 
   return (
-    <>
-      <div className="bg-primary py-2 text-primary-foreground">
-        <div className="container-wide flex items-center justify-between gap-3 text-sm">
+    <div className="bg-primary py-2 text-primary-foreground">
+      <div className="container-wide flex items-center justify-between gap-3 text-sm">
         <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Link to="/contact" className="flex items-center gap-2 hover:text-accent transition-colors">
             <Phone className="h-4 w-4 shrink-0" />
@@ -57,20 +56,8 @@ const TopBar = () => {
             </>
           )}
         </div>
-        </div>
       </div>
-      <div className="bg-accent px-4 py-3 text-accent-foreground shadow-sm">
-        <Link
-          to="/signup?offer=first-order"
-          className="container-wide flex flex-col items-center justify-center gap-1 text-center sm:flex-row sm:gap-3"
-        >
-          <span className="text-base font-extrabold sm:text-lg">10% off your first order</span>
-          <span className="text-sm font-medium sm:text-base">
-            Sign up now and receive your discount at checkout.
-          </span>
-        </Link>
-      </div>
-    </>
+    </div>
   );
 };
 

@@ -2,6 +2,7 @@ import { ReactNode } from "react";
 import TopBar from "./TopBar";
 import Header from "./Header";
 import Footer from "./Footer";
+import FirstOrderPromo from "./FirstOrderPromo";
 
 interface LayoutProps {
   children: ReactNode;
@@ -14,6 +15,7 @@ const Layout = ({ children }: LayoutProps) => {
       <Header />
       <main className="flex-1">{children}</main>
       <Footer />
+      <FirstOrderPromo />
     </div>
   );
 };
