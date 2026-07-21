@@ -98,7 +98,11 @@ const estimateByCategory = (product: ShippingEstimateProduct) => {
     return { weightKg: 1.2, lengthCm: 32, widthCm: 24, heightCm: 8 };
   }
 
-  if (/\b(monitor|display|screen|tv|signage|panel)\b/.test(text)) {
+  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control)\b/.test(text)) {
+    return { weightKg: 1.5, lengthCm: 32, widthCm: 24, heightCm: 8 };
+  }
+
+  if (/\b(monitor|display|tv|signage|interactive\s+panel)\b/.test(text)) {
     return { weightKg: 8, lengthCm: 80, widthCm: 55, heightCm: 20 };
   }
 

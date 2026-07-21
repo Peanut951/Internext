@@ -122,7 +122,11 @@ const getMinimumShippingFloor = (items: ShippingQuoteItem[] = []) => {
     .join(" ")
     .toLowerCase();
 
-  if (/\b(monitor|display|screen|tv|signage|panel|projector)\b/.test(text)) {
+  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control)\b/.test(text)) {
+    return MIN_SHIPPING_TOTAL;
+  }
+
+  if (/\b(monitor|display|tv|signage|interactive\s+panel|projector)\b/.test(text)) {
     return 24;
   }
 
@@ -182,6 +186,17 @@ const createConsolidatedParcel = (
   });
 };
 
+const createParcelUnits = (items: ShippingQuoteItem[] = []) =>
+  items.flatMap((item) => {
+    const parcel = buildParcelForItem(item);
+    const qty = Math.max(1, Math.floor(toPositiveNumber(item.qty) ?? 1));
+
+    return Array.from({ length: qty }, () => ({
+      ...parcel,
+      qty: 1,
+    }));
+  });
+
 const calculateParcels = (items: ShippingQuoteItem[] = []) => {
   if (items.length === 0) {
     return [{
@@ -193,20 +208,42 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
     }];
   }
 
-  const itemParcels = items.map((item) => ({
-    ...buildParcelForItem(item),
-    qty: Math.max(1, Math.floor(toPositiveNumber(item.qty) ?? 1)),
-  }));
+  const units = createParcelUnits(items).sort(
+    (a, b) => getChargeableWeightKg(b) - getChargeableWeightKg(a),
+  );
+  const groups: ParcelEstimate[][] = [];
 
-  const totalWeight = itemParcels.reduce((sum, parcel) => sum + parcel.weightKg * parcel.qty, 0);
-  const parcelCount = Math.max(1, Math.ceil(totalWeight / MAX_PARCEL_WEIGHT_KG));
+  units.forEach((unit) => {
+    const unitParcel = createConsolidatedParcel([unit]);
+    const unitChargeableWeight = getChargeableWeightKg(unitParcel);
 
-  if (parcelCount === 1) {
-    return [createConsolidatedParcel(itemParcels)];
+    if (unitChargeableWeight > MAX_PARCEL_WEIGHT_KG) {
+      groups.push([unit]);
+      return;
+    }
+
+    const existingGroup = groups.find((group) => {
+      const candidate = createConsolidatedParcel([...group, unit]);
+      return getChargeableWeightKg(candidate) <= MAX_PARCEL_WEIGHT_KG;
+    });
+
+    if (existingGroup) {
+      existingGroup.push(unit);
+    } else {
+      groups.push([unit]);
+    }
+  });
+
+  const packedParcels = groups.map((group) => createConsolidatedParcel(group));
+  const overweightParcel = packedParcels.find(
+    (currentParcel) => getChargeableWeightKg(currentParcel) > MAX_PARCEL_WEIGHT_KG,
+  );
+
+  if (overweightParcel && units.length > 1) {
+    return units.map((unit) => createConsolidatedParcel([unit]));
   }
 
-  const weightScale = 1 / parcelCount;
-  return Array.from({ length: parcelCount }, () => createConsolidatedParcel(itemParcels, weightScale));
+  return packedParcels;
 };
 
 const getItemsMissingShippingDimensions = (items: ShippingQuoteItem[] = []) =>
@@ -266,14 +303,18 @@ const quoteParcel = async (
   destinationPostcode: string,
   parcel: ParcelEstimate,
 ) => {
-  const chargeableWeightKg = Math.max(parcel.weightKg, getChargeableWeightKg(parcel));
+  const actualWeightKg = parcel.weightKg;
+  if (actualWeightKg > MAX_PARCEL_WEIGHT_KG) {
+    throw new Error("A parcel in this order is over Australia Post's 22 kg limit.");
+  }
+
   const params = new URLSearchParams({
     from_postcode: ORIGIN_POSTCODE,
     to_postcode: destinationPostcode,
     length: String(parcel.lengthCm),
     width: String(parcel.widthCm),
     height: String(parcel.heightCm),
-    weight: String(Math.round(chargeableWeightKg * 100) / 100),
+    weight: String(Math.round(actualWeightKg * 100) / 100),
   });
 
   const response = await fetch(
@@ -300,6 +341,20 @@ const quoteParcel = async (
   }
 
   return { parcel, service: cheapest, services };
+};
+
+const getShippingErrorMessage = (error: unknown) => {
+  const errorText = error instanceof Error ? error.message : String(error || "");
+
+  if (/maximum weight|22\s*kg|over australia post/i.test(errorText)) {
+    return "This order cannot be quoted by Australia Post because one parcel is over their 22 kg limit. Contact Internext for a freight quote.";
+  }
+
+  if (/no australia post shipping services/i.test(errorText)) {
+    return "Australia Post did not return a shipping service for this address and parcel size. Contact Internext for a freight quote.";
+  }
+
+  return "Unable to calculate shipping right now. Please check the postcode or contact Internext for a freight quote.";
 };
 
 export default async function handler(
@@ -368,10 +423,7 @@ export default async function handler(
     });
   } catch (error) {
     return sendJson(res, 502, {
-      message:
-        error instanceof Error
-          ? `Unable to reach Australia Post shipping: ${error.message}`
-          : "Unable to reach Australia Post shipping.",
+      message: getShippingErrorMessage(error),
     });
   }
 }
