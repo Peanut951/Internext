@@ -111,6 +111,42 @@ const getProductUnitPriceExGst = (product: CatalogProductWithLive) => {
   return (Math.round(exGstPrice * 100) / 100).toFixed(2);
 };
 
+const getProductCustomerPriceText = (product: CatalogProductWithLive) =>
+  product.priceText || (typeof product.price === "number" ? formatAud(product.price) : "") || "";
+
+const findManualInvoiceProduct = (
+  line: ManualInvoiceLine,
+  products: CatalogProductWithLive[],
+) => {
+  const codes = [line.code, line.supplierCode].filter(Boolean).map((code) => code?.toLowerCase());
+
+  if (codes.length === 0) {
+    return null;
+  }
+
+  return (
+    products.find((product) => {
+      const productCodes = [product.code, product.supplierCode]
+        .filter(Boolean)
+        .map((code) => code?.toLowerCase());
+      return productCodes.some((code) => code && codes.includes(code));
+    }) || null
+  );
+};
+
+const getManualInvoiceLineUnitPriceExGst = (
+  line: ManualInvoiceLine,
+  products: CatalogProductWithLive[],
+) => {
+  const product = findManualInvoiceProduct(line, products);
+  const productUnitPriceText = product ? getProductUnitPriceExGst(product) : "";
+  const productUnitPrice = productUnitPriceText ? Number(productUnitPriceText) : null;
+
+  return productUnitPrice !== null && Number.isFinite(productUnitPrice)
+    ? productUnitPrice
+    : Number(line.unitPrice);
+};
+
 const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   firstName: "",
   lastName: "",
@@ -535,7 +571,7 @@ const OrdersAdmin = () => {
       manufacturer: line.manufacturer || "Internext",
       description: line.name.trim(),
       qty: Math.max(1, Math.floor(Number(line.quantity) || 1)),
-      price: Number(line.unitPrice),
+      price: getManualInvoiceLineUnitPriceExGst(line, manualInvoiceProducts),
     }));
 
     if (
@@ -1653,7 +1689,7 @@ const OrdersAdmin = () => {
                                           <span>{product.code || product.supplierCode}</span>
                                           {product.manufacturer ? <span>{product.manufacturer}</span> : null}
                                           {typeof product.price === "number" ? (
-                                            <span>{getProductUnitPriceExGst(product)} ex GST</span>
+                                            <span>{getProductCustomerPriceText(product)}</span>
                                           ) : null}
                                         </span>
                                       </button>
@@ -1702,6 +1738,11 @@ const OrdersAdmin = () => {
                               className="h-11 border-border/70 bg-background"
                               required
                             />
+                            {item.code || item.supplierCode ? (
+                              <p className="mt-1 text-xs text-muted-foreground">
+                                Selected catalogue products use the public customer website price.
+                              </p>
+                            ) : null}
                           </div>
                           <div className="flex items-end">
                             <Button
