@@ -20,6 +20,11 @@ type CheckoutShipping = {
   price: number;
 };
 
+type CheckoutDiscount = {
+  name: string;
+  rate: number;
+};
+
 type RequestHeaders = Record<string, string | string[] | undefined>;
 
 export const readEnv = (key: string) => process.env[key]?.trim() || "";
@@ -119,6 +124,16 @@ const formatLineItemName = (item: CheckoutLineItem) => {
   return item.description.trim();
 };
 
+const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
+
+const getDiscountedUnitPrice = (price: number, discount?: CheckoutDiscount) => {
+  if (!discount || discount.rate <= 0) {
+    return normalizeMoney(price);
+  }
+
+  return normalizeMoney(price * (1 - Math.min(discount.rate, 0.9)));
+};
+
 export const validateCheckoutPayload = (
   customer: Partial<CheckoutCustomer> | undefined,
   items: CheckoutLineItem[] | undefined,
@@ -149,11 +164,25 @@ export const buildStripeCheckoutParams = (payload: {
   items: CheckoutLineItem[];
   resellerEmail?: string;
   shipping?: CheckoutShipping;
+  discount?: CheckoutDiscount;
   successUrl?: string;
   cancelUrl?: string;
 }) => {
   const params = new URLSearchParams();
   const orderNumber = payload.orderNumber?.trim();
+  const discountRate = payload.discount?.rate && payload.discount.rate > 0
+    ? Math.min(payload.discount.rate, 0.9)
+    : 0;
+  const discountName = payload.discount?.name?.trim() || "First order discount";
+  const discountAmount = normalizeMoney(
+    payload.items.reduce((total, item) => {
+      if (item.price === null) {
+        return total;
+      }
+
+      return total + (item.price - getDiscountedUnitPrice(item.price, payload.discount)) * item.qty;
+    }, 0),
+  );
   params.set("mode", "payment");
   params.set(
     "success_url",
@@ -174,6 +203,15 @@ export const buildStripeCheckoutParams = (payload: {
     "payment_intent_data[metadata][customer_name]",
     `${payload.customer.firstName.trim()} ${payload.customer.lastName.trim()}`.trim(),
   );
+
+  if (discountRate > 0 && discountAmount > 0) {
+    params.set("metadata[discount_name]", discountName);
+    params.set("metadata[discount_rate]", String(discountRate));
+    params.set("metadata[discount_amount]", String(discountAmount));
+    params.set("payment_intent_data[metadata][discount_name]", discountName);
+    params.set("payment_intent_data[metadata][discount_rate]", String(discountRate));
+    params.set("payment_intent_data[metadata][discount_amount]", String(discountAmount));
+  }
 
   if (orderNumber) {
     params.set("metadata[order_number]", orderNumber);
@@ -204,12 +242,12 @@ export const buildStripeCheckoutParams = (payload: {
         return total;
       }
 
-      return total + item.price * item.qty * 0.1;
+      return total + getDiscountedUnitPrice(item.price, payload.discount) * item.qty * 0.1;
     }, 0) * 100,
   ) / 100;
 
   payload.items.forEach((item, index) => {
-    const unitAmount = Math.round((item.price ?? 0) * 100);
+    const unitAmount = Math.round(getDiscountedUnitPrice(item.price ?? 0, payload.discount) * 100);
 
     params.set(`line_items[${index}][quantity]`, String(item.qty));
     params.set(`line_items[${index}][price_data][currency]`, "aud");
@@ -219,6 +257,9 @@ export const buildStripeCheckoutParams = (payload: {
       formatLineItemName(item),
     );
     params.set(`line_items[${index}][price_data][product_data][metadata][code]`, item.code);
+    if (discountRate > 0 && discountAmount > 0) {
+      params.set(`line_items[${index}][price_data][product_data][metadata][discount]`, discountName);
+    }
   });
 
   let nextLineIndex = payload.items.length;

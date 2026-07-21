@@ -92,6 +92,9 @@ export type SupplierOrderPayload = {
   totals: {
     subtotal: number;
     itemsSubtotal: number;
+    discountTotal?: number;
+    discountName?: string;
+    discountRate?: number;
     gstAmount: number;
     shippingTotal: number;
     shippingName?: string;
@@ -110,6 +113,9 @@ export type OrderRecord = {
   items: CartItem[];
   subtotal: number;
   itemsSubtotal: number;
+  discountTotal?: number;
+  discountName?: string;
+  discountRate?: number;
   gstAmount: number;
   shippingTotal: number;
   shippingName?: string;
@@ -211,6 +217,9 @@ export const toCartProduct = <T extends CatalogProductLite>(product: T): Catalog
 type OrderTotals = {
   itemsSubtotal: number;
   subtotal: number;
+  discountTotal: number;
+  discountName?: string;
+  discountRate?: number;
   gstAmount: number;
   shippingTotal: number;
   shippingName?: string;
@@ -223,11 +232,24 @@ type OrderShippingInput = {
   price?: number;
 };
 
+export type OrderDiscountInput = {
+  name?: string;
+  rate?: number;
+};
+
 const isExGstItem = (item: Pick<CartItem, "priceText">) => /\bex\s*gst\b/i.test(item.priceText || "");
 
 const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
 
-const calculateTotals = (items: CartItem[], shipping?: OrderShippingInput): OrderTotals => {
+const getDiscountedUnitPrice = (price: number, discountRate: number) =>
+  normalizeMoney(price * (1 - Math.min(Math.max(discountRate, 0), 0.9)));
+
+const calculateTotals = (
+  items: CartItem[],
+  shipping?: OrderShippingInput,
+  discount?: OrderDiscountInput,
+): OrderTotals => {
+  const discountRate = Math.min(Math.max(discount?.rate || 0, 0), 0.9);
   const itemTotals = items.reduce(
     (acc, item) => {
       if (item.price === null) {
@@ -235,37 +257,46 @@ const calculateTotals = (items: CartItem[], shipping?: OrderShippingInput): Orde
       }
 
       const lineValue = item.price * item.qty;
-      const lineGst = isExGstItem(item) ? lineValue * 0.1 : 0;
+      const discountedLineValue = getDiscountedUnitPrice(item.price, discountRate) * item.qty;
+      const lineDiscount = lineValue - discountedLineValue;
+      const lineGst = isExGstItem(item) ? discountedLineValue * 0.1 : 0;
 
       return {
         ...acc,
         itemsSubtotal: acc.itemsSubtotal + lineValue,
+        discountTotal: acc.discountTotal + lineDiscount,
         gstAmount: acc.gstAmount + lineGst,
       };
     },
-    { itemsSubtotal: 0, gstAmount: 0, poaLines: 0 },
+    { itemsSubtotal: 0, discountTotal: 0, gstAmount: 0, poaLines: 0 },
   );
 
   const shippingTotal = Math.max(0, shipping?.price || 0);
   const gstAmount = normalizeMoney(itemTotals.gstAmount);
   const itemsSubtotal = normalizeMoney(itemTotals.itemsSubtotal);
+  const discountTotal = normalizeMoney(itemTotals.discountTotal);
   const normalizedShipping = normalizeMoney(shippingTotal);
 
   return {
     itemsSubtotal,
     subtotal: itemsSubtotal,
+    discountTotal,
+    discountName: discountTotal > 0 ? discount?.name || "First order discount" : undefined,
+    discountRate: discountTotal > 0 ? discountRate : undefined,
     gstAmount,
     shippingTotal: normalizedShipping,
     shippingName: shipping?.name,
     poaLines: itemTotals.poaLines,
-    totalKnownValue: normalizeMoney(itemsSubtotal + gstAmount + normalizedShipping),
+    totalKnownValue: normalizeMoney(itemsSubtotal - discountTotal + gstAmount + normalizedShipping),
   };
 };
 
 const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<OrderRecord> & { reseller?: OrderReseller }) => {
   const itemsSubtotal = order.itemsSubtotal ?? order.subtotal ?? 0;
+  const discountTotal = order.discountTotal ?? 0;
   const gstAmount = order.gstAmount ?? 0;
   const shippingTotal = order.shippingTotal ?? 0;
+  const normalizedTotal = order.totalKnownValue ?? normalizeMoney(itemsSubtotal - discountTotal + gstAmount + shippingTotal);
 
   return {
     ...order,
@@ -275,20 +306,26 @@ const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<Ord
     },
     itemsSubtotal,
     subtotal: order.subtotal ?? itemsSubtotal,
+    discountTotal,
+    discountName: order.discountName,
+    discountRate: order.discountRate,
     gstAmount,
     shippingTotal,
-    totalKnownValue: order.totalKnownValue ?? normalizeMoney(itemsSubtotal + gstAmount + shippingTotal),
+    totalKnownValue: normalizedTotal,
     serialNumbers: order.serialNumbers ?? {},
     supplierPayload: {
       ...order.supplierPayload,
       totals: {
         itemsSubtotal,
         subtotal: order.subtotal ?? itemsSubtotal,
+        discountTotal,
+        discountName: order.discountName,
+        discountRate: order.discountRate,
         gstAmount,
         shippingTotal,
         shippingName: order.shippingName,
         poaLines: order.poaLines ?? 0,
-        totalKnownValue: order.totalKnownValue ?? normalizeMoney(itemsSubtotal + gstAmount + shippingTotal),
+        totalKnownValue: normalizedTotal,
         ...(order.supplierPayload?.totals || {}),
       },
     },
@@ -568,7 +605,7 @@ export const placeOrder = async (
   customer: CheckoutCustomer,
   reseller?: OrderReseller,
   shipping?: OrderShippingInput,
-  options?: { orderNumber?: string },
+  options?: { orderNumber?: string; discount?: OrderDiscountInput },
 ): Promise<OrderRecord> => {
   const items = getCartItems();
   if (items.length === 0) {
@@ -577,7 +614,7 @@ export const placeOrder = async (
 
   const timestamp = nowIso();
   const orderNumber = options?.orderNumber?.trim() || generateOrderNumber();
-  const totals = calculateTotals(items, shipping);
+  const totals = calculateTotals(items, shipping, options?.discount);
   const orderReseller: OrderReseller = reseller ?? {
     email: customer.email,
     role: "guest",
@@ -603,6 +640,9 @@ export const placeOrder = async (
     items,
     subtotal: totals.subtotal,
     itemsSubtotal: totals.itemsSubtotal,
+    discountTotal: totals.discountTotal,
+    discountName: totals.discountName,
+    discountRate: totals.discountRate,
     gstAmount: totals.gstAmount,
     shippingTotal: totals.shippingTotal,
     shippingName: totals.shippingName,

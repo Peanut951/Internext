@@ -11,8 +11,9 @@ const TopBar = () => {
   const portalLabel = canAccessResellerPortal ? "Reseller Portal" : "User Portal";
 
   return (
-    <div className="bg-primary py-2 text-primary-foreground">
-      <div className="container-wide flex items-center justify-between gap-3 text-sm">
+    <>
+      <div className="bg-primary py-2 text-primary-foreground">
+        <div className="container-wide flex items-center justify-between gap-3 text-sm">
         <div className="flex min-w-0 items-center gap-3 sm:gap-6">
           <Link to="/contact" className="flex items-center gap-2 hover:text-accent transition-colors">
             <Phone className="h-4 w-4 shrink-0" />
@@ -56,8 +57,14 @@ const TopBar = () => {
             </>
           )}
         </div>
+        </div>
       </div>
-    </div>
+      <div className="bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">
+        <Link to={session ? "/checkout" : "/login/register"} className="hover:underline">
+          10% off your first order with an Internext account
+        </Link>
+      </div>
+    </>
   );
 };
 

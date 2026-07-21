@@ -356,19 +356,27 @@ const buildOrderEmailSummary = (order: Record<string, unknown>) => {
   });
   const calculatedSubtotal = normalizeMoney(calculatedItemsSubtotal);
   const itemsSubtotal = calculatedSubtotal || getNumber(order.itemsSubtotal ?? order.subtotal);
+  const discountTotal = normalizeMoney(getNumber(order.discountTotal));
+  const discountName = getString(order.discountName) || "First order discount";
+  const discountRate = getNumber(order.discountRate);
+  const discountedItemsSubtotal = normalizeMoney(Math.max(0, itemsSubtotal - discountTotal));
   const grossShippingTotal = getNumber(order.shippingTotal);
   const shippingBreakdown = splitIncGstAmount(grossShippingTotal);
   const shippingTotal = normalizeMoney(shippingBreakdown.net);
   const calculatedTotalKnownValue = normalizeMoney(
-    itemsSubtotal + calculatedItemsGst + shippingBreakdown.gross,
+    discountedItemsSubtotal + calculatedItemsGst + shippingBreakdown.gross,
   );
   const totalKnownValue = getNumber(order.totalKnownValue) || calculatedTotalKnownValue;
-  const gstAmount = normalizeMoney(totalKnownValue - itemsSubtotal - shippingTotal);
+  const gstAmount = normalizeMoney(totalKnownValue - discountedItemsSubtotal - shippingTotal);
 
   return {
     orderNumber: order.orderNumber || "",
     itemsSubtotal,
     itemsSubtotalText: formatAud(itemsSubtotal),
+    discountTotal,
+    discountName,
+    discountRate,
+    discountTotalText: formatAud(discountTotal),
     gstAmount,
     gstAmountText: formatAud(gstAmount),
     shippingTotal,
@@ -473,6 +481,7 @@ const buildXeroSalesInvoiceRows = (
       description: String(line.description || line.code || "Internext product").slice(0, 4000),
       quantity: line.quantity,
       unit_amount: normalizeMoney(line.unitPrice ?? 0),
+      discount: summary.discountRate > 0 ? normalizeMoney(summary.discountRate * 100) : null,
       account_code: salesAccountCode,
     }));
 
@@ -484,6 +493,7 @@ const buildXeroSalesInvoiceRows = (
       description: "Shipping and handling",
       quantity: 1,
       unit_amount: normalizeMoney(summary.shippingTotal),
+      discount: null,
       account_code: shippingAccountCode,
     });
   }
@@ -945,6 +955,7 @@ const buildXeroInvoicePayload = (order: Record<string, unknown>) => {
       description: String(line.description || line.code || "Internext product").slice(0, 4000),
       quantity: line.quantity,
       unitAmount: normalizeMoney(line.unitPrice ?? 0),
+      discountRate: summary.discountRate > 0 ? normalizeMoney(summary.discountRate * 100) : undefined,
       accountCode: salesAccountCode,
       taxType,
       itemCode: String(line.code || "").slice(0, 30),
@@ -1136,6 +1147,11 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
                           <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
                         </tr>
+                        ${summary.discountTotal > 0 ? `
+                        <tr>
+                          <td style="padding:6px 0;color:#047857;">${escapeHtml(summary.discountName)}</td>
+                          <td align="right" style="padding:6px 0;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
+                        </tr>` : ""}
                         <tr>
                           <td style="padding:6px 0;color:#4b5563;">GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
@@ -1178,6 +1194,7 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
     ),
     ``,
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
+    ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
     `GST: ${summary.gstAmountText}`,
     `Shipping ex GST: ${summary.shippingTotalText}`,
     `Total paid: ${summary.totalKnownValueText}`,
@@ -1281,6 +1298,11 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
                     <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
                     <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
                   </tr>
+                  ${summary.discountTotal > 0 ? `
+                  <tr>
+                    <td style="padding:6px 0;color:#047857;">${escapeHtml(summary.discountName)}</td>
+                    <td align="right" style="padding:6px 0;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
+                  </tr>` : ""}
                   <tr>
                     <td style="padding:6px 0;color:#4b5563;">GST</td>
                     <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
@@ -1324,6 +1346,7 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
     ),
     "",
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
+    ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
     `GST: ${summary.gstAmountText}`,
     `Shipping ex GST: ${summary.shippingTotalText}`,
     `Total due: ${summary.totalKnownValueText}`,
@@ -1458,6 +1481,11 @@ const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
                           <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
                         </tr>
+                        ${summary.discountTotal > 0 ? `
+                        <tr>
+                          <td style="padding:6px 0;color:#047857;">${escapeHtml(summary.discountName)}</td>
+                          <td align="right" style="padding:6px 0;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
+                        </tr>` : ""}
                         <tr>
                           <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
@@ -1497,6 +1525,7 @@ const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
     ),
     "",
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
+    ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
     `Shipping ex GST: ${summary.shippingTotalText}`,
     `GST: ${summary.gstAmountText}`,
     `Total paid: ${summary.totalKnownValueText}`,

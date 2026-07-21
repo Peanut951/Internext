@@ -13,6 +13,7 @@ import {
   formatAud,
   generateOrderNumber,
   getCartItems,
+  fetchSharedOrdersResult,
   placeOrder,
   saveCartItems,
 } from "@/lib/orderManagement";
@@ -248,6 +249,14 @@ const fetchGeoapifyResults = async (
 const CHECKOUT_DRAFT_STORAGE_KEY = "internext-checkout-draft";
 const HANDLED_PAYMENT_SESSIONS_STORAGE_KEY = "internext-paid-checkout-sessions";
 const ORDER_NOTIFICATION_TIMEOUT_MS = 30000;
+const FIRST_ORDER_DISCOUNT_RATE = 0.1;
+const FIRST_ORDER_DISCOUNT_NAME = "First order account discount";
+
+type CheckoutDiscount = {
+  name: string;
+  rate: number;
+  amount?: number;
+};
 
 type CheckoutDraft = {
   orderNumber: string;
@@ -258,7 +267,24 @@ type CheckoutDraft = {
     name: string;
     price: number;
   };
+  discount?: CheckoutDiscount;
 };
+
+const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
+
+const getDiscountedUnitPrice = (price: number, discountRate: number) =>
+  normalizeMoney(price * (1 - Math.min(Math.max(discountRate, 0), 0.9)));
+
+const calculateCheckoutDiscount = (items: CartItem[], discountRate: number) =>
+  normalizeMoney(
+    items.reduce((total, item) => {
+      if (item.price === null) {
+        return total;
+      }
+
+      return total + (item.price - getDiscountedUnitPrice(item.price, discountRate)) * item.qty;
+    }, 0),
+  );
 
 type OrderNotificationResult = {
   adminEmailSent?: boolean;
@@ -563,6 +589,9 @@ const Checkout = () => {
   const [shippingQuoteKey, setShippingQuoteKey] = useState<string | null>(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [shippingError, setShippingError] = useState<string | null>(null);
+  const [accountHasPreviousOrders, setAccountHasPreviousOrders] = useState(false);
+  const [firstOrderDiscountLoading, setFirstOrderDiscountLoading] = useState(false);
+  const [firstOrderDiscountChecked, setFirstOrderDiscountChecked] = useState(false);
   const finalizingPaymentSessionRef = useRef<string | null>(null);
   const { session } = useAuthSession();
 
@@ -594,6 +623,45 @@ const Checkout = () => {
     };
   }, []);
 
+  useEffect(() => {
+    let isActive = true;
+
+    if (session?.role !== "user") {
+      setAccountHasPreviousOrders(false);
+      setFirstOrderDiscountLoading(false);
+      setFirstOrderDiscountChecked(false);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    setFirstOrderDiscountLoading(true);
+    setFirstOrderDiscountChecked(false);
+    fetchSharedOrdersResult({ fallbackToLocal: false, mergeWithLocal: false })
+      .then((result) => {
+        if (!isActive) {
+          return;
+        }
+
+        setAccountHasPreviousOrders(!result.ok || result.orders.length > 0);
+      })
+      .catch(() => {
+        if (isActive) {
+          setAccountHasPreviousOrders(true);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setFirstOrderDiscountChecked(true);
+          setFirstOrderDiscountLoading(false);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [session?.email, session?.role, session?.userId]);
+
   const searchParams = useMemo(() => new URLSearchParams(location.search), [location.search]);
   const checkoutState = searchParams.get("checkout");
   const checkoutSessionId = searchParams.get("session_id");
@@ -607,16 +675,36 @@ const Checkout = () => {
     }, 0);
   }, [cartItems]);
 
+  const accountEmail = session?.email.trim().toLowerCase() || "";
+  const customerEmailMatchesAccount =
+    Boolean(accountEmail) &&
+    customer.email.trim().toLowerCase() === accountEmail;
+  const firstOrderDiscountEligible =
+    session?.role === "user" &&
+    customerEmailMatchesAccount &&
+    !accountHasPreviousOrders &&
+    firstOrderDiscountChecked &&
+    !firstOrderDiscountLoading;
+  const firstOrderDiscountTotal = useMemo(
+    () =>
+      firstOrderDiscountEligible
+        ? calculateCheckoutDiscount(cartItems, FIRST_ORDER_DISCOUNT_RATE)
+        : 0,
+    [cartItems, firstOrderDiscountEligible],
+  );
   const gstAmount = useMemo(() => {
     return Math.round(
       cartItems.reduce((sum, item) => {
         if (item.price === null || !/\bex\s*gst\b/i.test(item.priceText || "")) {
           return sum;
         }
-        return sum + item.price * item.qty * 0.1;
+        const unitPrice = firstOrderDiscountEligible
+          ? getDiscountedUnitPrice(item.price, FIRST_ORDER_DISCOUNT_RATE)
+          : item.price;
+        return sum + unitPrice * item.qty * 0.1;
       }, 0) * 100,
     ) / 100;
-  }, [cartItems]);
+  }, [cartItems, firstOrderDiscountEligible]);
 
   const currentShippingQuoteKey = useMemo(
     () => getShippingQuoteKey(customer.postcode, customer.country, cartItems),
@@ -654,8 +742,8 @@ const Checkout = () => {
   const hasStockBlockingItems = unavailableItems.length > 0 || stockLimitedItems.length > 0;
 
   const orderTotal = useMemo(
-    () => subtotal + gstAmount + shippingTotal,
-    [gstAmount, shippingTotal, subtotal],
+    () => subtotal - firstOrderDiscountTotal + gstAmount + shippingTotal,
+    [firstOrderDiscountTotal, gstAmount, shippingTotal, subtotal],
   );
 
   useEffect(() => {
@@ -891,6 +979,7 @@ const Checkout = () => {
 
         const order = await placeOrder(draft.customer, draft.reseller, draft.shipping, {
           orderNumber: draft.orderNumber,
+          discount: draft.discount,
         });
 
         if (!isActive) {
@@ -1030,7 +1119,7 @@ const Checkout = () => {
 
       const orderNumber = generateOrderNumber();
 
-      saveCheckoutDraft({
+      const checkoutDraft: CheckoutDraft = {
         orderNumber,
         customer,
         reseller,
@@ -1042,7 +1131,9 @@ const Checkout = () => {
                 price: activeShippingQuote.service.price,
               }
             : undefined,
-      });
+      };
+
+      saveCheckoutDraft(checkoutDraft);
       const response = await fetch("/api/checkout/create-session", {
         method: "POST",
         headers: {
@@ -1078,10 +1169,38 @@ const Checkout = () => {
         }),
       });
 
-      const payload = (await response.json()) as { message?: string; url?: string };
+      const payload = (await response.json()) as {
+        message?: string;
+        url?: string;
+        firstOrderDiscount?: {
+          applied?: boolean;
+          name?: string;
+          rate?: number;
+          amount?: number;
+        };
+      };
       if (!response.ok || !payload.url) {
         throw new Error(payload.message || "Unable to start secure payment.");
       }
+
+      if (firstOrderDiscountEligible && !payload.firstOrderDiscount?.applied) {
+        setAccountHasPreviousOrders(true);
+        throw new Error(
+          "This account is not eligible for the first order discount anymore. Review the updated total and try again.",
+        );
+      }
+
+      saveCheckoutDraft({
+        ...checkoutDraft,
+        discount:
+          payload.firstOrderDiscount?.applied && payload.firstOrderDiscount.rate
+            ? {
+                name: payload.firstOrderDiscount.name || FIRST_ORDER_DISCOUNT_NAME,
+                rate: payload.firstOrderDiscount.rate,
+                amount: payload.firstOrderDiscount.amount,
+              }
+            : undefined,
+      });
 
       window.location.assign(payload.url);
     } catch (submitError) {
@@ -1147,6 +1266,9 @@ const Checkout = () => {
                   <p className="font-semibold text-foreground">{formatAud(placedOrder.totalKnownValue)}</p>
                   <div className="mt-2 space-y-1 text-xs text-muted-foreground">
                     <p>Items: {formatAud(placedOrder.itemsSubtotal)}</p>
+                    {placedOrder.discountTotal && placedOrder.discountTotal > 0 ? (
+                      <p>{placedOrder.discountName || "First order discount"}: -{formatAud(placedOrder.discountTotal)}</p>
+                    ) : null}
                     {placedOrder.gstAmount > 0 ? <p>GST: {formatAud(placedOrder.gstAmount)}</p> : null}
                     <p>Shipping: {formatAud(placedOrder.shippingTotal)}</p>
                   </div>
@@ -1541,6 +1663,20 @@ const Checkout = () => {
                         <span className="text-muted-foreground">Items subtotal</span>
                         <span className="font-semibold text-foreground">{formatStoredTotal(subtotal, cartItems)}</span>
                       </p>
+                      {firstOrderDiscountTotal > 0 ? (
+                        <p className="flex items-center justify-between mb-2 text-accent">
+                          <span>{FIRST_ORDER_DISCOUNT_NAME}</span>
+                          <span className="font-semibold">-{formatAud(firstOrderDiscountTotal)}</span>
+                        </p>
+                      ) : session?.role === "user" && !customerEmailMatchesAccount && customer.email.trim() ? (
+                        <p className="mb-2 text-xs text-muted-foreground">
+                          Use your signed-in account email to receive the first order discount.
+                        </p>
+                      ) : session?.role === "user" && (!firstOrderDiscountChecked || firstOrderDiscountLoading) ? (
+                        <p className="mb-2 text-xs text-muted-foreground">
+                          Checking first order discount...
+                        </p>
+                      ) : null}
                       {gstAmount > 0 ? (
                         <p className="flex items-center justify-between mb-2">
                           <span className="text-muted-foreground">GST</span>
