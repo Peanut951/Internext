@@ -1081,11 +1081,11 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
 
   const html = `<!doctype html>
 <html>
-  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;">
+  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;width:100%;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;width:100%;max-width:100%;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+          <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="width:100%;max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
             <tr>
               <td style="background:#1f2937;padding:28px 32px;">
                 <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
@@ -1221,9 +1221,9 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
   const itemRows = summary.lines
     .map((line) => `
       <tr>
-        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;">
-          <div style="font-weight:700;color:#111827;">${escapeHtml(line.description)}</div>
-          <div style="font-size:12px;color:#6b7280;margin-top:4px;">Code: ${escapeHtml(line.code)}</div>
+        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;word-break:break-word;overflow-wrap:anywhere;">
+          <div style="font-weight:700;color:#111827;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(line.description)}</div>
+          <div style="font-size:12px;color:#6b7280;margin-top:4px;word-break:break-word;overflow-wrap:anywhere;">Code: ${escapeHtml(line.code)}</div>
         </td>
         <td align="center" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.quantity)}</td>
         <td align="right" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.unitPriceText)} ${escapeHtml(line.priceBasis)}</td>
@@ -1233,11 +1233,11 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
 
   const html = `<!doctype html>
 <html>
-  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;">
+  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;width:100%;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;width:100%;max-width:100%;">
       <tr>
         <td align="center">
-          <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:720px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+          <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="width:100%;max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
             <tr>
               <td style="background:#1f2937;padding:28px 32px;">
                 <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
@@ -1250,12 +1250,16 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
                 <p style="margin:0 0 20px;color:#4b5563;line-height:1.6;">
                   Please use the secure Stripe payment link below to complete payment. Your order will be marked as paid in Internext only after Stripe confirms payment.
                 </p>
-                <p style="margin:0 0 28px;">
-                  <a href="${escapeHtml(paymentUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;font-weight:800;padding:14px 22px;border-radius:10px;">Pay invoice securely</a>
-                </p>
+                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
+                  <tr>
+                    <td bgcolor="#1f2937" style="background:#1f2937;border-radius:10px;text-align:center;">
+                      <a href="${escapeHtml(paymentUrl)}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;line-height:1.2;padding:14px 24px;border:1px solid #1f2937;border-radius:10px;">Pay invoice securely</a>
+                    </td>
+                  </tr>
+                </table>
 
                 <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Items ordered</h2>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;width:100%;max-width:100%;">
                   <thead>
                     <tr>
                       <th align="left" width="52%" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
@@ -1272,7 +1276,7 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
                   ${shippingAddress.map(escapeHtml).join("<br>") || "No delivery address supplied"}
                 </p>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;width:100%;max-width:100%;table-layout:fixed;">
                   <tr>
                     <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
                     <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
@@ -1293,7 +1297,7 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
                   If the button does not open, paste this link into your browser:<br>
-                  <a href="${escapeHtml(paymentUrl)}" style="color:#2563eb;">${escapeHtml(paymentUrl)}</a>
+                  <a href="${escapeHtml(paymentUrl)}" style="color:#2563eb;word-break:break-all;overflow-wrap:anywhere;">${escapeHtml(paymentUrl)}</a>
                 </p>
                 <p style="margin:16px 0 0;color:#4b5563;line-height:1.6;">
                   For questions, call 1300 U R NEXT (1300 876 398).

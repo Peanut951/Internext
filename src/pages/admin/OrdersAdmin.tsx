@@ -32,6 +32,12 @@ import {
 } from "@/lib/orderManagement";
 import { clearAuthSession } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
+import {
+  loadCatalogProducts,
+  loadCatalogProductsFast,
+  type CatalogProductWithLive,
+} from "@/lib/liveCatalog";
 
 type OrderView = "all" | "active" | "completed";
 type ShipmentFormState = {
@@ -45,6 +51,9 @@ type ShipmentMessage = {
   text: string;
 };
 type ManualInvoiceLine = {
+  code?: string;
+  supplierCode?: string;
+  manufacturer?: string;
   name: string;
   quantity: string;
   unitPrice: string;
@@ -73,6 +82,35 @@ type ManualShippingQuote = {
   message?: string;
 };
 
+const emptyManualInvoiceLine = (): ManualInvoiceLine => ({
+  name: "",
+  quantity: "1",
+  unitPrice: "",
+});
+
+const formatProductSuggestionName = (product: CatalogProductWithLive) => {
+  const manufacturer = product.manufacturer.trim();
+  const description = product.description.trim();
+
+  if (!manufacturer) {
+    return description;
+  }
+
+  return description.toLowerCase().includes(manufacturer.toLowerCase())
+    ? description
+    : `${manufacturer} ${description}`;
+};
+
+const getProductUnitPriceExGst = (product: CatalogProductWithLive) => {
+  if (typeof product.price !== "number" || !Number.isFinite(product.price)) {
+    return "";
+  }
+
+  const priceText = product.priceText || "";
+  const exGstPrice = /\binc\s*gst\b/i.test(priceText) ? product.price / 1.1 : product.price;
+  return (Math.round(exGstPrice * 100) / 100).toFixed(2);
+};
+
 const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   firstName: "",
   lastName: "",
@@ -85,7 +123,7 @@ const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   state: "NSW",
   postcode: "",
   country: "Australia",
-  items: [{ name: "", quantity: "1", unitPrice: "" }],
+  items: [emptyManualInvoiceLine()],
   notes: "",
 };
 
@@ -124,6 +162,9 @@ const OrdersAdmin = () => {
     useState<ManualInvoiceDraft>(emptyManualInvoiceDraft);
   const [manualInvoiceSaving, setManualInvoiceSaving] = useState(false);
   const [manualInvoiceMessage, setManualInvoiceMessage] = useState<ShipmentMessage | null>(null);
+  const [manualInvoiceProducts, setManualInvoiceProducts] = useState<CatalogProductWithLive[]>([]);
+  const [manualInvoiceProductsLoading, setManualInvoiceProductsLoading] = useState(false);
+  const [focusedManualInvoiceLine, setFocusedManualInvoiceLine] = useState<number | null>(null);
   const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
   const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
@@ -161,6 +202,47 @@ const OrdersAdmin = () => {
       await refreshOrders();
     })();
   }, [session?.role]);
+
+  useEffect(() => {
+    if (!manualInvoiceOpen || session?.role !== "admin") {
+      return;
+    }
+
+    let isMounted = true;
+    setManualInvoiceProductsLoading(true);
+
+    const loadInvoiceProducts = async () => {
+      try {
+        const fastProducts = await loadCatalogProductsFast();
+        if (isMounted) {
+          setManualInvoiceProducts(fastProducts);
+        }
+      } catch {
+        if (isMounted) {
+          setManualInvoiceProducts([]);
+        }
+      }
+
+      try {
+        const freshProducts = await loadCatalogProducts({ forceRefresh: true });
+        if (isMounted) {
+          setManualInvoiceProducts(freshProducts);
+        }
+      } catch {
+        // Keep the fast catalogue available for admin invoice suggestions.
+      } finally {
+        if (isMounted) {
+          setManualInvoiceProductsLoading(false);
+        }
+      }
+    };
+
+    void loadInvoiceProducts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [manualInvoiceOpen, session?.role]);
 
   const summary = useMemo(() => {
     const open = orders.filter(
@@ -341,16 +423,44 @@ const OrdersAdmin = () => {
     setManualInvoiceDraft((current) => ({
       ...current,
       items: current.items.map((item, itemIndex) =>
-        itemIndex === index ? { ...item, [field]: value } : item,
+        itemIndex === index
+          ? {
+              ...item,
+              [field]: value,
+              ...(field === "name"
+                ? { code: undefined, supplierCode: undefined, manufacturer: undefined }
+                : {}),
+            }
+          : item,
       ),
     }));
+    setManualInvoiceMessage(null);
+  };
+
+  const selectManualInvoiceProduct = (index: number, product: CatalogProductWithLive) => {
+    setManualInvoiceDraft((current) => ({
+      ...current,
+      items: current.items.map((item, itemIndex) =>
+        itemIndex === index
+          ? {
+              ...item,
+              code: product.code || product.supplierCode,
+              supplierCode: product.supplierCode,
+              manufacturer: product.manufacturer,
+              name: formatProductSuggestionName(product),
+              unitPrice: getProductUnitPriceExGst(product) || item.unitPrice,
+            }
+          : item,
+      ),
+    }));
+    setFocusedManualInvoiceLine(null);
     setManualInvoiceMessage(null);
   };
 
   const addManualInvoiceLine = () => {
     setManualInvoiceDraft((current) => ({
       ...current,
-      items: [...current.items, { name: "", quantity: "1", unitPrice: "" }],
+      items: [...current.items, emptyManualInvoiceLine()],
     }));
     setManualInvoiceMessage(null);
   };
@@ -368,7 +478,7 @@ const OrdersAdmin = () => {
 
   const quoteManualInvoiceShipping = async (
     postcode: string,
-    items: Array<{ code: string; description: string; qty: number }>,
+    items: Array<{ code: string; supplierCode?: string; manufacturer?: string; description: string; qty: number }>,
   ) => {
     const response = await fetch("/api/shipping/quote", {
       method: "POST",
@@ -379,7 +489,8 @@ const OrdersAdmin = () => {
         destinationPostcode: postcode,
         items: items.map((item) => ({
           code: item.code,
-          manufacturer: "Internext",
+          supplierCode: item.supplierCode,
+          manufacturer: item.manufacturer || "Internext",
           description: item.description,
           qty: item.qty,
         })),
@@ -419,7 +530,9 @@ const OrdersAdmin = () => {
 
     const customerEmail = manualInvoiceDraft.email.trim().toLowerCase();
     const invoiceLines = manualInvoiceDraft.items.map((line, index) => ({
-      code: `MANUAL-${index + 1}`,
+      code: line.code || `MANUAL-${index + 1}`,
+      supplierCode: line.supplierCode,
+      manufacturer: line.manufacturer || "Internext",
       description: line.name.trim(),
       qty: Math.max(1, Math.floor(Number(line.quantity) || 1)),
       price: Number(line.unitPrice),
@@ -478,12 +591,12 @@ const OrdersAdmin = () => {
     };
     const items = invoiceLines.map((line) => ({
       code: line.code,
-      manufacturer: "Internext",
+      manufacturer: line.manufacturer,
       description: line.description,
       price: normalizeMoney(line.price),
       priceText: "Ex GST",
       rrp: null,
-      supplierCode: line.code,
+      supplierCode: line.supplierCode || line.code,
       qty: line.qty,
     }));
     const customer = {
@@ -1477,12 +1590,29 @@ const OrdersAdmin = () => {
                         </Button>
                       </div>
 
-                      {manualInvoiceDraft.items.map((item, index) => (
+                      {manualInvoiceDraft.items.map((item, index) => {
+                        const productQuery = item.name.trim();
+                        const productSuggestions =
+                          focusedManualInvoiceLine === index &&
+                          productQuery.length >= MIN_CATALOG_SEARCH_LENGTH
+                            ? searchCatalogProducts(
+                                manualInvoiceProducts.filter(
+                                  (product) =>
+                                    typeof product.price === "number" &&
+                                    Number.isFinite(product.price),
+                                ),
+                                productQuery,
+                              )
+                                .slice(0, 8)
+                                .map(({ product }) => product)
+                            : [];
+
+                        return (
                         <div
                           key={index}
                           className="grid gap-3 rounded-2xl border border-border/60 bg-secondary/20 p-3 md:grid-cols-[minmax(0,1fr)_110px_150px_auto]"
                         >
-                          <div>
+                          <div className="relative">
                             <label className="mb-2 block text-sm font-medium text-foreground">
                               Product name *
                             </label>
@@ -1491,9 +1621,56 @@ const OrdersAdmin = () => {
                               onChange={(event) =>
                                 updateManualInvoiceLine(index, "name", event.target.value)
                               }
+                              onFocus={() => setFocusedManualInvoiceLine(index)}
+                              onBlur={() =>
+                                window.setTimeout(() => setFocusedManualInvoiceLine(null), 140)
+                              }
                               className="h-11 border-border/70 bg-background"
+                              autoComplete="off"
                               required
                             />
+                            {focusedManualInvoiceLine === index &&
+                            productQuery.length >= MIN_CATALOG_SEARCH_LENGTH ? (
+                              <div className="absolute left-0 right-0 top-[calc(100%+0.35rem)] z-30 max-h-72 overflow-y-auto rounded-xl border border-border bg-background p-2 shadow-xl">
+                                {manualInvoiceProductsLoading && productSuggestions.length === 0 ? (
+                                  <p className="px-3 py-2 text-sm text-muted-foreground">
+                                    Loading products...
+                                  </p>
+                                ) : productSuggestions.length > 0 ? (
+                                  <div className="space-y-1">
+                                    {productSuggestions.map((product) => (
+                                      <button
+                                        key={`${product.code}-${product.supplierCode || ""}`}
+                                        type="button"
+                                        onMouseDown={(event) => event.preventDefault()}
+                                        onClick={() => selectManualInvoiceProduct(index, product)}
+                                        className="w-full rounded-lg px-3 py-2 text-left transition hover:bg-secondary"
+                                      >
+                                        <span className="block text-sm font-semibold text-foreground">
+                                          {formatProductSuggestionName(product)}
+                                        </span>
+                                        <span className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                          <span>{product.code || product.supplierCode}</span>
+                                          {product.manufacturer ? <span>{product.manufacturer}</span> : null}
+                                          {typeof product.price === "number" ? (
+                                            <span>{getProductUnitPriceExGst(product)} ex GST</span>
+                                          ) : null}
+                                        </span>
+                                      </button>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <p className="px-3 py-2 text-sm text-muted-foreground">
+                                    No matching priced products found.
+                                  </p>
+                                )}
+                              </div>
+                            ) : null}
+                            {item.code ? (
+                              <p className="mt-2 text-xs text-muted-foreground">
+                                Selected SKU: {item.code}
+                              </p>
+                            ) : null}
                           </div>
                           <div>
                             <label className="mb-2 block text-sm font-medium text-foreground">
@@ -1537,7 +1714,8 @@ const OrdersAdmin = () => {
                             </Button>
                           </div>
                         </div>
-                      ))}
+                        );
+                      })}
                     </div>
 
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
