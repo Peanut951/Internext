@@ -87,6 +87,7 @@ const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
 ]);
 
 const stripInvalidXmlChars = (value: unknown) =>
+  // eslint-disable-next-line no-control-regex
   String(value ?? "").replace(/[^\u0009\u000A\u000D\u0020-\uD7FF\uE000-\uFFFD]/g, "");
 
 const escapeXml = (value: unknown) =>
