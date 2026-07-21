@@ -21,6 +21,7 @@ const emptyForm = {
 const Signup = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const isFirstOrderOffer = searchParams.get("offer") === "first-order";
   const { toast } = useToast();
   const [formData, setFormData] = useState(emptyForm);
   const [submitting, setSubmitting] = useState(false);
@@ -72,9 +73,15 @@ const Signup = () => {
               <div className="mx-auto mb-5 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground shadow-card">
                 <User className="h-7 w-7" />
               </div>
-              <h1 className="text-3xl font-bold text-foreground">Create an Internext Account</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                {isFirstOrderOffer
+                  ? "Sign up now and receive 10% off your first order"
+                  : "Create an Internext Account"}
+              </h1>
               <p className="mt-3 text-base leading-7 text-muted-foreground">
-                Create a standard customer account for checkout and order access. Reseller pricing is enabled separately after approval.
+                {isFirstOrderOffer
+                  ? "Create a standard Internext customer account, then your first eligible account order will receive 10% off automatically at checkout."
+                  : "Create a standard customer account for checkout and order access. Reseller pricing is enabled separately after approval."}
               </p>
             </div>
 

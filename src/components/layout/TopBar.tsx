@@ -59,9 +59,15 @@ const TopBar = () => {
         </div>
         </div>
       </div>
-      <div className="bg-accent px-4 py-2 text-center text-sm font-semibold text-accent-foreground">
-        <Link to={session ? "/checkout" : "/login/register"} className="hover:underline">
-          10% off your first order with an Internext account
+      <div className="bg-accent px-4 py-3 text-accent-foreground shadow-sm">
+        <Link
+          to="/signup?offer=first-order"
+          className="container-wide flex flex-col items-center justify-center gap-1 text-center sm:flex-row sm:gap-3"
+        >
+          <span className="text-base font-extrabold sm:text-lg">10% off your first order</span>
+          <span className="text-sm font-medium sm:text-base">
+            Sign up now and receive your discount at checkout.
+          </span>
         </Link>
       </div>
     </>
