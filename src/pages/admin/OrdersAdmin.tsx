@@ -22,9 +22,7 @@ import {
   fetchSharedOrdersResult,
   formatAud,
   getOrderItemSerialKey,
-  getOrders,
   getSupplierIntegrationSettings,
-  persistSharedOrder,
   removeOrder,
   saveSupplierIntegrationSettings,
   updateSharedOrderFulfillment,
@@ -193,13 +191,7 @@ const OrdersAdmin = () => {
       return;
     }
 
-    void (async () => {
-      const localOrders = getOrders();
-      if (localOrders.length > 0) {
-        await Promise.all(localOrders.map((order) => persistSharedOrder(order)));
-      }
-      await refreshOrders();
-    })();
+    void refreshOrders();
   }, [session?.role]);
 
   useEffect(() => {
