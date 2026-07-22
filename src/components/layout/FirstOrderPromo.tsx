@@ -1,29 +1,13 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Gift, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
-const PROMO_STORAGE_KEY = "internext-first-order-promo-state";
-
-const readInitialState = () => {
-  if (typeof window === "undefined") {
-    return "open";
-  }
-
-  return window.localStorage.getItem(PROMO_STORAGE_KEY) === "minimized" ? "minimized" : "open";
-};
-
 const FirstOrderPromo = () => {
   const location = useLocation();
-  const [state, setState] = useState<"open" | "minimized">(readInitialState);
+  const [state, setState] = useState<"open" | "minimized">("open");
   const isSignupOfferPage =
     location.pathname === "/signup" && new URLSearchParams(location.search).get("offer") === "first-order";
-
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      window.localStorage.setItem(PROMO_STORAGE_KEY, state);
-    }
-  }, [state]);
 
   if (isSignupOfferPage) {
     return null;

@@ -1787,6 +1787,8 @@ export default async function handler(
     }
 
     const origin = getRequestOrigin(req.headers, body.origin || "");
+    const discountTotal = getNumber(body.order.discountTotal);
+    const discountRate = getNumber(body.order.discountRate);
     const checkoutParams = buildStripeCheckoutParams({
       origin,
       orderNumber,
@@ -1799,6 +1801,13 @@ export default async function handler(
       },
       items: payableItems,
       resellerEmail: session.email,
+      discount:
+        discountTotal > 0 && discountRate > 0
+          ? {
+              name: getString(body.order.discountName) || "First order discount",
+              rate: discountRate,
+            }
+          : undefined,
       shipping:
         getNumber(body.order.shippingTotal) > 0
           ? {

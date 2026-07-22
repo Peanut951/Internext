@@ -71,15 +71,9 @@ type ManualInvoiceDraft = {
   postcode: string;
   country: string;
   items: ManualInvoiceLine[];
+  shippingTotal: string;
+  firstOrderDiscountApplied: boolean;
   notes: string;
-};
-
-type ManualShippingQuote = {
-  service?: {
-    name?: string;
-    price?: number;
-  };
-  message?: string;
 };
 
 const emptyManualInvoiceLine = (): ManualInvoiceLine => ({
@@ -160,6 +154,8 @@ const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   postcode: "",
   country: "Australia",
   items: [emptyManualInvoiceLine()],
+  shippingTotal: "",
+  firstOrderDiscountApplied: false,
   notes: "",
 };
 
@@ -446,7 +442,10 @@ const OrdersAdmin = () => {
     }));
   };
 
-  const updateManualInvoiceDraft = (field: keyof ManualInvoiceDraft, value: string) => {
+  const updateManualInvoiceDraft = (
+    field: Exclude<keyof ManualInvoiceDraft, "firstOrderDiscountApplied" | "items">,
+    value: string,
+  ) => {
     setManualInvoiceDraft((current) => ({ ...current, [field]: value }));
     setManualInvoiceMessage(null);
   };
@@ -512,38 +511,6 @@ const OrdersAdmin = () => {
     setManualInvoiceMessage(null);
   };
 
-  const quoteManualInvoiceShipping = async (
-    postcode: string,
-    items: Array<{ code: string; supplierCode?: string; manufacturer?: string; description: string; qty: number }>,
-  ) => {
-    const response = await fetch("/api/shipping/quote", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        destinationPostcode: postcode,
-        items: items.map((item) => ({
-          code: item.code,
-          supplierCode: item.supplierCode,
-          manufacturer: item.manufacturer || "Internext",
-          description: item.description,
-          qty: item.qty,
-        })),
-      }),
-    });
-    const payload = (await response.json().catch(() => ({}))) as ManualShippingQuote;
-
-    if (!response.ok || typeof payload.service?.price !== "number") {
-      throw new Error(payload.message || "Unable to calculate shipping for this invoice.");
-    }
-
-    return {
-      name: payload.service.name || "Australia Post",
-      price: payload.service.price,
-    };
-  };
-
   const createManualOrderNumber = () => {
     const datePart = new Date().toISOString().slice(0, 10).replace(/-/g, "");
     const randomPart = Math.random().toString(36).slice(2, 7).toUpperCase();
@@ -592,7 +559,17 @@ const OrdersAdmin = () => {
     if (!/^\d{4}$/.test(postcode) || !isAustralianAddress) {
       setManualInvoiceMessage({
         tone: "error",
-        text: "Enter a valid Australian postcode so shipping can be calculated before the invoice is emailed.",
+        text: "Enter a valid Australian delivery postcode for the invoice.",
+      });
+      setManualInvoiceSaving(false);
+      return;
+    }
+
+    const shippingTotal = normalizeMoney(Number(manualInvoiceDraft.shippingTotal));
+    if (!Number.isFinite(shippingTotal) || shippingTotal < 0) {
+      setManualInvoiceMessage({
+        tone: "error",
+        text: "Enter a valid postage amount for this invoice.",
       });
       setManualInvoiceSaving(false);
       return;
@@ -603,23 +580,13 @@ const OrdersAdmin = () => {
     const itemsSubtotal = normalizeMoney(
       invoiceLines.reduce((total, line) => total + line.price * line.qty, 0),
     );
-    const gstAmount = normalizeMoney(itemsSubtotal * 0.1);
-    let shipping: { name: string; price: number };
-    try {
-      shipping = await quoteManualInvoiceShipping(postcode, invoiceLines);
-    } catch (error) {
-      setManualInvoiceMessage({
-        tone: "error",
-        text:
-          error instanceof Error
-            ? error.message
-            : "Unable to calculate shipping for this invoice.",
-      });
-      setManualInvoiceSaving(false);
-      return;
-    }
-    const shippingTotal = normalizeMoney(shipping.price);
-    const totalKnownValue = normalizeMoney(itemsSubtotal + gstAmount + shippingTotal);
+    const discountRate = manualInvoiceDraft.firstOrderDiscountApplied ? 0.1 : 0;
+    const discountTotal = normalizeMoney(itemsSubtotal * discountRate);
+    const discountedItemsSubtotal = normalizeMoney(itemsSubtotal - discountTotal);
+    const gstAmount = normalizeMoney(discountedItemsSubtotal * 0.1);
+    const totalKnownValue = normalizeMoney(discountedItemsSubtotal + gstAmount + shippingTotal);
+    const discountName = "First order discount";
+    const shippingName = "Manual postage";
     const reseller: OrderReseller = {
       userId: session?.userId,
       email: session?.email || "admin@internext.com.au",
@@ -670,9 +637,12 @@ const OrdersAdmin = () => {
       totals: {
         subtotal: itemsSubtotal,
         itemsSubtotal,
+        discountTotal,
+        discountName: discountTotal > 0 ? discountName : undefined,
+        discountRate: discountTotal > 0 ? discountRate : undefined,
         gstAmount,
         shippingTotal,
-        shippingName: shipping.name,
+        shippingName,
         poaLines: 0,
         totalKnownValue,
       },
@@ -687,9 +657,12 @@ const OrdersAdmin = () => {
       items,
       subtotal: itemsSubtotal,
       itemsSubtotal,
+      discountTotal,
+      discountName: discountTotal > 0 ? discountName : undefined,
+      discountRate: discountTotal > 0 ? discountRate : undefined,
       gstAmount,
       shippingTotal,
-      shippingName: shipping.name,
+      shippingName,
       poaLines: 0,
       totalKnownValue,
       paymentStatus: "awaiting_payment",
@@ -1606,6 +1579,25 @@ const OrdersAdmin = () => {
                           className="h-11 border-border/70 bg-secondary/20"
                         />
                       </div>
+                      <div>
+                        <label className="mb-2 block text-sm font-medium text-foreground">
+                          Postage inc GST *
+                        </label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={manualInvoiceDraft.shippingTotal}
+                          onChange={(event) =>
+                            updateManualInvoiceDraft("shippingTotal", event.target.value)
+                          }
+                          className="h-11 border-border/70 bg-secondary/20"
+                          required
+                        />
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          Enter the delivery amount the customer should pay.
+                        </p>
+                      </div>
                     </div>
 
                     <div className="space-y-3">
@@ -1613,7 +1605,7 @@ const OrdersAdmin = () => {
                         <div>
                           <h4 className="text-sm font-semibold text-foreground">Invoice products</h4>
                           <p className="text-sm text-muted-foreground">
-                            Shipping is calculated from the delivery postcode when the invoice is created.
+                            Add the products, quantities, and public customer website pricing.
                           </p>
                         </div>
                         <Button
@@ -1758,6 +1750,29 @@ const OrdersAdmin = () => {
                         );
                       })}
                     </div>
+
+                    <label className="flex items-start gap-3 rounded-2xl border border-border/60 bg-secondary/20 p-4 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={manualInvoiceDraft.firstOrderDiscountApplied}
+                        onChange={(event) => {
+                          setManualInvoiceDraft((current) => ({
+                            ...current,
+                            firstOrderDiscountApplied: event.target.checked,
+                          }));
+                          setManualInvoiceMessage(null);
+                        }}
+                        className="mt-1 h-4 w-4 rounded border-border"
+                      />
+                      <span>
+                        <span className="block font-semibold text-foreground">
+                          Apply 10% first order discount
+                        </span>
+                        <span className="mt-1 block text-muted-foreground">
+                          The customer invoice email and Stripe payment link will show the discount.
+                        </span>
+                      </span>
+                    </label>
 
                     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                       <div className="md:col-span-2 xl:col-span-4">
