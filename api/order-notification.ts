@@ -1238,51 +1238,47 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
   const itemRows = summary.lines
     .map((line) => `
       <tr>
-        <td style="padding:14px 0;border-bottom:1px solid #e5e7eb;word-break:break-word;overflow-wrap:anywhere;">
+        <td width="220" style="padding:12px 0;border-bottom:1px solid #e5e7eb;word-break:break-word;overflow-wrap:anywhere;">
           <div style="font-weight:700;color:#111827;word-break:break-word;overflow-wrap:anywhere;">${escapeHtml(line.description)}</div>
           <div style="font-size:12px;color:#6b7280;margin-top:4px;word-break:break-word;overflow-wrap:anywhere;">Code: ${escapeHtml(line.code)}</div>
         </td>
-        <td align="center" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.quantity)}</td>
-        <td align="right" style="padding:14px 10px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.unitPriceText)} ${escapeHtml(line.priceBasis)}</td>
-        <td align="right" style="padding:14px 0;border-bottom:1px solid #e5e7eb;font-weight:700;color:#111827;">${escapeHtml(line.lineTotalText)}</td>
+        <td width="44" align="center" style="padding:12px 6px;border-bottom:1px solid #e5e7eb;color:#111827;">${escapeHtml(line.quantity)}</td>
+        <td width="98" align="right" style="padding:12px 6px;border-bottom:1px solid #e5e7eb;color:#111827;font-size:12px;">${escapeHtml(line.unitPriceText)} ${escapeHtml(line.priceBasis)}</td>
+        <td width="98" align="right" style="padding:12px 0;border-bottom:1px solid #e5e7eb;font-weight:700;color:#111827;font-size:12px;">${escapeHtml(line.lineTotalText)}</td>
       </tr>`)
     .join("");
 
   const html = `<!doctype html>
 <html>
-  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;width:100%;">
-    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;padding:28px 12px;width:100%;max-width:100%;">
+  <body style="margin:0;background:#f3f4f6;font-family:Arial,Helvetica,sans-serif;color:#111827;">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f3f4f6;">
       <tr>
-        <td align="center">
-          <table role="presentation" width="640" cellspacing="0" cellpadding="0" style="width:100%;max-width:640px;background:#ffffff;border-radius:16px;overflow:hidden;border:1px solid #e5e7eb;">
+        <td align="center" style="padding:28px 12px;">
+          <table role="presentation" width="520" cellspacing="0" cellpadding="0" style="width:520px;background:#ffffff;border:1px solid #e5e7eb;">
             <tr>
-              <td style="background:#1f2937;padding:28px 32px;">
+              <td style="background:#1f2937;padding:24px 28px;">
                 <div style="font-size:13px;letter-spacing:0.16em;text-transform:uppercase;color:#7dd3fc;font-weight:700;">Internext</div>
                 <h1 style="margin:12px 0 0;font-size:28px;line-height:1.2;color:#ffffff;">Payment request</h1>
                 <p style="margin:10px 0 0;color:#d1d5db;font-size:15px;">Hi ${escapeHtml(customerName)}, your Internext order is ready for secure payment.</p>
               </td>
             </tr>
             <tr>
-              <td style="padding:28px 32px;">
+              <td style="padding:24px 28px;">
                 <p style="margin:0 0 20px;color:#4b5563;line-height:1.6;">
                   Please use the secure Stripe payment link below to complete payment. Your order will be marked as paid in Internext only after Stripe confirms payment.
                 </p>
-                <table role="presentation" cellspacing="0" cellpadding="0" style="margin:0 0 28px;">
-                  <tr>
-                    <td bgcolor="#1f2937" style="background:#1f2937;border-radius:10px;text-align:center;">
-                      <a href="${escapeHtml(paymentUrl)}" style="display:inline-block;color:#ffffff;text-decoration:none;font-size:15px;font-weight:800;line-height:1.2;padding:14px 24px;border:1px solid #1f2937;border-radius:10px;">Pay invoice securely</a>
-                    </td>
-                  </tr>
-                </table>
+                <p style="margin:0 0 28px;">
+                  <a href="${escapeHtml(paymentUrl)}" style="background:#1f2937;color:#ffffff;text-decoration:none;font-size:14px;font-weight:800;line-height:18px;padding:10px 16px;border:1px solid #1f2937;display:inline-block;">Pay invoice securely</a>
+                </p>
 
                 <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Items ordered</h2>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;table-layout:fixed;width:100%;max-width:100%;">
+                <table role="presentation" width="464" cellspacing="0" cellpadding="0" style="border-collapse:collapse;width:464px;">
                   <thead>
                     <tr>
-                      <th align="left" width="52%" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
-                      <th align="center" width="12%" style="padding:0 8px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
-                      <th align="right" width="18%" style="padding:0 8px 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Unit</th>
-                      <th align="right" width="18%" style="padding:0 0 10px;color:#6b7280;font-size:12px;text-transform:uppercase;letter-spacing:0.08em;">Total</th>
+                      <th align="left" width="220" style="padding:0 0 10px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Item</th>
+                      <th align="center" width="44" style="padding:0 6px 10px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Qty</th>
+                      <th align="right" width="98" style="padding:0 6px 10px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Unit</th>
+                      <th align="right" width="98" style="padding:0 0 10px;color:#6b7280;font-size:11px;text-transform:uppercase;letter-spacing:0.08em;">Total</th>
                     </tr>
                   </thead>
                   <tbody>${itemRows}</tbody>
@@ -1293,33 +1289,33 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
                   ${shippingAddress.map(escapeHtml).join("<br>") || "No delivery address supplied"}
                 </p>
 
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;width:100%;max-width:100%;table-layout:fixed;">
+                <table role="presentation" width="464" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;width:464px;">
                   <tr>
-                    <td style="padding:6px 0;color:#4b5563;">Items subtotal ex GST</td>
-                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
+                    <td style="padding:12px 14px 6px;color:#4b5563;">Items subtotal ex GST</td>
+                    <td align="right" style="padding:12px 14px 6px;color:#111827;font-weight:700;">${escapeHtml(summary.itemsSubtotalText)}</td>
                   </tr>
                   ${summary.discountTotal > 0 ? `
                   <tr>
-                    <td style="padding:6px 0;color:#047857;">${escapeHtml(summary.discountName)}</td>
-                    <td align="right" style="padding:6px 0;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
+                    <td style="padding:6px 14px;color:#047857;">${escapeHtml(summary.discountName)}</td>
+                    <td align="right" style="padding:6px 14px;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
                   </tr>` : ""}
                   <tr>
-                    <td style="padding:6px 0;color:#4b5563;">GST</td>
-                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
+                    <td style="padding:6px 14px;color:#4b5563;">GST</td>
+                    <td align="right" style="padding:6px 14px;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
                   </tr>
                   <tr>
-                    <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
-                    <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
+                    <td style="padding:6px 14px;color:#4b5563;">Shipping ex GST</td>
+                    <td align="right" style="padding:6px 14px;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
                   </tr>
                   <tr>
-                    <td style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
-                    <td align="right" style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-size:18px;font-weight:900;">${escapeHtml(summary.totalKnownValueText)}</td>
+                    <td style="padding:12px 14px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
+                    <td align="right" style="padding:12px 14px;border-top:1px solid #e5e7eb;color:#111827;font-size:18px;font-weight:900;">${escapeHtml(summary.totalKnownValueText)}</td>
                   </tr>
                 </table>
 
                 <p style="margin:26px 0 0;color:#4b5563;line-height:1.6;">
-                  If the button does not open, paste this link into your browser:<br>
-                  <a href="${escapeHtml(paymentUrl)}" style="color:#2563eb;word-break:break-all;overflow-wrap:anywhere;">${escapeHtml(paymentUrl)}</a>
+                  If the button does not open, use this secure payment link:<br>
+                  <a href="${escapeHtml(paymentUrl)}" style="color:#2563eb;">Open secure Stripe payment link</a>
                 </p>
                 <p style="margin:16px 0 0;color:#4b5563;line-height:1.6;">
                   For questions, call 1300 U R NEXT (1300 876 398).

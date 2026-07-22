@@ -108,39 +108,6 @@ const getProductUnitPriceExGst = (product: CatalogProductWithLive) => {
 const getProductCustomerPriceText = (product: CatalogProductWithLive) =>
   product.priceText || (typeof product.price === "number" ? formatAud(product.price) : "") || "";
 
-const findManualInvoiceProduct = (
-  line: ManualInvoiceLine,
-  products: CatalogProductWithLive[],
-) => {
-  const codes = [line.code, line.supplierCode].filter(Boolean).map((code) => code?.toLowerCase());
-
-  if (codes.length === 0) {
-    return null;
-  }
-
-  return (
-    products.find((product) => {
-      const productCodes = [product.code, product.supplierCode]
-        .filter(Boolean)
-        .map((code) => code?.toLowerCase());
-      return productCodes.some((code) => code && codes.includes(code));
-    }) || null
-  );
-};
-
-const getManualInvoiceLineUnitPriceExGst = (
-  line: ManualInvoiceLine,
-  products: CatalogProductWithLive[],
-) => {
-  const product = findManualInvoiceProduct(line, products);
-  const productUnitPriceText = product ? getProductUnitPriceExGst(product) : "";
-  const productUnitPrice = productUnitPriceText ? Number(productUnitPriceText) : null;
-
-  return productUnitPrice !== null && Number.isFinite(productUnitPrice)
-    ? productUnitPrice
-    : Number(line.unitPrice);
-};
-
 const emptyManualInvoiceDraft: ManualInvoiceDraft = {
   firstName: "",
   lastName: "",
@@ -538,7 +505,7 @@ const OrdersAdmin = () => {
       manufacturer: line.manufacturer || "Internext",
       description: line.name.trim(),
       qty: Math.max(1, Math.floor(Number(line.quantity) || 1)),
-      price: getManualInvoiceLineUnitPriceExGst(line, manualInvoiceProducts),
+      price: Number(line.unitPrice),
     }));
 
     if (
