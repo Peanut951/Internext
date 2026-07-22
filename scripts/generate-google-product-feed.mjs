@@ -282,10 +282,15 @@ const getGoogleImages = (product, excludedCodes) => {
 };
 
 const getProductText = (product) =>
-  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+  `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
 const getProductListingText = (product) =>
   `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
+
+const isSmallWallControlText = (text) =>
+  /\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control|sip\s+indoor\s+unit|hypanel|pg71n?|pg71)\b/.test(
+    text,
+  );
 
 const getProductType = (product) => {
   const text = getProductText(product);
@@ -298,6 +303,7 @@ const getProductType = (product) => {
   if (/\b(tablet)\b/.test(text)) return "Computers > Tablets";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computers > Desktop computers and servers";
   if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
+  if (isSmallWallControlText(text)) return "Security > Access control";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Displays and AV > Displays";
   if (/\b(projector)\b/.test(text)) return "Displays and AV > Projectors";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security > Surveillance";
@@ -352,6 +358,16 @@ const round = (value, decimals = 2) => {
 
 const estimateShippingProfile = (product) => {
   const text = getProductText(product);
+  const normalizeProvidedWeightKg = (value) => {
+    const parsed = toPositiveNumber(value);
+    if (parsed === null) return null;
+    return isSmallWallControlText(text) && parsed > 10 ? null : parsed;
+  };
+  const normalizeProvidedDimensionCm = (value) => {
+    const parsed = toPositiveNumber(value);
+    if (parsed === null) return null;
+    return isSmallWallControlText(text) && parsed > 80 ? null : parsed;
+  };
 
   const categoryEstimate = (() => {
     if (/\b(warranty|licen[cs]e|subscription|support|onsite|software|service|renewal)\b/.test(text)) return { weightKg: 0.1, lengthCm: 1, widthCm: 1, heightCm: 1 };
@@ -360,8 +376,9 @@ const estimateShippingProfile = (product) => {
     if (/\b(paper|roll|media|film|vinyl|label)\b/.test(text)) return { weightKg: 5, lengthCm: 65, widthCm: 25, heightCm: 25 };
     if (/\b(laptop|notebook|chromebook)\b/.test(text)) return { weightKg: 3, lengthCm: 45, widthCm: 35, heightCm: 12 };
     if (/\b(tablet)\b/.test(text)) return { weightKg: 1.2, lengthCm: 32, widthCm: 24, heightCm: 8 };
+    if (isSmallWallControlText(text)) return { weightKg: 1.5, lengthCm: 32, widthCm: 24, heightCm: 8 };
     if (/\b(camera|nvr|dvr|switch|router|phone|handset|headset|access point|ap\b|intercom)\b/.test(text)) return { weightKg: 2, lengthCm: 30, widthCm: 20, heightCm: 15 };
-    if (/\b(monitor|display|screen|tv|signage|panel)\b/.test(text)) return { weightKg: 8, lengthCm: 80, widthCm: 55, heightCm: 20 };
+    if (/\b(monitor|display|tv|signage|interactive\s+panel)\b/.test(text)) return { weightKg: 8, lengthCm: 80, widthCm: 55, heightCm: 20 };
     if (/\b(projector|speaker|soundbar|conference)\b/.test(text)) return { weightKg: 5, lengthCm: 45, widthCm: 35, heightCm: 20 };
     if (/\b(printer|multifunction|mfp|copier|scanner|plotter|large format)\b/.test(text)) return { weightKg: 25, lengthCm: 80, widthCm: 60, heightCm: 50 };
     if (/\b(server|workstation|desktop|pc\b|ups|battery)\b/.test(text)) return { weightKg: 12, lengthCm: 60, widthCm: 50, heightCm: 30 };
@@ -369,10 +386,10 @@ const estimateShippingProfile = (product) => {
   })();
 
   return {
-    weightKg: Math.max(0.1, round(toPositiveNumber(product.weightKg) ?? categoryEstimate.weightKg)),
-    lengthCm: Math.max(1, round(toPositiveNumber(product.depthCm) ?? categoryEstimate.lengthCm, 1)),
-    widthCm: Math.max(1, round(toPositiveNumber(product.widthCm) ?? categoryEstimate.widthCm, 1)),
-    heightCm: Math.max(1, round(toPositiveNumber(product.heightCm) ?? categoryEstimate.heightCm, 1)),
+    weightKg: Math.max(0.1, round(normalizeProvidedWeightKg(product.weightKg) ?? categoryEstimate.weightKg)),
+    lengthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.depthCm) ?? categoryEstimate.lengthCm, 1)),
+    widthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.widthCm) ?? categoryEstimate.widthCm, 1)),
+    heightCm: Math.max(1, round(normalizeProvidedDimensionCm(product.heightCm) ?? categoryEstimate.heightCm, 1)),
   };
 };
 
@@ -397,6 +414,7 @@ const getShoppingTitleProductType = (product) => {
   if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
   if (/\b(headset)\b/.test(text)) return "Headset";
   if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
+  if (isSmallWallControlText(text)) return "Control Panel";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
   if (/\bprojector\b/.test(text)) return "Projector";
   if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";

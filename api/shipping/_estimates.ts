@@ -1,4 +1,6 @@
 type ShippingEstimateProduct = {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
@@ -20,7 +22,7 @@ export type ShippingEstimate = {
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
 
 const getText = (product: ShippingEstimateProduct) =>
-  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+  `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
 
 const toPositiveNumber = (value: unknown) => {
   const parsed = Number(value);
@@ -71,6 +73,37 @@ const parseDimensionsCm = (text: string) => {
   };
 };
 
+const isSmallWallControlText = (text: string) =>
+  /\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control|sip\s+indoor\s+unit|hypanel|pg71n?|pg71)\b/.test(
+    text,
+  );
+
+const normalizeProvidedWeightKg = (value: unknown, text: string) => {
+  const parsed = toPositiveNumber(value);
+  if (parsed === null) {
+    return null;
+  }
+
+  if (isSmallWallControlText(text) && parsed > 10) {
+    return null;
+  }
+
+  return parsed;
+};
+
+const normalizeProvidedDimensionCm = (value: unknown, text: string) => {
+  const parsed = toPositiveNumber(value);
+  if (parsed === null) {
+    return null;
+  }
+
+  if (isSmallWallControlText(text) && parsed > 80) {
+    return null;
+  }
+
+  return parsed;
+};
+
 const estimateByCategory = (product: ShippingEstimateProduct) => {
   const text = getText(product);
 
@@ -98,7 +131,7 @@ const estimateByCategory = (product: ShippingEstimateProduct) => {
     return { weightKg: 1.2, lengthCm: 32, widthCm: 24, heightCm: 8 };
   }
 
-  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control)\b/.test(text)) {
+  if (isSmallWallControlText(text)) {
     return { weightKg: 1.5, lengthCm: 32, widthCm: 24, heightCm: 8 };
   }
 
@@ -130,14 +163,18 @@ export const estimateShippingProfile = (product: ShippingEstimateProduct): Shipp
   const categoryEstimate = estimateByCategory(product);
   const parsedDimensions = parseDimensionsCm(text);
   const parsedWeight = parseWeightKg(text);
+  const providedWeight = normalizeProvidedWeightKg(product.weightKg, text);
+  const providedLength = normalizeProvidedDimensionCm(product.depthCm, text);
+  const providedWidth = normalizeProvidedDimensionCm(product.widthCm, text);
+  const providedHeight = normalizeProvidedDimensionCm(product.heightCm, text);
 
-  const weightKg = toPositiveNumber(product.weightKg) ?? parsedWeight ?? categoryEstimate.weightKg;
-  const lengthCm = toPositiveNumber(product.depthCm) ?? parsedDimensions?.lengthCm ?? categoryEstimate.lengthCm;
-  const widthCm = toPositiveNumber(product.widthCm) ?? parsedDimensions?.widthCm ?? categoryEstimate.widthCm;
-  const heightCm = toPositiveNumber(product.heightCm) ?? parsedDimensions?.heightCm ?? categoryEstimate.heightCm;
-  const hasActualWeight = Boolean(toPositiveNumber(product.weightKg) ?? parsedWeight);
+  const weightKg = providedWeight ?? parsedWeight ?? categoryEstimate.weightKg;
+  const lengthCm = providedLength ?? parsedDimensions?.lengthCm ?? categoryEstimate.lengthCm;
+  const widthCm = providedWidth ?? parsedDimensions?.widthCm ?? categoryEstimate.widthCm;
+  const heightCm = providedHeight ?? parsedDimensions?.heightCm ?? categoryEstimate.heightCm;
+  const hasActualWeight = Boolean(providedWeight ?? parsedWeight);
   const hasActualDimensions = Boolean(
-    (toPositiveNumber(product.depthCm) && toPositiveNumber(product.widthCm) && toPositiveNumber(product.heightCm)) ||
+    (providedLength && providedWidth && providedHeight) ||
       parsedDimensions,
   );
 

@@ -196,14 +196,23 @@ const getProductMpn = (product: {
 };
 
 const getProductText = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
   longDescription?: string | null;
 }) =>
-  `${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+  `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""} ${product.longDescription || ""}`.toLowerCase();
+
+const isSmallWallControlText = (text: string) =>
+  /\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control|sip\s+indoor\s+unit|hypanel|pg71n?|pg71)\b/.test(
+    text,
+  );
 
 const getShoppingTitleProductType = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
@@ -225,6 +234,7 @@ const getShoppingTitleProductType = (product: {
   if (/\b(desktop|workstation|pc\b)\b/.test(text)) return "Computer";
   if (/\bheadset\b/.test(text)) return "Headset";
   if (/\b(phone|handset|speakerphone|conference|voip|sip)\b/.test(text)) return "Business Phone";
+  if (isSmallWallControlText(text)) return "Control Panel";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Display";
   if (/\bprojector\b/.test(text)) return "Projector";
   if (/\b(nvr|dvr)\b/.test(text)) return "Video Recorder";
@@ -538,6 +548,8 @@ const getProductListingText = (product: {
   `${product.code || ""} ${product.supplierCode || ""} ${product.manufacturer || ""} ${product.name || ""} ${product.description || ""}`.toLowerCase();
 
 const getProductType = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;
@@ -553,6 +565,7 @@ const getProductType = (product: {
   if (/\b(tablet)\b/.test(text)) return "Computers > Tablets";
   if (/\b(desktop|workstation|pc\b|server)\b/.test(text)) return "Computers > Desktop computers and servers";
   if (/\b(phone|handset|headset|speakerphone|conference|voip|sip)\b/.test(text)) return "Unified communications > Phones and headsets";
+  if (isSmallWallControlText(text)) return "Security > Access control";
   if (/\b(monitor|display|screen|signage|panel)\b/.test(text)) return "Displays and AV > Displays";
   if (/\b(projector)\b/.test(text)) return "Displays and AV > Projectors";
   if (/\b(camera|cctv|nvr|dvr|surveillance)\b/.test(text)) return "Security > Surveillance";
@@ -585,6 +598,8 @@ const isLeaderLiveFeedImage = (product: { imageUrl?: string | null; imageUrls?: 
 };
 
 const getGoogleProductCategory = (product: {
+  code?: string | null;
+  supplierCode?: string | null;
   manufacturer?: string | null;
   name?: string | null;
   description?: string | null;

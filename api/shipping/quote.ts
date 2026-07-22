@@ -3,7 +3,9 @@ import { estimateShippingProfile } from "./_estimates.js";
 
 type ShippingQuoteItem = {
   code?: string;
+  supplierCode?: string;
   manufacturer?: string;
+  name?: string;
   description?: string;
   longDescription?: string;
   qty?: number;
@@ -67,7 +69,8 @@ const roundParcel = (parcel: ParcelEstimate): ParcelEstimate => ({
 
 const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
   const estimate = estimateShippingProfile(item);
-  const itemText = `${item.manufacturer || ""} ${item.description || ""} ${item.longDescription || ""}`.toLowerCase();
+  const itemText =
+    `${item.code || ""} ${item.supplierCode || ""} ${item.manufacturer || ""} ${item.name || ""} ${item.description || ""} ${item.longDescription || ""}`.toLowerCase();
 
   return roundParcel({
     itemCode: item.code,
@@ -81,6 +84,10 @@ const buildParcelForItem = (item: ShippingQuoteItem): ParcelEstimate => {
 };
 
 const getMinimumPackedWeightKg = (itemText = "") => {
+  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control|sip\s+indoor\s+unit|hypanel|pg71n?|pg71)\b/.test(itemText)) {
+    return 1.5;
+  }
+
   if (/\b(tablet|ipad)\b/.test(itemText)) {
     return 2;
   }
@@ -89,7 +96,7 @@ const getMinimumPackedWeightKg = (itemText = "") => {
     return 4;
   }
 
-  if (/\b(monitor|display|screen|tv|signage|panel)\b/.test(itemText)) {
+  if (/\b(monitor|display|tv|signage|interactive\s+panel)\b/.test(itemText)) {
     return 6;
   }
 
@@ -118,11 +125,14 @@ const getMinimumPackedWeightKg = (itemText = "") => {
 
 const getMinimumShippingFloor = (items: ShippingQuoteItem[] = []) => {
   const text = items
-    .map((item) => `${item.manufacturer || ""} ${item.description || ""} ${item.longDescription || ""}`)
+    .map(
+      (item) =>
+        `${item.code || ""} ${item.supplierCode || ""} ${item.manufacturer || ""} ${item.name || ""} ${item.description || ""} ${item.longDescription || ""}`,
+    )
     .join(" ")
     .toLowerCase();
 
-  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control)\b/.test(text)) {
+  if (/\b(control\s*panel|indoor\s*monitor|intercom\s*monitor|touch\s*screen\s+android|android\s+based\s+control|sip\s+indoor\s+unit|hypanel|pg71n?|pg71)\b/.test(text)) {
     return MIN_SHIPPING_TOTAL;
   }
 
@@ -179,7 +189,7 @@ const createConsolidatedParcel = (
 
   return roundParcel({
     qty: 1,
-    weightKg: Math.max(totals.weightKg, packedVolume / CUBIC_WEIGHT_DIVISOR_CM),
+    weightKg: totals.weightKg,
     lengthCm,
     widthCm,
     heightCm,
@@ -215,16 +225,15 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
 
   units.forEach((unit) => {
     const unitParcel = createConsolidatedParcel([unit]);
-    const unitChargeableWeight = getChargeableWeightKg(unitParcel);
 
-    if (unitChargeableWeight > MAX_PARCEL_WEIGHT_KG) {
+    if (unitParcel.weightKg > MAX_PARCEL_WEIGHT_KG) {
       groups.push([unit]);
       return;
     }
 
     const existingGroup = groups.find((group) => {
       const candidate = createConsolidatedParcel([...group, unit]);
-      return getChargeableWeightKg(candidate) <= MAX_PARCEL_WEIGHT_KG;
+      return candidate.weightKg <= MAX_PARCEL_WEIGHT_KG;
     });
 
     if (existingGroup) {
@@ -236,7 +245,7 @@ const calculateParcels = (items: ShippingQuoteItem[] = []) => {
 
   const packedParcels = groups.map((group) => createConsolidatedParcel(group));
   const overweightParcel = packedParcels.find(
-    (currentParcel) => getChargeableWeightKg(currentParcel) > MAX_PARCEL_WEIGHT_KG,
+    (currentParcel) => currentParcel.weightKg > MAX_PARCEL_WEIGHT_KG,
   );
 
   if (overweightParcel && units.length > 1) {
