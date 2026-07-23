@@ -79,7 +79,7 @@ const Shipping = () => {
                 { name: "Standard Delivery", desc: "The default freight option calculated from the delivery address and product dimensions.", time: "1-5 business days" },
                 { name: "Express Delivery", desc: "Priority handling where the selected carrier and destination support it.", time: "Varies by area" },
                 { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
-                { name: "Bulky or Fragile Freight", desc: "Used for racks, displays, printers, servers, projectors, large security kits, or multi-carton items that need special handling.", time: "Quoted at checkout" },
+                { name: "Bulky or Fragile Freight", desc: "Contact Internext for information.", time: "Contact for info" },
               ].map((option) => (
                 <div key={option.name} className="bg-card rounded-xl p-6 shadow-card border border-border/50 flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div>
