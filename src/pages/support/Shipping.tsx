@@ -41,10 +41,6 @@ const Shipping = () => {
                     <CheckCircle className="h-4 w-4 text-accent" />
                     Typically 1-3 business days after dispatch
                   </li>
-                  <li className="flex items-center gap-2 text-foreground">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    Express options may be available for selected areas
-                  </li>
                 </ul>
               </div>
 
@@ -63,10 +59,6 @@ const Shipping = () => {
                     <CheckCircle className="h-4 w-4 text-accent" />
                     2-5 business days depending on location
                   </li>
-                  <li className="flex items-center gap-2 text-foreground">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    Express options available
-                  </li>
                 </ul>
               </div>
             </div>
@@ -77,7 +69,6 @@ const Shipping = () => {
             <div className="space-y-4 mb-12">
               {[
                 { name: "Standard Delivery", desc: "The default freight option calculated from the delivery address and product dimensions.", time: "1-5 business days" },
-                { name: "Express Delivery", desc: "Priority handling where the selected carrier and destination support it.", time: "Varies by area" },
                 { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
                 { name: "Bulky or Fragile Freight", desc: "Contact Internext for information.", time: "Contact for info" },
               ].map((option) => (
