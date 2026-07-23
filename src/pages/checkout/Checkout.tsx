@@ -1149,6 +1149,12 @@ const Checkout = () => {
             email: customer.email,
             phone: customer.phone,
             company: customer.company,
+            address1: customer.address1,
+            address2: customer.address2,
+            suburb: customer.suburb,
+            state: customer.state,
+            postcode: customer.postcode,
+            country: customer.country,
           },
           items: cartItems.map((item) => ({
             code: item.code,

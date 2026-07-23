@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
 
-const CUSTOMER_MARGIN_RATE = 0.1;
+const CUSTOMER_MARGIN_RATE = 0.2;
 const CUSTOMER_GST_RATE = 0.1;
-const RESELLER_MARGIN_RATE = 0.1;
+const RESELLER_MARGIN_RATE = 0.2;
 const MIN_RRP_PRICE_MULTIPLIER = 1.1;
 
 const loadEnvFile = (filePath) => {

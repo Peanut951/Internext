@@ -25,6 +25,12 @@ type RequestBody = {
     email?: string;
     phone?: string;
     company?: string;
+    address1?: string;
+    address2?: string;
+    suburb?: string;
+    state?: string;
+    postcode?: string;
+    country?: string;
   };
   items?: Array<{
     code: string;
@@ -43,6 +49,86 @@ type RequestBody = {
 
 const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
 
+const normalizeTextKey = (value?: string) =>
+  String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/\b(pty|ltd|limited|proprietary|company|co)\b/g, " ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+
+const normalizePhoneKey = (value?: string) => {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.startsWith("61") && digits.length === 11) {
+    return `0${digits.slice(2)}`;
+  }
+
+  return digits;
+};
+
+const normalizeAddressKey = (customer?: RequestBody["customer"]) => {
+  const address1 = normalizeTextKey(customer?.address1)
+    .replace(/\bst\b/g, "street")
+    .replace(/\brd\b/g, "road")
+    .replace(/\bave\b/g, "avenue")
+    .replace(/\bav\b/g, "avenue")
+    .replace(/\bdr\b/g, "drive")
+    .replace(/\bct\b/g, "court")
+    .replace(/\bcct\b/g, "circuit")
+    .replace(/\bcr\b/g, "crescent")
+    .replace(/\bcres\b/g, "crescent")
+    .replace(/\bpde\b/g, "parade")
+    .replace(/\bpl\b/g, "place")
+    .replace(/\bln\b/g, "lane")
+    .replace(/\btce\b/g, "terrace");
+  const suburb = normalizeTextKey(customer?.suburb);
+  const state = normalizeTextKey(customer?.state).toUpperCase();
+  const postcode = String(customer?.postcode || "").replace(/\D/g, "");
+  const country = normalizeTextKey(customer?.country || "Australia");
+
+  if (!address1 || !suburb || !postcode) {
+    return "";
+  }
+
+  return [address1, suburb, state, postcode, country].filter(Boolean).join("|");
+};
+
+const getNestedString = (source: unknown, key: string) => {
+  if (!source || typeof source !== "object") {
+    return "";
+  }
+
+  const value = (source as Record<string, unknown>)[key];
+  return typeof value === "string" ? value : "";
+};
+
+const getOrderCustomer = (orderData: unknown): RequestBody["customer"] => {
+  if (!orderData || typeof orderData !== "object") {
+    return {};
+  }
+
+  const customer = (orderData as Record<string, unknown>).customer;
+  if (!customer || typeof customer !== "object") {
+    return {};
+  }
+
+  return {
+    firstName: getNestedString(customer, "firstName"),
+    lastName: getNestedString(customer, "lastName"),
+    email: getNestedString(customer, "email"),
+    phone: getNestedString(customer, "phone"),
+    company: getNestedString(customer, "company"),
+    address1: getNestedString(customer, "address1"),
+    address2: getNestedString(customer, "address2"),
+    suburb: getNestedString(customer, "suburb"),
+    state: getNestedString(customer, "state"),
+    postcode: getNestedString(customer, "postcode"),
+    country: getNestedString(customer, "country"),
+  };
+};
+
 const getSupabaseOrdersConfig = () => {
   const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
   const serviceRoleKey = readEnv("SUPABASE_SERVICE_ROLE_KEY") || readEnv("SERVICE_ROLE_SECRET_KEY");
@@ -57,23 +143,30 @@ const getSupabaseOrdersConfig = () => {
   };
 };
 
-const hasExistingAccountOrders = async (input: { userId: string; email: string }) => {
+const hasExistingAccountOrders = async (input: {
+  userId: string;
+  email: string;
+  customer?: RequestBody["customer"];
+}) => {
   const config = getSupabaseOrdersConfig();
   if (!config) {
     return true;
   }
 
   const normalizedEmail = input.email.trim().toLowerCase();
-  const url = new URL(`${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}`);
-  url.searchParams.set("select", "id");
-  url.searchParams.set(
+  const submittedCompany = normalizeTextKey(input.customer?.company);
+  const submittedPhone = normalizePhoneKey(input.customer?.phone);
+  const submittedAddress = normalizeAddressKey(input.customer);
+  const directMatchUrl = new URL(`${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}`);
+  directMatchUrl.searchParams.set("select", "id");
+  directMatchUrl.searchParams.set(
     "or",
     `(reseller_user_id.eq.${input.userId},reseller_email.eq.${normalizedEmail},customer_email.eq.${normalizedEmail})`,
   );
-  url.searchParams.set("limit", "1");
+  directMatchUrl.searchParams.set("limit", "1");
 
   try {
-    const response = await fetch(url, {
+    const directMatchResponse = await fetch(directMatchUrl, {
       method: "GET",
       headers: {
         apikey: config.serviceRoleKey,
@@ -82,12 +175,68 @@ const hasExistingAccountOrders = async (input: { userId: string; email: string }
       },
     });
 
-    if (!response.ok) {
+    if (!directMatchResponse.ok) {
       return true;
     }
 
-    const rows = (await response.json()) as Array<unknown>;
-    return rows.length > 0;
+    const directRows = (await directMatchResponse.json()) as Array<unknown>;
+    if (directRows.length > 0) {
+      return true;
+    }
+
+    if (!submittedCompany && !submittedPhone && !submittedAddress) {
+      return false;
+    }
+
+    const pageSize = 1000;
+    for (let offset = 0; offset < 10000; offset += pageSize) {
+      const url = new URL(`${config.supabaseUrl}/rest/v1/${ORDERS_TABLE}`);
+      url.searchParams.set("select", "order_data");
+      url.searchParams.set("order", "created_at.desc");
+      url.searchParams.set("limit", String(pageSize));
+      url.searchParams.set("offset", String(offset));
+
+      const response = await fetch(url, {
+        method: "GET",
+        headers: {
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+          Accept: "application/json",
+        },
+      });
+
+      if (!response.ok) {
+        return true;
+      }
+
+      const rows = (await response.json()) as Array<{ order_data?: unknown }>;
+      if (rows.length === 0) {
+        return false;
+      }
+
+      const hasIdentityMatch = rows.some((row) => {
+        const existingCustomer = getOrderCustomer(row.order_data);
+        const existingCompany = normalizeTextKey(existingCustomer.company);
+        const existingPhone = normalizePhoneKey(existingCustomer.phone);
+        const existingAddress = normalizeAddressKey(existingCustomer);
+
+        return (
+          Boolean(submittedCompany && existingCompany && submittedCompany === existingCompany) ||
+          Boolean(submittedPhone && existingPhone && submittedPhone === existingPhone) ||
+          Boolean(submittedAddress && existingAddress && submittedAddress === existingAddress)
+        );
+      });
+
+      if (hasIdentityMatch) {
+        return true;
+      }
+
+      if (rows.length < pageSize) {
+        return false;
+      }
+    }
+
+    return true;
   } catch {
     return true;
   }
@@ -185,6 +334,7 @@ export default async function handler(
     !(await hasExistingAccountOrders({
       userId: authSession.userId,
       email: authSession.email,
+      customer: body.customer,
     }));
   const firstOrderDiscountAmount = firstOrderDiscountApplies
     ? calculateFirstOrderDiscountAmount(body.items || [])
@@ -199,6 +349,12 @@ export default async function handler(
       email: String(body.customer?.email || ""),
       phone: String(body.customer?.phone || ""),
       company: String(body.customer?.company || ""),
+      address1: String(body.customer?.address1 || ""),
+      address2: String(body.customer?.address2 || ""),
+      suburb: String(body.customer?.suburb || ""),
+      state: String(body.customer?.state || ""),
+      postcode: String(body.customer?.postcode || ""),
+      country: String(body.customer?.country || ""),
     },
     items: body.items || [],
     resellerEmail: authSession?.email || body.resellerEmail,

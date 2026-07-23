@@ -446,9 +446,9 @@ const applyTax = (value: number | null, taxRate: number) =>
 const removeTax = (value: number | null, taxRate: number) =>
   value === null ? null : Math.round((value / (1 + taxRate / 100)) * 100) / 100;
 
-const CUSTOMER_MARGIN_RATE = 0.1;
+const CUSTOMER_MARGIN_RATE = 0.2;
 const CUSTOMER_GST_RATE = 0.1;
-const RESELLER_MARGIN_RATE = 0.1;
+const RESELLER_MARGIN_RATE = 0.2;
 const MIN_RRP_PRICE_MULTIPLIER = 1.1;
 const DEFAULT_SERVER_CATALOG_CACHE_MS = 30 * 60 * 1000;
 const DEFAULT_SERVER_CATALOG_STALE_MS = 6 * 60 * 60 * 1000;
