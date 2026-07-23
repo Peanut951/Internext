@@ -1,5 +1,5 @@
 import Layout from "@/components/layout/Layout";
-import { Truck, Clock, MapPin, Package, CheckCircle } from "lucide-react";
+import { Clock, Package } from "lucide-react";
 
 const Shipping = () => {
   return (
@@ -23,46 +23,6 @@ const Shipping = () => {
       <section className="section-padding bg-background">
         <div className="container-wide">
           <div className="max-w-4xl mx-auto">
-            <h2 className="text-2xl font-bold text-foreground mb-8">Delivery Timeframes</h2>
-            
-            <div className="grid md:grid-cols-2 gap-6 mb-12">
-              <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                    <Truck className="h-5 w-5 text-accent" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Metro Areas</h3>
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  Sydney, Melbourne, Brisbane, Perth, Adelaide, Canberra
-                </p>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2 text-foreground">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    Typically 1-3 business days after dispatch
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center">
-                    <MapPin className="h-5 w-5 text-accent" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-foreground">Regional Areas</h3>
-                </div>
-                <p className="text-muted-foreground mb-4">
-                  All other Australian locations
-                </p>
-                <ul className="space-y-2 text-sm">
-                  <li className="flex items-center gap-2 text-foreground">
-                    <CheckCircle className="h-4 w-4 text-accent" />
-                    2-5 business days depending on location
-                  </li>
-                </ul>
-              </div>
-            </div>
-
             {/* Shipping Options */}
             <h2 className="text-2xl font-bold text-foreground mb-8">Shipping Options</h2>
             
