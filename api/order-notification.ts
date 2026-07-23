@@ -360,11 +360,12 @@ const buildOrderEmailSummary = (order: Record<string, unknown>) => {
   const discountName = getString(order.discountName) || "First order discount";
   const discountRate = getNumber(order.discountRate);
   const discountedItemsSubtotal = normalizeMoney(Math.max(0, itemsSubtotal - discountTotal));
+  const discountedItemsGst = normalizeMoney(discountedItemsSubtotal * GST_RATE);
   const grossShippingTotal = getNumber(order.shippingTotal);
   const shippingBreakdown = splitIncGstAmount(grossShippingTotal);
   const shippingTotal = normalizeMoney(shippingBreakdown.net);
   const calculatedTotalKnownValue = normalizeMoney(
-    discountedItemsSubtotal + calculatedItemsGst + shippingBreakdown.gross,
+    discountedItemsSubtotal + discountedItemsGst + shippingBreakdown.gross,
   );
   const totalKnownValue = getNumber(order.totalKnownValue) || calculatedTotalKnownValue;
   const gstAmount = normalizeMoney(totalKnownValue - discountedItemsSubtotal - shippingTotal);
@@ -1153,12 +1154,12 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
                           <td align="right" style="padding:6px 0;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
                         </tr>` : ""}
                         <tr>
-                          <td style="padding:6px 0;color:#4b5563;">GST</td>
-                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
-                        </tr>
-                        <tr>
                           <td style="padding:6px 0;color:#4b5563;">Shipping ex GST</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
+                        </tr>
+                        <tr>
+                          <td style="padding:6px 0;color:#4b5563;">GST on items and shipping</td>
+                          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
                         </tr>
                         <tr>
                           <td style="padding:12px 0 4px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total paid</td>
@@ -1195,8 +1196,8 @@ const buildCustomerConfirmationEmail = (order: Record<string, unknown>) => {
     ``,
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
     ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
-    `GST: ${summary.gstAmountText}`,
     `Shipping ex GST: ${summary.shippingTotalText}`,
+    `GST on items and shipping: ${summary.gstAmountText}`,
     `Total paid: ${summary.totalKnownValueText}`,
     ``,
     `Delivery address:`,
@@ -1300,12 +1301,12 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
                     <td align="right" style="padding:6px 14px;color:#047857;font-weight:700;">-${escapeHtml(summary.discountTotalText)}</td>
                   </tr>` : ""}
                   <tr>
-                    <td style="padding:6px 14px;color:#4b5563;">GST</td>
-                    <td align="right" style="padding:6px 14px;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
-                  </tr>
-                  <tr>
                     <td style="padding:6px 14px;color:#4b5563;">Shipping ex GST</td>
                     <td align="right" style="padding:6px 14px;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding:6px 14px;color:#4b5563;">GST on items and shipping</td>
+                    <td align="right" style="padding:6px 14px;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
                   </tr>
                   <tr>
                     <td style="padding:12px 14px;border-top:1px solid #e5e7eb;color:#111827;font-weight:800;">Total due</td>
@@ -1343,8 +1344,8 @@ const buildPaymentInvoiceEmail = (order: Record<string, unknown>, paymentUrl: st
     "",
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
     ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
-    `GST: ${summary.gstAmountText}`,
     `Shipping ex GST: ${summary.shippingTotalText}`,
+    `GST on items and shipping: ${summary.gstAmountText}`,
     `Total due: ${summary.totalKnownValueText}`,
     "",
     "Delivery address:",
@@ -1487,7 +1488,7 @@ const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.shippingTotalText)}</td>
                         </tr>
                         <tr>
-                          <td style="padding:6px 0;color:#4b5563;">GST</td>
+                          <td style="padding:6px 0;color:#4b5563;">GST on items and shipping</td>
                           <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(summary.gstAmountText)}</td>
                         </tr>
                         <tr>
@@ -1523,7 +1524,7 @@ const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
     `Items subtotal ex GST: ${summary.itemsSubtotalText}`,
     ...(summary.discountTotal > 0 ? [`${summary.discountName}: -${summary.discountTotalText}`] : []),
     `Shipping ex GST: ${summary.shippingTotalText}`,
-    `GST: ${summary.gstAmountText}`,
+    `GST on items and shipping: ${summary.gstAmountText}`,
     `Total paid: ${summary.totalKnownValueText}`,
     "",
     `Customer: ${customerName}`,
