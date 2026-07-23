@@ -138,6 +138,44 @@ const normalizeBaseTitleForProduct = (base: string, product: ProductTitleSource,
   return base;
 };
 
+const getComputerDisplayTitle = (base: string, product: ProductTitleSource) => {
+  const text = stripHtml(base);
+  const source = getProductText(product);
+  if (!/\b(aio|all[- ]?in[- ]?one|desktop|workstation|pc\b|notebook|laptop|computer)\b/i.test(`${text} ${source}`)) {
+    return "";
+  }
+
+  const family =
+    text.match(/\b(EliteOne|EliteBook|ProBook|ProOne|ProDesk|EliteDesk|ZBook|ThinkPad|ThinkCentre|Latitude|OptiPlex|Precision|ProBook|Pavilion|Victus|Yoga)\s+[A-Z0-9]+(?:\s+[A-Z0-9]+){0,3}/i)?.[0] ||
+    "";
+  const screen = text.match(/\b([1-9][0-9](?:\.\d)?)\s*(?:"|inch|in\b)?/i)?.[1] || "";
+  const isAio = /\b(aio|all[- ]?in[- ]?one|eliteone|proone)\b/i.test(`${text} ${source}`);
+  const formFactor = isAio && screen ? `${screen}" All-in-One PC` : isAio ? "All-in-One PC" : "";
+  const cpu = text.match(/\b(?:Intel\s+)?(?:Core\s+)?(i[3579]-[A-Z0-9]+)\b/i)?.[1] || "";
+  const ram = text.match(/\b([0-9]{1,3})\s*GB\s*(?:DDR[0-9])?\b/i)?.[1] || "";
+  const storage = text.match(/\b([0-9]+(?:\.[0-9]+)?\s*(?:GB|TB))\s*(SSD|HDD|eMMC|NVMe)?\b/i);
+  const os = /\b(?:WIN|Windows)\s*11\s*PRO\b/i.test(text) ? "Windows 11 Pro" : "";
+
+  const parts = [
+    family,
+    formFactor,
+    cpu ? `Intel ${cpu.toUpperCase()}` : "",
+    ram ? `${ram}GB RAM` : "",
+    storage ? `${storage[1].toUpperCase()} ${stripHtml(storage[2] || "SSD").toUpperCase()}`.trim() : "",
+    os,
+  ].filter(Boolean);
+
+  return parts.length >= 3 ? parts.join(" - ") : "";
+};
+
+const shortenLongBaseTitle = (base: string) =>
+  base
+    .replace(/\b(?:Operating system|Standard memory note|Transfer rates|Memory Slots|Internal Storage|Storage type|Additional storage|Processor family|Chipset|Display Type|Dimensions|Graphics|Power|Form factor|Camera|Keyboard|Pointing device|Audio|Expansion slots|I\/O Port location|Rear Ports|Wireless|Certifications and compliances)\b.*$/i, "")
+    .replace(/\b\d+\s*Year\s+OS\s+Warranty\b/gi, "")
+    .replace(/\b(?:KB\+Mouse|wty|WLAN Webcam|1xDP|1xHDMI|RJ45)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+
 export const buildProductDisplayTitle = (product: ProductTitleSource) => {
   const brand = stripHtml(product.manufacturer);
   const rawBase = removeLeadingBrandFromTitle(
@@ -145,9 +183,11 @@ export const buildProductDisplayTitle = (product: ProductTitleSource) => {
     brand,
   ).replace(/^\s*\d{8,14}\s+/, "");
   const mpn = getProductMpnForTitle(product);
-  const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
+  const normalizedBase = normalizeBaseTitleForProduct(rawBase, product, mpn);
+  const computerBase = getComputerDisplayTitle(normalizedBase, product);
+  const base = computerBase || shortenLongBaseTitle(normalizedBase);
   const productType = getDisplayProductType(product);
-  const normalizedBase = normalizeToken(base);
+  const normalizedBaseToken = normalizeToken(base);
   const normalizedType = normalizeToken(productType);
   const normalizedMpn = normalizeToken(mpn);
   const skipProductType =
@@ -155,9 +195,9 @@ export const buildProductDisplayTitle = (product: ProductTitleSource) => {
     normalizedMpn.startsWith("it88") &&
     /indoor monitor/i.test(base);
   const parts = [
-    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
-    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
-    productType && !skipProductType && normalizedType && !normalizedBase.includes(normalizedType) ? productType : "",
+    brand && !normalizedBaseToken.startsWith(normalizeToken(brand)) ? brand : "",
+    mpn && normalizedMpn && !normalizedBaseToken.includes(normalizedMpn) ? mpn : "",
+    productType && !skipProductType && normalizedType && !normalizedBaseToken.includes(normalizedType) ? productType : "",
     base,
   ].filter(Boolean);
 

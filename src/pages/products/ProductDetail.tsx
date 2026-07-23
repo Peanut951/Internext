@@ -118,6 +118,9 @@ const findProductByCode = (products: CatalogProduct[], productCode: string) => {
   );
 };
 
+const hasCustomerPrice = (product?: CatalogProduct | null) =>
+  typeof product?.price === "number" && Number.isFinite(product.price);
+
 type DescriptionBlock =
   | { type: "heading"; text: string }
   | { type: "paragraph"; text: string }
@@ -145,6 +148,8 @@ const descriptionBlocksToParagraphs = (blocks: DescriptionBlock[]) =>
   });
 
 const SUPPLIER_BULLET_PATTERN = /[•·●▪◦]/g;
+const SPEC_LABEL_PATTERN =
+  /\b(Operating system|Standard memory note|Transfer rates|Memory Slots|Internal Storage|Storage type|Additional storage|Processor family|Processor|Chipset|Display Type|Display|Dimensions \(W x D x H\)|Dimensions|Graphics|Power|Form factor|Camera|Keyboard|Pointing device|Audio|Expansion slots|I\/O Port location|Rear Ports|Certifications and compliances|Wireless|Ports|Network|Warranty|Memory)\b/gi;
 
 const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
   const normalized = safeText(value)
@@ -156,11 +161,12 @@ const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
     .replace(/\u00a0/g, " ")
     .replace(/\s+(Features)\s*(?=[•·●▪◦-])/gi, "\n$1:\n")
     .replace(/\s+(Features:)\s*/gi, "\n$1\n")
+    .replace(SPEC_LABEL_PATTERN, "\n$1:")
     .replace(SUPPLIER_BULLET_PATTERN, "\n- ")
     .replace(/\s+(Typical applications include|Internext supplies this item|Buyers can use|This model is positioned|It is mainly intended|It is aimed at|Admin reference:)/g, "\n\n$1")
     .replace(/\s+-\s+/g, "\n- ")
     .split(/\r?\n/)
-    .map((line) => line.replace(/\s+/g, " ").trim())
+    .map((line) => line.replace(/\s+/g, " ").replace(/:\s*:/g, ":").trim())
     .filter(Boolean);
 
   const blocks: DescriptionBlock[] = [];
@@ -177,6 +183,12 @@ const splitSupplierDescriptionBlocks = (value: unknown): DescriptionBlock[] => {
     const bullet = line.match(/^[-*]\s*(.+)$/);
     if (bullet) {
       listItems.push(bullet[1].trim());
+      return;
+    }
+
+    const specItem = line.match(/^([A-Za-z][A-Za-z0-9 /()&+.-]{1,48}):\s*(.+)$/);
+    if (specItem && specItem[2].trim()) {
+      listItems.push(`${specItem[1].trim()}: ${specItem[2].trim()}`);
       return;
     }
 
@@ -907,7 +919,7 @@ const ProductDetail = () => {
       try {
         const data = (await loadCatalogProductsFast((liveProducts) => {
           const liveProduct = findProductByCode(liveProducts as CatalogProduct[], productCode);
-          if (isMounted && liveProduct) {
+          if (isMounted && liveProduct && hasCustomerPrice(liveProduct)) {
             hasAppliedVerifiedProduct = true;
             setAllProducts(liveProducts as CatalogProduct[]);
             setProduct(liveProduct);
@@ -928,8 +940,8 @@ const ProductDetail = () => {
 
         if (found) {
           const hasVerifiedFastPrice =
-            Boolean(found.liveUpdatedAt) ||
-            safeText(found.manufacturer).toLowerCase() === "leader";
+            hasCustomerPrice(found) &&
+            (Boolean(found.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
 
           if (hasVerifiedFastPrice) {
             setAllProducts(data);
@@ -948,7 +960,7 @@ const ProductDetail = () => {
 
             if (liveFound) {
               setProduct(liveFound);
-              setIsLivePriceReady(true);
+              setIsLivePriceReady(hasCustomerPrice(liveFound));
               setLoading(false);
               return;
             }
@@ -980,7 +992,7 @@ const ProductDetail = () => {
 
         setAllProducts(liveProducts);
         setProduct(liveFound);
-        setIsLivePriceReady(Boolean(liveFound));
+        setIsLivePriceReady(hasCustomerPrice(liveFound));
         setHasCheckedFullCatalog(true);
         setLoading(false);
       } catch (err) {
@@ -1002,8 +1014,11 @@ const ProductDetail = () => {
     if (!product) {
       return "";
     }
-    return isLivePriceReady ? getDisplayPrice(product, session?.role) : "";
-  }, [isLivePriceReady, product, session?.role]);
+    if (!hasCheckedFullCatalog && !hasCustomerPrice(product)) {
+      return "Loading price...";
+    }
+    return isLivePriceReady || hasCheckedFullCatalog ? getDisplayPrice(product, session?.role) : "Loading price...";
+  }, [hasCheckedFullCatalog, isLivePriceReady, product, session?.role]);
 
   useEffect(() => {
     if (session?.role !== "admin" || !product) {
@@ -1648,7 +1663,9 @@ const ProductDetail = () => {
                         {availability ? (
                           <p className="mb-2 text-sm font-semibold text-accent">{availability}</p>
                         ) : null}
-                        {product.rrp ? (
+                        {!hasCheckedFullCatalog && !product.rrp ? (
+                          <p className="mb-6 text-sm text-muted-foreground">Loading RRP...</p>
+                        ) : product.rrp ? (
                           <p className="mb-6 text-sm text-muted-foreground">
                             RRP {formatAud(product.rrp)}
                           </p>
