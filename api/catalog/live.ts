@@ -943,6 +943,14 @@ const upsertStockOverride = async (input: {
 
   if (!response.ok) {
     const message = await response.text().catch(() => "");
+    if (/catalog_stock_overrides|schema cache|PGRST205/i.test(message)) {
+      return {
+        ok: false,
+        status: response.status,
+        message: "Stock override storage is not installed in Supabase. Run supabase/catalog-stock-overrides.sql in the Supabase SQL editor, then try again.",
+      };
+    }
+
     return {
       ok: false,
       status: response.status,

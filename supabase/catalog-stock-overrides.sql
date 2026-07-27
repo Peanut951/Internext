@@ -15,6 +15,9 @@ on public.catalog_stock_overrides (supplier_code);
 create index if not exists catalog_stock_overrides_stock_quantity_idx
 on public.catalog_stock_overrides (stock_quantity);
 
+create index if not exists catalog_stock_overrides_updated_at_idx
+on public.catalog_stock_overrides (updated_at desc);
+
 alter table public.catalog_stock_overrides
 drop constraint if exists catalog_stock_overrides_stock_quantity_check;
 
@@ -44,3 +47,8 @@ using (
       and profiles.role = 'admin'
   )
 );
+
+grant select on public.catalog_stock_overrides to authenticated;
+grant all on public.catalog_stock_overrides to service_role;
+
+notify pgrst, 'reload schema';
