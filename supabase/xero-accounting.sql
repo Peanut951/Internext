@@ -103,6 +103,15 @@ on public.xero_sales_invoice_lines (invoice_number);
 create index if not exists xero_sales_invoice_lines_created_at_idx
 on public.xero_sales_invoice_lines (created_at desc);
 
+delete from public.xero_sales_invoice_lines target
+using public.xero_sales_invoice_lines duplicate
+where target.order_id = duplicate.order_id
+  and target.line_index = duplicate.line_index
+  and target.id < duplicate.id;
+
+create unique index if not exists xero_sales_invoice_lines_order_line_uidx
+on public.xero_sales_invoice_lines (order_id, line_index);
+
 alter table public.xero_sales_invoice_lines enable row level security;
 
 drop policy if exists "Admins can read Xero sales invoice lines" on public.xero_sales_invoice_lines;
@@ -151,3 +160,140 @@ select
   branding_theme as "BrandingTheme"
 from public.xero_sales_invoice_lines
 order by order_number, line_index;
+
+create or replace view public.xero_sales_invoice_summary as
+with invoice_totals as (
+  select
+    order_id,
+    order_number,
+    invoice_number,
+    contact_name,
+    email_address,
+    po_address_line1,
+    po_address_line2,
+    po_address_line3,
+    po_address_line4,
+    po_city,
+    po_region,
+    po_postal_code,
+    po_country,
+    invoice_date,
+    due_date,
+    reference,
+    currency,
+    branding_theme,
+    min(created_at) as created_at,
+    max(updated_at) as updated_at,
+    count(*) as line_count,
+    coalesce(
+      sum(
+        case
+          when upper(coalesce(inventory_item_code, '')) = 'SHIPPING'
+            then quantity * unit_amount
+          else 0
+        end
+      ),
+      0
+    ) as shipping_ex_gst,
+    coalesce(
+      sum(
+        case
+          when upper(coalesce(inventory_item_code, '')) <> 'SHIPPING'
+            then quantity * unit_amount
+          else 0
+        end
+      ),
+      0
+    ) as items_subtotal_ex_gst,
+    coalesce(max(discount), 0) as discount_percent,
+    jsonb_agg(
+      jsonb_build_object(
+        'line_index', line_index,
+        'item_code', inventory_item_code,
+        'description', description,
+        'quantity', quantity,
+        'unit_amount_ex_gst', unit_amount,
+        'line_total_ex_gst', round(quantity * unit_amount, 2),
+        'account_code', account_code,
+        'tax_type', tax_type
+      )
+      order by line_index
+    ) as lines
+  from public.xero_sales_invoice_lines
+  group by
+    order_id,
+    order_number,
+    invoice_number,
+    contact_name,
+    email_address,
+    po_address_line1,
+    po_address_line2,
+    po_address_line3,
+    po_address_line4,
+    po_city,
+    po_region,
+    po_postal_code,
+    po_country,
+    invoice_date,
+    due_date,
+    reference,
+    currency,
+    branding_theme
+)
+select
+  order_id,
+  order_number,
+  invoice_number,
+  contact_name,
+  email_address,
+  po_address_line1,
+  po_address_line2,
+  po_address_line3,
+  po_address_line4,
+  po_city,
+  po_region,
+  po_postal_code,
+  po_country,
+  invoice_date,
+  due_date,
+  reference,
+  currency,
+  branding_theme,
+  line_count,
+  round(items_subtotal_ex_gst, 2) as items_subtotal_ex_gst,
+  discount_percent,
+  round(items_subtotal_ex_gst * (discount_percent / 100), 2) as discount_ex_gst,
+  round(shipping_ex_gst, 2) as shipping_ex_gst,
+  round(
+    items_subtotal_ex_gst
+      - (items_subtotal_ex_gst * (discount_percent / 100))
+      + shipping_ex_gst,
+    2
+  ) as subtotal_ex_gst,
+  round(
+    (
+      items_subtotal_ex_gst
+        - (items_subtotal_ex_gst * (discount_percent / 100))
+        + shipping_ex_gst
+    ) * 0.1,
+    2
+  ) as gst,
+  round(
+    (
+      items_subtotal_ex_gst
+        - (items_subtotal_ex_gst * (discount_percent / 100))
+        + shipping_ex_gst
+    ) * 1.1,
+    2
+  ) as total_inc_gst,
+  lines,
+  created_at,
+  updated_at
+from invoice_totals
+order by invoice_date desc, invoice_number desc;
+
+grant select on public.xero_inventory_items_csv to authenticated;
+grant select on public.xero_sales_invoice_template_csv to authenticated;
+grant select on public.xero_sales_invoice_summary to authenticated;
+
+notify pgrst, 'reload schema';
