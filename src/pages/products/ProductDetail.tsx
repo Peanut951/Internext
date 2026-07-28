@@ -10,7 +10,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
+import { clearCatalogProductsCache, loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -1401,6 +1401,7 @@ const ProductDetail = () => {
         typeof result.desiredLocationStockQuantity === "number"
           ? result.desiredLocationStockQuantity
           : stockQuantity;
+      clearCatalogProductsCache();
       const updateProduct = (item: CatalogProduct) =>
         item.code === product.code ? applyAdminStockToProduct(item, nextLocationStockQuantity, adminStockForm.stockLocation) : item;
 
@@ -1456,6 +1457,7 @@ const ProductDetail = () => {
         throw new Error(result.message || "Unable to reset stock override.");
       }
 
+      clearCatalogProductsCache();
       setAdminStockMessage({
         tone: "success",
         text: "Selected warehouse stock has been reset to the supplier feed.",

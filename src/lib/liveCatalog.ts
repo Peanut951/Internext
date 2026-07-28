@@ -176,6 +176,21 @@ const writeCachedProducts = (products: CatalogProductWithLive[]) => {
   }
 };
 
+export const clearCatalogProductsCache = () => {
+  catalogProductsPromise = null;
+  catalogProductsRefreshPromise = null;
+
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(CATALOG_CACHE_KEY);
+  } catch {
+    // Storage access can fail in private mode; a failed cache clear should not break the page.
+  }
+};
+
 export const mergeCatalogProductUpdates = (
   currentProducts: CatalogProductWithLive[],
   updatedProducts: CatalogProductWithLive[],
@@ -284,7 +299,10 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
   }
 
   try {
-    const mergedResponse = await fetch("/api/catalog/live?view=products");
+    const refreshSuffix = skipCache ? `&refresh=${Date.now()}` : "";
+    const mergedResponse = await fetch(`/api/catalog/live?view=products${refreshSuffix}`, {
+      cache: skipCache ? "no-store" : "default",
+    });
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
       if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
@@ -299,7 +317,9 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
 
   const staticProducts = await loadStaticCatalogProducts();
 
-  const liveResponse = await fetch("/api/catalog/live");
+  const liveResponse = await fetch(skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live", {
+    cache: skipCache ? "no-store" : "default",
+  });
   if (!liveResponse.ok) {
     throw new Error("Live Alloys feed is unavailable.");
   }

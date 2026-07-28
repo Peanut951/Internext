@@ -1320,10 +1320,10 @@ const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
   return merged;
 };
 
-export const loadLiveCatalogItems = async () => {
+export const loadLiveCatalogItems = async (options?: { forceRefresh?: boolean }) => {
   const cached = globalCatalogCache.__internextLiveCatalogCache;
   const now = Date.now();
-  if (cached && cached.expiresAt > Date.now()) {
+  if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
     return {
       updatedAt: cached.updatedAt,
       count: cached.items.length,
@@ -1333,12 +1333,14 @@ export const loadLiveCatalogItems = async () => {
     };
   }
 
-  if (globalCatalogCache.__internextLiveCatalogPromise) {
+  if (!options?.forceRefresh && globalCatalogCache.__internextLiveCatalogPromise) {
     return globalCatalogCache.__internextLiveCatalogPromise;
   }
 
   const loadPromise = loadLiveCatalogItemsUncached(cached, now);
-  globalCatalogCache.__internextLiveCatalogPromise = loadPromise;
+  if (!options?.forceRefresh) {
+    globalCatalogCache.__internextLiveCatalogPromise = loadPromise;
+  }
 
   try {
     return await loadPromise;
@@ -1441,10 +1443,10 @@ const loadStaticCatalogProducts = async () => {
   ) as StaticCatalogProduct[];
 };
 
-export const loadMergedCatalogProducts = async () => {
+export const loadMergedCatalogProducts = async (options?: { forceRefresh?: boolean }) => {
   const cached = globalCatalogCache.__internextMergedCatalogCache;
   const now = Date.now();
-  if (cached && cached.expiresAt > Date.now()) {
+  if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
     return {
       updatedAt: cached.updatedAt,
       count: cached.items.length,
@@ -1454,12 +1456,14 @@ export const loadMergedCatalogProducts = async () => {
     };
   }
 
-  if (globalCatalogCache.__internextMergedCatalogPromise) {
+  if (!options?.forceRefresh && globalCatalogCache.__internextMergedCatalogPromise) {
     return globalCatalogCache.__internextMergedCatalogPromise;
   }
 
-  const loadPromise = loadMergedCatalogProductsUncached(cached, now);
-  globalCatalogCache.__internextMergedCatalogPromise = loadPromise;
+  const loadPromise = loadMergedCatalogProductsUncached(cached, now, options);
+  if (!options?.forceRefresh) {
+    globalCatalogCache.__internextMergedCatalogPromise = loadPromise;
+  }
 
   try {
     return await loadPromise;
@@ -1473,6 +1477,7 @@ export const loadMergedCatalogProducts = async () => {
 const loadMergedCatalogProductsUncached = async (
   cached: typeof globalCatalogCache.__internextMergedCatalogCache,
   now: number,
+  options?: { forceRefresh?: boolean },
 ): Promise<MergedCatalogResult> => {
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
@@ -1481,7 +1486,7 @@ const loadMergedCatalogProductsUncached = async (
   try {
     [staticProducts, liveCatalog, stockOverrides] = await Promise.all([
       loadStaticCatalogProducts(),
-      loadLiveCatalogItems(),
+      loadLiveCatalogItems(options),
       fetchStockOverrides(),
     ]);
   } catch (error) {
@@ -1666,10 +1671,14 @@ export default async function handler(
 
   try {
     const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
+    const forceRefresh = requestUrl.searchParams.has("refresh");
     const catalog = requestUrl.searchParams.get("view") === "products"
-      ? await loadMergedCatalogProducts()
-      : await loadLiveCatalogItems();
-    res.setHeader("Cache-Control", "s-maxage=1800, stale-while-revalidate=21600");
+      ? await loadMergedCatalogProducts({ forceRefresh })
+      : await loadLiveCatalogItems({ forceRefresh });
+    res.setHeader(
+      "Cache-Control",
+      forceRefresh ? "no-store, no-cache, must-revalidate" : "s-maxage=1800, stale-while-revalidate=21600",
+    );
     return sendJson(res, 200, catalog);
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to load Alloys catalog feed.";
