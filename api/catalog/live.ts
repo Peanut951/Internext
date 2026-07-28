@@ -31,6 +31,7 @@ export type LiveCatalogItem = {
     internext?: number;
     adminAdjustment?: number;
     adminLocation?: string;
+    adminAdjustments?: Record<string, number>;
   };
   stockRecordUpdated: string;
   weightKg: number | null;
@@ -148,6 +149,7 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
     internext?: number;
     adminAdjustment?: number;
     adminLocation?: string;
+    adminAdjustments?: Record<string, number>;
   };
   etaDate?: string;
   etaStatus?: string;
@@ -833,10 +835,12 @@ const fetchStockOverrides = async (): Promise<StockOverride[]> => {
 };
 
 const buildStockOverrideMap = (overrides: StockOverride[]) => {
-  const overridesByKey = new Map<string, StockOverride>();
+  const overridesByKey = new Map<string, StockOverride[]>();
   for (const override of overrides) {
     for (const key of getProductKeys({ code: override.code, supplierCode: override.supplierCode })) {
-      overridesByKey.set(key, override);
+      const existing = overridesByKey.get(key) || [];
+      existing.push(override);
+      overridesByKey.set(key, existing);
     }
   }
   return overridesByKey;
@@ -844,11 +848,9 @@ const buildStockOverrideMap = (overrides: StockOverride[]) => {
 
 const getStockOverrideForProduct = (
   product: Pick<StaticCatalogProduct, "code" | "supplierCode">,
-  overridesByKey: Map<string, StockOverride>,
+  overridesByKey: Map<string, StockOverride[]>,
 ) =>
-  getProductKeys(product)
-    .map((key) => overridesByKey.get(key))
-    .find(Boolean);
+  getProductKeys(product).flatMap((key) => overridesByKey.get(key) || []);
 
 const applyStockOverrideToProduct = <
   T extends {
@@ -859,15 +861,13 @@ const applyStockOverrideToProduct = <
   },
 >(
   product: T,
-  override?: StockOverride,
+  overrides: StockOverride[] = [],
 ) => {
-  if (!override || override.stockQuantity === 0) {
+  const activeOverrides = overrides.filter((override) => override.stockQuantity !== 0);
+  if (activeOverrides.length === 0) {
     return product;
   }
 
-  const supplierStock = typeof product.stockQuantity === "number" ? Math.max(0, product.stockQuantity) : 0;
-  const totalStock = Math.max(0, supplierStock + override.stockQuantity);
-  const stockLocation = normalizeStockOverrideLocation(override.stockLocation);
   const stockByWarehouse = {
     adl: product.stockByWarehouse?.adl ?? 0,
     bne: product.stockByWarehouse?.bne ?? 0,
@@ -875,22 +875,29 @@ const applyStockOverrideToProduct = <
     syd: product.stockByWarehouse?.syd ?? 0,
     wa: product.stockByWarehouse?.wa ?? 0,
     internext: product.stockByWarehouse?.internext ?? 0,
-    adminAdjustment: override.stockQuantity,
-    adminLocation: stockLocation,
+    adminAdjustment: 0,
+    adminLocation: normalizeStockOverrideLocation(activeOverrides[activeOverrides.length - 1]?.stockLocation),
+    adminAdjustments: {} as Record<string, number>,
   };
+  let latestUpdatedAt = product.stockRecordUpdated;
 
-  if (stockLocation === "internext") {
-    stockByWarehouse.internext = Math.max(0, stockByWarehouse.internext + override.stockQuantity);
-  } else {
-    stockByWarehouse[stockLocation] = Math.max(0, stockByWarehouse[stockLocation] + override.stockQuantity);
+  for (const override of activeOverrides) {
+    const stockLocation = normalizeStockOverrideLocation(override.stockLocation);
+    const adjustment = override.stockQuantity;
+    stockByWarehouse[stockLocation] = Math.max(0, (stockByWarehouse[stockLocation] ?? 0) + adjustment);
+    stockByWarehouse.adminAdjustment += adjustment;
+    stockByWarehouse.adminAdjustments[stockLocation] = adjustment;
+    latestUpdatedAt = override.updatedAt || latestUpdatedAt;
   }
+
+  const totalStock = sumWarehouseStock(stockByWarehouse);
 
   return {
     ...product,
     availabilityText: totalStock > 0 ? "In Stock" : product.availabilityText,
     stockQuantity: totalStock,
     stockByWarehouse,
-    stockRecordUpdated: override.updatedAt || product.stockRecordUpdated,
+    stockRecordUpdated: latestUpdatedAt,
   };
 };
 
@@ -898,7 +905,7 @@ const upsertStockOverride = async (input: {
   code?: unknown;
   supplierCode?: unknown;
   stockQuantity?: unknown;
-  supplierStockQuantity?: unknown;
+  supplierLocationStockQuantity?: unknown;
   stockLocation?: unknown;
   note?: unknown;
   adminEmail?: string;
@@ -913,9 +920,9 @@ const upsertStockOverride = async (input: {
     return { ok: false, status: 400, message: "Product code is required." };
   }
 
-  const desiredStockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
-  const supplierStockQuantity = Math.max(0, Math.floor(parseNumber(input.supplierStockQuantity) ?? 0));
-  const stockQuantity = desiredStockQuantity - supplierStockQuantity;
+  const desiredLocationStockQuantity = Math.max(0, Math.floor(parseNumber(input.stockQuantity) ?? 0));
+  const supplierLocationStockQuantity = Math.max(0, Math.floor(parseNumber(input.supplierLocationStockQuantity) ?? 0));
+  const stockQuantity = desiredLocationStockQuantity - supplierLocationStockQuantity;
   const stockLocation = normalizeStockOverrideLocation(input.stockLocation);
   const row = {
     code,
@@ -928,7 +935,7 @@ const upsertStockOverride = async (input: {
   };
 
   const response = await fetch(
-    `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?on_conflict=code`,
+    `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?on_conflict=code,stock_location`,
     {
       method: "POST",
       headers: {
@@ -968,8 +975,71 @@ const upsertStockOverride = async (input: {
     ok: true,
     status: 200,
     override: normalizeOverrideRow(saved || row),
-    desiredStockQuantity,
-    supplierStockQuantity,
+    desiredLocationStockQuantity,
+    supplierLocationStockQuantity,
+    stockLocation,
+  };
+};
+
+const deleteStockOverride = async (input: {
+  code?: unknown;
+  supplierCode?: unknown;
+  stockLocation?: unknown;
+}) => {
+  const config = getSupabaseRestConfig();
+  if (!config) {
+    return { ok: false, status: 500, message: "Supabase service role is not configured." };
+  }
+
+  const code = String(input.code || "").trim();
+  const supplierCode = String(input.supplierCode || "").trim();
+  const stockLocation = normalizeStockOverrideLocation(input.stockLocation);
+  const keys = Array.from(new Set([code, supplierCode].filter(Boolean)));
+
+  if (keys.length === 0) {
+    return { ok: false, status: 400, message: "Product code is required." };
+  }
+
+  for (const key of keys) {
+    const response = await fetch(
+      `${config.supabaseUrl}/rest/v1/${STOCK_OVERRIDES_TABLE}?code=eq.${encodeURIComponent(key)}&stock_location=eq.${encodeURIComponent(stockLocation)}`,
+      {
+        method: "DELETE",
+        headers: {
+          apikey: config.serviceRoleKey,
+          Authorization: `Bearer ${config.serviceRoleKey}`,
+          Prefer: "return=minimal",
+        },
+      },
+    );
+
+    if (!response.ok) {
+      const message = await response.text().catch(() => "");
+      if (/catalog_stock_overrides|schema cache|PGRST205/i.test(message)) {
+        return {
+          ok: false,
+          status: response.status,
+          message: "Stock override storage is not installed in Supabase. Run supabase/catalog-stock-overrides.sql in the Supabase SQL editor, then try again.",
+        };
+      }
+
+      return {
+        ok: false,
+        status: response.status,
+        message: message || `Stock override reset failed with status ${response.status}.`,
+      };
+    }
+  }
+
+  delete globalCatalogCache.__internextLiveCatalogCache;
+  delete globalCatalogCache.__internextLiveCatalogPromise;
+  delete globalCatalogCache.__internextMergedCatalogCache;
+  delete globalCatalogCache.__internextMergedCatalogPromise;
+
+  return {
+    ok: true,
+    status: 200,
+    message: "Stock override reset to supplier feed.",
     stockLocation,
   };
 };
@@ -1570,15 +1640,22 @@ export default async function handler(
       return sendJson(res, 400, { message: "Invalid JSON body." });
     }
 
-    const result = await upsertStockOverride({
-      code: body.code,
-      supplierCode: body.supplierCode,
-      stockQuantity: body.stockQuantity,
-      supplierStockQuantity: body.supplierStockQuantity,
-      stockLocation: body.stockLocation,
-      note: body.note,
-      adminEmail: session.email,
-    });
+    const action = String(body.action || "").trim().toLowerCase();
+    const result = action === "reset-stock-override"
+      ? await deleteStockOverride({
+          code: body.code,
+          supplierCode: body.supplierCode,
+          stockLocation: body.stockLocation,
+        })
+      : await upsertStockOverride({
+          code: body.code,
+          supplierCode: body.supplierCode,
+          stockQuantity: body.stockQuantity,
+          supplierLocationStockQuantity: body.supplierLocationStockQuantity,
+          stockLocation: body.stockLocation,
+          note: body.note,
+          adminEmail: session.email,
+        });
 
     return sendJson(res, result.status, result);
   }

@@ -54,6 +54,7 @@ type CatalogProduct = {
     internext?: number;
     adminAdjustment?: number;
     adminLocation?: string;
+    adminAdjustments?: Record<string, number>;
   };
   stockRecordUpdated?: string;
   weightKg?: number | null;
@@ -308,25 +309,40 @@ const getAdminStockAdjustment = (product?: CatalogProduct | null) =>
 const getAdminStockLocation = (product?: CatalogProduct | null) =>
   safeText(product?.stockByWarehouse?.adminLocation) || "internext";
 
-const getSupplierStockQuantity = (product?: CatalogProduct | null) => {
-  if (!product || typeof product.stockQuantity !== "number") {
+const getWarehouseStockQuantity = (product?: CatalogProduct | null, stockLocation = getAdminStockLocation(product)) => {
+  if (!product?.stockByWarehouse) {
     return 0;
   }
 
-  return Math.max(0, product.stockQuantity - getAdminStockAdjustment(product));
+  const normalizedLocation = STOCK_OVERRIDE_LOCATIONS.some((location) => location.value === stockLocation)
+    ? stockLocation
+    : "internext";
+
+  return Math.max(0, product.stockByWarehouse[normalizedLocation] ?? 0);
+};
+
+const getSupplierWarehouseStockQuantity = (
+  product?: CatalogProduct | null,
+  stockLocation = getAdminStockLocation(product),
+) => {
+  const displayedStock = getWarehouseStockQuantity(product, stockLocation);
+  const adjustment =
+    product?.stockByWarehouse?.adminAdjustments?.[stockLocation] ??
+    (getAdminStockLocation(product) === stockLocation ? getAdminStockAdjustment(product) : 0);
+
+  return Math.max(0, displayedStock - adjustment);
 };
 
 const applyAdminStockToProduct = (
   product: CatalogProduct,
-  desiredTotalStock: number,
+  desiredLocationStock: number,
   stockLocation = getAdminStockLocation(product),
 ): CatalogProduct => {
-  const supplierStock = getSupplierStockQuantity(product);
-  const adminAdjustment = desiredTotalStock - supplierStock;
-  const totalStock = Math.max(0, supplierStock + adminAdjustment);
   const normalizedLocation = STOCK_OVERRIDE_LOCATIONS.some((location) => location.value === stockLocation)
     ? stockLocation
     : "internext";
+  const supplierLocationStock = getSupplierWarehouseStockQuantity(product, normalizedLocation);
+  const adminAdjustment = desiredLocationStock - supplierLocationStock;
   const stockByWarehouse = {
     adl: product.stockByWarehouse?.adl ?? 0,
     bne: product.stockByWarehouse?.bne ?? 0,
@@ -336,13 +352,20 @@ const applyAdminStockToProduct = (
     internext: product.stockByWarehouse?.internext ?? 0,
     adminAdjustment,
     adminLocation: normalizedLocation,
+    adminAdjustments: {
+      ...(product.stockByWarehouse?.adminAdjustments || {}),
+      [normalizedLocation]: adminAdjustment,
+    },
   };
 
-  if (normalizedLocation === "internext") {
-    stockByWarehouse.internext = Math.max(0, stockByWarehouse.internext + adminAdjustment);
-  } else {
-    stockByWarehouse[normalizedLocation] = Math.max(0, stockByWarehouse[normalizedLocation] + adminAdjustment);
-  }
+  stockByWarehouse[normalizedLocation] = Math.max(0, desiredLocationStock);
+  const totalStock =
+    stockByWarehouse.adl +
+    stockByWarehouse.bne +
+    stockByWarehouse.mel +
+    stockByWarehouse.syd +
+    stockByWarehouse.wa +
+    (stockByWarehouse.internext ?? 0);
 
   return {
     ...product,
@@ -353,24 +376,22 @@ const applyAdminStockToProduct = (
   };
 };
 
-const getAdminStockDisplayValue = (product?: CatalogProduct | null) =>
-  typeof product?.stockQuantity === "number" ? String(product.stockQuantity) : "";
-
 const getAdminStockAdjustmentSummary = (product?: CatalogProduct | null) => {
   if (!product || typeof product.stockQuantity !== "number") {
     return "";
   }
 
-  const supplierStock = getSupplierStockQuantity(product);
+  const stockLocation = getAdminStockLocation(product);
+  const supplierStock = getSupplierWarehouseStockQuantity(product, stockLocation);
   const adjustment = getAdminStockAdjustment(product);
 
   if (adjustment === 0) {
-    return `Supplier stock currently accounts for all ${supplierStock.toLocaleString("en-AU")} units.`;
+    return `${getStockLocationLabel(stockLocation)} currently matches supplier stock at ${supplierStock.toLocaleString("en-AU")} units.`;
   }
 
-  return `Supplier stock ${supplierStock.toLocaleString("en-AU")} ${
+  return `${getStockLocationLabel(stockLocation)} supplier stock ${supplierStock.toLocaleString("en-AU")} ${
     adjustment > 0 ? "+" : "-"
-  } ${getStockLocationLabel(getAdminStockLocation(product))} adjustment ${Math.abs(adjustment).toLocaleString("en-AU")} = ${product.stockQuantity.toLocaleString("en-AU")} total.`;
+  } admin adjustment ${Math.abs(adjustment).toLocaleString("en-AU")} = ${getWarehouseStockQuantity(product, stockLocation).toLocaleString("en-AU")} shown for that location.`;
 };
 
 const getAvailabilityRows = (product: CatalogProduct) => {
@@ -1025,13 +1046,26 @@ const ProductDetail = () => {
       return;
     }
 
+    const stockLocation = getAdminStockLocation(product);
     setAdminStockForm({
-      stockQuantity: getAdminStockDisplayValue(product),
-      stockLocation: getAdminStockLocation(product),
+      stockQuantity: String(getWarehouseStockQuantity(product, stockLocation)),
+      stockLocation,
       note: "",
     });
     setAdminStockMessage(null);
-  }, [product?.code, product?.stockQuantity, product?.stockByWarehouse?.adminAdjustment, product?.stockByWarehouse?.adminLocation, product?.stockByWarehouse?.internext, session?.role]);
+  }, [
+    product?.code,
+    product?.stockQuantity,
+    product?.stockByWarehouse?.adl,
+    product?.stockByWarehouse?.bne,
+    product?.stockByWarehouse?.mel,
+    product?.stockByWarehouse?.syd,
+    product?.stockByWarehouse?.wa,
+    product?.stockByWarehouse?.adminAdjustment,
+    product?.stockByWarehouse?.adminLocation,
+    product?.stockByWarehouse?.internext,
+    session?.role,
+  ]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -1337,7 +1371,7 @@ const ProductDetail = () => {
     setAdminStockMessage(null);
 
     try {
-      const supplierStockQuantity = getSupplierStockQuantity(product);
+      const supplierLocationStockQuantity = getSupplierWarehouseStockQuantity(product, adminStockForm.stockLocation);
       const response = await fetch("/api/catalog/live", {
         method: "POST",
         credentials: "include",
@@ -1348,7 +1382,7 @@ const ProductDetail = () => {
           code: product.code,
           supplierCode: product.supplierCode,
           stockQuantity,
-          supplierStockQuantity,
+          supplierLocationStockQuantity,
           stockLocation: adminStockForm.stockLocation,
           note: adminStockForm.note,
         }),
@@ -1356,36 +1390,86 @@ const ProductDetail = () => {
       const result = (await response.json().catch(() => ({}))) as {
         message?: string;
         override?: { stockQuantity?: number };
-        desiredStockQuantity?: number;
+        desiredLocationStockQuantity?: number;
       };
 
       if (!response.ok) {
         throw new Error(result.message || "Unable to save stock override.");
       }
 
-      const nextStockQuantity =
-        typeof result.desiredStockQuantity === "number"
-          ? result.desiredStockQuantity
+      const nextLocationStockQuantity =
+        typeof result.desiredLocationStockQuantity === "number"
+          ? result.desiredLocationStockQuantity
           : stockQuantity;
       const updateProduct = (item: CatalogProduct) =>
-        item.code === product.code ? applyAdminStockToProduct(item, nextStockQuantity, adminStockForm.stockLocation) : item;
+        item.code === product.code ? applyAdminStockToProduct(item, nextLocationStockQuantity, adminStockForm.stockLocation) : item;
 
-      setProduct((current) => (current ? applyAdminStockToProduct(current, nextStockQuantity, adminStockForm.stockLocation) : current));
+      setProduct((current) => (current ? applyAdminStockToProduct(current, nextLocationStockQuantity, adminStockForm.stockLocation) : current));
       setAllProducts((current) => current.map(updateProduct));
       setAdminStockMessage({
         tone: "success",
-        text: "Admin stock total has been saved for this product.",
+        text: "Admin location stock has been saved for this product.",
       });
       toast({
         title: "Stock updated",
-        description: `${nextStockQuantity.toLocaleString("en-AU")} total unit${
-          nextStockQuantity === 1 ? "" : "s"
+        description: `${nextLocationStockQuantity.toLocaleString("en-AU")} unit${
+          nextLocationStockQuantity === 1 ? "" : "s"
         } set for ${getStockLocationLabel(adminStockForm.stockLocation)}.`,
       });
     } catch (error) {
       setAdminStockMessage({
         tone: "error",
         text: error instanceof Error ? error.message : "Unable to save stock override.",
+      });
+    } finally {
+      setAdminStockSaving(false);
+    }
+  };
+
+  const resetAdminStockOverride = async () => {
+    if (!product) {
+      return;
+    }
+
+    setAdminStockSaving(true);
+    setAdminStockMessage(null);
+
+    try {
+      const response = await fetch("/api/catalog/live", {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          action: "reset-stock-override",
+          code: product.code,
+          supplierCode: product.supplierCode,
+          stockLocation: adminStockForm.stockLocation,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+      };
+
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to reset stock override.");
+      }
+
+      setAdminStockMessage({
+        tone: "success",
+        text: "Selected warehouse stock has been reset to the supplier feed.",
+      });
+      toast({
+        title: "Stock reset",
+        description: `${getStockLocationLabel(adminStockForm.stockLocation)} is now using supplier stock again.`,
+      });
+
+      window.setTimeout(() => window.location.reload(), 400);
+    } catch (error) {
+      setAdminStockMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Unable to reset stock override.",
       });
     } finally {
       setAdminStockSaving(false);
@@ -1749,7 +1833,7 @@ const ProductDetail = () => {
                                   Admin stock override
                                 </p>
                                 <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                                  Set the total stock shown on the website. Supplier feed changes will still adjust this total automatically.
+                                  Set the stock shown for one warehouse. Supplier feed changes still adjust that warehouse automatically.
                                 </p>
                               </div>
                               <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold text-accent">
@@ -1767,7 +1851,7 @@ const ProductDetail = () => {
                             <div className="mt-4 grid gap-3">
                               <label className="space-y-1">
                                 <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                                  Total website stock
+                                  Website stock for selected location
                                 </span>
                                 <Input
                                   type="number"
@@ -1791,12 +1875,14 @@ const ProductDetail = () => {
                                 </span>
                                 <select
                                   value={adminStockForm.stockLocation}
-                                  onChange={(event) =>
+                                  onChange={(event) => {
+                                    const nextLocation = event.target.value;
                                     setAdminStockForm((current) => ({
                                       ...current,
-                                      stockLocation: event.target.value,
-                                    }))
-                                  }
+                                      stockLocation: nextLocation,
+                                      stockQuantity: String(getWarehouseStockQuantity(product, nextLocation)),
+                                    }));
+                                  }}
                                   className="h-11 w-full rounded-md border border-border/70 bg-background px-3 text-sm shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-accent/35"
                                 >
                                   {STOCK_OVERRIDE_LOCATIONS.map((location) => (
@@ -1844,7 +1930,16 @@ const ProductDetail = () => {
                               onClick={saveAdminStockOverride}
                               disabled={adminStockSaving}
                             >
-                              {adminStockSaving ? "Saving stock..." : "Save Total Stock"}
+                              {adminStockSaving ? "Saving stock..." : "Save Location Stock"}
+                            </Button>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="mt-3 w-full"
+                              onClick={resetAdminStockOverride}
+                              disabled={adminStockSaving}
+                            >
+                              Reset Selected Location to Supplier Stock
                             </Button>
                           </div>
                         ) : null}

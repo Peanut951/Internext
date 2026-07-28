@@ -1,5 +1,5 @@
 create table if not exists public.catalog_stock_overrides (
-  code text primary key,
+  code text not null,
   supplier_code text,
   stock_quantity integer not null default 0,
   stock_location text not null default 'internext' check (stock_location in ('internext', 'adl', 'bne', 'mel', 'syd', 'wa')),
@@ -30,6 +30,13 @@ drop constraint if exists catalog_stock_overrides_stock_location_check;
 alter table public.catalog_stock_overrides
 add constraint catalog_stock_overrides_stock_location_check
 check (stock_location in ('internext', 'adl', 'bne', 'mel', 'syd', 'wa'));
+
+alter table public.catalog_stock_overrides
+drop constraint if exists catalog_stock_overrides_pkey;
+
+alter table public.catalog_stock_overrides
+add constraint catalog_stock_overrides_pkey
+primary key (code, stock_location);
 
 alter table public.catalog_stock_overrides enable row level security;
 

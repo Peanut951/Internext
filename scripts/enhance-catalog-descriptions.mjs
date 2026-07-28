@@ -407,6 +407,152 @@ const buildFeatureSentence = (details) => {
   return `Key specification cues in the listing include ${formatFeatureList(details)}.`;
 };
 
+const isPrintConsumableType = (type, text) =>
+  type === "print consumable" ||
+  /\b(toner|ink|cartridge|drum|ribbon|filament|printhead|waste toner|waste ink|maintenance box|developer|imaging unit|fuser)\b/i.test(text);
+
+const getConsumableKind = (text) => {
+  if (/\bwaste\s+toner\b/i.test(text)) return "waste toner bottle";
+  if (/\bwaste\s+ink\b|\bmaintenance\s+box\b/i.test(text)) return "maintenance box";
+  if (/\bprinthead\b/i.test(text)) return "printhead";
+  if (/\bimaging\s+unit\b/i.test(text)) return "imaging unit";
+  if (/\bfuser\b/i.test(text)) return "fuser unit";
+  if (/\bdeveloper\b/i.test(text)) return "developer unit";
+  if (/\bdrum\b/i.test(text)) return "drum unit";
+  if (/\bribbon\b/i.test(text)) return "printer ribbon";
+  if (/\bfilament\b/i.test(text)) return "3D printing filament";
+  if (/\bink\b/i.test(text)) return "ink cartridge";
+  if (/\btoner\b/i.test(text)) return "toner cartridge";
+  if (/\bcartridge\b/i.test(text)) return "printer cartridge";
+  return "print consumable";
+};
+
+const getConsumableColour = (text) => {
+  const colours = [
+    ["matte black", "Matte Black"],
+    ["photo black", "Photo Black"],
+    ["black", "Black"],
+    ["cyan", "Cyan"],
+    ["magenta", "Magenta"],
+    ["yellow", "Yellow"],
+    ["tri-colou?r", "Tri-colour"],
+    ["gray|grey", "Grey"],
+    ["red", "Red"],
+    ["blue", "Blue"],
+    ["green", "Green"],
+    ["orange", "Orange"],
+    ["light cyan", "Light Cyan"],
+    ["light magenta", "Light Magenta"],
+  ];
+
+  for (const [pattern, label] of colours) {
+    if (new RegExp(`\\b(?:${pattern})\\b`, "i").test(text)) {
+      return label;
+    }
+  }
+
+  return "";
+};
+
+const getConsumableYield = (text) => {
+  const direct =
+    text.match(/\b\d{1,3}(?:,\d{3})+\s*(?:pages?|page\s+yield)\b/i)?.[0] ||
+    text.match(/\b\d{3,6}\s*(?:pages?|page\s+yield)\b/i)?.[0] ||
+    text.match(/\b\d+(?:\.\d+)?\s?k\s*(?:pages?|page\s+yield)\b/i)?.[0] ||
+    text.match(/\b\d+(?:\.\d+)?\s?k\b/i)?.[0];
+
+  if (!direct) {
+    return "";
+  }
+
+  return direct
+    .replace(/\s+/g, " ")
+    .replace(/\b(\d+(?:\.\d+)?)\s?k\b/i, "$1K pages")
+    .replace(/\bk\s*pages?\b/i, "K pages")
+    .replace(/\bpage\s+yield\b/i, "page yield")
+    .trim();
+};
+
+const getConsumableVolume = (text) => {
+  const volume = text.match(/\b\d+(?:\.\d+)?\s*(?:ml|mL|l|L|kg|g)\b/)?.[0];
+  return volume ? normalizeWhitespace(volume) : "";
+};
+
+const getConsumableCapacity = (text) => {
+  if (/\bextra\s+high\s+yield\b|\bultra\s+high\s+yield\b/i.test(text)) return "Extra High Yield";
+  if (/\bhigh\s+yield\b|\bxl\b/i.test(text)) return "High Yield";
+  if (/\bstandard\b|\bstd\b/i.test(text)) return "Standard Yield";
+  return "";
+};
+
+const getCompatiblePrinterText = (text, code, model) => {
+  const compatibility =
+    text.match(/\b(?:suits?|for|compatible with)\s+([A-Z0-9][A-Z0-9 /+.,&-]{4,120})/i)?.[1] ||
+    text.match(/\b(?:printer series|series)\s+([A-Z0-9][A-Z0-9 /+.,&-]{4,120})/i)?.[1];
+
+  if (!compatibility) {
+    return "";
+  }
+
+  const blockedTokens = [code, model]
+    .map((value) => normalizeWhitespace(value).toLowerCase())
+    .filter(Boolean);
+
+  return compatibility
+    .replace(/\b\d+(?:\.\d+)?\s?k\b.*$/i, "")
+    .replace(/\b\d{3,6}\s*(?:pages?|page\s+yield)\b.*$/i, "")
+    .replace(/\b\d+(?:\.\d+)?\s*(?:ml|mL|l|L|kg|g)\b.*$/i, "")
+    .replace(/\b(?:printer series|printers?|series)\b.*$/i, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+[,;.]$/g, "")
+    .split(" ")
+    .filter((token) => !blockedTokens.includes(token.toLowerCase()))
+    .join(" ")
+    .trim()
+    .slice(0, 140);
+};
+
+const buildPrintConsumableDescription = ({
+  code,
+  manufacturer,
+  model,
+  namedTitle,
+  sourceText,
+}) => {
+  const kind = getConsumableKind(sourceText);
+  const colour = getConsumableColour(sourceText);
+  const yieldText = getConsumableYield(sourceText);
+  const volume = getConsumableVolume(sourceText);
+  const capacity = getConsumableCapacity(sourceText);
+  const compatibility = getCompatiblePrinterText(sourceText, code, model);
+  const featureLines = [
+    colour ? `Colour: ${colour}` : "",
+    yieldText ? `Published yield: ${yieldText}` : "",
+    volume ? `Capacity: ${volume}` : "",
+    capacity ? `Yield class: ${capacity}` : "",
+    compatibility ? `Designed for compatible devices including ${compatibility}` : "",
+    "Suitable for print fleet replenishment, replacement cycles, and spare stock planning",
+    "Check the printer model, consumable code, and colour before purchasing",
+  ].filter(Boolean);
+
+  const heading = `${code}\n${namedTitle}`;
+  const intro = `${namedTitle} is a ${kind} for business print environments that need dependable replenishment and consistent output from compatible devices.`;
+  const compatibilityText = compatibility
+    ? `It is intended for use with compatible printer models including ${compatibility}. Always confirm the printer model, consumable code, and colour against the device before ordering.`
+    : `It should be matched against the printer model, consumable code, colour, and required yield before ordering.`;
+  const operations = `This item is best suited to office, education, service desk, and managed print environments where keeping consumables available helps reduce downtime. It can be purchased as a replacement cartridge or stocked ahead of scheduled fleet maintenance.`;
+  const support = `Internext supplies this ${kind} with online ordering, Australian delivery options, secure checkout, and customer assistance for matching consumables to the right device. Use product code ${code}${model && model !== code ? ` or supplier reference ${model}` : ""} when discussing this item with Internext.`;
+
+  return [
+    heading,
+    intro,
+    compatibilityText,
+    `Key details:\n${featureLines.map((line) => `- ${toSentenceCase(line)}`).join("\n")}`,
+    operations,
+    support,
+  ].join("\n\n");
+};
+
 const buildFeatureLines = (details, text, type) => {
   const lines = [];
   for (const detail of details) {
@@ -472,6 +618,16 @@ const buildLongDescription = (product) => {
   const namedTitle = titleWithModel.toLowerCase().startsWith(manufacturer.toLowerCase())
     ? titleWithModel
     : `${manufacturer} ${titleWithModel}`;
+
+  if (isPrintConsumableType(type, sourceText)) {
+    return buildPrintConsumableDescription({
+      code,
+      manufacturer,
+      model,
+      namedTitle,
+      sourceText,
+    });
+  }
 
   const heading = `${code}\n${namedTitle}`;
   const intro = `${namedTitle} is ${articleFor(type)} ${type} intended for ${inferAudience(sourceText)}. It is selected for ${useCase}, with the product listing structured around practical compatibility, deployment fit, and ongoing day-to-day reliability.`;
