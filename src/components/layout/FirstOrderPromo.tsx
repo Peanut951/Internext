@@ -1,15 +1,75 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Gift, X } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useAuthSession } from "@/hooks/use-auth-session";
+import { hasCompletedFirstOrderOnDevice, markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
+import { fetchSharedOrdersResult } from "@/lib/orderManagement";
 
 const FirstOrderPromo = () => {
   const location = useLocation();
   const [state, setState] = useState<"open" | "minimized">("open");
+  const [hasCompletedFirstOrder, setHasCompletedFirstOrder] = useState(false);
+  const [ordersChecked, setOrdersChecked] = useState(false);
+  const { session, loading: sessionLoading } = useAuthSession();
   const isSignupOfferPage =
     location.pathname === "/signup" && new URLSearchParams(location.search).get("offer") === "first-order";
 
-  if (isSignupOfferPage) {
+  useEffect(() => {
+    let isActive = true;
+
+    if (hasCompletedFirstOrderOnDevice()) {
+      setHasCompletedFirstOrder(true);
+      setOrdersChecked(true);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    if (sessionLoading) {
+      return () => {
+        isActive = false;
+      };
+    }
+
+    if (!session || session.role !== "user") {
+      setHasCompletedFirstOrder(false);
+      setOrdersChecked(true);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    setOrdersChecked(false);
+    fetchSharedOrdersResult({ fallbackToLocal: true, mergeWithLocal: false })
+      .then((result) => {
+        if (!isActive) {
+          return;
+        }
+
+        const hasOrders = result.orders.length > 0;
+        setHasCompletedFirstOrder(hasOrders);
+        if (hasOrders) {
+          markFirstOrderCompletedOnDevice();
+        }
+      })
+      .catch(() => {
+        if (isActive) {
+          setHasCompletedFirstOrder(false);
+        }
+      })
+      .finally(() => {
+        if (isActive) {
+          setOrdersChecked(true);
+        }
+      });
+
+    return () => {
+      isActive = false;
+    };
+  }, [session?.email, session?.role, session?.userId, sessionLoading]);
+
+  if (isSignupOfferPage || sessionLoading || !ordersChecked || hasCompletedFirstOrder) {
     return null;
   }
 

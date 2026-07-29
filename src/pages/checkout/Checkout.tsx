@@ -23,6 +23,7 @@ import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldCheck, Truck } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { trackPurchase } from "@/lib/analytics";
+import { markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
 
 const defaultCustomer: CheckoutCustomer = {
   firstName: "",
@@ -962,6 +963,7 @@ const Checkout = () => {
         if (!draft) {
           if (confirmPayload.invoicePayment && confirmPayload.invoiceMarkedPaid) {
             markSessionHandled(checkoutSessionId);
+            markFirstOrderCompletedOnDevice();
             setPaymentStateMessage(
               `Payment received for invoice ${confirmPayload.orderNumber || ""}. Internext has marked the invoice as paid.`,
             );
@@ -987,6 +989,7 @@ const Checkout = () => {
         }
 
         markSessionHandled(checkoutSessionId);
+        markFirstOrderCompletedOnDevice();
         clearCheckoutDraft();
         trackPurchase({
           transactionId: order.orderNumber,
