@@ -23,7 +23,7 @@ import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldCheck, Truck } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { trackPurchase } from "@/lib/analytics";
-import { markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
+import { hasCompletedFirstOrderOnDevice, markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
 
 const defaultCustomer: CheckoutCustomer = {
   firstName: "",
@@ -680,9 +680,11 @@ const Checkout = () => {
   const customerEmailMatchesAccount =
     Boolean(accountEmail) &&
     customer.email.trim().toLowerCase() === accountEmail;
+  const deviceHasCompletedFirstOrder = hasCompletedFirstOrderOnDevice();
   const firstOrderDiscountEligible =
     session?.role === "user" &&
     customerEmailMatchesAccount &&
+    !deviceHasCompletedFirstOrder &&
     !accountHasPreviousOrders &&
     firstOrderDiscountChecked &&
     !firstOrderDiscountLoading;
@@ -1146,6 +1148,7 @@ const Checkout = () => {
           origin: window.location.origin,
           orderNumber,
           resellerEmail: reseller?.email,
+          deviceFirstOrderCompleted: hasCompletedFirstOrderOnDevice(),
           customer: {
             firstName: customer.firstName,
             lastName: customer.lastName,

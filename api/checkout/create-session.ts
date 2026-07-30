@@ -19,6 +19,7 @@ type RequestBody = {
   origin?: string;
   orderNumber?: string;
   resellerEmail?: string;
+  deviceFirstOrderCompleted?: boolean;
   customer?: {
     firstName?: string;
     lastName?: string;
@@ -330,6 +331,7 @@ export default async function handler(
   const firstOrderDiscountApplies =
     Boolean(authSession) &&
     authSession?.role === "user" &&
+    body.deviceFirstOrderCompleted !== true &&
     authSession.email.trim().toLowerCase() === normalizedCustomerEmail &&
     !(await hasExistingAccountOrders({
       userId: authSession.userId,
