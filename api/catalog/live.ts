@@ -164,7 +164,12 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
 };
 
 const parseNumber = (value: unknown) => {
-  const parsed = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+  const normalized = String(value ?? "").replace(/[^0-9.-]/g, "").trim();
+  if (!normalized || normalized === "-" || normalized === "." || normalized === "-.") {
+    return null;
+  }
+
+  const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
@@ -1191,8 +1196,9 @@ const loadLeaderCatalogProductsUncached = async (
       (product) => !isLeaderPdfExcluded(product),
     );
     const productsByKey = new Map<string, LeaderCatalogProduct>();
+    const sourceProducts = feedUrl && feedProducts.length > 0 ? feedProducts : staticProducts;
 
-    for (const product of [...staticProducts, ...feedProducts]) {
+    for (const product of sourceProducts) {
       const keys = getProductKeys(product);
       const key = keys[0] || product.code;
       const existing = productsByKey.get(key);

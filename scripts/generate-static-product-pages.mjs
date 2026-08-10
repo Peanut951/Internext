@@ -375,6 +375,11 @@ const template = fs.readFileSync(templatePath, "utf8");
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 
+const getSupplierKeys = (product) =>
+  [product.code, product.supplierCode]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
 } catch (error) {
@@ -387,11 +392,20 @@ try {
   console.warn(`Alloys live feed unavailable for static product pages: ${error.message}`);
 }
 
+const currentAlloysKeys = new Set(alloysLiveItems.flatMap(getSupplierKeys));
+const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const knownLeaderKeys = new Set(
+  (leaderFeedProducts.length > 0 ? leaderFeedProducts : staticLeaderProducts).flatMap(getSupplierKeys),
+);
 const products = filterTangibleCatalogProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
-  ...readJson(path.join(dataDir, "leader-products.json")),
+  ...staticLeaderProducts,
   ...leaderFeedProducts,
-], alloysLiveItems));
+], alloysLiveItems)).filter(
+  (product) =>
+    alloysLiveItems.length === 0 ||
+    getSupplierKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
+);
 const uniqueProducts = new Map();
 
 for (const product of products) {

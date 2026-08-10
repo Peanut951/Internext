@@ -3,7 +3,7 @@ import Layout from "@/components/layout/Layout";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, reconcileCatalogProductSnapshot } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
@@ -37,6 +37,7 @@ type CatalogProduct = {
   availabilityText?: string;
   stockQuantity?: number;
   liveUpdatedAt?: string;
+  quoteRequired?: boolean;
 };
 
 const RECENT_SEARCHES_KEY = "internext-recent-searches";
@@ -52,7 +53,9 @@ const QUICK_SEARCHES = [
 const SEARCH_PREVIEW_LIMIT = 24;
 
 const hasVerifiedSearchPrice = (product: CatalogProduct) =>
-  Boolean(product.liveUpdatedAt) || product.manufacturer.trim().toLowerCase() === "leader";
+  Boolean(product.liveUpdatedAt) ||
+  Boolean(product.quoteRequired) ||
+  product.manufacturer.trim().toLowerCase() === "leader";
 
 const categories = [
   {
@@ -215,7 +218,7 @@ const ProductsIndex = () => {
           if (isMounted) {
             hasAppliedVerifiedProducts = true;
             setProducts((current) =>
-              mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+              reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
             );
             setLiveRefreshing(false);
           }
@@ -230,7 +233,9 @@ const ProductsIndex = () => {
         try {
           const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
           if (isMounted) {
-            setProducts(liveProducts);
+            setProducts((current) =>
+              reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
+            );
             setLiveRefreshing(false);
           }
         } catch {

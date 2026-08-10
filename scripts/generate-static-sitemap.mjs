@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
+import { loadAlloysLiveCatalogItems } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
@@ -18,7 +19,10 @@ const escapeXml = (value) =>
 
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"));
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"));
+const previousLiveItems = readJson(path.join(publicDir, "data", "catalog-live-overrides.json")).items || [];
+const verifiedQuoteProducts = readJson(path.join(publicDir, "data", "supplier-quote-products.json")).products || [];
 let leaderFeedProducts = [];
+let alloysLiveItems = [];
 
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
@@ -26,9 +30,42 @@ try {
   console.warn(`Leader feed unavailable for sitemap build: ${error.message}`);
 }
 
+try {
+  alloysLiveItems = await loadAlloysLiveCatalogItems();
+} catch (error) {
+  console.warn(`Alloys feed unavailable for sitemap build: ${error.message}`);
+}
+
+const getProductKeys = (product) =>
+  [product.code, product.supplierCode]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
+
+const leaderStaticKeys = new Set(leaderProducts.flatMap(getProductKeys));
+const currentLeaderKeys = new Set(
+  (leaderFeedProducts.length > 0 ? leaderFeedProducts : leaderProducts).flatMap(getProductKeys),
+);
+const currentAlloysKeys = new Set(
+  (alloysLiveItems.length > 0
+    ? alloysLiveItems
+    : previousLiveItems.filter((product) =>
+        getProductKeys(product).every((key) => !leaderStaticKeys.has(key)),
+      )
+  ).flatMap(getProductKeys),
+);
+const verifiedQuoteKeys = new Set(verifiedQuoteProducts.flatMap(getProductKeys));
+
 const productCodes = Array.from(
   new Set(
     filterTangibleCatalogProducts([...staticProducts, ...leaderProducts, ...leaderFeedProducts])
+      .filter((product) =>
+        getProductKeys(product).some(
+          (key) =>
+            currentAlloysKeys.has(key) ||
+            currentLeaderKeys.has(key) ||
+            verifiedQuoteKeys.has(key),
+        ),
+      )
       .map((product) => String(product.code || "").trim())
       .filter(Boolean),
   ),

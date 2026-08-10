@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts, loadCatalogProductsFast, mergeCatalogProductUpdates } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast, reconcileCatalogProductSnapshot } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -43,6 +43,7 @@ type CatalogProduct = {
   widthCm?: number | null;
   depthCm?: number | null;
   liveUpdatedAt?: string;
+  quoteRequired?: boolean;
 };
 
 type CategoryInfo = {
@@ -95,7 +96,9 @@ const safeNumber = (value: unknown) => {
 };
 
 const hasVerifiedProductPrice = (product: CatalogProduct) =>
-  Boolean(product.liveUpdatedAt) || safeText(product.manufacturer).toLowerCase() === "leader";
+  Boolean(product.liveUpdatedAt) ||
+  Boolean(product.quoteRequired) ||
+  safeText(product.manufacturer).toLowerCase() === "leader";
 
 const normalizeKey = (value: unknown) => safeText(value).toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
 
@@ -845,7 +848,7 @@ const ProductCategory = () => {
             if (isMounted) {
               hasAppliedVerifiedProducts = true;
               setProducts((current) =>
-                mergeCatalogProductUpdates(current, liveProducts) as CatalogProduct[],
+                reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
               );
               setLiveRefreshing(false);
             }
@@ -867,7 +870,9 @@ const ProductCategory = () => {
         try {
           const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
           if (isMounted) {
-            setProducts(liveProducts);
+            setProducts((current) =>
+              reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
+            );
             setLiveRefreshing(false);
           }
         } catch {

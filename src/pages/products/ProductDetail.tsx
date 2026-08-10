@@ -62,6 +62,7 @@ type CatalogProduct = {
   widthCm?: number | null;
   depthCm?: number | null;
   liveUpdatedAt?: string;
+  quoteRequired?: boolean;
 };
 
 type AdminStockFormState = {
@@ -120,7 +121,7 @@ const findProductByCode = (products: CatalogProduct[], productCode: string) => {
 };
 
 const hasCustomerPrice = (product?: CatalogProduct | null) =>
-  typeof product?.price === "number" && Number.isFinite(product.price);
+  typeof product?.price === "number" && Number.isFinite(product.price) && product.price > 0;
 
 type DescriptionBlock =
   | { type: "heading"; text: string }
@@ -282,7 +283,7 @@ const buildFullDescriptionBlocks = (product: CatalogProduct, highlights: string[
 };
 
 const formatMeasurement = (value: number | null | undefined, unit: string) => {
-  if (value === null || value === undefined || Number.isNaN(value)) {
+  if (value === null || value === undefined || Number.isNaN(value) || value <= 0) {
     return null;
   }
 
@@ -960,6 +961,15 @@ const ProductDetail = () => {
         }
 
         if (found) {
+          if (found.quoteRequired) {
+            setAllProducts(data);
+            setProduct(found);
+            setIsLivePriceReady(false);
+            setHasCheckedFullCatalog(true);
+            setLoading(false);
+            return;
+          }
+
           const hasVerifiedFastPrice =
             hasCustomerPrice(found) &&
             (Boolean(found.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
@@ -986,11 +996,9 @@ const ProductDetail = () => {
               return;
             }
 
-            if (!hasVerifiedFastPrice) {
-              setProduct(null);
-              setIsLivePriceReady(false);
-              setLoading(false);
-            }
+            setProduct(null);
+            setIsLivePriceReady(false);
+            setLoading(false);
           } catch {
             if (isMounted) {
               setHasCheckedFullCatalog(true);
@@ -1746,6 +1754,12 @@ const ProductDetail = () => {
                       <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
                         <p className="mb-2 text-sm text-muted-foreground">Price</p>
                         <p className="mb-2 text-3xl font-bold text-foreground">{displayPrice}</p>
+                        {product.quoteRequired ? (
+                          <p className="mb-3 max-w-2xl text-sm leading-6 text-muted-foreground">
+                            Current pricing for large or specialist products can take some time to confirm.
+                            Contact Internext for the current product price and freight quote.
+                          </p>
+                        ) : null}
                         {availability ? (
                           <p className="mb-2 text-sm font-semibold text-accent">{availability}</p>
                         ) : null}

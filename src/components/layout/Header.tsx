@@ -10,6 +10,7 @@ import {
 import {
   loadCatalogProducts,
   loadCatalogProductsFast,
+  reconcileCatalogProductSnapshot,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
 
@@ -137,7 +138,7 @@ const Header = () => {
       try {
         const products = await loadCatalogProducts({ forceRefresh: true });
         if (isMounted) {
-          setSearchProducts(products);
+          setSearchProducts((current) => reconcileCatalogProductSnapshot(current, products));
         }
       } catch {
         // Keep the fast catalogue for search suggestions if the refresh is unavailable.

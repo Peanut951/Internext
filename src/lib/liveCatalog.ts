@@ -39,6 +39,7 @@ export type CatalogProductWithLive = {
   widthCm?: number | null;
   depthCm?: number | null;
   liveUpdatedAt?: string;
+  quoteRequired?: boolean;
 };
 
 type LiveCatalogItem = {
@@ -90,7 +91,7 @@ type CachedCatalogProducts = {
   products: CatalogProductWithLive[];
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products-v3";
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v5";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
@@ -114,6 +115,22 @@ const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplier
   [product.code, product.supplierCode]
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
+
+const requireCurrentQuote = (product: CatalogProductWithLive): CatalogProductWithLive => ({
+  ...product,
+  price: null,
+  priceText: "Contact for pricing",
+  resellerPrice: null,
+  resellerPriceText: "Contact for pricing",
+  availabilityText: "Contact us for current pricing and availability",
+  stockQuantity: 0,
+  stockByWarehouse: undefined,
+  weightKg: typeof product.weightKg === "number" && product.weightKg > 0 ? product.weightKg : null,
+  heightCm: typeof product.heightCm === "number" && product.heightCm > 0 ? product.heightCm : null,
+  widthCm: typeof product.widthCm === "number" && product.widthCm > 0 ? product.widthCm : null,
+  depthCm: typeof product.depthCm === "number" && product.depthCm > 0 ? product.depthCm : null,
+  quoteRequired: true,
+});
 
 const isDetailedDescription = (value: unknown) => {
   const text = String(value || "").replace(/\s+/g, " ").trim();
@@ -226,6 +243,15 @@ export const mergeCatalogProductUpdates = (
   return [...mergedProducts, ...newProducts];
 };
 
+export const reconcileCatalogProductSnapshot = (
+  currentProducts: CatalogProductWithLive[],
+  updatedProducts: CatalogProductWithLive[],
+) =>
+  mergeCatalogProductUpdates(
+    currentProducts.filter((product) => product.quoteRequired),
+    updatedProducts,
+  );
+
 const loadStaticCatalogProducts = async () => {
   if (!staticCatalogProductsPromise) {
     staticCatalogProductsPromise = (async () => {
@@ -240,7 +266,10 @@ const loadStaticCatalogProducts = async () => {
 
       const applyStaticLiveOverrides = async (products: CatalogProductWithLive[]) => {
         try {
-          const liveOverridesResponse = await fetch("/data/catalog-live-overrides.json");
+          const [liveOverridesResponse, verifiedQuoteResponse] = await Promise.all([
+            fetch("/data/catalog-live-overrides.json"),
+            fetch("/data/supplier-quote-products.json"),
+          ]);
           if (!liveOverridesResponse.ok) {
             return products;
           }
@@ -251,12 +280,32 @@ const loadStaticCatalogProducts = async () => {
           }
 
           const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
+          const currentLiveKeys = new Set(liveOverrides.items.flatMap(getProductKeys));
+          const verifiedQuoteData = verifiedQuoteResponse.ok
+            ? ((await verifiedQuoteResponse.json()) as { products?: CatalogProductWithLive[] })
+            : { products: [] };
+          const verifiedQuoteKeys = new Set(
+            (verifiedQuoteData.products || []).flatMap(getProductKeys),
+          );
+          const currentProducts = products.filter((product) => {
+            const keys = getProductKeys(product);
+            return keys.some(
+              (key) => currentLiveKeys.has(key) || verifiedQuoteKeys.has(key),
+            );
+          });
+          const quoteSafeProducts = currentProducts.map((product) => {
+            const keys = getProductKeys(product);
+            const hasCurrentSupplierRecord = keys.some((key) => currentLiveKeys.has(key));
+            return hasCurrentSupplierRecord ? product : requireCurrentQuote(product);
+          });
+
           return mergeCatalogProductUpdates(
-            products,
+            quoteSafeProducts,
             stripCachedEtaProductsData(
               liveOverrides.items.map((item) => ({
                 ...item,
                 liveUpdatedAt: item.liveUpdatedAt || updatedAt,
+                quoteRequired: false,
               })),
             ),
           );
@@ -278,7 +327,6 @@ const loadStaticCatalogProducts = async () => {
         const leaderOnlyProducts = leaderProducts.filter((product) =>
           getProductKeys(product).every((key) => !existingKeys.has(key)),
         );
-
         return applyStaticLiveOverrides([...staticProducts, ...leaderOnlyProducts]);
       } catch {
         return applyStaticLiveOverrides(staticProducts);
@@ -306,7 +354,15 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
       if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
-        const products = normalizeCatalogProducts(mergedData.items);
+        const [staticProducts, currentProducts] = await Promise.all([
+          loadStaticCatalogProducts(),
+          Promise.resolve(
+            normalizeCatalogProducts(
+              mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
+            ),
+          ),
+        ]);
+        const products = reconcileCatalogProductSnapshot(staticProducts, currentProducts);
         writeCachedProducts(products);
         return products;
       }
@@ -347,7 +403,7 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         .find(Boolean);
 
       if (!live) {
-        return null;
+        return product;
       }
 
       return {
@@ -374,9 +430,9 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         depthCm: live.depthCm,
         gtin: product.gtin || live.gtin,
         liveUpdatedAt: liveData.updatedAt,
+        quoteRequired: false,
       };
-    })
-    .filter((product): product is CatalogProductWithLive => Boolean(product));
+    });
 
   writeCachedProducts(products);
   return products;

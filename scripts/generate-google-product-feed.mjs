@@ -671,6 +671,11 @@ try {
 }
 
 const generatedCatalogItems = mergeProducts([...alloysLiveItems, ...leaderFeedProducts]);
+const currentAlloysKeys = new Set(alloysLiveItems.flatMap(getProductKeys));
+const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const knownLeaderKeys = new Set(
+  (leaderFeedProducts.length > 0 ? leaderFeedProducts : staticLeaderProducts).flatMap(getProductKeys),
+);
 
 if (generatedCatalogItems.length > 0) {
   fs.writeFileSync(
@@ -701,9 +706,14 @@ const excludedCodes = new Set(
 
 const products = mergeProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
-  ...readJson(path.join(dataDir, "leader-products.json")),
+  ...staticLeaderProducts,
   ...leaderFeedProducts,
 ], alloysLiveItems))
+  .filter(
+    (product) =>
+      alloysLiveItems.length === 0 ||
+      getProductKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
+  )
   .map((product) => {
     const overrideImages = imageOverrideMap.get(String(product.code || "").trim().toUpperCase());
     return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;

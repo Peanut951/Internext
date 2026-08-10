@@ -34,7 +34,12 @@ const readEnv = (name) => {
 };
 
 const parseNumber = (value) => {
-  const parsed = Number(String(value || "").replace(/[^0-9.-]/g, ""));
+  const normalized = String(value ?? "").replace(/[^0-9.-]/g, "").trim();
+  if (!normalized || normalized === "-" || normalized === "." || normalized === "-.") {
+    return null;
+  }
+
+  const parsed = Number(normalized);
   return Number.isFinite(parsed) ? parsed : null;
 };
 
