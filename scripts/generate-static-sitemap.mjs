@@ -7,7 +7,13 @@ import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs"
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
 
-const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf8"));
+const readJson = (filePath, fallback) => {
+  if (!fs.existsSync(filePath)) {
+    return fallback;
+  }
+
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+};
 
 const escapeXml = (value) =>
   String(value ?? "")
@@ -17,10 +23,16 @@ const escapeXml = (value) =>
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&apos;");
 
-const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"));
-const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"));
-const previousLiveItems = readJson(path.join(publicDir, "data", "catalog-live-overrides.json")).items || [];
-const verifiedQuoteProducts = readJson(path.join(publicDir, "data", "supplier-quote-products.json")).products || [];
+const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"), []);
+const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"), []);
+const previousLiveItems = readJson(
+  path.join(publicDir, "data", "catalog-live-overrides.json"),
+  { items: [] },
+).items || [];
+const verifiedQuoteProducts = readJson(
+  path.join(publicDir, "data", "supplier-quote-products.json"),
+  { products: [] },
+).products || [];
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 
