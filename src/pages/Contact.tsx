@@ -126,8 +126,8 @@ const Contact = () => {
                 <h3 className="font-semibold text-foreground">What happens next</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">
                   Your enquiry is sent to the Internext team with your contact details and message.
-                  We aim to respond within 1 business day, and urgent order or warranty questions can
-                  also be followed up by calling 1300 U R NEXT (1300 876 398).
+                  Urgent order or warranty questions can also be followed up by calling 1300 U R NEXT
+                  (1300 876 398).
                 </p>
               </div>
               <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50">

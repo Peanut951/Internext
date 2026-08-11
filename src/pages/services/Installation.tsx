@@ -105,36 +105,27 @@ const Installation = () => {
       {/* Service Details */}
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="space-y-12">
-            {serviceDetails.map((service, idx) => (
-              <div
+          <div className="grid gap-6 lg:grid-cols-2">
+            {serviceDetails.map((service) => (
+              <article
                 key={service.title}
-                className={`flex flex-col lg:flex-row gap-8 ${idx % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
+                className="bg-card rounded-lg p-8 shadow-card border border-border/50"
               >
-                <div className="lg:w-1/2">
-                  <div className="bg-card rounded-2xl p-8 shadow-card border border-border/50 h-full">
-                    <div className="w-14 h-14 bg-accent/10 rounded-xl flex items-center justify-center mb-6">
-                      <service.icon className="h-7 w-7 text-accent" />
-                    </div>
-                    <h2 className="text-2xl font-bold text-foreground mb-4">{service.title}</h2>
-                    <p className="text-muted-foreground mb-6">{service.description}</p>
-                    <h4 className="font-semibold text-foreground mb-3">Service Includes:</h4>
-                    <ul className="space-y-2">
-                      {service.includes.map((item) => (
-                        <li key={item} className="flex items-start gap-2 text-muted-foreground text-sm">
-                          <CheckCircle className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                <div className="w-14 h-14 bg-accent/10 rounded-lg flex items-center justify-center mb-6">
+                  <service.icon className="h-7 w-7 text-accent" />
                 </div>
-                <div className="lg:w-1/2">
-                  <div className="aspect-video bg-muted rounded-2xl flex items-center justify-center h-full min-h-[300px]">
-                    <span className="text-muted-foreground">Service Image</span>
-                  </div>
-                </div>
-              </div>
+                <h2 className="text-2xl font-bold text-foreground mb-4">{service.title}</h2>
+                <p className="text-muted-foreground mb-6">{service.description}</p>
+                <h3 className="font-semibold text-foreground mb-3">Service Includes:</h3>
+                <ul className="space-y-2">
+                  {service.includes.map((item) => (
+                    <li key={item} className="flex items-start gap-2 text-muted-foreground text-sm">
+                      <CheckCircle className="h-4 w-4 text-accent mt-0.5 flex-shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </article>
             ))}
           </div>
         </div>
