@@ -66,7 +66,7 @@ const WhyPartner = () => {
       {/* Benefits Grid */}
       <section className="section-padding bg-background">
         <div className="container-wide">
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="mx-auto grid max-w-5xl gap-8 md:grid-cols-2">
             {benefits.map((benefit) => (
               <div
                 key={benefit.title}
