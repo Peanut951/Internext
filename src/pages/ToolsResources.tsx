@@ -41,9 +41,8 @@ const resources = [
 ];
 
 const quickLinks = [
-  { title: "Partner Portal Login", description: "Access your dashboard, orders, and account tools" },
+  { title: "Reseller Portal Login", description: "Access your dashboard, orders, and account tools" },
   { title: "Returns & Warranty", description: "Start a return or warranty support request" },
-  { title: "Deal Registration", description: "Register opportunities for additional discounts" },
   { title: "Demo Equipment", description: "Request demo units for customer presentations" },
 ];
 
@@ -69,7 +68,7 @@ const ToolsResources = () => {
       <section className="section-padding bg-background">
         <div className="container-wide">
           <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-8">
-            Partner Resources
+            Reseller Resources
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {resources.map((resource) => (
@@ -133,7 +132,7 @@ const ToolsResources = () => {
             Need assistance?
           </h2>
           <p className="text-primary-foreground/70 mb-6 max-w-xl mx-auto">
-            Our partner support team is available to help you find the right resources.
+            Our reseller support team is available to help you find the right resources.
           </p>
           <a
             href="/contact"

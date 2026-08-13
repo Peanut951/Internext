@@ -9,7 +9,7 @@ const quickLinks = [
 
 const supportLinks = [
   { label: "Reseller Portal", path: "/login" },
-  { label: "Partner Program", path: "/contact" },
+  { label: "Reseller Application", path: "/login/register" },
   { label: "Technical Support", path: "/support/faq" },
   { label: "Shipping & Delivery", path: "/support/shipping" },
   { label: "Returns & Refunds", path: "/support/returns" },
