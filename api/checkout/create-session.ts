@@ -9,6 +9,7 @@ import {
   validateCheckoutPayload,
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
+import { loadMergedCatalogProducts } from "../catalog/live.js";
 
 const MIN_SHIPPING_TOTAL = 15;
 const FIRST_ORDER_DISCOUNT_RATE = 0.1;
@@ -255,34 +256,71 @@ const calculateFirstOrderDiscountAmount = (items: NonNullable<RequestBody["items
     }, 0),
   );
 
-const validateSubmittedStock = (items: NonNullable<RequestBody["items"]>) => {
-  const unavailable: string[] = [];
-  const insufficient: string[] = [];
+const getCatalogProductKeys = (product: { code?: unknown; supplierCode?: unknown }) =>
+  [product.code, product.supplierCode]
+    .map((value) => String(value || "").trim().toLowerCase())
+    .filter(Boolean);
 
-  items.forEach((item) => {
-    if (typeof item.stockQuantity !== "number") {
-      return;
+const verifyCheckoutItems = async (
+  submittedItems: NonNullable<RequestBody["items"]>,
+  role?: string,
+) => {
+  const catalog = await loadMergedCatalogProducts({ forceRefresh: true });
+  const productsByKey = new Map<string, (typeof catalog.items)[number]>();
+  for (const product of catalog.items) {
+    for (const key of getCatalogProductKeys(product)) {
+      productsByKey.set(key, product);
     }
-
-    if (item.stockQuantity <= 0) {
-      unavailable.push(item.code);
-      return;
-    }
-
-    if (item.qty > item.stockQuantity) {
-      insufficient.push(`${item.code} has ${item.stockQuantity} available`);
-    }
-  });
-
-  if (unavailable.length > 0) {
-    return `Remove out-of-stock item(s) before payment: ${unavailable.join(", ")}.`;
   }
 
-  if (insufficient.length > 0) {
-    return `Reduce quantity before payment: ${insufficient.join(", ")}.`;
+  const useResellerPrice = role === "reseller" || role === "admin";
+  const verifiedItems: NonNullable<RequestBody["items"]> = [];
+
+  for (const item of submittedItems) {
+    const product = productsByKey.get(item.code.trim().toLowerCase());
+    if (!product) {
+      return {
+        error: `${item.code} is no longer available from our suppliers. Remove it from the cart before payment.`,
+      };
+    }
+
+    const currentPrice = useResellerPrice ? product.resellerPrice : product.price;
+    if (typeof currentPrice !== "number" || currentPrice <= 0) {
+      return {
+        error: `${product.code} does not currently have a verified online price and cannot be paid for online.`,
+      };
+    }
+
+    if (typeof item.price !== "number" || Math.abs(item.price - currentPrice) > 0.009) {
+      return {
+        error: `The price for ${product.code} has changed. Refresh the cart and review the current price before payment.`,
+      };
+    }
+
+    const currentStock = typeof product.stockQuantity === "number" ? product.stockQuantity : 0;
+    if (currentStock <= 0) {
+      return {
+        error: `${product.code} is currently out of stock and cannot be paid for online.`,
+      };
+    }
+
+    if (item.qty > currentStock) {
+      return {
+        error: `${product.code} currently has ${currentStock} available. Reduce the quantity before payment.`,
+      };
+    }
+
+    verifiedItems.push({
+      ...item,
+      code: product.code,
+      description: String(product.description || product.name || item.description),
+      manufacturer: String(product.manufacturer || item.manufacturer),
+      price: currentPrice,
+      stockQuantity: currentStock,
+    });
   }
 
-  return null;
+  return { items: verifiedItems };
 };
 
 export default async function handler(
@@ -322,9 +360,17 @@ export default async function handler(
     return sendJson(res, 400, { message: validationError });
   }
 
-  const stockError = validateSubmittedStock(body.items || []);
-  if (stockError) {
-    return sendJson(res, 400, { message: stockError });
+  let verifiedItems: NonNullable<RequestBody["items"]>;
+  try {
+    const verification = await verifyCheckoutItems(body.items || [], authSession?.role);
+    if (verification.error || !verification.items) {
+      return sendJson(res, 409, { message: verification.error || "Unable to verify cart items." });
+    }
+    verifiedItems = verification.items;
+  } catch {
+    return sendJson(res, 503, {
+      message: "Product availability could not be verified. No payment was created. Please try again.",
+    });
   }
 
   const normalizedCustomerEmail = String(body.customer?.email || "").trim().toLowerCase();
@@ -339,7 +385,7 @@ export default async function handler(
       customer: body.customer,
     }));
   const firstOrderDiscountAmount = firstOrderDiscountApplies
-    ? calculateFirstOrderDiscountAmount(body.items || [])
+    ? calculateFirstOrderDiscountAmount(verifiedItems)
     : 0;
 
   const params = buildStripeCheckoutParams({
@@ -352,7 +398,7 @@ export default async function handler(
       phone: String(body.customer?.phone || ""),
       company: String(body.customer?.company || ""),
     },
-    items: body.items || [],
+    items: verifiedItems,
     resellerEmail: authSession?.email || body.resellerEmail,
     shipping:
       typeof body.shipping?.price === "number" && body.shipping.price > 0

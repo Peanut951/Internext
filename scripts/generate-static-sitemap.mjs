@@ -53,23 +53,29 @@ const getProductKeys = (product) =>
     .map((value) => String(value || "").trim().toLowerCase())
     .filter(Boolean);
 
-const leaderStaticKeys = new Set(leaderProducts.flatMap(getProductKeys));
-const currentLeaderKeys = new Set(
-  (leaderFeedProducts.length > 0 ? leaderFeedProducts : leaderProducts).flatMap(getProductKeys),
-);
-const currentAlloysKeys = new Set(
-  (alloysLiveItems.length > 0
-    ? alloysLiveItems
-    : previousLiveItems.filter((product) =>
-        getProductKeys(product).every((key) => !leaderStaticKeys.has(key)),
-      )
-  ).flatMap(getProductKeys),
-);
+const isLeaderSnapshotItem = (product) =>
+  product?.supplierSource === "leader" ||
+  product?.leaderDealerBuyEx != null ||
+  product?.leaderCategory != null;
+const previousLeaderItems = previousLiveItems.filter(isLeaderSnapshotItem);
+const previousAlloysItems = previousLiveItems.filter((product) => !isLeaderSnapshotItem(product));
+const activeLeaderItems = leaderFeedProducts.length > 0
+  ? leaderFeedProducts
+  : previousLeaderItems.length > 0
+    ? previousLeaderItems
+    : leaderProducts;
+const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
+const currentLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
+const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
 const verifiedQuoteKeys = new Set(verifiedQuoteProducts.flatMap(getProductKeys));
 
 const productCodes = Array.from(
   new Set(
-    filterTangibleCatalogProducts([...staticProducts, ...leaderProducts, ...leaderFeedProducts])
+    filterTangibleCatalogProducts([
+      ...staticProducts,
+      ...leaderProducts,
+      ...previousLiveItems,
+    ])
       .filter((product) =>
         getProductKeys(product).some(
           (key) =>

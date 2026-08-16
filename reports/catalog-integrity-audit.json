@@ -1,0 +1,625 @@
+{
+  "auditedAt": "2026-08-16T23:33:32.452Z",
+  "verifiedSnapshotUpdatedAt": "2026-08-16T23:32:03.110Z",
+  "supplierSnapshotStatus": {
+    "alloys": "live",
+    "leader": "last_verified"
+  },
+  "counts": {
+    "rawEnrichmentProducts": 7589,
+    "leaderEnrichmentProducts": 27,
+    "verifiedSupplierProducts": 7248,
+    "verifiedQuoteProducts": 1,
+    "unsupportedRawEnrichmentProducts": 738,
+    "googleProducts": 4945,
+    "sitemapProducts": 5910,
+    "staticProductPages": 5909
+  },
+  "unsupportedCustomerFacing": {
+    "googleProductCodes": [],
+    "sitemapProductCodes": [],
+    "staticPageProductCodes": []
+  },
+  "unsupportedRawExamples": [
+    {
+      "code": "2N9137410E",
+      "supplierCode": "9137410E",
+      "manufacturer": "Controlbyweb",
+      "description": "External IP Relay - 1X Output 1 X Input"
+    },
+    {
+      "code": "AK-C319A-WHITE",
+      "supplierCode": "6933964802097",
+      "manufacturer": "Akuvox",
+      "description": "10\" SIP Indoor Unit with WI-FI and Camera in White (Android 9 Version)"
+    },
+    {
+      "code": "AK-C6",
+      "supplierCode": "C6",
+      "manufacturer": "Akubela",
+      "description": "Akubela Zigbee Smart Lock"
+    },
+    {
+      "code": "AK-F2",
+      "supplierCode": "F2",
+      "manufacturer": "Akubela",
+      "description": "Akubela Zigbee Smart Lock"
+    },
+    {
+      "code": "AK-R25AINWALLP",
+      "supplierCode": "AK-R25AINWALLP",
+      "manufacturer": "Akuvox",
+      "description": "R25A Installation Panel (IN-WALL Box)"
+    },
+    {
+      "code": "AK-SL60",
+      "supplierCode": "SL60",
+      "manufacturer": "Akubela",
+      "description": "Akubela WI-FI Smart Lock"
+    },
+    {
+      "code": "AL-1199",
+      "supplierCode": "1199",
+      "manufacturer": "Algo",
+      "description": "Satellite Surface Mount Speaker"
+    },
+    {
+      "code": "AR-HDMI-4K-1",
+      "supplierCode": "AR-HDMI-4K-1",
+      "manufacturer": "Arkin",
+      "description": "Arkin 4K 18GBPS Hdmi 2.0 Cable with Ethernet - 1M"
+    },
+    {
+      "code": "AR-HDMI-4K-5",
+      "supplierCode": "AR-HDMI-4K-5",
+      "manufacturer": "Arkin",
+      "description": "Arkin 4K 18GBPS Hdmi 2.0 Cable with Ethernet - 5M"
+    },
+    {
+      "code": "AR-HDMI-8K-1",
+      "supplierCode": "AR-HDMI-8K-1",
+      "manufacturer": "Arkin",
+      "description": "Arkin 8K 48GBPS Hdmi 2.1 Cable with Ethernet - 1M"
+    },
+    {
+      "code": "AR-HDMI-FLAT-1",
+      "supplierCode": "AR-HDMI-FLAT-1",
+      "manufacturer": "Arkin",
+      "description": "Arkin 4K 18GBPS Hdmi 2.0 Flat Cable with Ethernet - 1M"
+    },
+    {
+      "code": "AV5385",
+      "supplierCode": "AN360W",
+      "manufacturer": "Avision",
+      "description": "Avision AN360W True Network Scanner (A4 Duplex)"
+    },
+    {
+      "code": "AV5385-RET",
+      "supplierCode": "AN360W",
+      "manufacturer": "Avision",
+      "description": "Avision AN360W True Network Scanner (A4 Duplex) Opened Box"
+    },
+    {
+      "code": "AX1120102",
+      "supplierCode": "02660-001",
+      "manufacturer": "Axis",
+      "description": "D7A 7\" Touchscreen IP Phone Android Os Based"
+    },
+    {
+      "code": "AX1120105",
+      "supplierCode": "02659-001",
+      "manufacturer": "Axis",
+      "description": "USB Camera Module for The 2N IP Phone D7A"
+    },
+    {
+      "code": "AX9134165E",
+      "supplierCode": "01395-001",
+      "manufacturer": "Axis",
+      "description": "IP RFID Proximity Card 125KHZ Supports Vario Force and Uni Products"
+    },
+    {
+      "code": "AX9134166E",
+      "supplierCode": "01396-001",
+      "manufacturer": "Axis",
+      "description": "IP Intercom RFID Key Fob Emarine Door Entry Proximity 125KHZ"
+    },
+    {
+      "code": "AX9134173",
+      "supplierCode": "01384-001",
+      "manufacturer": "Axis",
+      "description": "Mifare RFID Card 13.56MHZ Fitted with Internal or External Smart Card Reader"
+    },
+    {
+      "code": "AX9137423E",
+      "supplierCode": "01401-001",
+      "manufacturer": "Axis",
+      "description": "External USB Fingerprint Reader Supports IP Verso and Access Commander Products"
+    },
+    {
+      "code": "AX91378364",
+      "supplierCode": "02530-001",
+      "manufacturer": "Axis",
+      "description": "Wall Mount Bracket for The 2N IP Phone D7A"
+    },
+    {
+      "code": "AX91378401",
+      "supplierCode": "01698-001",
+      "manufacturer": "Axis",
+      "description": "Indoor Talk Answering Unit Black 7 Capacitive Buttons HD Audio Precision Installation Box"
+    },
+    {
+      "code": "AX9138522",
+      "supplierCode": "03449-001",
+      "manufacturer": "Axis",
+      "description": "2N Clip 2WIRE-IP Induction Loop"
+    },
+    {
+      "code": "AX9151021",
+      "supplierCode": "02338-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Induction Loop"
+    },
+    {
+      "code": "AX9151031",
+      "supplierCode": "02522-001",
+      "manufacturer": "Axis",
+      "description": "IP Card Reader Nfc Ready 13.56MHZ Input/output Mode Wiegand Interface Located on RFID Card Reader Module"
+    },
+    {
+      "code": "AX9151101CHKW",
+      "supplierCode": "01339-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 1 Button HD Camera Keypad 10W Speaker"
+    },
+    {
+      "code": "AX9151101CHRPW",
+      "supplierCode": "01334-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 1 Button HD Camera Pictograms 10W Speaker Card Reader Ready"
+    },
+    {
+      "code": "AX9151101CHW",
+      "supplierCode": "01337-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 1 Button HD Camera 10W Speaker"
+    },
+    {
+      "code": "AX9151101KW",
+      "supplierCode": "01338-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 1 Button Keypad 10W Speaker"
+    },
+    {
+      "code": "AX9151101RPW",
+      "supplierCode": "01335-001",
+      "manufacturer": "Axis",
+      "description": "Axis IP Force - 1 Button Pictograms 10W Speaker Card Reader Ready"
+    },
+    {
+      "code": "AX9151102CHRW",
+      "supplierCode": "01340-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 2 Buttons WIDE-ANGLE HD Camera RFID Card Reader 10W Speaker"
+    },
+    {
+      "code": "AX9151102RW",
+      "supplierCode": "01341-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 2 Buttons Card Reader Ready 10W Speaker"
+    },
+    {
+      "code": "AX9151104CHW",
+      "supplierCode": "01343-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Intercom System 4 Buttons WIDE-ANGLE HD Camera 10W Speaker"
+    },
+    {
+      "code": "AX9151104W",
+      "supplierCode": "01342-001",
+      "manufacturer": "Axis",
+      "description": "IP Force - 4 Button & 10W Speaker"
+    },
+    {
+      "code": "AX9151325-S",
+      "supplierCode": "03358-001",
+      "manufacturer": "Axis",
+      "description": "2N IP Force 2.0 Dual RFID-S & Osdp Module"
+    },
+    {
+      "code": "AX9151908",
+      "supplierCode": "01734-001",
+      "manufacturer": "Axis",
+      "description": "IP Force Frame"
+    },
+    {
+      "code": "AX9152102W",
+      "supplierCode": "01354-001",
+      "manufacturer": "Axis",
+      "description": "IP Safety Intercom System 2 Buttons 10W Speaker Info and Sos Labels"
+    },
+    {
+      "code": "AX9154001",
+      "supplierCode": "02570-001",
+      "manufacturer": "Axis",
+      "description": "IP Audio/video Kit - Quick Mount Microphone"
+    },
+    {
+      "code": "AX9154002",
+      "supplierCode": "02571-001",
+      "manufacturer": "Axis",
+      "description": "IP Audio/video Kit - Quick Mount Speaker"
+    },
+    {
+      "code": "AX9155054",
+      "supplierCode": "01268-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Sata Extension Connection Cable 3M Length Suitable for Connection of Departure Reader or Keyboard"
+    },
+    {
+      "code": "AX9155074",
+      "supplierCode": "02078-001",
+      "manufacturer": "Axis",
+      "description": "IP Solo Glass Plate 103 X 126 Mm for Complete Installation of Intercom"
+    },
+    {
+      "code": "AX9155101",
+      "supplierCode": "01271-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Main Unit Without Camera Nickel"
+    },
+    {
+      "code": "AX9155101CB",
+      "supplierCode": "01274-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Main Unit with Camera Black"
+    },
+    {
+      "code": "AX9155301BF",
+      "supplierCode": "02204-001",
+      "manufacturer": "Axis",
+      "description": "IP Solo Without Camera Flush Mount Audio Only Black"
+    },
+    {
+      "code": "AX9155301F",
+      "supplierCode": "02205-001",
+      "manufacturer": "Axis",
+      "description": "IP Solo Without Camera Flush Mount Audio Only Nickel"
+    },
+    {
+      "code": "AX9155301S",
+      "supplierCode": "02203-001",
+      "manufacturer": "Axis",
+      "description": "IP Solo Without Camera Surface Mount Audio Only Nickel"
+    },
+    {
+      "code": "AX9157101-S",
+      "supplierCode": "02407-001",
+      "manufacturer": "Axis",
+      "description": "IP Style Main Unit Sec"
+    },
+    {
+      "code": "AX9159011",
+      "supplierCode": "01387-001",
+      "manufacturer": "Axis",
+      "description": "IP Wiegand Isolator for Galvanic Isolation of Two Devices"
+    },
+    {
+      "code": "AX9159013",
+      "supplierCode": "02523-001",
+      "manufacturer": "Axis",
+      "description": "Exit Button Connects to Logical Input of The Intercom"
+    },
+    {
+      "code": "AX9159052",
+      "supplierCode": "01393-001",
+      "manufacturer": "Axis",
+      "description": "Power Supply for Induction Loop 230V AC Input 12V DC Output"
+    },
+    {
+      "code": "AX9160342-S",
+      "supplierCode": "02142-001",
+      "manufacturer": "Axis",
+      "description": "Access Unit 2.0 Secured RFID 13.56MHZ Nfc 97DBA 0.8 Kg"
+    },
+    {
+      "code": "AX9160345",
+      "supplierCode": "02772-001",
+      "manufacturer": "Axis",
+      "description": "Access Unit 2.0 Bluetooth & RFID - 125KHZ 13.56MHZ Nfc"
+    },
+    {
+      "code": "AX9160346-S",
+      "supplierCode": "02773-001",
+      "manufacturer": "Axis",
+      "description": "2N AU2.0 Reader RFID 125KHZ 13 56MHZ Nfc Secured Picard"
+    },
+    {
+      "code": "AXAUDIOMAN",
+      "supplierCode": "02246-001",
+      "manufacturer": "Axis",
+      "description": "Axis Audio Manager Center 1Y Elic"
+    },
+    {
+      "code": "AXAUDIOMAN-ELIC",
+      "supplierCode": "02062-001",
+      "manufacturer": "Axis",
+      "description": "Axis Audio Manager Pro - E-LICENSE"
+    },
+    {
+      "code": "AXT8120-DC15W",
+      "supplierCode": "5026-206",
+      "manufacturer": "Axis",
+      "description": "5026-206 15W POE Midspan"
+    },
+    {
+      "code": "BQ5J.F7C14.003",
+      "supplierCode": "5J.F7C14.003",
+      "manufacturer": "Benq",
+      "description": "Benq Rm/re Series Stylus Pen GERM-RESIST Metallic Body (Set of 2) No Nfc and No Box"
+    },
+    {
+      "code": "BQDV01K",
+      "supplierCode": "DV01K",
+      "manufacturer": "Benq",
+      "description": "Benq DV01K 4K UHD Conference Certified Camera for 04 Series Ifp"
+    },
+    {
+      "code": "BQDVY23",
+      "supplierCode": "DVY23",
+      "manufacturer": "Benq",
+      "description": "1080P Full HD Conference Camera 20x 0.5 Lux 63 Auto/Manual Focus USB 3.0"
+    },
+    {
+      "code": "BQDVY23-CMNT",
+      "supplierCode": "DVY23-CMNT",
+      "manufacturer": "Benq",
+      "description": "Ceiling Mount for DVY23"
+    },
+    {
+      "code": "BQOPS-TEY21-I7",
+      "supplierCode": "TEY21-I7",
+      "manufacturer": "Benq",
+      "description": "Benq Ops - I7 8GB Ram 256GB SSD Integrated Pc for Benq Ifp"
+    },
+    {
+      "code": "BQRE8604FV",
+      "supplierCode": "RE8604FV",
+      "manufacturer": "Benq",
+      "description": "Benq 86\" RE8604FV 4K UHD 450 Nits 4K Camera Nfc Reader Android 13 with Google Gms Ifp"
+    },
+    {
+      "code": "BQRM6504",
+      "supplierCode": "RM6504",
+      "manufacturer": "Benq",
+      "description": "Benq 65\" RM6504 4K UHD 450 Nits 1200:1 Contrast Android 13 - WI-FI Optional"
+    },
+    {
+      "code": "BQRM6504+MT02E",
+      "supplierCode": "RM6504+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 65\" RM6504 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "BQRM7503-D",
+      "supplierCode": "9H.F7ATK.DP1-D",
+      "manufacturer": "Benq",
+      "description": "Demo: RM7503 75\" 450NITS 30000:1 Os UHD 3840X2160 40 Point Ir Touch ANTI-GLARE"
+    },
+    {
+      "code": "BQRM7504",
+      "supplierCode": "RM7504",
+      "manufacturer": "Benq",
+      "description": "Benq 75\" RM7504 4K UHD 450 Nits 1200:1 Contrast Android 13 - WI-FI Optional"
+    },
+    {
+      "code": "BQRM7504+MT02E",
+      "supplierCode": "RM7504+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 75\" RM7504 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "BQRM8604",
+      "supplierCode": "RM8604",
+      "manufacturer": "Benq",
+      "description": "Benq 86\" RM8604 4K UHD 450 Nits 1200:1 Contrast Android 13 - WI-FI Optional"
+    },
+    {
+      "code": "BQRM8604+MT02E",
+      "supplierCode": "RM8604+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 86\" RM8604 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "BQRP6504+MT02E",
+      "supplierCode": "RP6504+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 65\" RP6504 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "BQRP7504",
+      "supplierCode": "RP7504",
+      "manufacturer": "Benq",
+      "description": "Benq 75\" RP7504 4K UHD 450NITS 1200:1 Contrast Android 13 with WI-FI Dongle - 5YRS Wty"
+    },
+    {
+      "code": "BQRP7504+MT02E",
+      "supplierCode": "RP7504+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 75\" RP7504 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "BQRP8604",
+      "supplierCode": "RP8604",
+      "manufacturer": "Benq",
+      "description": "Benq 86\" RP8604 4K UHD 450NITS 1200:1 Contrast Android 13 with WI-FI Dongle - 5YRS Wty"
+    },
+    {
+      "code": "BQRP8604+MT02E",
+      "supplierCode": "RP8604+MT02E",
+      "manufacturer": "Benq",
+      "description": "Benq 86\" RP8604 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
+    },
+    {
+      "code": "CCANVAS1067-18M1",
+      "supplierCode": "97003888",
+      "manufacturer": "Canon",
+      "description": "Canon IJM-416 Image Canvas 375GSM 1067MM X 18M"
+    },
+    {
+      "code": "CCART316C",
+      "supplierCode": "CART316C",
+      "manufacturer": "Canon",
+      "description": "Canon CART316C Cyan Toner for LBP5050N 1.5K"
+    },
+    {
+      "code": "CCART318M",
+      "supplierCode": "CART318M",
+      "manufacturer": "Canon",
+      "description": "Canon CART318M Magenta Toner for LBP7200CDN LBP7680CX 2.9K"
+    },
+    {
+      "code": "CCART324-RET",
+      "supplierCode": "EA",
+      "manufacturer": "Canon",
+      "description": "CART324 Toner Cartridge for Canon LBP6750DN Damaged Carton"
+    },
+    {
+      "code": "CCART333",
+      "supplierCode": "CART333",
+      "manufacturer": "Canon",
+      "description": "Canon CART333 Std Black Toner Cartridge 10K to Suit LBP8780X"
+    },
+    {
+      "code": "CDR-C240",
+      "supplierCode": "DR-C240",
+      "manufacturer": "Canon",
+      "description": "DRC240 Duplex 60SHT Feeder 45PPM Document Scanner"
+    },
+    {
+      "code": "CDRG21YOS",
+      "supplierCode": "DRG21YOS",
+      "manufacturer": "Canon",
+      "description": "1 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
+    },
+    {
+      "code": "CDRG22YOS",
+      "supplierCode": "DRG22YOS",
+      "manufacturer": "Canon",
+      "description": "2 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
+    },
+    {
+      "code": "CDRG23YOS",
+      "supplierCode": "DRG23YOS",
+      "manufacturer": "Canon",
+      "description": "3 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
+    },
+    {
+      "code": "CIPF-INSTL-24",
+      "supplierCode": "IPF-INSTL-24",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 24 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-24MFP",
+      "supplierCode": "IPF-INSTL-24MFP",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 24 Inch MFP Large Format Print (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-36",
+      "supplierCode": "IPF-INSTL-36",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 36 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-36MFP",
+      "supplierCode": "IPF-INSTL-36MFP",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 36 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-44",
+      "supplierCode": "IPF-INSTL-44",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 44 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-44MFP",
+      "supplierCode": "IPF-INSTL-44MFP",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 44 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-60",
+      "supplierCode": "IPF-INSTL-60",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 60 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-60MFP",
+      "supplierCode": "IPF-INSTL-60MFP",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install 60 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-INSTL-MSERIES",
+      "supplierCode": "IPF-INSTL-MSERIES",
+      "manufacturer": "Alloys",
+      "description": "Alloys Professional Install M-SERIES Large Format Printer (Melbourne Only - 50KM Radius)"
+    },
+    {
+      "code": "CIPF-RUNIP-ALLOYS",
+      "supplierCode": "IPF-RUNIP-ALLOYS",
+      "manufacturer": "Alloys",
+      "description": "Alloys Prof Run Up Preperation Large Format Printers"
+    },
+    {
+      "code": "CLFM-WRBV236530",
+      "supplierCode": "LFM-WRBV2/36/530",
+      "manufacturer": "Canon",
+      "description": "Water Resistant Adhesive Matte Vinyl 530gsm 36\""
+    },
+    {
+      "code": "CMC100G914-46M1",
+      "supplierCode": "9200080001",
+      "manufacturer": "Canon",
+      "description": "Universal Matt Coated Paper 100GSM 914MM X 46M BOX OF 4 ROLLS"
+    },
+    {
+      "code": "CMF269DWII",
+      "supplierCode": "MF269DWII",
+      "manufacturer": "Canon",
+      "description": "Canon Imageclass MF269DWII A4 28PPM Duplex Print Copy Scan Fax WI-FI Mono MFP"
+    },
+    {
+      "code": "CPFI-2700O",
+      "supplierCode": "PFI-2700O",
+      "manufacturer": "Canon",
+      "description": "PFI-2700O Orange Ink For GP -700 ml"
+    },
+    {
+      "code": "CPFI-307BK",
+      "supplierCode": "PFI-307BK",
+      "manufacturer": "Canon",
+      "description": "PFI-307BK Black Ink - 330ML"
+    },
+    {
+      "code": "CPFI-307C",
+      "supplierCode": "PFI-307C",
+      "manufacturer": "Canon",
+      "description": "PFI-307C Cyan Ink - 3300ML"
+    },
+    {
+      "code": "CPFI-307MBK",
+      "supplierCode": "PFI-307MBK",
+      "manufacturer": "Canon",
+      "description": "PFI-307MBK Matte Black Ink - 330ML"
+    },
+    {
+      "code": "CPFI-307Y",
+      "supplierCode": "PFI-307Y",
+      "manufacturer": "Canon",
+      "description": "300ml ink for iPF"
+    }
+  ]
+}

@@ -392,18 +392,29 @@ try {
   console.warn(`Alloys live feed unavailable for static product pages: ${error.message}`);
 }
 
-const currentAlloysKeys = new Set(alloysLiveItems.flatMap(getSupplierKeys));
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const knownLeaderKeys = new Set(
-  (leaderFeedProducts.length > 0 ? leaderFeedProducts : staticLeaderProducts).flatMap(getSupplierKeys),
-);
+const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
+const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
+const isLeaderSnapshotItem = (product) =>
+  product?.supplierSource === "leader" ||
+  product?.leaderDealerBuyEx != null ||
+  product?.leaderCategory != null;
+const previousLeaderItems = previousSnapshotItems.filter(isLeaderSnapshotItem);
+const previousAlloysItems = previousSnapshotItems.filter((product) => !isLeaderSnapshotItem(product));
+const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
+const activeLeaderItems = leaderFeedProducts.length > 0
+  ? leaderFeedProducts
+  : previousLeaderItems.length > 0
+    ? previousLeaderItems
+    : staticLeaderProducts;
+const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getSupplierKeys));
+const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getSupplierKeys));
 const products = filterTangibleCatalogProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...staticLeaderProducts,
-  ...leaderFeedProducts,
-], alloysLiveItems)).filter(
+  ...previousSnapshotItems,
+], activeAlloysItems)).filter(
   (product) =>
-    alloysLiveItems.length === 0 ||
     getSupplierKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
 );
 const uniqueProducts = new Map();

@@ -657,6 +657,15 @@ const mergeProducts = (products) => {
 
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
+const previousSnapshot = readJson(liveOverridesPath, { items: [] });
+const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
+const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const isLeaderSnapshotItem = (product) =>
+  product?.supplierSource === "leader" ||
+  product?.leaderDealerBuyEx != null ||
+  product?.leaderCategory != null;
+const previousLeaderItems = previousSnapshotItems.filter(isLeaderSnapshotItem);
+const previousAlloysItems = previousSnapshotItems.filter((product) => !isLeaderSnapshotItem(product));
 
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
@@ -670,12 +679,18 @@ try {
   console.warn(`Alloys live feed unavailable for Google product feed: ${error.message}`);
 }
 
-const generatedCatalogItems = mergeProducts([...alloysLiveItems, ...leaderFeedProducts]);
-const currentAlloysKeys = new Set(alloysLiveItems.flatMap(getProductKeys));
-const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const knownLeaderKeys = new Set(
-  (leaderFeedProducts.length > 0 ? leaderFeedProducts : staticLeaderProducts).flatMap(getProductKeys),
-);
+const activeAlloysItems = (alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems)
+  .map((product) => ({ ...product, supplierSource: "alloys" }));
+const activeLeaderItems = (
+  leaderFeedProducts.length > 0
+    ? leaderFeedProducts
+    : previousLeaderItems.length > 0
+      ? previousLeaderItems
+      : staticLeaderProducts
+).map((product) => ({ ...product, supplierSource: "leader" }));
+const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems]);
+const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
+const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
 
 if (generatedCatalogItems.length > 0) {
   fs.writeFileSync(
@@ -683,6 +698,10 @@ if (generatedCatalogItems.length > 0) {
     `${JSON.stringify(
       {
         updatedAt: new Date().toISOString(),
+        suppliers: {
+          alloys: alloysLiveItems.length > 0 ? "live" : "last_verified",
+          leader: leaderFeedProducts.length > 0 ? "live" : "last_verified",
+        },
         items: generatedCatalogItems,
       },
       null,
@@ -707,11 +726,11 @@ const excludedCodes = new Set(
 const products = mergeProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...staticLeaderProducts,
-  ...leaderFeedProducts,
-], alloysLiveItems))
+  ...activeAlloysItems,
+  ...activeLeaderItems,
+], activeAlloysItems))
   .filter(
     (product) =>
-      alloysLiveItems.length === 0 ||
       getProductKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
   )
   .map((product) => {

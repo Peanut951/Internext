@@ -91,7 +91,7 @@ type CachedCatalogProducts = {
   products: CatalogProductWithLive[];
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products-v5";
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v6";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
@@ -243,6 +243,18 @@ export const mergeCatalogProductUpdates = (
   return [...mergedProducts, ...newProducts];
 };
 
+const reconcileCachedProductsWithVerifiedSnapshot = (
+  cachedProducts: CatalogProductWithLive[],
+  verifiedProducts: CatalogProductWithLive[],
+) => {
+  const verifiedKeys = new Set(verifiedProducts.flatMap(getProductKeys));
+  const stillActiveCachedProducts = cachedProducts.filter((product) =>
+    getProductKeys(product).some((key) => verifiedKeys.has(key)),
+  );
+
+  return mergeCatalogProductUpdates(stillActiveCachedProducts, verifiedProducts);
+};
+
 export const reconcileCatalogProductSnapshot = (
   currentProducts: CatalogProductWithLive[],
   updatedProducts: CatalogProductWithLive[],
@@ -271,12 +283,12 @@ const loadStaticCatalogProducts = async () => {
             fetch("/data/supplier-quote-products.json"),
           ]);
           if (!liveOverridesResponse.ok) {
-            return products;
+            throw new Error("The verified supplier catalogue snapshot is unavailable.");
           }
 
           const liveOverrides = (await liveOverridesResponse.json()) as MergedCatalogResponse;
           if (!Array.isArray(liveOverrides.items) || liveOverrides.items.length === 0) {
-            return products;
+            throw new Error("The verified supplier catalogue snapshot is empty.");
           }
 
           const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
@@ -309,8 +321,10 @@ const loadStaticCatalogProducts = async () => {
               })),
             ),
           );
-        } catch {
-          return products;
+        } catch (error) {
+          throw error instanceof Error
+            ? error
+            : new Error("Unable to verify the static product catalogue.");
         }
       };
 
@@ -341,9 +355,10 @@ const loadStaticCatalogProducts = async () => {
 };
 
 const loadCatalogProductsInternal = async (skipCache = false) => {
+  const staticProducts = await loadStaticCatalogProducts();
   const cachedProducts = skipCache ? null : readCachedProducts();
   if (cachedProducts) {
-    return cachedProducts;
+    return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
 
   try {
@@ -354,14 +369,9 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
       if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
-        const [staticProducts, currentProducts] = await Promise.all([
-          loadStaticCatalogProducts(),
-          Promise.resolve(
-            normalizeCatalogProducts(
-              mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
-            ),
-          ),
-        ]);
+        const currentProducts = normalizeCatalogProducts(
+          mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
+        );
         const products = reconcileCatalogProductSnapshot(staticProducts, currentProducts);
         writeCachedProducts(products);
         return products;
@@ -370,8 +380,6 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
   } catch {
     // Fall back to the original client-side merge path below.
   }
-
-  const staticProducts = await loadStaticCatalogProducts();
 
   const liveResponse = await fetch(skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live", {
     cache: skipCache ? "no-store" : "default",
@@ -469,19 +477,13 @@ export const loadCatalogProducts = async (options?: { forceRefresh?: boolean }) 
 };
 
 export const loadCatalogProductsFast = async (
-  onLiveProducts?: (products: CatalogProductWithLive[]) => void,
+  _onLiveProducts?: (products: CatalogProductWithLive[]) => void,
 ) => {
+  const staticProducts = await loadStaticCatalogProducts();
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
-    return cachedProducts;
+    return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
 
-  try {
-    const staticProducts = await loadStaticCatalogProducts();
-    return staticProducts;
-  } catch {
-    const products = await loadCatalogProducts();
-    onLiveProducts?.(products);
-    return products;
-  }
+  return staticProducts;
 };

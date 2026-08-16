@@ -1188,6 +1188,9 @@ const loadLeaderCatalogProductsUncached = async (
       }
 
       feedProducts = parseLeaderFeedCsv(csv).filter((product) => !isLeaderPdfExcluded(product));
+      if (feedProducts.length === 0) {
+        throw new Error("Leader feed returned no products.");
+      }
     }
 
     const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
@@ -1326,6 +1329,29 @@ const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
   return merged;
 };
 
+const loadPersistedVerifiedCatalog = async (): Promise<LiveCatalogResult> => {
+  const snapshotPath = join(process.cwd(), "public", "data", "catalog-live-overrides.json");
+  const raw = await readFile(snapshotPath, "utf8");
+  const snapshot = JSON.parse(raw) as { updatedAt?: string; items?: LiveCatalogItem[] };
+  if (!Array.isArray(snapshot.items) || snapshot.items.length === 0) {
+    throw new Error("The persisted supplier catalogue snapshot is unavailable.");
+  }
+
+  const overridesByKey = buildStockOverrideMap(await fetchStockOverrides());
+  const items = mergeLiveCatalogItems(snapshot.items)
+    .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
+    .filter((item) => isTangibleCatalogProduct(item as unknown as Record<string, unknown>));
+
+  return {
+    updatedAt: snapshot.updatedAt || new Date(0).toISOString(),
+    count: items.length,
+    source: "combined",
+    cached: true,
+    stale: true,
+    items,
+  };
+};
+
 export const loadLiveCatalogItems = async (options?: { forceRefresh?: boolean }) => {
   const cached = globalCatalogCache.__internextLiveCatalogCache;
   const now = Date.now();
@@ -1375,7 +1401,7 @@ const loadLiveCatalogItemsUncached = async (
         items: cached.items,
       };
     }
-    throw new Error("Alloys catalog feed is not configured. Add ALLOYS_CATALOG_XML_FEED_URL to the server environment.");
+    return loadPersistedVerifiedCatalog();
   }
 
   try {
@@ -1393,6 +1419,9 @@ const loadLiveCatalogItemsUncached = async (
     const alloysItems = feedText.trim().startsWith("<")
       ? parseLiveCatalogXml(feedText)
       : parseLiveCatalog(feedText);
+    if (alloysItems.length === 0) {
+      throw new Error("Alloys feed returned no products.");
+    }
     const overridesByKey = buildStockOverrideMap(await fetchStockOverrides());
     const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems])
       .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
@@ -1431,7 +1460,7 @@ const loadLiveCatalogItemsUncached = async (
       };
     }
 
-    throw error;
+    return loadPersistedVerifiedCatalog();
   }
 };
 
@@ -1529,7 +1558,7 @@ const loadMergedCatalogProductsUncached = async (
 
       const stockOverride = getStockOverrideForProduct(product, overridesByKey);
 
-      if (!live && !stockOverride) {
+      if (!live) {
         return null;
       }
 
