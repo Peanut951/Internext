@@ -799,32 +799,27 @@ const OrdersAdmin = () => {
     order: OrderRecord,
     item: OrderRecord["items"][number],
     itemIndex: number,
-    unitIndex: number,
   ) => {
     const key = getOrderItemSerialKey(item, itemIndex);
-    return getOrderSerialDraft(order)[key]?.[unitIndex] ?? "";
+    return (getOrderSerialDraft(order)[key] ?? []).filter(Boolean).join("\n");
   };
 
   const updateSerialDraft = (
     order: OrderRecord,
     item: OrderRecord["items"][number],
     itemIndex: number,
-    unitIndex: number,
     value: string,
   ) => {
     const key = getOrderItemSerialKey(item, itemIndex);
-    const unitCount = Math.max(1, item.qty || 1);
 
     setSerialDrafts((current) => {
       const orderSerials = current[order.id] ?? order.serialNumbers ?? {};
-      const values = [...(orderSerials[key] ?? Array(unitCount).fill(""))];
-      values[unitIndex] = value;
 
       return {
         ...current,
         [order.id]: {
           ...orderSerials,
-          [key]: values,
+          [key]: [value],
         },
       };
     });
@@ -840,11 +835,10 @@ const OrdersAdmin = () => {
     await withOrderAction(order.id, async () => {
       const serialNumbers = order.items.reduce<Record<string, string[]>>((acc, item, itemIndex) => {
         const key = getOrderItemSerialKey(item, itemIndex);
-        const unitCount = Math.max(1, item.qty || 1);
-        const draftValues = getOrderSerialDraft(order)[key] ?? [];
-        acc[key] = Array.from({ length: unitCount }, (_, unitIndex) =>
-          (draftValues[unitIndex] ?? "").trim(),
-        );
+        acc[key] = getSerialValue(order, item, itemIndex)
+          .split(/\r?\n/)
+          .map((value) => value.trim())
+          .filter(Boolean);
         return acc;
       }, {});
 
@@ -1980,7 +1974,7 @@ const OrdersAdmin = () => {
                           <div>
                             <p className="text-sm font-semibold text-foreground">Order lines</p>
                             <p className="text-sm text-muted-foreground">
-                              SKU, quantity, sell value, and unit serial numbers
+                              SKU, quantity, sell value, and serial numbers
                             </p>
                           </div>
                           <div className="flex flex-wrap items-center gap-2">
@@ -2022,30 +2016,20 @@ const OrdersAdmin = () => {
                                 </div>
                               </div>
 
-                              <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                                {Array.from({ length: Math.max(1, item.qty || 1) }, (_, unitIndex) => (
-                                  <label
-                                    key={`${order.id}-${itemIndex}-${unitIndex}`}
-                                    className="space-y-1"
-                                  >
-                                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-                                      Serial number {item.qty > 1 ? unitIndex + 1 : ""}
-                                    </span>
-                                    <Input
-                                      value={getSerialValue(order, item, itemIndex, unitIndex)}
-                                      onChange={(event) =>
-                                        updateSerialDraft(
-                                          order,
-                                          item,
-                                          itemIndex,
-                                          unitIndex,
-                                          event.target.value,
-                                        )
-                                      }
-                                      placeholder="Enter serial number"
-                                    />
-                                  </label>
-                                ))}
+                              <div className="mt-4">
+                                <label className="block max-w-2xl space-y-1">
+                                  <span className="text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
+                                    Serial number(s)
+                                  </span>
+                                  <Textarea
+                                    value={getSerialValue(order, item, itemIndex)}
+                                    onChange={(event) =>
+                                      updateSerialDraft(order, item, itemIndex, event.target.value)
+                                    }
+                                    placeholder="Enter or paste serial number(s)"
+                                    rows={3}
+                                  />
+                                </label>
                               </div>
                             </div>
                           ))}
