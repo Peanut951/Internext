@@ -3,6 +3,14 @@ import { readEnv, sendJson } from "../checkout/_shared.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inflateRawSync } from "node:zlib";
+import {
+  applyShippingMeasurementOverride,
+  buildShippingMeasurementOverrideMap,
+  deleteShippingMeasurementOverride,
+  fetchShippingMeasurementOverrides,
+  getShippingMeasurementOverride,
+  upsertShippingMeasurementOverride,
+} from "./_shippingMeasurements.js";
 
 export type LiveCatalogItem = {
   code: string;
@@ -114,6 +122,11 @@ type MergedCatalogItem = StaticCatalogProduct & {
   heightCm: number | null;
   widthCm: number | null;
   depthCm: number | null;
+  measurementSource?: string;
+  measurementSourceReference?: string;
+  measurementConfidence?: "verified" | "high" | "medium" | "low";
+  measurementUpdatedAt?: string;
+  measurementOverride?: boolean;
   gtin: string;
   liveUpdatedAt: string;
 };
@@ -748,6 +761,23 @@ const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCo
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
+const getSupplierMeasurementSource = (product: StaticCatalogProduct) =>
+  "leaderStatus" in product || "leaderDealerBuyEx" in product
+    ? "Leader supplier feed"
+    : "Alloys supplier feed";
+
+const hasAnyMeasurements = (product: Pick<LiveCatalogItem, "weightKg" | "heightCm" | "widthCm" | "depthCm">) =>
+  [product.weightKg, product.heightCm, product.widthCm, product.depthCm].some(
+    (value) => typeof value === "number" && value > 0,
+  );
+
+const clearCatalogCaches = () => {
+  delete globalCatalogCache.__internextLiveCatalogCache;
+  delete globalCatalogCache.__internextLiveCatalogPromise;
+  delete globalCatalogCache.__internextMergedCatalogCache;
+  delete globalCatalogCache.__internextMergedCatalogPromise;
+};
+
 let leaderPdfExclusionCodes: Set<string> | null = null;
 
 const loadLeaderPdfExclusionCodes = async () => {
@@ -970,10 +1000,7 @@ const upsertStockOverride = async (input: {
     };
   }
 
-  delete globalCatalogCache.__internextLiveCatalogCache;
-  delete globalCatalogCache.__internextLiveCatalogPromise;
-  delete globalCatalogCache.__internextMergedCatalogCache;
-  delete globalCatalogCache.__internextMergedCatalogPromise;
+  clearCatalogCaches();
 
   const [saved] = (await response.json().catch(() => [])) as Record<string, unknown>[];
   return {
@@ -1036,10 +1063,7 @@ const deleteStockOverride = async (input: {
     }
   }
 
-  delete globalCatalogCache.__internextLiveCatalogCache;
-  delete globalCatalogCache.__internextLiveCatalogPromise;
-  delete globalCatalogCache.__internextMergedCatalogCache;
-  delete globalCatalogCache.__internextMergedCatalogPromise;
+  clearCatalogCaches();
 
   return {
     ok: true,
@@ -1517,12 +1541,14 @@ const loadMergedCatalogProductsUncached = async (
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
   let stockOverrides: StockOverride[];
+  let shippingMeasurementOverrides: Awaited<ReturnType<typeof fetchShippingMeasurementOverrides>>;
 
   try {
-    [staticProducts, liveCatalog, stockOverrides] = await Promise.all([
+    [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides] = await Promise.all([
       loadStaticCatalogProducts(),
       loadLiveCatalogItems(options),
       fetchStockOverrides(),
+      fetchShippingMeasurementOverrides(),
     ]);
   } catch (error) {
     if (cached && cached.staleUntil > now) {
@@ -1540,6 +1566,7 @@ const loadMergedCatalogProductsUncached = async (
   }
   const liveByKey = new Map<string, LiveCatalogItem>();
   const overridesByKey = buildStockOverrideMap(stockOverrides);
+  const shippingMeasurementsByKey = buildShippingMeasurementOverrideMap(shippingMeasurementOverrides);
 
   for (const item of liveCatalog.items) {
     for (const key of [item.code, item.supplierCode]) {
@@ -1557,6 +1584,7 @@ const loadMergedCatalogProductsUncached = async (
         .find(Boolean);
 
       const stockOverride = getStockOverrideForProduct(product, overridesByKey);
+      const shippingMeasurementOverride = getShippingMeasurementOverride(product, shippingMeasurementsByKey);
 
       if (!live) {
         return null;
@@ -1593,6 +1621,12 @@ const loadMergedCatalogProductsUncached = async (
             heightCm: live.heightCm,
             widthCm: live.widthCm,
             depthCm: live.depthCm,
+            measurementSource: hasAnyMeasurements(live)
+              ? getSupplierMeasurementSource(product)
+              : undefined,
+            measurementConfidence: hasAnyMeasurements(live) ? "high" : undefined,
+            measurementUpdatedAt: hasAnyMeasurements(live) ? liveCatalog.updatedAt : undefined,
+            measurementOverride: false,
             gtin: getProductGtin(product) || live.gtin,
             liveUpdatedAt: liveCatalog.updatedAt,
           }
@@ -1628,7 +1662,10 @@ const loadMergedCatalogProductsUncached = async (
             liveUpdatedAt: liveCatalog.updatedAt,
           };
 
-      return applyStockOverrideToProduct(mergedProduct, stockOverride);
+      return applyShippingMeasurementOverride(
+        applyStockOverrideToProduct(mergedProduct, stockOverride),
+        shippingMeasurementOverride,
+      );
     })
     .filter((item): item is MergedCatalogItem =>
       Boolean(item) && isTangibleCatalogProduct(item as Record<string, unknown>),
@@ -1667,7 +1704,7 @@ export default async function handler(
   if (req.method === "POST") {
     const session = getSessionFromRequest(req);
     if (session?.role !== "admin") {
-      return sendJson(res, 403, { message: "Admin access is required to update catalog stock." });
+      return sendJson(res, 403, { message: "Admin access is required to update catalogue data." });
     }
 
     let body: Record<string, unknown>;
@@ -1687,15 +1724,26 @@ export default async function handler(
           supplierCode: body.supplierCode,
           stockLocation: body.stockLocation,
         })
-      : await upsertStockOverride({
-          code: body.code,
-          supplierCode: body.supplierCode,
-          stockQuantity: body.stockQuantity,
-          supplierLocationStockQuantity: body.supplierLocationStockQuantity,
-          stockLocation: body.stockLocation,
-          note: body.note,
-          adminEmail: session.email,
-        });
+      : action === "save-shipping-measurements"
+        ? await upsertShippingMeasurementOverride({
+            ...body,
+            adminEmail: session.email,
+          })
+        : action === "reset-shipping-measurements"
+          ? await deleteShippingMeasurementOverride(body)
+          : await upsertStockOverride({
+              code: body.code,
+              supplierCode: body.supplierCode,
+              stockQuantity: body.stockQuantity,
+              supplierLocationStockQuantity: body.supplierLocationStockQuantity,
+              stockLocation: body.stockLocation,
+              note: body.note,
+              adminEmail: session.email,
+            });
+
+    if (result.ok && (action === "save-shipping-measurements" || action === "reset-shipping-measurements")) {
+      clearCatalogCaches();
+    }
 
     return sendJson(res, result.status, result);
   }

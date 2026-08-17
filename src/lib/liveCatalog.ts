@@ -38,6 +38,11 @@ export type CatalogProductWithLive = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  measurementSource?: string;
+  measurementSourceReference?: string;
+  measurementConfidence?: "verified" | "high" | "medium" | "low";
+  measurementUpdatedAt?: string;
+  measurementOverride?: boolean;
   liveUpdatedAt?: string;
   quoteRequired?: boolean;
 };
@@ -73,6 +78,11 @@ type LiveCatalogItem = {
   heightCm: number | null;
   widthCm: number | null;
   depthCm: number | null;
+  measurementSource?: string;
+  measurementSourceReference?: string;
+  measurementConfidence?: "verified" | "high" | "medium" | "low";
+  measurementUpdatedAt?: string;
+  measurementOverride?: boolean;
   gtin: string;
 };
 
@@ -436,6 +446,11 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         heightCm: live.heightCm,
         widthCm: live.widthCm,
         depthCm: live.depthCm,
+        measurementSource: live.measurementSource,
+        measurementSourceReference: live.measurementSourceReference,
+        measurementConfidence: live.measurementConfidence,
+        measurementUpdatedAt: live.measurementUpdatedAt,
+        measurementOverride: live.measurementOverride,
         gtin: product.gtin || live.gtin,
         liveUpdatedAt: liveData.updatedAt,
         quoteRequired: false,

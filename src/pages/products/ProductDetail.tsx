@@ -61,6 +61,11 @@ type CatalogProduct = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  measurementSource?: string;
+  measurementSourceReference?: string;
+  measurementConfidence?: "verified" | "high" | "medium" | "low";
+  measurementUpdatedAt?: string;
+  measurementOverride?: boolean;
   liveUpdatedAt?: string;
   quoteRequired?: boolean;
 };
@@ -74,6 +79,17 @@ type AdminStockFormState = {
 type AdminStockMessage = {
   tone: "success" | "error";
   text: string;
+};
+
+type AdminMeasurementFormState = {
+  weightKg: string;
+  heightCm: string;
+  widthCm: string;
+  depthCm: string;
+  source: string;
+  sourceReference: string;
+  confidence: "verified" | "high" | "medium" | "low";
+  note: string;
 };
 
 const SITE_URL = "https://www.internext.com.au";
@@ -918,6 +934,18 @@ const ProductDetail = () => {
   });
   const [adminStockSaving, setAdminStockSaving] = useState(false);
   const [adminStockMessage, setAdminStockMessage] = useState<AdminStockMessage | null>(null);
+  const [adminMeasurementForm, setAdminMeasurementForm] = useState<AdminMeasurementFormState>({
+    weightKg: "",
+    heightCm: "",
+    widthCm: "",
+    depthCm: "",
+    source: "",
+    sourceReference: "",
+    confidence: "high",
+    note: "",
+  });
+  const [adminMeasurementSaving, setAdminMeasurementSaving] = useState(false);
+  const [adminMeasurementMessage, setAdminMeasurementMessage] = useState<AdminStockMessage | null>(null);
   const { session } = useAuthSession();
   const { toast } = useToast();
 
@@ -1061,19 +1089,25 @@ const ProductDetail = () => {
       note: "",
     });
     setAdminStockMessage(null);
-  }, [
-    product?.code,
-    product?.stockQuantity,
-    product?.stockByWarehouse?.adl,
-    product?.stockByWarehouse?.bne,
-    product?.stockByWarehouse?.mel,
-    product?.stockByWarehouse?.syd,
-    product?.stockByWarehouse?.wa,
-    product?.stockByWarehouse?.adminAdjustment,
-    product?.stockByWarehouse?.adminLocation,
-    product?.stockByWarehouse?.internext,
-    session?.role,
-  ]);
+  }, [product, session?.role]);
+
+  useEffect(() => {
+    if (session?.role !== "admin" || !product) {
+      return;
+    }
+
+    setAdminMeasurementForm({
+      weightKg: product.weightKg ? String(product.weightKg) : "",
+      heightCm: product.heightCm ? String(product.heightCm) : "",
+      widthCm: product.widthCm ? String(product.widthCm) : "",
+      depthCm: product.depthCm ? String(product.depthCm) : "",
+      source: product.measurementSource || "",
+      sourceReference: product.measurementSourceReference || "",
+      confidence: product.measurementConfidence || "high",
+      note: "",
+    });
+    setAdminMeasurementMessage(null);
+  }, [product, session?.role]);
 
   const availability = useMemo(() => {
     if (!product) {
@@ -1486,6 +1520,143 @@ const ProductDetail = () => {
     }
   };
 
+  const saveAdminShippingMeasurements = async () => {
+    if (!product) {
+      return;
+    }
+
+    const measurements = {
+      weightKg: Number(adminMeasurementForm.weightKg),
+      heightCm: Number(adminMeasurementForm.heightCm),
+      widthCm: Number(adminMeasurementForm.widthCm),
+      depthCm: Number(adminMeasurementForm.depthCm),
+    };
+    if (Object.values(measurements).some((value) => !Number.isFinite(value) || value <= 0)) {
+      setAdminMeasurementMessage({
+        tone: "error",
+        text: "Enter positive package weight, height, width, and depth values.",
+      });
+      return;
+    }
+    if (!adminMeasurementForm.source.trim()) {
+      setAdminMeasurementMessage({
+        tone: "error",
+        text: "Enter where these package measurements were obtained.",
+      });
+      return;
+    }
+
+    setAdminMeasurementSaving(true);
+    setAdminMeasurementMessage(null);
+    try {
+      const response = await fetch("/api/catalog/live", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save-shipping-measurements",
+          code: product.code,
+          supplierCode: product.supplierCode,
+          ...measurements,
+          source: adminMeasurementForm.source,
+          sourceReference: adminMeasurementForm.sourceReference,
+          confidence: adminMeasurementForm.confidence,
+          note: adminMeasurementForm.note,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        measurement?: {
+          weightKg: number;
+          heightCm: number;
+          widthCm: number;
+          depthCm: number;
+          source: string;
+          sourceReference?: string;
+          confidence: "verified" | "high" | "medium" | "low";
+          updatedAt?: string;
+        };
+      };
+      if (!response.ok || !result.measurement) {
+        throw new Error(result.message || "Unable to save package measurements.");
+      }
+
+      const saved = result.measurement;
+      const applySavedMeasurement = (item: CatalogProduct): CatalogProduct =>
+        item.code === product.code
+          ? {
+              ...item,
+              weightKg: saved.weightKg,
+              heightCm: saved.heightCm,
+              widthCm: saved.widthCm,
+              depthCm: saved.depthCm,
+              measurementSource: saved.source,
+              measurementSourceReference: saved.sourceReference,
+              measurementConfidence: saved.confidence,
+              measurementUpdatedAt: saved.updatedAt,
+              measurementOverride: true,
+            }
+          : item;
+
+      clearCatalogProductsCache();
+      setProduct((current) => (current ? applySavedMeasurement(current) : current));
+      setAllProducts((current) => current.map(applySavedMeasurement));
+      setAdminMeasurementMessage({
+        tone: "success",
+        text: "Verified package measurements have been saved and will be used for postage.",
+      });
+      toast({
+        title: "Package measurements updated",
+        description: `${saved.weightKg} kg, ${saved.depthCm} x ${saved.widthCm} x ${saved.heightCm} cm.`,
+      });
+    } catch (error) {
+      setAdminMeasurementMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Unable to save package measurements.",
+      });
+    } finally {
+      setAdminMeasurementSaving(false);
+    }
+  };
+
+  const resetAdminShippingMeasurements = async () => {
+    if (!product) {
+      return;
+    }
+
+    setAdminMeasurementSaving(true);
+    setAdminMeasurementMessage(null);
+    try {
+      const response = await fetch("/api/catalog/live", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reset-shipping-measurements",
+          code: product.code,
+          supplierCode: product.supplierCode,
+        }),
+      });
+      const result = (await response.json().catch(() => ({}))) as { message?: string };
+      if (!response.ok) {
+        throw new Error(result.message || "Unable to reset package measurements.");
+      }
+
+      clearCatalogProductsCache();
+      toast({
+        title: "Package measurements reset",
+        description: "This product will use current supplier catalogue measurements again.",
+      });
+      window.setTimeout(() => window.location.reload(), 400);
+    } catch (error) {
+      setAdminMeasurementMessage({
+        tone: "error",
+        text: error instanceof Error ? error.message : "Unable to reset package measurements.",
+      });
+      setAdminMeasurementSaving(false);
+    }
+  };
+
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
     const currentIndex = galleryImages.indexOf(activeImage);
     const nextImage = currentIndex >= 0 ? galleryImages[currentIndex + 1] : galleryImages[0];
@@ -1842,6 +2013,7 @@ const ProductDetail = () => {
                         </Button>
 
                         {session?.role === "admin" ? (
+                          <>
                           <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-4">
                             <div className="flex items-start justify-between gap-3">
                               <div>
@@ -1958,6 +2130,157 @@ const ProductDetail = () => {
                               Reset Selected Location to Supplier Stock
                             </Button>
                           </div>
+                          <div className="mt-5 rounded-xl border border-accent/30 bg-accent/5 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-foreground">
+                                  Package measurements
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  These values are used for postage calculations.
+                                </p>
+                              </div>
+                              <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold capitalize text-accent">
+                                {product.measurementConfidence || "unverified"}
+                              </span>
+                            </div>
+
+                            <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Package weight (kg)
+                                </span>
+                                <Input
+                                  type="number"
+                                  min="0.001"
+                                  step="0.001"
+                                  value={adminMeasurementForm.weightKg}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, weightKg: event.target.value }))}
+                                />
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Package length (cm)
+                                </span>
+                                <Input
+                                  type="number"
+                                  min="0.1"
+                                  step="0.1"
+                                  value={adminMeasurementForm.depthCm}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, depthCm: event.target.value }))}
+                                />
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Package width (cm)
+                                </span>
+                                <Input
+                                  type="number"
+                                  min="0.1"
+                                  step="0.1"
+                                  value={adminMeasurementForm.widthCm}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, widthCm: event.target.value }))}
+                                />
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Package height (cm)
+                                </span>
+                                <Input
+                                  type="number"
+                                  min="0.1"
+                                  step="0.1"
+                                  value={adminMeasurementForm.heightCm}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, heightCm: event.target.value }))}
+                                />
+                              </label>
+                            </div>
+
+                            <div className="mt-3 grid gap-3">
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Measurement source
+                                </span>
+                                <Input
+                                  value={adminMeasurementForm.source}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, source: event.target.value }))}
+                                  placeholder="Manufacturer package specification"
+                                />
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Source URL
+                                </span>
+                                <Input
+                                  type="url"
+                                  value={adminMeasurementForm.sourceReference}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, sourceReference: event.target.value }))}
+                                  placeholder="https://"
+                                />
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Confidence
+                                </span>
+                                <select
+                                  value={adminMeasurementForm.confidence}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({
+                                    ...current,
+                                    confidence: event.target.value as AdminMeasurementFormState["confidence"],
+                                  }))}
+                                  className="h-11 w-full rounded-md border border-border/70 bg-background px-3 text-sm shadow-sm outline-none transition focus-visible:ring-2 focus-visible:ring-accent/35"
+                                >
+                                  <option value="verified">Verified</option>
+                                  <option value="high">High</option>
+                                  <option value="medium">Medium</option>
+                                  <option value="low">Low</option>
+                                </select>
+                              </label>
+                              <label className="space-y-1">
+                                <span className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                                  Internal note
+                                </span>
+                                <textarea
+                                  value={adminMeasurementForm.note}
+                                  onChange={(event) => setAdminMeasurementForm((current) => ({ ...current, note: event.target.value }))}
+                                  rows={3}
+                                  placeholder="Optional measurement note"
+                                  className="w-full rounded-md border border-border/70 bg-background px-3 py-2 text-sm shadow-sm outline-none transition placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-accent/35"
+                                />
+                              </label>
+                            </div>
+
+                            {adminMeasurementMessage ? (
+                              <p className={`mt-3 rounded-lg px-3 py-2 text-sm ${
+                                adminMeasurementMessage.tone === "success"
+                                  ? "bg-emerald-50 text-emerald-700"
+                                  : "bg-red-50 text-red-700"
+                              }`}>
+                                {adminMeasurementMessage.text}
+                              </p>
+                            ) : null}
+
+                            <Button
+                              type="button"
+                              className="mt-4 w-full"
+                              onClick={saveAdminShippingMeasurements}
+                              disabled={adminMeasurementSaving}
+                            >
+                              {adminMeasurementSaving ? "Saving measurements..." : "Save Package Measurements"}
+                            </Button>
+                            {product.measurementOverride ? (
+                              <Button
+                                type="button"
+                                variant="outline"
+                                className="mt-3 w-full"
+                                onClick={resetAdminShippingMeasurements}
+                                disabled={adminMeasurementSaving}
+                              >
+                                Reset to Supplier Measurements
+                              </Button>
+                            ) : null}
+                          </div>
+                          </>
                         ) : null}
 
                         <div className="mt-5 rounded-xl border border-border/60 bg-secondary/35 p-4">

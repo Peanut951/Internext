@@ -443,6 +443,11 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
       heightCm: live.heightCm,
       widthCm: live.widthCm,
       depthCm: live.depthCm,
+      measurementSource: live.measurementSource,
+      measurementSourceReference: live.measurementSourceReference,
+      measurementConfidence: live.measurementConfidence,
+      measurementUpdatedAt: live.measurementUpdatedAt,
+      measurementOverride: live.measurementOverride,
     };
   });
 };
@@ -870,6 +875,9 @@ const Checkout = () => {
               heightCm: item.heightCm,
               widthCm: item.widthCm,
               depthCm: item.depthCm,
+              measurementSource: item.measurementSource,
+              measurementSourceReference: item.measurementSourceReference,
+              measurementConfidence: item.measurementConfidence,
             })),
           }),
         });

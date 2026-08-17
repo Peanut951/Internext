@@ -9,6 +9,9 @@ type ShippingEstimateProduct = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  measurementSource?: string | null;
+  measurementSourceReference?: string | null;
+  measurementConfidence?: "verified" | "high" | "medium" | "low" | null;
 };
 
 export type ShippingEstimate = {
@@ -17,6 +20,15 @@ export type ShippingEstimate = {
   widthCm: number;
   heightCm: number;
   estimated: boolean;
+  source: string;
+  sourceReference?: string;
+  confidence: "verified" | "high" | "medium" | "low";
+  fieldSources: {
+    weightKg: string;
+    lengthCm: string;
+    widthCm: string;
+    heightCm: string;
+  };
 };
 
 const MAX_GOOGLE_SHIPPING_DIMENSION_CM = 100;
@@ -50,7 +62,7 @@ const parseWeightKg = (text: string) => {
 };
 
 const parseDimensionsCm = (text: string) => {
-  const match = text.match(/(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*[x×]\s*(\d+(?:\.\d+)?)\s*(mm|cm)\b/i);
+  const match = text.match(/(\d+(?:\.\d+)?)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)\s*(mm|cm)\b/i);
   if (!match) {
     return null;
   }
@@ -167,23 +179,36 @@ export const estimateShippingProfile = (product: ShippingEstimateProduct): Shipp
   const providedLength = normalizeProvidedDimensionCm(product.depthCm, text);
   const providedWidth = normalizeProvidedDimensionCm(product.widthCm, text);
   const providedHeight = normalizeProvidedDimensionCm(product.heightCm, text);
+  const providedSource = product.measurementSource?.trim() || "Supplier catalogue data";
+  const providedConfidence = product.measurementConfidence || "high";
+  const parsedSource = "Product description";
+  const fallbackSource = "Conservative category fallback";
 
   const weightKg = providedWeight ?? parsedWeight ?? categoryEstimate.weightKg;
   const lengthCm = providedLength ?? parsedDimensions?.lengthCm ?? categoryEstimate.lengthCm;
   const widthCm = providedWidth ?? parsedDimensions?.widthCm ?? categoryEstimate.widthCm;
   const heightCm = providedHeight ?? parsedDimensions?.heightCm ?? categoryEstimate.heightCm;
-  const hasActualWeight = Boolean(providedWeight ?? parsedWeight);
-  const hasActualDimensions = Boolean(
-    (providedLength && providedWidth && providedHeight) ||
-      parsedDimensions,
-  );
+  const fieldSources = {
+    weightKg: providedWeight ? providedSource : parsedWeight ? parsedSource : fallbackSource,
+    lengthCm: providedLength ? providedSource : parsedDimensions ? parsedSource : fallbackSource,
+    widthCm: providedWidth ? providedSource : parsedDimensions ? parsedSource : fallbackSource,
+    heightCm: providedHeight ? providedSource : parsedDimensions ? parsedSource : fallbackSource,
+  };
+  const sources = Array.from(new Set(Object.values(fieldSources)));
+  const usesFallback = sources.includes(fallbackSource);
+  const usesParsedText = sources.includes(parsedSource);
+  const confidence = usesFallback ? "low" : usesParsedText ? "medium" : providedConfidence;
 
   return {
     weightKg: Math.max(0.1, round(weightKg)),
     lengthCm: Math.max(1, round(lengthCm, 1)),
     widthCm: Math.max(1, round(widthCm, 1)),
     heightCm: Math.max(1, round(heightCm, 1)),
-    estimated: !hasActualWeight || !hasActualDimensions,
+    estimated: usesFallback || usesParsedText,
+    source: sources.join(" + "),
+    sourceReference: product.measurementSourceReference?.trim() || undefined,
+    confidence,
+    fieldSources,
   };
 };
 

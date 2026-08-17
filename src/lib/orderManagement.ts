@@ -24,6 +24,11 @@
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  measurementSource?: string;
+  measurementSourceReference?: string;
+  measurementConfidence?: "verified" | "high" | "medium" | "low";
+  measurementUpdatedAt?: string;
+  measurementOverride?: boolean;
 };
 
 export type CartItem = CatalogProductLite & { qty: number };
@@ -219,6 +224,11 @@ export const toCartProduct = <T extends CatalogProductLite>(product: T): Catalog
     heightCm: product.heightCm,
     widthCm: product.widthCm,
     depthCm: product.depthCm,
+    measurementSource: product.measurementSource,
+    measurementSourceReference: product.measurementSourceReference,
+    measurementConfidence: product.measurementConfidence,
+    measurementUpdatedAt: product.measurementUpdatedAt,
+    measurementOverride: product.measurementOverride,
   };
 };
 

@@ -12,6 +12,74 @@ const liveOverridesPath = path.join(dataDir, "catalog-live-overrides.json");
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
 const GOOGLE_IMAGE_FEED_VERSION = "20260618-1";
 
+const loadShippingMeasurementOverrides = async () => {
+  const supabaseUrl = String(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "")
+    .trim()
+    .replace(/\/$/, "");
+  const serviceRoleKey = String(
+    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SERVICE_ROLE_SECRET_KEY || "",
+  ).trim();
+  if (!supabaseUrl || !serviceRoleKey) return [];
+
+  try {
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/catalog_shipping_measurements?select=code,supplier_code,weight_kg,height_cm,width_cm,depth_cm,source,source_reference,confidence,updated_at`,
+      {
+        headers: {
+          apikey: serviceRoleKey,
+          Authorization: `Bearer ${serviceRoleKey}`,
+          Accept: "application/json",
+        },
+      },
+    );
+    return response.ok ? await response.json() : [];
+  } catch {
+    return [];
+  }
+};
+
+const buildShippingMeasurementOverrideMap = (rows) => {
+  const map = new Map();
+  for (const row of rows) {
+    for (const key of [row.code, row.supplier_code]) {
+      const normalized = String(key || "").trim().toLowerCase();
+      if (normalized) map.set(normalized, row);
+    }
+  }
+  return map;
+};
+
+const applyShippingMeasurementOverride = (product, overridesByKey) => {
+  const override = getProductKeys(product).map((key) => overridesByKey.get(key)).find(Boolean);
+  if (!override) return product;
+  return {
+    ...product,
+    weightKg: Number(override.weight_kg),
+    heightCm: Number(override.height_cm),
+    widthCm: Number(override.width_cm),
+    depthCm: Number(override.depth_cm),
+    measurementSource: override.source,
+    measurementSourceReference: override.source_reference || undefined,
+    measurementConfidence: override.confidence,
+    measurementUpdatedAt: override.updated_at,
+    measurementOverride: true,
+  };
+};
+
+const annotateSupplierMeasurements = (product) => {
+  const hasMeasurements = [product.weightKg, product.heightCm, product.widthCm, product.depthCm]
+    .some((value) => Number.isFinite(Number(value)) && Number(value) > 0);
+  if (!hasMeasurements || product.measurementOverride) return product;
+  const supplierName = product.supplierSource === "leader" ? "Leader" : "Alloys";
+  return {
+    ...product,
+    measurementSource: product.measurementSource || `${supplierName} supplier feed`,
+    measurementConfidence: product.measurementConfidence || "high",
+    measurementUpdatedAt: product.measurementUpdatedAt || new Date().toISOString(),
+    measurementOverride: false,
+  };
+};
+
 const BLOCKED_IMAGE_CODES = new Set([
   "AK-NK-2",
   "AK-R20K-BK-L-KIT",
@@ -368,6 +436,25 @@ const estimateShippingProfile = (product) => {
     if (parsed === null) return null;
     return isSmallWallControlText(text) && parsed > 80 ? null : parsed;
   };
+  const parseWeightKg = () => {
+    const kgMatch = text.match(/(\d+(?:\.\d+)?)\s*kg\b/i);
+    if (kgMatch) return toPositiveNumber(kgMatch[1]);
+    const gramMatch = text.match(/(\d+(?:\.\d+)?)\s*g(?:ram|rams)?\b/i);
+    const grams = gramMatch ? toPositiveNumber(gramMatch[1]) : null;
+    return grams ? round(grams / 1000) : null;
+  };
+  const parseDimensionsCm = () => {
+    const match = text.match(/(\d+(?:\.\d+)?)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)\s*[xX\u00d7]\s*(\d+(?:\.\d+)?)\s*(mm|cm)\b/i);
+    if (!match) return null;
+    const values = [match[1], match[2], match[3]]
+      .map(toPositiveNumber)
+      .filter(Boolean)
+      .map((value) => match[4].toLowerCase() === "mm" ? value / 10 : value)
+      .sort((a, b) => b - a);
+    return values.length === 3
+      ? { lengthCm: values[0], widthCm: values[1], heightCm: values[2] }
+      : null;
+  };
 
   const categoryEstimate = (() => {
     if (/\b(warranty|licen[cs]e|subscription|support|onsite|software|service|renewal)\b/.test(text)) return { weightKg: 0.1, lengthCm: 1, widthCm: 1, heightCm: 1 };
@@ -385,11 +472,13 @@ const estimateShippingProfile = (product) => {
     return { weightKg: 1, lengthCm: 30, widthCm: 20, heightCm: 10 };
   })();
 
+  const parsedWeight = parseWeightKg();
+  const parsedDimensions = parseDimensionsCm();
   return {
-    weightKg: Math.max(0.1, round(normalizeProvidedWeightKg(product.weightKg) ?? categoryEstimate.weightKg)),
-    lengthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.depthCm) ?? categoryEstimate.lengthCm, 1)),
-    widthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.widthCm) ?? categoryEstimate.widthCm, 1)),
-    heightCm: Math.max(1, round(normalizeProvidedDimensionCm(product.heightCm) ?? categoryEstimate.heightCm, 1)),
+    weightKg: Math.max(0.1, round(normalizeProvidedWeightKg(product.weightKg) ?? parsedWeight ?? categoryEstimate.weightKg)),
+    lengthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.depthCm) ?? parsedDimensions?.lengthCm ?? categoryEstimate.lengthCm, 1)),
+    widthCm: Math.max(1, round(normalizeProvidedDimensionCm(product.widthCm) ?? parsedDimensions?.widthCm ?? categoryEstimate.widthCm, 1)),
+    heightCm: Math.max(1, round(normalizeProvidedDimensionCm(product.heightCm) ?? parsedDimensions?.heightCm ?? categoryEstimate.heightCm, 1)),
   };
 };
 
@@ -688,7 +777,12 @@ const activeLeaderItems = (
       ? previousLeaderItems
       : staticLeaderProducts
 ).map((product) => ({ ...product, supplierSource: "leader" }));
-const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems]);
+const shippingMeasurementOverrides = buildShippingMeasurementOverrideMap(
+  await loadShippingMeasurementOverrides(),
+);
+const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems])
+  .map(annotateSupplierMeasurements)
+  .map((product) => applyShippingMeasurementOverride(product, shippingMeasurementOverrides));
 const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
 const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
 
@@ -722,7 +816,6 @@ const imageOverrideMap = new Map(
 const excludedCodes = new Set(
   [...(exclusions.codes || []), ...(invalidImageCodeData.codes || [])].map((code) => String(code || "").trim().toUpperCase()).filter(Boolean),
 );
-
 const products = mergeProducts(mergeAlloysLivePricing([
   ...readJson(path.join(dataDir, "catalog-products.json")),
   ...staticLeaderProducts,
@@ -734,8 +827,9 @@ const products = mergeProducts(mergeAlloysLivePricing([
       getProductKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
   )
   .map((product) => {
-    const overrideImages = imageOverrideMap.get(String(product.code || "").trim().toUpperCase());
-    return overrideImages?.length ? { ...product, googleImageOverrides: overrideImages } : product;
+    const measuredProduct = applyShippingMeasurementOverride(product, shippingMeasurementOverrides);
+    const overrideImages = imageOverrideMap.get(String(measuredProduct.code || "").trim().toUpperCase());
+    return overrideImages?.length ? { ...measuredProduct, googleImageOverrides: overrideImages } : measuredProduct;
   })
   .filter(isTangibleCatalogProduct)
   .filter((product) => typeof product.price === "number" && product.price > 0)

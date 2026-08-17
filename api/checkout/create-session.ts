@@ -10,8 +10,8 @@ import {
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
+import { calculateAuthoritativeShippingQuote } from "../shipping/quote.js";
 
-const MIN_SHIPPING_TOTAL = 15;
 const FIRST_ORDER_DISCOUNT_RATE = 0.1;
 const FIRST_ORDER_DISCOUNT_NAME = "First order account discount";
 const ORDERS_TABLE = "orders";
@@ -388,6 +388,22 @@ export default async function handler(
     ? calculateFirstOrderDiscountAmount(verifiedItems)
     : 0;
 
+  let verifiedShipping: { name: string; price: number };
+  try {
+    const shippingQuote = await calculateAuthoritativeShippingQuote(
+      String(body.customer?.postcode || ""),
+      verifiedItems,
+    );
+    verifiedShipping = {
+      name: shippingQuote.service.name,
+      price: shippingQuote.service.price,
+    };
+  } catch {
+    return sendJson(res, 503, {
+      message: "Shipping could not be verified. No payment was created. Please check the delivery address and try again.",
+    });
+  }
+
   const params = buildStripeCheckoutParams({
     origin,
     orderNumber: String(body.orderNumber || ""),
@@ -400,13 +416,7 @@ export default async function handler(
     },
     items: verifiedItems,
     resellerEmail: authSession?.email || body.resellerEmail,
-    shipping:
-      typeof body.shipping?.price === "number" && body.shipping.price > 0
-        ? {
-            name: String(body.shipping.name || "Shipping"),
-            price: Math.max(body.shipping.price, MIN_SHIPPING_TOTAL),
-          }
-        : undefined,
+    shipping: verifiedShipping,
     discount:
       firstOrderDiscountApplies && firstOrderDiscountAmount > 0
         ? {

@@ -1,4 +1,5 @@
 import { readEnv, sendJson } from "../checkout/_shared.js";
+import { loadMergedCatalogProducts } from "../catalog/live.js";
 import { estimateShippingProfile } from "./_estimates.js";
 
 type ShippingQuoteItem = {
@@ -13,6 +14,9 @@ type ShippingQuoteItem = {
   heightCm?: number | null;
   widthCm?: number | null;
   depthCm?: number | null;
+  measurementSource?: string | null;
+  measurementSourceReference?: string | null;
+  measurementConfidence?: "verified" | "high" | "medium" | "low" | null;
 };
 
 type RequestBody = {
@@ -52,6 +56,45 @@ const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | und
   }
 
   return body;
+};
+
+const normalizeProductKey = (value: unknown) => String(value || "").trim().toLowerCase();
+
+const loadVerifiedQuoteItems = async (items: ShippingQuoteItem[]) => {
+  const catalog = await loadMergedCatalogProducts();
+  const productsByKey = new Map<string, (typeof catalog.items)[number]>();
+  for (const product of catalog.items) {
+    for (const key of [product.code, product.supplierCode]) {
+      const normalized = normalizeProductKey(key);
+      if (normalized) productsByKey.set(normalized, product);
+    }
+  }
+
+  return items.map((item) => {
+    const verified = [item.code, item.supplierCode]
+      .map((key) => productsByKey.get(normalizeProductKey(key)))
+      .find(Boolean);
+    if (!verified) {
+      throw new Error(`${item.code || "A cart product"} is no longer available in the current supplier catalogue.`);
+    }
+
+    return {
+      ...item,
+      code: verified.code,
+      supplierCode: verified.supplierCode,
+      manufacturer: verified.manufacturer,
+      name: verified.name,
+      description: verified.description,
+      longDescription: verified.longDescription,
+      weightKg: verified.weightKg,
+      heightCm: verified.heightCm,
+      widthCm: verified.widthCm,
+      depthCm: verified.depthCm,
+      measurementSource: verified.measurementSource,
+      measurementSourceReference: verified.measurementSourceReference,
+      measurementConfidence: verified.measurementConfidence,
+    } satisfies ShippingQuoteItem;
+  });
 };
 
 const toPositiveNumber = (value: unknown) => {
@@ -366,6 +409,60 @@ const getShippingErrorMessage = (error: unknown) => {
   return "Unable to calculate shipping right now. Please check the postcode or contact Internext for a freight quote.";
 };
 
+export const calculateAuthoritativeShippingQuote = async (
+  destinationPostcodeInput: string,
+  items: ShippingQuoteItem[],
+) => {
+  const authKey = readEnv("AUSPOST_AUTH_KEY");
+  if (!authKey) {
+    throw new Error("Australia Post shipping is not configured. Add AUSPOST_AUTH_KEY to the server environment.");
+  }
+
+  const destinationPostcode = String(destinationPostcodeInput || "").trim();
+  if (!/^\d{4}$/.test(destinationPostcode)) {
+    throw new Error("A valid Australian destination postcode is required.");
+  }
+
+  const verifiedItems = await loadVerifiedQuoteItems(items);
+  const estimatedDimensions = getItemsMissingShippingDimensions(verifiedItems);
+  const measurementProfiles = verifiedItems.map((item) => ({
+    code: item.code || "",
+    ...estimateShippingProfile(item),
+  }));
+  const parcels = calculateParcels(verifiedItems);
+  const parcel = summarizeParcels(parcels);
+  const shippingFloor = getMinimumShippingFloor(verifiedItems);
+  const apiBaseUrl = readEnv("AUSPOST_API_BASE_URL") || "https://digitalapi.auspost.com.au";
+  const parcelQuotes = await Promise.all(
+    parcels.map((currentParcel) => quoteParcel(apiBaseUrl, authKey, destinationPostcode, currentParcel)),
+  );
+  const quotedPrice = parcelQuotes.reduce((sum, quote) => sum + quote.service.price, 0);
+  const totalPrice = Math.max(quotedPrice, shippingFloor);
+  const primaryService = parcelQuotes[0].service;
+  const serviceName =
+    parcelQuotes.length === 1 && parcels[0].qty === 1
+      ? primaryService.name
+      : `${primaryService.name} (${parcel.qty} parcels)`;
+
+  return {
+    originPostcode: ORIGIN_POSTCODE,
+    destinationPostcode,
+    parcel,
+    parcels,
+    service: {
+      ...primaryService,
+      name: serviceName,
+      price: totalPrice,
+      priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
+    },
+    quotedPrice,
+    shippingFloor,
+    estimatedDimensions,
+    measurementProfiles,
+    parcelQuotes,
+  };
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -381,13 +478,6 @@ export default async function handler(
     return sendJson(res, 405, { message: "Method not allowed." });
   }
 
-  const authKey = readEnv("AUSPOST_AUTH_KEY");
-  if (!authKey) {
-    return sendJson(res, 500, {
-      message: "Australia Post shipping is not configured. Add AUSPOST_AUTH_KEY to the server environment.",
-    });
-  }
-
   const body = parseJsonBody<RequestBody>(req.body);
   const destinationPostcode = String(body?.destinationPostcode || "").trim();
 
@@ -395,41 +485,9 @@ export default async function handler(
     return sendJson(res, 400, { message: "A valid Australian destination postcode is required." });
   }
 
-  const estimatedDimensions = getItemsMissingShippingDimensions(body?.items || []);
-
-  const parcels = calculateParcels(body?.items || []);
-  const parcel = summarizeParcels(parcels);
-  const shippingFloor = getMinimumShippingFloor(body?.items || []);
-  const apiBaseUrl = readEnv("AUSPOST_API_BASE_URL") || "https://digitalapi.auspost.com.au";
-
   try {
-    const parcelQuotes = await Promise.all(
-      parcels.map((currentParcel) => quoteParcel(apiBaseUrl, authKey, destinationPostcode, currentParcel)),
-    );
-    const quotedPrice = parcelQuotes.reduce((sum, quote) => sum + quote.service.price, 0);
-    const totalPrice = Math.max(quotedPrice, shippingFloor);
-    const primaryService = parcelQuotes[0].service;
-    const serviceName =
-      parcelQuotes.length === 1 && parcels[0].qty === 1
-        ? primaryService.name
-        : `${primaryService.name} (${parcel.qty} parcels)`;
-
-    return sendJson(res, 200, {
-      originPostcode: ORIGIN_POSTCODE,
-      destinationPostcode,
-      parcel,
-      parcels,
-      service: {
-        ...primaryService,
-        name: serviceName,
-        price: totalPrice,
-        priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
-      },
-      quotedPrice,
-      shippingFloor,
-      estimatedDimensions,
-      parcelQuotes,
-    });
+    const quote = await calculateAuthoritativeShippingQuote(destinationPostcode, body?.items || []);
+    return sendJson(res, 200, quote);
   } catch (error) {
     return sendJson(res, 502, {
       message: getShippingErrorMessage(error),
