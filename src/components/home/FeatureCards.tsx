@@ -37,7 +37,7 @@ const FeatureCards = () => {
             <p className="mt-4 text-muted-foreground leading-relaxed">
               The best distributor relationship should reduce noise, remove friction, and help you look better in front of customers.
             </p>
-            <Link to="/about/why-partner" className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-accent hover:underline">
+            <Link to="/about/why-partner" className="mt-4 inline-flex min-h-11 items-center gap-2 text-sm font-medium text-accent hover:underline">
               Why partner with Internext <ArrowRight className="h-4 w-4" />
             </Link>
           </div>

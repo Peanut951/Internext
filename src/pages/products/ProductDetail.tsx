@@ -1602,7 +1602,7 @@ const ProductDetail = () => {
             <button
               type="button"
               onClick={goBack}
-              className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-accent"
+              className="inline-flex min-h-11 items-center gap-2 text-sm text-muted-foreground hover:text-accent"
             >
               <ArrowLeft className="h-4 w-4" />
               Back
@@ -1691,13 +1691,13 @@ const ProductDetail = () => {
                         <div className="overflow-hidden rounded-[1.75rem] border border-border/50 bg-gradient-to-br from-background via-secondary/15 to-background shadow-card">
                           <div className="border-b border-border/50 bg-background/80 px-5 py-4 backdrop-blur md:px-6">
                             <TabsList className="grid h-auto w-full max-w-lg grid-cols-3 rounded-xl bg-secondary/50 p-1">
-                              <TabsTrigger value="overview" className="rounded-lg px-2 text-xs sm:text-sm">
+                              <TabsTrigger value="overview" className="min-h-11 rounded-lg px-2 text-xs sm:text-sm">
                                 Overview
                               </TabsTrigger>
-                              <TabsTrigger value="size" className="rounded-lg px-2 text-xs sm:text-sm">
+                              <TabsTrigger value="size" className="min-h-11 rounded-lg px-2 text-xs sm:text-sm">
                                 Size
                               </TabsTrigger>
-                              <TabsTrigger value="availability" className="rounded-lg px-2 text-xs sm:text-sm">
+                              <TabsTrigger value="availability" className="min-h-11 rounded-lg px-2 text-xs sm:text-sm">
                                 Availability
                               </TabsTrigger>
                             </TabsList>
@@ -1905,7 +1905,8 @@ const ProductDetail = () => {
                             <button
                               type="button"
                               onClick={() => updateQuantity(qty - 1)}
-                              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                              className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                              aria-label="Decrease quantity"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
@@ -1917,13 +1918,14 @@ const ProductDetail = () => {
                               value={qty}
                               onFocus={(event) => event.currentTarget.select()}
                               onChange={(event) => updateQuantity(Number(event.target.value))}
-                              className="h-9 w-20 border-border bg-background text-center font-semibold [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                              className="h-11 w-20 border-border bg-background text-center font-semibold [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                               aria-label="Quantity"
                             />
                             <button
                               type="button"
                               onClick={() => updateQuantity(qty + 1)}
-                              className="flex h-9 w-9 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                              className="flex h-11 w-11 items-center justify-center rounded-md border border-border bg-background hover:bg-secondary"
+                              aria-label="Increase quantity"
                             >
                               <Plus className="h-4 w-4" />
                             </button>

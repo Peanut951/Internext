@@ -190,7 +190,7 @@ const Contact = () => {
                       required
                       value={formData.enquiryType}
                       onChange={(e) => setFormData({ ...formData, enquiryType: e.target.value })}
-                      className="w-full bg-secondary border-0 rounded-md px-3 py-2"
+                      className="h-12 w-full rounded-md border-0 bg-secondary px-3 py-2"
                     >
                       <option value="">Select...</option>
                       <option value="general">General Enquiry</option>

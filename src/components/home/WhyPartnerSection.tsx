@@ -51,7 +51,7 @@ const WhyPartnerSection = () => {
 
           <Link
             to="/about/why-partner"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+            className="inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:underline"
           >
             See the full partner view <ArrowRight className="h-4 w-4" />
           </Link>

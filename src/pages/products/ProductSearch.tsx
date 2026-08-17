@@ -208,7 +208,7 @@ const ProductSearch = () => {
                   <button
                     type="button"
                     onClick={() => setInputValue("")}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground hover:bg-secondary hover:text-foreground"
                     aria-label="Clear search"
                   >
                     <X className="h-4 w-4" />
@@ -229,7 +229,7 @@ const ProductSearch = () => {
                       key={item}
                       type="button"
                       onClick={() => applyQuery(item)}
-                      className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                      className="min-h-10 rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-accent/50 hover:text-accent"
                     >
                       {item}
                     </button>
@@ -246,7 +246,7 @@ const ProductSearch = () => {
                         key={item}
                         type="button"
                         onClick={() => applyQuery(item)}
-                        className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
+                        className="min-h-10 rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
                       >
                         {item}
                       </button>

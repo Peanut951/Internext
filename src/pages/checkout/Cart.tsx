@@ -183,7 +183,7 @@ const Cart = () => {
         <div className="container-wide">
           <Link
             to="/products"
-            className="inline-flex items-center gap-2 text-sm text-primary-foreground/80 hover:text-primary-foreground mb-5"
+            className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm text-primary-foreground/80 hover:text-primary-foreground"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Products
           </Link>

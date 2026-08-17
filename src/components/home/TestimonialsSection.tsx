@@ -44,7 +44,7 @@ const TestimonialsSection = () => {
 
       <div className="container-wide relative">
         <div className="grid gap-8 xl:grid-cols-[320px_minmax(0,1fr)] xl:items-stretch">
-          <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/10 p-8 text-primary-foreground backdrop-blur-sm">
+          <div className="min-w-0 rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/10 p-6 text-primary-foreground backdrop-blur-sm sm:p-8">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
               Partner Feedback
             </p>
@@ -72,11 +72,11 @@ const TestimonialsSection = () => {
             </div>
           </div>
 
-          <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/8 p-6 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.45)] backdrop-blur-sm md:p-8">
-            <div className="rounded-[1.5rem] border border-primary-foreground/15 bg-navy-dark/55 p-6 md:p-8">
+          <div className="min-w-0 rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/8 p-4 shadow-[0_24px_80px_-30px_rgba(0,0,0,0.45)] backdrop-blur-sm sm:p-6 md:p-8">
+            <div className="min-w-0 rounded-[1.5rem] border border-primary-foreground/15 bg-navy-dark/55 p-4 sm:p-6 md:p-8">
               <Quote className="h-10 w-10 text-accent/75" />
 
-              <blockquote className="mt-6 text-2xl font-light leading-relaxed text-primary-foreground md:text-3xl">
+              <blockquote className="mt-6 text-xl font-light leading-relaxed text-primary-foreground sm:text-2xl md:text-3xl">
                 "{activeTestimonial.quote}"
               </blockquote>
 
@@ -90,7 +90,7 @@ const TestimonialsSection = () => {
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 sm:gap-3">
                   <Button
                     variant="ghost"
                     size="icon"
@@ -100,19 +100,23 @@ const TestimonialsSection = () => {
                     <ChevronLeft className="h-5 w-5" />
                   </Button>
 
-                  <div className="flex gap-2">
+                  <div className="flex gap-0.5">
                     {testimonials.map((testimonial, index) => (
                       <button
                         key={testimonial.author}
                         type="button"
                         onClick={() => setCurrentIndex(index)}
-                        className={`h-2.5 rounded-full transition-all ${
-                          index === currentIndex
-                            ? "w-8 bg-accent"
-                            : "w-2.5 bg-primary-foreground/28 hover:bg-primary-foreground/45"
-                        }`}
+                        className="group inline-flex h-10 w-10 items-center justify-center rounded-full"
                         aria-label={`View testimonial ${index + 1}`}
-                      />
+                      >
+                        <span
+                          className={`h-2.5 rounded-full transition-all ${
+                            index === currentIndex
+                              ? "w-6 bg-accent sm:w-8"
+                              : "w-2.5 bg-primary-foreground/28 group-hover:bg-primary-foreground/45"
+                          }`}
+                        />
+                      </button>
                     ))}
                   </div>
 

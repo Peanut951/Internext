@@ -52,7 +52,7 @@ const Footer = () => {
                 <li key={item.label}>
                   <Link
                     to={item.path}
-                    className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
+                    className="inline-flex min-h-10 items-center text-sm text-primary-foreground/70 transition-colors hover:text-accent"
                   >
                     {item.label}
                   </Link>
@@ -69,7 +69,7 @@ const Footer = () => {
                 <li key={item.label}>
                   <Link
                     to={item.path}
-                    className="text-primary-foreground/70 hover:text-accent transition-colors text-sm"
+                    className="inline-flex min-h-10 items-center text-sm text-primary-foreground/70 transition-colors hover:text-accent"
                   >
                     {item.label}
                   </Link>
@@ -84,7 +84,7 @@ const Footer = () => {
             <ul className="space-y-3">
               <li className="flex items-center gap-3 text-sm">
                 <Phone className="h-4 w-4 text-accent" />
-                <Link to="/contact" className="text-primary-foreground/70 hover:text-accent transition-colors leading-tight">
+                <Link to="/contact" className="inline-flex min-h-10 flex-col justify-center text-primary-foreground/70 transition-colors hover:text-accent leading-tight">
                   <span className="block">1300 U R NEXT</span>
                   <span className="block text-xs">(1300 876 398)</span>
                 </Link>
@@ -92,7 +92,7 @@ const Footer = () => {
 
               <li className="flex items-center gap-3 text-sm">
                 <Mail className="h-4 w-4 text-accent" />
-                <Link to="/contact" className="text-primary-foreground/70 hover:text-accent transition-colors">
+                <Link to="/contact" className="inline-flex min-h-10 items-center text-primary-foreground/70 transition-colors hover:text-accent">
                   orders@internext.com.au
                 </Link>
               </li>
@@ -126,7 +126,7 @@ const Footer = () => {
                 <Link
                   key={item.label}
                   to={item.path}
-                  className="text-primary-foreground/50 transition-colors hover:text-accent"
+                  className="inline-flex min-h-10 items-center text-primary-foreground/50 transition-colors hover:text-accent"
                 >
                   {item.label}
                 </Link>

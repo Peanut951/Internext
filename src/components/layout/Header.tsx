@@ -145,6 +145,22 @@ const Header = () => {
     };
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("internext-mobile-menu-change", {
+        detail: { open: mobileMenuOpen },
+      }),
+    );
+
+    return () => {
+      window.dispatchEvent(
+        new CustomEvent("internext-mobile-menu-change", {
+          detail: { open: false },
+        }),
+      );
+    };
+  }, [mobileMenuOpen]);
+
   const searchSuggestions = useMemo(() => {
     const products = searchProductsRefreshing
       ? searchProducts.filter(hasVerifiedSuggestionPrice)
@@ -290,7 +306,7 @@ const Header = () => {
       <div className="container-wide py-3">
         <div className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 md:gap-5">
           {/* Logo */}
-          <Link to="/" className="flex-shrink-0">
+          <Link to="/" className="flex min-h-11 flex-shrink-0 items-center">
             <img
               src="/internext-white-bg-cropped.png"
               alt="Internext Logo"
@@ -334,8 +350,8 @@ const Header = () => {
           </div>
 
           <div className="hidden flex-none items-center justify-end xl:flex">
-            <Button variant="outline" size="sm" className="h-9 rounded-full px-0" asChild>
-              <Link to="/cart" className="inline-flex h-9 items-center gap-2 px-4 leading-none">
+            <Button variant="outline" size="sm" className="h-11 rounded-full px-0" asChild>
+              <Link to="/cart" className="inline-flex h-11 items-center gap-2 px-4 leading-none">
                 <ShoppingCart className="h-4 w-4 shrink-0" />
                 <span>Cart</span>
                 <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-primary-foreground">
@@ -346,8 +362,8 @@ const Header = () => {
           </div>
 
           <div className="flex items-center justify-end gap-2 xl:hidden">
-            <Button variant="outline" size="sm" className="h-9 rounded-full px-0" asChild>
-              <Link to="/cart" className="inline-flex h-9 items-center gap-2 px-3 leading-none">
+            <Button variant="outline" size="sm" className="h-11 rounded-full px-0" asChild>
+              <Link to="/cart" className="inline-flex h-11 items-center gap-2 px-3 leading-none">
                 <ShoppingCart className="h-4 w-4 shrink-0" />
                 <span className="sr-only sm:not-sr-only">Cart</span>
                 <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-primary-foreground">
@@ -359,7 +375,7 @@ const Header = () => {
             <Button
               variant="ghost"
               size="icon"
-              className="xl:hidden"
+              className="h-11 w-11 xl:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={mobileMenuOpen}
@@ -472,7 +488,7 @@ const Header = () => {
                       <Link
                         key={subItem.label}
                         to={subItem.href}
-                        className="rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+                        className="flex min-h-11 items-center rounded-md px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                         onClick={() => setMobileMenuOpen(false)}
                       >
                         {subItem.label}

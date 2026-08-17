@@ -1238,7 +1238,7 @@ const Checkout = () => {
         <div className="container-wide">
           <Link
             to="/cart"
-            className="inline-flex items-center gap-2 text-sm text-primary-foreground/80 hover:text-primary-foreground mb-5"
+            className="mb-3 inline-flex min-h-11 items-center gap-2 text-sm text-primary-foreground/80 hover:text-primary-foreground"
           >
             <ArrowLeft className="h-4 w-4" /> Back to Cart
           </Link>
@@ -1604,7 +1604,7 @@ const Checkout = () => {
               <aside className="bg-card rounded-2xl p-6 shadow-card border border-border/50 h-fit xl:sticky xl:top-24">
                 <div className="flex items-center justify-between gap-3 mb-4">
                   <h3 className="text-lg font-semibold text-foreground">Order Summary</h3>
-                  <Link to="/cart" className="text-xs text-accent hover:underline">
+                  <Link to="/cart" className="inline-flex min-h-10 items-center text-xs text-accent hover:underline">
                     Edit cart
                   </Link>
                 </div>
@@ -1615,7 +1615,7 @@ const Checkout = () => {
                       <AlertTriangle className="h-4 w-4 mt-0.5" />
                       <p>Your cart is empty.</p>
                     </div>
-                    <Link to="/cart" className="text-accent hover:underline">
+                    <Link to="/cart" className="inline-flex min-h-10 items-center text-accent hover:underline">
                       Return to cart
                     </Link>
                   </div>

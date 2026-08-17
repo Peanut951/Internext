@@ -162,7 +162,7 @@ const Signup = () => {
                     />
                     <button
                       type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                       onClick={() => setShowPassword((current) => !current)}
                       aria-label={showPassword ? "Hide password" : "Show password"}
                     >
@@ -185,7 +185,7 @@ const Signup = () => {
                     />
                     <button
                       type="button"
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground transition-colors hover:text-foreground"
+                      className="absolute right-1 top-1/2 inline-flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
                       onClick={() => setShowConfirmPassword((current) => !current)}
                       aria-label={showConfirmPassword ? "Hide password" : "Show password"}
                     >
@@ -223,7 +223,7 @@ const Signup = () => {
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
               Already have an account?{" "}
-              <Link to="/login" className="font-medium text-accent hover:underline">
+              <Link to="/login" className="inline-flex min-h-10 items-center font-medium text-accent hover:underline">
                 Sign in
               </Link>
             </div>

@@ -8,6 +8,7 @@
     "build": "node scripts/generate-google-product-feed.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-product-pages.mjs",
     "build:dev": "vite build --mode development",
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
+    "audit:mobile": "node scripts/audit-mobile-layout.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
     "lint": "eslint .",
     "preview": "vite preview",

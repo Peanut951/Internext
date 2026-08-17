@@ -468,7 +468,7 @@ const ProductsIndex = () => {
                       key={suggestion}
                       type="button"
                       onClick={() => applySuggestedSearch(suggestion)}
-                      className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-accent/50 hover:text-accent"
+                      className="min-h-10 rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-accent/50 hover:text-accent"
                     >
                       {suggestion}
                     </button>
@@ -487,7 +487,7 @@ const ProductsIndex = () => {
                         key={item}
                         type="button"
                         onClick={() => applySuggestedSearch(item)}
-                        className="rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
+                        className="min-h-10 rounded-full border border-border/70 bg-card px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:border-accent/50 hover:text-foreground"
                       >
                         {item}
                       </button>

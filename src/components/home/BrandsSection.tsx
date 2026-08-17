@@ -74,7 +74,7 @@ const BrandsSection = () => {
 
             <Link
               to="/products"
-              className="mt-8 inline-flex items-center gap-2 text-sm font-semibold text-accent hover:underline"
+              className="mt-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-accent hover:underline"
             >
               Explore product categories <ArrowRight className="h-4 w-4" />
             </Link>
