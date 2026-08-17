@@ -6,12 +6,30 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { hasCompletedFirstOrderOnDevice, markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
 import { fetchSharedOrdersResult } from "@/lib/orderManagement";
 
+const PROMO_STATE_KEY = "internext-first-order-promo-state";
+const PROMO_EXCLUDED_PATHS = ["/cart", "/checkout", "/admin", "/portal", "/login", "/signup"];
+
+const readPromoState = () => {
+  if (typeof window === "undefined") {
+    return "open" as const;
+  }
+
+  return window.sessionStorage.getItem(PROMO_STATE_KEY) === "minimized"
+    ? ("minimized" as const)
+    : ("open" as const);
+};
+
 const FirstOrderPromo = () => {
   const location = useLocation();
-  const [state, setState] = useState<"open" | "minimized">("open");
+  const [state, setState] = useState<"open" | "minimized">(readPromoState);
   const [hasCompletedFirstOrder, setHasCompletedFirstOrder] = useState(false);
   const [ordersChecked, setOrdersChecked] = useState(false);
   const { session, loading: sessionLoading } = useAuthSession();
+  const sessionRole = session?.role;
+  const isAccountRoleExcluded = Boolean(sessionRole && sessionRole !== "user");
+  const isExcludedRoute = PROMO_EXCLUDED_PATHS.some(
+    (path) => location.pathname === path || location.pathname.startsWith(`${path}/`),
+  );
   const isSignupOfferPage =
     location.pathname === "/signup" && new URLSearchParams(location.search).get("offer") === "first-order";
 
@@ -32,7 +50,15 @@ const FirstOrderPromo = () => {
       };
     }
 
-    if (!session || session.role !== "user") {
+    if (sessionRole && sessionRole !== "user") {
+      setHasCompletedFirstOrder(true);
+      setOrdersChecked(true);
+      return () => {
+        isActive = false;
+      };
+    }
+
+    if (!sessionRole) {
       setHasCompletedFirstOrder(false);
       setOrdersChecked(true);
       return () => {
@@ -67,9 +93,21 @@ const FirstOrderPromo = () => {
     return () => {
       isActive = false;
     };
-  }, [session?.email, session?.role, session?.userId, sessionLoading]);
+  }, [session?.email, session?.userId, sessionLoading, sessionRole]);
 
-  if (isSignupOfferPage || sessionLoading || !ordersChecked || hasCompletedFirstOrder) {
+  const minimizePromo = () => {
+    window.sessionStorage.setItem(PROMO_STATE_KEY, "minimized");
+    setState("minimized");
+  };
+
+  if (
+    isSignupOfferPage ||
+    isExcludedRoute ||
+    isAccountRoleExcluded ||
+    sessionLoading ||
+    !ordersChecked ||
+    hasCompletedFirstOrder
+  ) {
     return null;
   }
 
@@ -77,7 +115,10 @@ const FirstOrderPromo = () => {
     return (
       <button
         type="button"
-        onClick={() => setState("open")}
+        onClick={() => {
+          window.sessionStorage.setItem(PROMO_STATE_KEY, "open");
+          setState("open");
+        }}
         className="fixed bottom-5 right-5 z-[70] inline-flex items-center gap-2 rounded-full bg-accent px-4 py-3 text-sm font-bold text-accent-foreground shadow-elevated transition-transform hover:-translate-y-0.5"
       >
         <Gift className="h-4 w-4" />
@@ -90,7 +131,7 @@ const FirstOrderPromo = () => {
     <aside className="fixed bottom-5 right-5 z-[70] w-[min(calc(100vw-2rem),24rem)] rounded-2xl border border-accent/40 bg-card p-5 text-foreground shadow-elevated">
       <button
         type="button"
-        onClick={() => setState("minimized")}
+        onClick={minimizePromo}
         className="absolute right-3 top-3 rounded-full p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
         aria-label="Close first order offer"
       >
@@ -118,7 +159,7 @@ const FirstOrderPromo = () => {
           type="button"
           variant="outline"
           className="flex-1"
-          onClick={() => setState("minimized")}
+          onClick={minimizePromo}
         >
           Later
         </Button>

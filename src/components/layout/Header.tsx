@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, KeyboardEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,8 +9,6 @@ import {
 } from "@/lib/catalogSearch";
 import {
   loadCatalogProducts,
-  loadCatalogProductsFast,
-  reconcileCatalogProductSnapshot,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
 
@@ -88,7 +86,9 @@ const Header = () => {
   const [searchProducts, setSearchProducts] = useState<CatalogProductWithLive[]>([]);
   const [searchProductsRefreshing, setSearchProductsRefreshing] = useState(true);
   const [searchSuggestionsOpen, setSearchSuggestionsOpen] = useState(false);
+  const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const { session } = useAuthSession();
+  const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
     const readCartCount = () => {
@@ -110,13 +110,11 @@ const Header = () => {
     window.addEventListener("storage", syncCart);
     window.addEventListener("focus", syncCart);
     window.addEventListener("internext-cart-updated", syncCart);
-    const intervalId = window.setInterval(syncCart, 1200);
 
     return () => {
       window.removeEventListener("storage", syncCart);
       window.removeEventListener("focus", syncCart);
       window.removeEventListener("internext-cart-updated", syncCart);
-      window.clearInterval(intervalId);
     };
   }, []);
 
@@ -125,7 +123,7 @@ const Header = () => {
 
     const loadSearchProducts = async () => {
       try {
-        const products = await loadCatalogProductsFast();
+        const products = await loadCatalogProducts();
         if (isMounted) {
           setSearchProducts(products);
         }
@@ -133,15 +131,6 @@ const Header = () => {
         if (isMounted) {
           setSearchProducts([]);
         }
-      }
-
-      try {
-        const products = await loadCatalogProducts({ forceRefresh: true });
-        if (isMounted) {
-          setSearchProducts((current) => reconcileCatalogProductSnapshot(current, products));
-        }
-      } catch {
-        // Keep the fast catalogue for search suggestions if the refresh is unavailable.
       } finally {
         if (isMounted) {
           setSearchProductsRefreshing(false);
@@ -161,14 +150,18 @@ const Header = () => {
       ? searchProducts.filter(hasVerifiedSuggestionPrice)
       : searchProducts;
 
-    if (searchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH || !products.length) {
+    if (deferredSearchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH || !products.length) {
       return [];
     }
 
-    return searchCatalogProducts(products, searchQuery)
+    return searchCatalogProducts(products, deferredSearchQuery)
       .slice(0, 6)
       .map(({ product }) => product);
-  }, [searchProducts, searchProductsRefreshing, searchQuery]);
+  }, [deferredSearchQuery, searchProducts, searchProductsRefreshing]);
+
+  useEffect(() => {
+    setActiveSuggestionIndex(-1);
+  }, [deferredSearchQuery]);
 
   const submitSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -184,6 +177,39 @@ const Header = () => {
     setMobileMenuOpen(false);
   };
 
+  const handleSearchKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Escape") {
+      setSearchSuggestionsOpen(false);
+      setActiveSuggestionIndex(-1);
+      return;
+    }
+
+    if (!searchSuggestions.length) {
+      return;
+    }
+
+    if (event.key === "ArrowDown") {
+      event.preventDefault();
+      setSearchSuggestionsOpen(true);
+      setActiveSuggestionIndex((current) => (current + 1) % searchSuggestions.length);
+      return;
+    }
+
+    if (event.key === "ArrowUp") {
+      event.preventDefault();
+      setSearchSuggestionsOpen(true);
+      setActiveSuggestionIndex((current) =>
+        current <= 0 ? searchSuggestions.length - 1 : current - 1,
+      );
+      return;
+    }
+
+    if (event.key === "Enter" && searchSuggestionsOpen && activeSuggestionIndex >= 0) {
+      event.preventDefault();
+      openSuggestion(searchSuggestions[activeSuggestionIndex]);
+    }
+  };
+
   const openSuggestion = (product: CatalogProductWithLive) => {
     const code = product.code || product.supplierCode;
     if (!code) {
@@ -197,10 +223,14 @@ const Header = () => {
   };
 
   const searchSuggestionsPanel = (
-    <div className="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-md border border-border bg-card shadow-elevated">
+    <div
+      className="absolute left-0 right-0 top-full z-[70] mt-2 overflow-hidden rounded-md border border-border bg-card shadow-elevated"
+      role="listbox"
+      aria-label="Product suggestions"
+    >
       {searchSuggestions.length ? (
         <div className="max-h-[420px] overflow-y-auto py-2">
-          {searchSuggestions.map((product) => {
+          {searchSuggestions.map((product, index) => {
             const price = formatSuggestionPrice(product);
             const code = product.code || product.supplierCode || product.description;
 
@@ -209,8 +239,13 @@ const Header = () => {
                 key={`${code}-${product.description}`}
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
+                onMouseEnter={() => setActiveSuggestionIndex(index)}
                 onClick={() => openSuggestion(product)}
-                className="flex w-full items-center gap-3 px-3 py-2 text-left transition hover:bg-secondary focus-visible:bg-secondary focus-visible:outline-none"
+                role="option"
+                aria-selected={activeSuggestionIndex === index}
+                className={`flex w-full items-center gap-3 px-3 py-2 text-left transition focus-visible:outline-none ${
+                  activeSuggestionIndex === index ? "bg-secondary" : "hover:bg-secondary"
+                }`}
               >
                 <span className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-md border border-border bg-background">
                   {product.imageUrl ? (
@@ -243,7 +278,9 @@ const Header = () => {
           })}
         </div>
       ) : (
-        <div className="px-4 py-3 text-sm text-muted-foreground">No matching products.</div>
+        <div className="px-4 py-3 text-sm text-muted-foreground">
+          {searchProductsRefreshing ? "Loading products..." : "No matching products."}
+        </div>
       )}
     </div>
   );
@@ -274,9 +311,13 @@ const Header = () => {
                   setSearchSuggestionsOpen(true);
                 }}
                 onFocus={() => setSearchSuggestionsOpen(true)}
+                onKeyDown={handleSearchKeyDown}
                 placeholder="Product Search"
                 className="h-11 min-w-0 flex-1 rounded-l-none border border-r-0 border-border bg-background px-4 text-sm outline-none transition focus:border-accent"
                 aria-label="Product search"
+                role="combobox"
+                aria-autocomplete="list"
+                aria-expanded={searchSuggestionsOpen && searchQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH}
                 autoComplete="off"
               />
               <button
@@ -320,6 +361,8 @@ const Header = () => {
               size="icon"
               className="xl:hidden"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={mobileMenuOpen}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </Button>
@@ -380,9 +423,13 @@ const Header = () => {
                     setSearchSuggestionsOpen(true);
                   }}
                   onFocus={() => setSearchSuggestionsOpen(true)}
+                  onKeyDown={handleSearchKeyDown}
                   placeholder="Product Search"
                   className="h-11 min-w-0 flex-1 border border-r-0 border-border bg-background px-3 text-sm outline-none focus:border-accent"
                   aria-label="Product search"
+                  role="combobox"
+                  aria-autocomplete="list"
+                  aria-expanded={searchSuggestionsOpen && searchQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH}
                   autoComplete="off"
                 />
                 <button

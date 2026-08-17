@@ -365,12 +365,6 @@ const loadStaticCatalogProducts = async () => {
 };
 
 const loadCatalogProductsInternal = async (skipCache = false) => {
-  const staticProducts = await loadStaticCatalogProducts();
-  const cachedProducts = skipCache ? null : readCachedProducts();
-  if (cachedProducts) {
-    return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
-  }
-
   try {
     const refreshSuffix = skipCache ? `&refresh=${Date.now()}` : "";
     const mergedResponse = await fetch(`/api/catalog/live?view=products${refreshSuffix}`, {
@@ -379,16 +373,21 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
       if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
-        const currentProducts = normalizeCatalogProducts(
+        const products = normalizeCatalogProducts(
           mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
         );
-        const products = reconcileCatalogProductSnapshot(staticProducts, currentProducts);
         writeCachedProducts(products);
         return products;
       }
     }
   } catch {
     // Fall back to the original client-side merge path below.
+  }
+
+  const staticProducts = await loadStaticCatalogProducts();
+  const cachedProducts = skipCache ? null : readCachedProducts();
+  if (cachedProducts) {
+    return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
 
   const liveResponse = await fetch(skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live", {

@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts, loadCatalogProductsFast, reconcileCatalogProductSnapshot } from "@/lib/liveCatalog";
+import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -840,19 +840,10 @@ const ProductCategory = () => {
   useEffect(() => {
     let isMounted = true;
     const loadProducts = async () => {
-      let hasAppliedVerifiedProducts = false;
       try {
         setLiveRefreshing(true);
         const [catalogProducts, featuredResponse] = await Promise.all([
-          loadCatalogProductsFast((liveProducts) => {
-            if (isMounted) {
-              hasAppliedVerifiedProducts = true;
-              setProducts((current) =>
-                reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
-              );
-              setLiveRefreshing(false);
-            }
-          }) as Promise<CatalogProduct[]>,
+          loadCatalogProducts() as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
         ]);
 
@@ -860,25 +851,10 @@ const ProductCategory = () => {
           ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
           : { rankings: {} };
         if (isMounted) {
-          if (!hasAppliedVerifiedProducts) {
-            setProducts(catalogProducts);
-          }
+          setProducts(catalogProducts);
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
-        }
-
-        try {
-          const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
-          if (isMounted) {
-            setProducts((current) =>
-              reconcileCatalogProductSnapshot(current, liveProducts) as CatalogProduct[],
-            );
-            setLiveRefreshing(false);
-          }
-        } catch {
-          if (isMounted) {
-            setLiveRefreshing(false);
-          }
+          setLiveRefreshing(false);
         }
       } catch (err) {
         if (isMounted) {
@@ -1512,7 +1488,7 @@ const ProductCategory = () => {
 
               {!loading && !error && pageItems.length > 0 && (
                 <div className="grid gap-6 md:grid-cols-2 xl:grid-cols-2">
-                  {pageItems.map((product) => {
+                  {pageItems.map((product, index) => {
                     const productCode = safeText(product.code, "unknown");
                     const productBrand = safeText(product.manufacturer, "Unbranded");
                     const displayProduct = {
@@ -1559,7 +1535,7 @@ const ProductCategory = () => {
                                 <img
                                   src={productImage}
                                   alt={productName}
-                                  loading="eager"
+                                  loading={index < 4 ? "eager" : "lazy"}
                                   decoding="async"
                                   onError={handleProductImageError}
                                   className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"

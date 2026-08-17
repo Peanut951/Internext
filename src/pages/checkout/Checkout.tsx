@@ -826,7 +826,7 @@ const Checkout = () => {
       } finally {
         setAddressLoading(false);
       }
-    }, 1100);
+    }, 450);
 
     return () => {
       window.clearTimeout(timeout);

@@ -37,7 +37,6 @@ import { useAuthSession } from "@/hooks/use-auth-session";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import {
   loadCatalogProducts,
-  loadCatalogProductsFast,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
 
@@ -203,23 +202,14 @@ const OrdersAdmin = () => {
 
     const loadInvoiceProducts = async () => {
       try {
-        const fastProducts = await loadCatalogProductsFast();
+        const products = await loadCatalogProducts();
         if (isMounted) {
-          setManualInvoiceProducts(fastProducts);
+          setManualInvoiceProducts(products);
         }
       } catch {
         if (isMounted) {
           setManualInvoiceProducts([]);
         }
-      }
-
-      try {
-        const freshProducts = await loadCatalogProducts({ forceRefresh: true });
-        if (isMounted) {
-          setManualInvoiceProducts(freshProducts);
-        }
-      } catch {
-        // Keep the fast catalogue available for admin invoice suggestions.
       } finally {
         if (isMounted) {
           setManualInvoiceProductsLoading(false);

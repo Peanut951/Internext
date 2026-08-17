@@ -10,7 +10,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { clearCatalogProductsCache, loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
+import { clearCatalogProductsCache, loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
@@ -965,91 +965,16 @@ const ProductDetail = () => {
     setProduct(null);
     setAllProducts([]);
     const loadProduct = async () => {
-      let hasAppliedVerifiedProduct = false;
       try {
-        const data = (await loadCatalogProductsFast((liveProducts) => {
-          const liveProduct = findProductByCode(liveProducts as CatalogProduct[], productCode);
-          if (isMounted && liveProduct && hasCustomerPrice(liveProduct)) {
-            hasAppliedVerifiedProduct = true;
-            setAllProducts(liveProducts as CatalogProduct[]);
-            setProduct(liveProduct);
-            setIsLivePriceReady(true);
-            setHasCheckedFullCatalog(true);
-            setLoading(false);
-          }
-        })) as CatalogProduct[];
-
-        const found = findProductByCode(data, productCode);
+        const products = (await loadCatalogProducts()) as CatalogProduct[];
+        const found = findProductByCode(products, productCode);
         if (!isMounted) {
           return;
         }
 
-        if (hasAppliedVerifiedProduct) {
-          return;
-        }
-
-        if (found) {
-          if (found.quoteRequired) {
-            setAllProducts(data);
-            setProduct(found);
-            setIsLivePriceReady(false);
-            setHasCheckedFullCatalog(true);
-            setLoading(false);
-            return;
-          }
-
-          const hasVerifiedFastPrice =
-            hasCustomerPrice(found) &&
-            (Boolean(found.liveUpdatedAt) || safeText(found.manufacturer).toLowerCase() === "leader");
-
-          if (hasVerifiedFastPrice) {
-            setAllProducts(data);
-            setProduct(found);
-            setIsLivePriceReady(true);
-            setLoading(false);
-          }
-
-          try {
-            const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
-            const liveFound = findProductByCode(liveProducts, productCode);
-            if (!isMounted) return;
-
-            setAllProducts(liveProducts);
-            setHasCheckedFullCatalog(true);
-
-            if (liveFound) {
-              setProduct(liveFound);
-              setIsLivePriceReady(hasCustomerPrice(liveFound));
-              setLoading(false);
-              return;
-            }
-
-            setProduct(null);
-            setIsLivePriceReady(false);
-            setLoading(false);
-          } catch {
-            if (isMounted) {
-              setHasCheckedFullCatalog(true);
-              if (!hasVerifiedFastPrice) {
-                setProduct(null);
-                setIsLivePriceReady(false);
-                setLoading(false);
-                setError("Unable to verify this product right now.");
-              }
-            }
-          }
-          return;
-        }
-
-        const liveProducts = (await loadCatalogProducts({ forceRefresh: true })) as CatalogProduct[];
-        const liveFound = findProductByCode(liveProducts, productCode);
-        if (!isMounted) {
-          return;
-        }
-
-        setAllProducts(liveProducts);
-        setProduct(liveFound);
-        setIsLivePriceReady(hasCustomerPrice(liveFound));
+        setAllProducts(products);
+        setProduct(found);
+        setIsLivePriceReady(hasCustomerPrice(found));
         setHasCheckedFullCatalog(true);
         setLoading(false);
       } catch (err) {
@@ -1685,8 +1610,21 @@ const ProductDetail = () => {
           </div>
 
           {loading && (
-            <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-              Loading product...
+            <div
+              className="grid gap-8 rounded-2xl border border-border/50 bg-card p-4 shadow-card sm:p-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]"
+              aria-label="Loading product"
+              aria-busy="true"
+            >
+              <div className="aspect-square animate-pulse rounded-2xl bg-secondary" />
+              <div className="space-y-5 py-2">
+                <div className="h-6 w-32 animate-pulse rounded-md bg-secondary" />
+                <div className="space-y-3">
+                  <div className="h-10 w-full animate-pulse rounded-md bg-secondary" />
+                  <div className="h-10 w-4/5 animate-pulse rounded-md bg-secondary" />
+                </div>
+                <div className="h-32 animate-pulse rounded-xl bg-secondary" />
+                <div className="h-44 animate-pulse rounded-xl bg-secondary" />
+              </div>
             </div>
           )}
 
