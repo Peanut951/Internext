@@ -1562,14 +1562,66 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
     .join(" ")
     .trim() || "there";
   const customerEmail = getString(customer.email).trim();
-  const carrier = getString(order.trackingCarrier).trim();
-  const trackingNumber = getString(order.trackingNumber).trim();
-  const trackingUrl = getString(order.trackingUrl).trim();
-  const expectedArrivalDate =
-    formatOrderDate(order.expectedArrivalDate) ||
-    getString(order.expectedArrivalDate).trim() ||
-    "To be confirmed";
+  const rawShipments = Array.isArray(order.shipments) ? order.shipments : [];
+  const shipments = rawShipments
+    .map((shipment) => {
+      const value = shipment && typeof shipment === "object"
+        ? shipment as Record<string, unknown>
+        : {};
+      return {
+        carrier: getString(value.trackingCarrier).trim(),
+        trackingNumber: getString(value.trackingNumber).trim(),
+        trackingUrl: getString(value.trackingUrl).trim(),
+        expectedArrivalDate:
+          formatOrderDate(value.expectedArrivalDate) ||
+          getString(value.expectedArrivalDate).trim() ||
+          "To be confirmed",
+      };
+    })
+    .filter((shipment) => shipment.carrier || shipment.trackingNumber || shipment.trackingUrl);
+
+  if (shipments.length === 0) {
+    shipments.push({
+      carrier: getString(order.trackingCarrier).trim(),
+      trackingNumber: getString(order.trackingNumber).trim(),
+      trackingUrl: getString(order.trackingUrl).trim(),
+      expectedArrivalDate:
+        formatOrderDate(order.expectedArrivalDate) ||
+        getString(order.expectedArrivalDate).trim() ||
+        "To be confirmed",
+    });
+  }
+
+  const expectedArrivalSummary = shipments.length === 1
+    ? shipments[0].expectedArrivalDate
+    : `${shipments.length} shipment dates`;
   const items = Array.isArray(order.items) ? order.items : [];
+
+  const shipmentCards = shipments
+    .map((shipment, index) => `
+      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:16px;">
+        <tr>
+          <td colspan="2" style="padding:4px 0 10px;color:#111827;font-size:16px;font-weight:800;">Shipment ${index + 1}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:#4b5563;">Carrier</td>
+          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(shipment.carrier)}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:#4b5563;">Tracking number</td>
+          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(shipment.trackingNumber)}</td>
+        </tr>
+        <tr>
+          <td style="padding:6px 0;color:#4b5563;">Expected arrival</td>
+          <td align="right" style="padding:6px 0;color:#111827;font-weight:700;">${escapeHtml(shipment.expectedArrivalDate)}</td>
+        </tr>
+        <tr>
+          <td colspan="2" style="padding-top:14px;">
+            <a href="${escapeHtml(shipment.trackingUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;border-radius:8px;padding:12px 16px;font-weight:700;">Track shipment ${index + 1}</a>
+          </td>
+        </tr>
+      </table>`)
+    .join("");
 
   const itemRows = items
     .map((item) => {
@@ -1607,32 +1659,16 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
                     <td width="16"></td>
                     <td style="padding:12px 14px;background:#f9fafb;border:1px solid #e5e7eb;border-radius:10px;">
                       <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.12em;color:#6b7280;font-weight:700;">Expected arrival</div>
-                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(expectedArrivalDate)}</div>
+                      <div style="margin-top:6px;font-size:18px;font-weight:800;color:#111827;">${escapeHtml(expectedArrivalSummary)}</div>
                     </td>
                   </tr>
                 </table>
 
                 <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Tracking details</h2>
-                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin-bottom:24px;">
-                  <tr>
-                    <td style="padding:8px 0;color:#4b5563;">Carrier</td>
-                    <td align="right" style="padding:8px 0;color:#111827;font-weight:700;">${escapeHtml(carrier)}</td>
-                  </tr>
-                  <tr>
-                    <td style="padding:8px 0;color:#4b5563;">Tracking number</td>
-                    <td align="right" style="padding:8px 0;color:#111827;font-weight:700;">${escapeHtml(trackingNumber)}</td>
-                  </tr>
-                </table>
-
-                <p style="margin:0 0 22px;color:#4b5563;line-height:1.6;">
-                  You can use the tracking link below to follow the delivery progress with ${escapeHtml(carrier)}.
-                </p>
-                <p style="margin:0 0 26px;">
-                  <a href="${escapeHtml(trackingUrl)}" style="display:inline-block;background:#1f2937;color:#ffffff;text-decoration:none;border-radius:10px;padding:13px 18px;font-weight:700;">Track your order</a>
-                </p>
+                ${shipmentCards}
 
                 ${itemRows ? `
-                  <h2 style="margin:0 0 12px;font-size:18px;color:#111827;">Items in this shipment</h2>
+                  <h2 style="margin:24px 0 12px;font-size:18px;color:#111827;">Items ordered</h2>
                   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse;">
                     <tbody>${itemRows}</tbody>
                   </table>` : ""}
@@ -1652,11 +1688,15 @@ const buildCustomerShipmentEmail = (order: Record<string, unknown>) => {
   const text = [
     "Your Internext order has shipped",
     `Order: ${orderNumber}`,
-    `Carrier: ${carrier}`,
-    `Tracking number: ${trackingNumber}`,
-    `Tracking link: ${trackingUrl}`,
-    `Expected arrival: ${expectedArrivalDate}`,
     "",
+    ...shipments.flatMap((shipment, index) => [
+      `Shipment ${index + 1}`,
+      `Carrier: ${shipment.carrier}`,
+      `Tracking number: ${shipment.trackingNumber}`,
+      `Tracking link: ${shipment.trackingUrl}`,
+      `Expected arrival: ${shipment.expectedArrivalDate}`,
+      "",
+    ]),
     "Items:",
     ...items.map((item) => {
       const line = item && typeof item === "object" ? item as Record<string, unknown> : {};

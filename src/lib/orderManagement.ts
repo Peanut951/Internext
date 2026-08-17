@@ -28,6 +28,13 @@
 
 export type CartItem = CatalogProductLite & { qty: number };
 export type OrderSerialNumbers = Record<string, string[]>;
+export type OrderShipment = {
+  id: string;
+  trackingCarrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+  expectedArrivalDate: string;
+};
 
 export type CheckoutCustomer = {
   firstName: string;
@@ -127,6 +134,7 @@ export type OrderRecord = {
   trackingNumber?: string;
   trackingUrl?: string;
   expectedArrivalDate?: string;
+  shipments?: OrderShipment[];
   serialNumbers?: OrderSerialNumbers;
   supplierStatus: SupplierSubmissionStatus;
   supplierSubmittedAt?: string;
@@ -291,6 +299,40 @@ const calculateTotals = (
   };
 };
 
+export const getOrderShipments = (
+  order: Pick<
+    OrderRecord,
+    "shipments" | "trackingCarrier" | "trackingNumber" | "trackingUrl" | "expectedArrivalDate"
+  >,
+): OrderShipment[] => {
+  if (Array.isArray(order.shipments) && order.shipments.length > 0) {
+    return order.shipments.map((shipment, index) => ({
+      id: String(shipment.id || `shipment-${index + 1}`),
+      trackingCarrier: String(shipment.trackingCarrier || ""),
+      trackingNumber: String(shipment.trackingNumber || ""),
+      trackingUrl: String(shipment.trackingUrl || ""),
+      expectedArrivalDate: String(shipment.expectedArrivalDate || ""),
+    }));
+  }
+
+  if (
+    order.trackingCarrier ||
+    order.trackingNumber ||
+    order.trackingUrl ||
+    order.expectedArrivalDate
+  ) {
+    return [{
+      id: "shipment-1",
+      trackingCarrier: order.trackingCarrier ?? "",
+      trackingNumber: order.trackingNumber ?? "",
+      trackingUrl: order.trackingUrl ?? "",
+      expectedArrivalDate: order.expectedArrivalDate ?? "",
+    }];
+  }
+
+  return [];
+};
+
 const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<OrderRecord> & { reseller?: OrderReseller }) => {
   const itemsSubtotal = order.itemsSubtotal ?? order.subtotal ?? 0;
   const discountTotal = order.discountTotal ?? 0;
@@ -312,6 +354,7 @@ const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<Ord
     gstAmount,
     shippingTotal,
     totalKnownValue: normalizedTotal,
+    shipments: getOrderShipments(order),
     serialNumbers: order.serialNumbers ?? {},
     supplierPayload: {
       ...order.supplierPayload,
@@ -701,6 +744,7 @@ export const updateOrderFulfillment = (
   orderId: string,
   payload: {
     fulfillmentStatus: FulfillmentStatus;
+    shipments?: OrderShipment[];
     trackingCarrier?: string;
     trackingNumber?: string;
     trackingUrl?: string;
@@ -713,13 +757,18 @@ export const updateOrderFulfillment = (
       return order;
     }
 
+    const shipments = payload.shipments ?? getOrderShipments(order);
+    const firstShipment = shipments[0];
+
     return {
       ...order,
       fulfillmentStatus: payload.fulfillmentStatus,
-      trackingCarrier: payload.trackingCarrier ?? order.trackingCarrier,
-      trackingNumber: payload.trackingNumber ?? order.trackingNumber,
-      trackingUrl: payload.trackingUrl ?? order.trackingUrl,
-      expectedArrivalDate: payload.expectedArrivalDate ?? order.expectedArrivalDate,
+      shipments,
+      trackingCarrier: payload.trackingCarrier ?? firstShipment?.trackingCarrier ?? order.trackingCarrier,
+      trackingNumber: payload.trackingNumber ?? firstShipment?.trackingNumber ?? order.trackingNumber,
+      trackingUrl: payload.trackingUrl ?? firstShipment?.trackingUrl ?? order.trackingUrl,
+      expectedArrivalDate:
+        payload.expectedArrivalDate ?? firstShipment?.expectedArrivalDate ?? order.expectedArrivalDate,
       updatedAt: nowIso(),
     };
   });
@@ -759,6 +808,7 @@ export const updateSharedOrderFulfillment = async (
   orderId: string,
   payload: {
     fulfillmentStatus: FulfillmentStatus;
+    shipments?: OrderShipment[];
     trackingCarrier?: string;
     trackingNumber?: string;
     trackingUrl?: string;

@@ -9,6 +9,7 @@ import {
   OrderRecord,
   fetchSharedOrders,
   formatAud,
+  getOrderShipments,
   getOrdersForReseller,
 } from "@/lib/orderManagement";
 
@@ -243,20 +244,39 @@ const PortalOrders = () => {
 
                       <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                         <p className="text-sm font-semibold text-foreground">Tracking</p>
-                        {order.trackingNumber ? (
-                          <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                            {order.trackingNumber}
-                            {order.trackingUrl ? (
-                              <a
-                                href={order.trackingUrl}
-                                target="_blank"
-                                rel="noreferrer"
-                                className="ml-2 font-medium text-accent hover:underline"
+                        {getOrderShipments(order).length > 0 ? (
+                          <div className="mt-2 space-y-3">
+                            {getOrderShipments(order).map((shipment, shipmentIndex) => (
+                              <div
+                                key={shipment.id}
+                                className="border-b border-border/60 pb-3 text-sm leading-6 text-muted-foreground last:border-0 last:pb-0"
                               >
-                                Open tracking
-                              </a>
-                            ) : null}
-                          </p>
+                                <p className="font-semibold text-foreground">
+                                  Shipment {shipmentIndex + 1}
+                                </p>
+                                <p>{shipment.trackingCarrier}</p>
+                                <p>
+                                  {shipment.trackingNumber}
+                                  {shipment.trackingUrl ? (
+                                    <a
+                                      href={shipment.trackingUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="ml-2 font-medium text-accent hover:underline"
+                                    >
+                                      Open tracking
+                                    </a>
+                                  ) : null}
+                                </p>
+                                {shipment.expectedArrivalDate ? (
+                                  <p>
+                                    Expected arrival:{" "}
+                                    {new Date(shipment.expectedArrivalDate).toLocaleDateString("en-AU")}
+                                  </p>
+                                ) : null}
+                              </div>
+                            ))}
+                          </div>
                         ) : (
                           <p className="mt-2 text-sm leading-6 text-muted-foreground">
                             No tracking information has been added yet.

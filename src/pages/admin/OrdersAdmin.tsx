@@ -3,9 +3,11 @@ import { Link, useNavigate } from "react-router-dom";
 import {
   ArrowRight,
   Boxes,
+  Plus,
   RefreshCw,
   ShieldCheck,
   ShoppingCart,
+  Trash2,
   Truck,
   Workflow,
 } from "lucide-react";
@@ -18,9 +20,11 @@ import {
   FulfillmentStatus,
   OrderRecord,
   OrderReseller,
+  OrderShipment,
   SupplierIntegrationSettings,
   fetchSharedOrdersResult,
   formatAud,
+  getOrderShipments,
   getOrderItemSerialKey,
   getSupplierIntegrationSettings,
   removeOrder,
@@ -38,12 +42,7 @@ import {
 } from "@/lib/liveCatalog";
 
 type OrderView = "all" | "active" | "completed";
-type ShipmentFormState = {
-  trackingCarrier: string;
-  trackingNumber: string;
-  trackingUrl: string;
-  expectedArrivalDate: string;
-};
+type ShipmentFormState = OrderShipment;
 type ShipmentMessage = {
   tone: "success" | "error";
   text: string;
@@ -162,7 +161,7 @@ const OrdersAdmin = () => {
   const [manualInvoiceProducts, setManualInvoiceProducts] = useState<CatalogProductWithLive[]>([]);
   const [manualInvoiceProductsLoading, setManualInvoiceProductsLoading] = useState(false);
   const [focusedManualInvoiceLine, setFocusedManualInvoiceLine] = useState<number | null>(null);
-  const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState>>({});
+  const [shipmentForms, setShipmentForms] = useState<Record<string, ShipmentFormState[]>>({});
   const [shipmentMessages, setShipmentMessages] = useState<Record<string, ShipmentMessage>>({});
   const [serialDrafts, setSerialDrafts] = useState<Record<string, Record<string, string[]>>>({});
   const [serialMessages, setSerialMessages] = useState<Record<string, ShipmentMessage>>({});
@@ -263,7 +262,7 @@ const OrdersAdmin = () => {
       },
       {
         label: "Tracking added",
-        value: orders.filter((order) => Boolean(order.trackingNumber)).length,
+        value: orders.filter((order) => getOrderShipments(order).length > 0).length,
         note: "orders with courier reference",
       },
     ],
@@ -729,31 +728,67 @@ const OrdersAdmin = () => {
     }
   };
 
-  const getShipmentForm = (order: OrderRecord): ShipmentFormState =>
-    shipmentForms[order.id] ?? {
-      trackingCarrier: order.trackingCarrier ?? "",
-      trackingNumber: order.trackingNumber ?? "",
-      trackingUrl: order.trackingUrl ?? "",
-      expectedArrivalDate: order.expectedArrivalDate ?? "",
-    };
+  const getShipmentForms = (order: OrderRecord): ShipmentFormState[] => {
+    if (shipmentForms[order.id]) {
+      return shipmentForms[order.id];
+    }
+
+    const savedShipments = getOrderShipments(order);
+    return savedShipments.length > 0
+      ? savedShipments
+      : [{
+          id: `${order.id}-shipment-1`,
+          trackingCarrier: "",
+          trackingNumber: "",
+          trackingUrl: "",
+          expectedArrivalDate: "",
+        }];
+  };
 
   const updateShipmentForm = (
     order: OrderRecord,
+    shipmentIndex: number,
     field: keyof ShipmentFormState,
     value: string,
   ) => {
-    setShipmentForms((current) => ({
-      ...current,
-      [order.id]: {
-        ...getShipmentForm(order),
-        ...current[order.id],
-        [field]: value,
-      },
-    }));
+    setShipmentForms((current) => {
+      const forms = [...(current[order.id] ?? getShipmentForms(order))];
+      forms[shipmentIndex] = { ...forms[shipmentIndex], [field]: value };
+      return { ...current, [order.id]: forms };
+    });
     setShipmentMessages((current) => {
       const next = { ...current };
       delete next[order.id];
       return next;
+    });
+  };
+
+  const addShipmentForm = (order: OrderRecord) => {
+    setShipmentForms((current) => ({
+      ...current,
+      [order.id]: [
+        ...(current[order.id] ?? getShipmentForms(order)),
+        {
+          id: `${order.id}-shipment-${Date.now()}`,
+          trackingCarrier: "",
+          trackingNumber: "",
+          trackingUrl: "",
+          expectedArrivalDate: "",
+        },
+      ],
+    }));
+  };
+
+  const removeShipmentForm = (order: OrderRecord, shipmentIndex: number) => {
+    setShipmentForms((current) => {
+      const forms = current[order.id] ?? getShipmentForms(order);
+      if (forms.length <= 1) {
+        return current;
+      }
+      return {
+        ...current,
+        [order.id]: forms.filter((_, index) => index !== shipmentIndex),
+      };
     });
   };
 
@@ -860,18 +895,25 @@ const OrdersAdmin = () => {
   };
 
   const markShipped = async (order: OrderRecord) => {
-    const shipmentForm = getShipmentForm(order);
-    const trackingCarrier = shipmentForm.trackingCarrier.trim();
-    const trackingNumber = shipmentForm.trackingNumber.trim();
-    const trackingUrl = shipmentForm.trackingUrl.trim();
-    const expectedArrivalDate = shipmentForm.expectedArrivalDate.trim();
+    const shipments = getShipmentForms(order).map((shipment) => ({
+      ...shipment,
+      trackingCarrier: shipment.trackingCarrier.trim(),
+      trackingNumber: shipment.trackingNumber.trim(),
+      trackingUrl: shipment.trackingUrl.trim(),
+      expectedArrivalDate: shipment.expectedArrivalDate.trim(),
+    }));
 
-    if (!trackingCarrier || !trackingNumber || !trackingUrl || !expectedArrivalDate) {
+    if (shipments.some((shipment) =>
+      !shipment.trackingCarrier ||
+      !shipment.trackingNumber ||
+      !shipment.trackingUrl ||
+      !shipment.expectedArrivalDate
+    )) {
       setShipmentMessages((current) => ({
         ...current,
         [order.id]: {
           tone: "error",
-          text: "Enter the carrier, tracking number, tracking link, and expected arrival date before marking this order as shipped.",
+          text: "Complete the carrier, tracking number, tracking link, and expected arrival date for every shipment before marking this order as shipped.",
         },
       }));
       return;
@@ -880,10 +922,7 @@ const OrdersAdmin = () => {
     await withOrderAction(order.id, async () => {
       const updatedOrder = await updateSharedOrderFulfillment(order.id, {
         fulfillmentStatus: "shipped",
-        trackingCarrier,
-        trackingNumber,
-        trackingUrl,
-        expectedArrivalDate,
+        shipments,
       });
 
       if (!updatedOrder) {
@@ -896,7 +935,7 @@ const OrdersAdmin = () => {
           ...current,
           [order.id]: {
             tone: "success",
-            text: `Marked shipped and emailed tracking details to ${updatedOrder.customer.email}.`,
+            text: `Marked shipped and emailed ${shipments.length} shipment${shipments.length === 1 ? "" : "s"} to ${updatedOrder.customer.email}.`,
           },
         }));
       } catch (error) {
@@ -2038,40 +2077,38 @@ const OrdersAdmin = () => {
 
                         <div className="rounded-2xl border border-border/60 bg-secondary/25 p-4">
                           <p className="text-sm font-semibold text-foreground">Tracking</p>
-                          {order.trackingNumber ? (
-                            <div className="mt-2 space-y-1 text-sm leading-6 text-muted-foreground">
-                              {order.trackingCarrier ? (
-                                <p>
-                                  Carrier:{" "}
-                                  <span className="font-medium text-foreground">
-                                    {order.trackingCarrier}
-                                  </span>
-                                </p>
-                              ) : null}
-                              <p>
-                                Tracking:{" "}
-                                <span className="font-medium text-foreground">
-                                  {order.trackingNumber}
-                                </span>
-                                {order.trackingUrl ? (
-                                  <a
-                                    href={order.trackingUrl}
-                                    target="_blank"
-                                    rel="noreferrer"
-                                    className="ml-2 font-medium text-accent hover:underline"
-                                  >
-                                    Open tracking
-                                  </a>
-                                ) : null}
-                              </p>
-                              {order.expectedArrivalDate ? (
-                                <p>
-                                  Expected arrival:{" "}
-                                  <span className="font-medium text-foreground">
-                                    {new Date(order.expectedArrivalDate).toLocaleDateString("en-AU")}
-                                  </span>
-                                </p>
-                              ) : null}
+                          {getOrderShipments(order).length > 0 ? (
+                            <div className="mt-2 space-y-3">
+                              {getOrderShipments(order).map((shipment, shipmentIndex) => (
+                                <div
+                                  key={shipment.id}
+                                  className="border-b border-border/60 pb-3 text-sm leading-6 text-muted-foreground last:border-0 last:pb-0"
+                                >
+                                  <p className="font-semibold text-foreground">
+                                    Shipment {shipmentIndex + 1}
+                                  </p>
+                                  <p>Carrier: {shipment.trackingCarrier}</p>
+                                  <p>
+                                    Tracking: {shipment.trackingNumber}
+                                    {shipment.trackingUrl ? (
+                                      <a
+                                        href={shipment.trackingUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        className="ml-2 font-medium text-accent hover:underline"
+                                      >
+                                        Open tracking
+                                      </a>
+                                    ) : null}
+                                  </p>
+                                  {shipment.expectedArrivalDate ? (
+                                    <p>
+                                      Expected arrival:{" "}
+                                      {new Date(shipment.expectedArrivalDate).toLocaleDateString("en-AU")}
+                                    </p>
+                                  ) : null}
+                                </div>
+                              ))}
                             </div>
                           ) : (
                             <p className="mt-2 text-sm leading-6 text-muted-foreground">
@@ -2090,75 +2127,109 @@ const OrdersAdmin = () => {
                         </p>
 
                         <div className="mt-4 space-y-3 rounded-xl border border-border/60 bg-background p-3">
-                          <div>
-                            <label
-                              htmlFor={`carrier-${order.id}`}
-                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                          {getShipmentForms(order).map((shipment, shipmentIndex) => (
+                            <div
+                              key={shipment.id}
+                              className="space-y-3 border-b border-border/60 pb-4 last:border-0 last:pb-0"
                             >
-                              Carrier
-                            </label>
-                            <Input
-                              id={`carrier-${order.id}`}
-                              value={getShipmentForm(order).trackingCarrier}
-                              onChange={(event) =>
-                                updateShipmentForm(order, "trackingCarrier", event.target.value)
-                              }
-                              placeholder="Australia Post, StarTrack, TNT..."
-                              className="mt-2"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor={`tracking-number-${order.id}`}
-                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-                            >
-                              Tracking number
-                            </label>
-                            <Input
-                              id={`tracking-number-${order.id}`}
-                              value={getShipmentForm(order).trackingNumber}
-                              onChange={(event) =>
-                                updateShipmentForm(order, "trackingNumber", event.target.value)
-                              }
-                              placeholder="Enter tracking reference"
-                              className="mt-2"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor={`tracking-link-${order.id}`}
-                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-                            >
-                              Tracking link
-                            </label>
-                            <Input
-                              id={`tracking-link-${order.id}`}
-                              type="url"
-                              value={getShipmentForm(order).trackingUrl}
-                              onChange={(event) =>
-                                updateShipmentForm(order, "trackingUrl", event.target.value)
-                              }
-                              placeholder="https://..."
-                              className="mt-2"
-                            />
-                          </div>
-                          <div>
-                            <label
-                              htmlFor={`expected-arrival-${order.id}`}
-                              className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
-                            >
-                              Expected arrival date
-                            </label>
-                            <Input
-                              id={`expected-arrival-${order.id}`}
-                              type="date"
-                              value={getShipmentForm(order).expectedArrivalDate}
-                              onChange={(event) =>
-                                updateShipmentForm(order, "expectedArrivalDate", event.target.value)
-                              }
-                              className="mt-2"
-                            />
-                          </div>
+                              <div className="flex items-center justify-between gap-3">
+                                <p className="text-sm font-semibold text-foreground">
+                                  Shipment {shipmentIndex + 1}
+                                </p>
+                                {getShipmentForms(order).length > 1 ? (
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() => removeShipmentForm(order, shipmentIndex)}
+                                    aria-label={`Remove shipment ${shipmentIndex + 1}`}
+                                    title={`Remove shipment ${shipmentIndex + 1}`}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                ) : null}
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor={`carrier-${order.id}-${shipment.id}`}
+                                  className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                                >
+                                  Carrier
+                                </label>
+                                <Input
+                                  id={`carrier-${order.id}-${shipment.id}`}
+                                  value={shipment.trackingCarrier}
+                                  onChange={(event) =>
+                                    updateShipmentForm(order, shipmentIndex, "trackingCarrier", event.target.value)
+                                  }
+                                  placeholder="Australia Post, StarTrack, TNT..."
+                                  className="mt-2"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor={`tracking-number-${order.id}-${shipment.id}`}
+                                  className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                                >
+                                  Tracking number
+                                </label>
+                                <Input
+                                  id={`tracking-number-${order.id}-${shipment.id}`}
+                                  value={shipment.trackingNumber}
+                                  onChange={(event) =>
+                                    updateShipmentForm(order, shipmentIndex, "trackingNumber", event.target.value)
+                                  }
+                                  placeholder="Enter tracking reference"
+                                  className="mt-2"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor={`tracking-link-${order.id}-${shipment.id}`}
+                                  className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                                >
+                                  Tracking link
+                                </label>
+                                <Input
+                                  id={`tracking-link-${order.id}-${shipment.id}`}
+                                  type="url"
+                                  value={shipment.trackingUrl}
+                                  onChange={(event) =>
+                                    updateShipmentForm(order, shipmentIndex, "trackingUrl", event.target.value)
+                                  }
+                                  placeholder="https://..."
+                                  className="mt-2"
+                                />
+                              </div>
+                              <div>
+                                <label
+                                  htmlFor={`expected-arrival-${order.id}-${shipment.id}`}
+                                  className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground"
+                                >
+                                  Expected arrival date
+                                </label>
+                                <Input
+                                  id={`expected-arrival-${order.id}-${shipment.id}`}
+                                  type="date"
+                                  value={shipment.expectedArrivalDate}
+                                  onChange={(event) =>
+                                    updateShipmentForm(order, shipmentIndex, "expectedArrivalDate", event.target.value)
+                                  }
+                                  className="mt-2"
+                                />
+                              </div>
+                            </div>
+                          ))}
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => addShipmentForm(order)}
+                            className="w-full justify-center"
+                          >
+                            <Plus className="mr-2 h-4 w-4" />
+                            Add another shipment
+                          </Button>
                           {shipmentMessages[order.id] ? (
                             <p
                               className={`rounded-lg px-3 py-2 text-sm ${
