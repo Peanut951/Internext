@@ -140,6 +140,19 @@ type StockOverride = {
   updatedAt?: string;
 };
 
+type SourcedShippingMeasurement = {
+  code: string;
+  supplierCode?: string;
+  weightKg: number;
+  heightCm: number;
+  widthCm: number;
+  depthCm: number;
+  source: string;
+  sourceReference?: string;
+  confidence?: "verified" | "high" | "medium" | "low";
+  updatedAt?: string;
+};
+
 type LeaderCatalogProduct = StaticCatalogProduct & {
   manufacturer: string;
   description: string;
@@ -770,6 +783,72 @@ const hasAnyMeasurements = (product: Pick<LiveCatalogItem, "weightKg" | "heightC
   [product.weightKg, product.heightCm, product.widthCm, product.depthCm].some(
     (value) => typeof value === "number" && value > 0,
   );
+
+const loadSourcedShippingMeasurements = async (): Promise<SourcedShippingMeasurement[]> => {
+  try {
+    const measurementPath = join(
+      process.cwd(),
+      "public",
+      "data",
+      "catalog-sourced-measurements.json",
+    );
+    const raw = await readFile(measurementPath, "utf8");
+    const parsed = JSON.parse(raw) as { items?: SourcedShippingMeasurement[] };
+    return Array.isArray(parsed.items) ? parsed.items : [];
+  } catch {
+    return [];
+  }
+};
+
+const buildSourcedShippingMeasurementMap = (measurements: SourcedShippingMeasurement[]) => {
+  const map = new Map<string, SourcedShippingMeasurement>();
+  for (const measurement of measurements) {
+    for (const key of [measurement.code, measurement.supplierCode]) {
+      const normalized = key?.trim().toLowerCase();
+      if (normalized) map.set(normalized, measurement);
+    }
+  }
+  return map;
+};
+
+const applySourcedShippingMeasurement = <T extends MergedCatalogItem>(
+  product: T,
+  measurementsByKey: Map<string, SourcedShippingMeasurement>,
+) => {
+  const measurement = getProductKeys(product)
+    .map((key) => measurementsByKey.get(key))
+    .find(Boolean);
+  if (!measurement) return product;
+
+  const currentValues = [product.weightKg, product.heightCm, product.widthCm, product.depthCm];
+  const currentIsComplete = currentValues.every(
+    (value) => typeof value === "number" && Number.isFinite(value) && value > 0,
+  );
+  const sourcedValues = [
+    measurement.weightKg,
+    measurement.heightCm,
+    measurement.widthCm,
+    measurement.depthCm,
+  ];
+  const sourcedIsComplete = sourcedValues.every(
+    (value) => typeof value === "number" && Number.isFinite(value) && value > 0,
+  );
+  const usedSourcedMeasurement = !currentIsComplete && sourcedIsComplete;
+  if (!usedSourcedMeasurement) return product;
+
+  return {
+    ...product,
+    weightKg: measurement.weightKg,
+    heightCm: measurement.heightCm,
+    widthCm: measurement.widthCm,
+    depthCm: measurement.depthCm,
+    measurementSource: measurement.source,
+    measurementSourceReference: measurement.sourceReference,
+    measurementConfidence: measurement.confidence || "verified",
+    measurementUpdatedAt: measurement.updatedAt,
+    measurementOverride: false,
+  };
+};
 
 const clearCatalogCaches = () => {
   delete globalCatalogCache.__internextLiveCatalogCache;
@@ -1542,13 +1621,15 @@ const loadMergedCatalogProductsUncached = async (
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
   let stockOverrides: StockOverride[];
   let shippingMeasurementOverrides: Awaited<ReturnType<typeof fetchShippingMeasurementOverrides>>;
+  let sourcedShippingMeasurements: SourcedShippingMeasurement[];
 
   try {
-    [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides] = await Promise.all([
+    [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides, sourcedShippingMeasurements] = await Promise.all([
       loadStaticCatalogProducts(),
       loadLiveCatalogItems(options),
       fetchStockOverrides(),
       fetchShippingMeasurementOverrides(),
+      loadSourcedShippingMeasurements(),
     ]);
   } catch (error) {
     if (cached && cached.staleUntil > now) {
@@ -1567,6 +1648,9 @@ const loadMergedCatalogProductsUncached = async (
   const liveByKey = new Map<string, LiveCatalogItem>();
   const overridesByKey = buildStockOverrideMap(stockOverrides);
   const shippingMeasurementsByKey = buildShippingMeasurementOverrideMap(shippingMeasurementOverrides);
+  const sourcedShippingMeasurementsByKey = buildSourcedShippingMeasurementMap(
+    sourcedShippingMeasurements,
+  );
 
   for (const item of liveCatalog.items) {
     for (const key of [item.code, item.supplierCode]) {
@@ -1617,10 +1701,10 @@ const loadMergedCatalogProductsUncached = async (
             stockQuantity: live.stockQuantity,
             stockByWarehouse: live.stockByWarehouse,
             stockRecordUpdated: live.stockRecordUpdated,
-            weightKg: live.weightKg,
-            heightCm: live.heightCm,
-            widthCm: live.widthCm,
-            depthCm: live.depthCm,
+            weightKg: live.weightKg ?? staticWeightKg,
+            heightCm: live.heightCm ?? staticHeightCm,
+            widthCm: live.widthCm ?? staticWidthCm,
+            depthCm: live.depthCm ?? staticDepthCm,
             measurementSource: hasAnyMeasurements(live)
               ? getSupplierMeasurementSource(product)
               : undefined,
@@ -1662,8 +1746,12 @@ const loadMergedCatalogProductsUncached = async (
             liveUpdatedAt: liveCatalog.updatedAt,
           };
 
+      const sourcedProduct = applySourcedShippingMeasurement(
+        mergedProduct,
+        sourcedShippingMeasurementsByKey,
+      );
       return applyShippingMeasurementOverride(
-        applyStockOverrideToProduct(mergedProduct, stockOverride),
+        applyStockOverrideToProduct(sourcedProduct, stockOverride),
         shippingMeasurementOverride,
       );
     })

@@ -3,6 +3,11 @@ import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
+import {
+  applySourcedShippingMeasurement,
+  buildSourcedShippingMeasurementMap,
+  loadSourcedShippingMeasurements,
+} from "./lib/sourced-shipping-measurements.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -780,8 +785,12 @@ const activeLeaderItems = (
 const shippingMeasurementOverrides = buildShippingMeasurementOverrideMap(
   await loadShippingMeasurementOverrides(),
 );
+const sourcedShippingMeasurements = buildSourcedShippingMeasurementMap(
+  loadSourcedShippingMeasurements(),
+);
 const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems])
   .map(annotateSupplierMeasurements)
+  .map((product) => applySourcedShippingMeasurement(product, sourcedShippingMeasurements))
   .map((product) => applyShippingMeasurementOverride(product, shippingMeasurementOverrides));
 const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
 const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
@@ -827,7 +836,8 @@ const products = mergeProducts(mergeAlloysLivePricing([
       getProductKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
   )
   .map((product) => {
-    const measuredProduct = applyShippingMeasurementOverride(product, shippingMeasurementOverrides);
+    const sourcedProduct = applySourcedShippingMeasurement(product, sourcedShippingMeasurements);
+    const measuredProduct = applyShippingMeasurementOverride(sourcedProduct, shippingMeasurementOverrides);
     const overrideImages = imageOverrideMap.get(String(measuredProduct.code || "").trim().toUpperCase());
     return overrideImages?.length ? { ...measuredProduct, googleImageOverrides: overrideImages } : measuredProduct;
   })

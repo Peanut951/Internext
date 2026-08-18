@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-08-16T23:33:32.452Z",
-  "verifiedSnapshotUpdatedAt": "2026-08-16T23:32:03.110Z",
+  "auditedAt": "2026-08-18T01:50:53.550Z",
+  "verifiedSnapshotUpdatedAt": "2026-08-18T01:49:07.152Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified"
@@ -8,12 +8,12 @@
   "counts": {
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
-    "verifiedSupplierProducts": 7248,
+    "verifiedSupplierProducts": 7246,
     "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 738,
-    "googleProducts": 4945,
-    "sitemapProducts": 5910,
-    "staticProductPages": 5909
+    "unsupportedRawEnrichmentProducts": 740,
+    "googleProducts": 4943,
+    "sitemapProducts": 5908,
+    "staticProductPages": 5907
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],
@@ -98,6 +98,12 @@
       "supplierCode": "AN360W",
       "manufacturer": "Avision",
       "description": "Avision AN360W True Network Scanner (A4 Duplex) Opened Box"
+    },
+    {
+      "code": "AVFB6380E",
+      "supplierCode": "FB6380E",
+      "manufacturer": "Avision",
+      "description": "Avision FB6380E Bookedge Scanner (A3 Flatbed)"
     },
     {
       "code": "AX1120102",
@@ -614,12 +620,6 @@
       "supplierCode": "PFI-307MBK",
       "manufacturer": "Canon",
       "description": "PFI-307MBK Matte Black Ink - 330ML"
-    },
-    {
-      "code": "CPFI-307Y",
-      "supplierCode": "PFI-307Y",
-      "manufacturer": "Canon",
-      "description": "300ml ink for iPF"
     }
   ]
 }

@@ -10,6 +10,8 @@
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "audit:mobile": "node scripts/audit-mobile-layout.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
+    "enrich:shipping:alloys": "node scripts/enrich-shipping-measurements-alloys.mjs",
+    "enrich:shipping:icecat": "node scripts/enrich-shipping-measurements-icecat.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
     "sync:xero-inventory": "node scripts/sync-xero-inventory-items.mjs"

@@ -1,5 +1,10 @@
 import fs from "node:fs";
 import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
+import {
+  applySourcedShippingMeasurement,
+  buildSourcedShippingMeasurementMap,
+  loadSourcedShippingMeasurements,
+} from "./lib/sourced-shipping-measurements.mjs";
 
 const readJson = (path) => {
   if (!fs.existsSync(path)) {
@@ -73,6 +78,12 @@ for (const product of liveOverrides) {
   }
 }
 
+const sourcedMeasurements = loadSourcedShippingMeasurements();
+const sourcedMeasurementsByKey = buildSourcedShippingMeasurementMap(sourcedMeasurements);
+for (const [key, product] of productsByKey) {
+  productsByKey.set(key, applySourcedShippingMeasurement(product, sourcedMeasurementsByKey));
+}
+
 const measurementOverrides = await loadShippingMeasurementOverrides();
 for (const override of measurementOverrides) {
   const overrideKeys = [override.code, override.supplier_code]
@@ -100,6 +111,7 @@ for (const override of measurementOverrides) {
 
 const physicalProducts = [...productsByKey.values()].filter(isTangibleCatalogProduct);
 const complete = physicalProducts.filter(hasCompleteDimensionFields);
+const missing = physicalProducts.filter((product) => !hasCompleteDimensionFields(product));
 const parseable = physicalProducts.filter(
   (product) => !hasCompleteDimensionFields(product) && (hasParsedWeight(product) || hasParsedDimensions(product)),
 );
@@ -107,15 +119,16 @@ const fallback = physicalProducts.filter(
   (product) => !hasCompleteDimensionFields(product) && !(hasParsedWeight(product) || hasParsedDimensions(product)),
 );
 
-console.log(
-  JSON.stringify(
-    {
+const audit = {
+  generatedAt: new Date().toISOString(),
+  summary: {
       totalPhysical: physicalProducts.length,
       completeSupplierDimensionFields: complete.length,
       missingAnyDimensionFields: physicalProducts.length - complete.length,
       canPartlyParseFromText: parseable.length,
       needsCategoryFallback: fallback.length,
       adminMeasurementOverrides: measurementOverrides.length,
+      sourcedVerifiedMeasurements: sourcedMeasurements.length,
       confidence: {
         verified: physicalProducts.filter((product) => product.measurementConfidence === "verified").length,
         high: complete.filter((product) => product.measurementConfidence !== "verified").length,
@@ -127,8 +140,25 @@ console.log(
         supplierCode: product.supplierCode,
         name: product.description,
       })),
+  },
+  unresolved: missing.map((product) => ({
+    code: product.code,
+    supplierCode: product.supplierCode,
+    manufacturer: product.manufacturer,
+    name: product.description,
+    missingFields: ["weightKg", "heightCm", "widthCm", "depthCm"].filter(
+      (field) => !isPositiveNumber(product[field]),
+    ),
+    currentValues: {
+      weightKg: isPositiveNumber(product.weightKg) ? Number(product.weightKg) : null,
+      heightCm: isPositiveNumber(product.heightCm) ? Number(product.heightCm) : null,
+      widthCm: isPositiveNumber(product.widthCm) ? Number(product.widthCm) : null,
+      depthCm: isPositiveNumber(product.depthCm) ? Number(product.depthCm) : null,
     },
-    null,
-    2,
-  ),
-);
+    textContainsMeasurement: hasParsedWeight(product) || hasParsedDimensions(product),
+  })),
+};
+
+fs.mkdirSync("reports", { recursive: true });
+fs.writeFileSync("reports/shipping-measurement-audit.json", `${JSON.stringify(audit, null, 2)}\n`);
+console.log(JSON.stringify(audit.summary, null, 2));
