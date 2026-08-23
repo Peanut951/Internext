@@ -5,10 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-google-product-feed.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-product-pages.mjs",
+    "build": "node scripts/generate-google-product-feed.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-route-pages.mjs && node scripts/generate-static-product-pages.mjs",
     "build:dev": "vite build --mode development",
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "audit:mobile": "node scripts/audit-mobile-layout.mjs",
+    "audit:seo": "node scripts/audit-seo-pages.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
     "enrich:shipping:alloys": "node scripts/enrich-shipping-measurements-alloys.mjs",
     "enrich:shipping:icecat": "node scripts/enrich-shipping-measurements-icecat.mjs",

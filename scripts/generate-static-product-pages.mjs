@@ -363,7 +363,7 @@ const createProductHtml = (template, product) => {
 
   return removeExistingHeadTags(template)
     .replace("</head>", `    ${headTags}\n  </head>`)
-    .replace('<div id="root"></div>', `<div id="root">${staticContent}</div>`);
+    .replace(/<div id="root">[\s\S]*?<\/div>/, `<div id="root">${staticContent}</div>`);
 };
 
 const templatePath = path.join(distDir, "index.html");

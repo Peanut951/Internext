@@ -1,7 +1,27 @@
 {
   "redirects": [
     {
+      "source": "/products/item/:code/index.html",
+      "destination": "/products/item/:code",
+      "permanent": true
+    },
+    {
+      "source": "/:section/:page/index.html",
+      "destination": "/:section/:page",
+      "permanent": true
+    },
+    {
+      "source": "/:page/index.html",
+      "destination": "/:page",
+      "permanent": true
+    },
+    {
       "source": "/about-us",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/about/team",
       "destination": "/about",
       "permanent": true
     }
@@ -47,8 +67,12 @@
       "destination": "/products/item/:code/index.html"
     },
     {
-      "source": "/((?!api/).*)",
-      "destination": "/index.html"
+      "source": "/:section/:page",
+      "destination": "/:section/:page/index.html"
+    },
+    {
+      "source": "/:page",
+      "destination": "/:page/index.html"
     }
   ]
 }

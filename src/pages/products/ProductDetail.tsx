@@ -956,6 +956,19 @@ const ProductDetail = () => {
   }, []);
 
   useEffect(() => {
+    if (loading || error || product || !hasCheckedFullCatalog) {
+      return;
+    }
+
+    document.title = "Product Not Found | Internext";
+    setNamedMeta('meta[name="description"]', "name", "description", "The requested product is unavailable.");
+    setNamedMeta('meta[name="robots"]', "name", "robots", "noindex, nofollow");
+    document.head.querySelector<HTMLLinkElement>('link[rel="canonical"]')?.remove();
+    document.head.querySelector<HTMLMetaElement>('meta[property="og:url"]')?.remove();
+    document.getElementById("internext-product-json-ld")?.remove();
+  }, [error, hasCheckedFullCatalog, loading, product]);
+
+  useEffect(() => {
     let isMounted = true;
     setIsInCart(isProductInStoredCart(productCode));
     setIsLivePriceReady(false);

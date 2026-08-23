@@ -3,8 +3,8 @@ import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
+import { getIndexableRoutes, SITE_URL } from "./lib/seo-routes.mjs";
 
-const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
 
 const readJson = (filePath, fallback) => {
@@ -29,10 +29,6 @@ const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },
 ).items || [];
-const verifiedQuoteProducts = readJson(
-  path.join(publicDir, "data", "supplier-quote-products.json"),
-  { products: [] },
-).products || [];
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 
@@ -67,8 +63,6 @@ const activeLeaderItems = leaderFeedProducts.length > 0
 const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
 const currentLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
 const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
-const verifiedQuoteKeys = new Set(verifiedQuoteProducts.flatMap(getProductKeys));
-
 const productCodes = Array.from(
   new Set(
     filterTangibleCatalogProducts([
@@ -80,105 +74,26 @@ const productCodes = Array.from(
         getProductKeys(product).some(
           (key) =>
             currentAlloysKeys.has(key) ||
-            currentLeaderKeys.has(key) ||
-            verifiedQuoteKeys.has(key),
+            currentLeaderKeys.has(key),
         ),
       )
       .map((product) => String(product.code || "").trim())
       .filter(Boolean),
   ),
 ).sort((a, b) => a.localeCompare(b));
-const today = new Date().toISOString().slice(0, 10);
-
-const categoryPaths = [
-  "projectors",
-  "digital-signage",
-  "tvs-panels",
-  "interactive-panels",
-  "mounts-brackets",
-  "consumer-cameras",
-  "imaging-accessories",
-  "ip-cameras",
-  "nvrs-recorders",
-  "surveillance-accessories",
-  "printers",
-  "multifunction",
-  "scanners",
-  "office-technology",
-  "a4-printers",
-  "a3-printers",
-  "inkjet",
-  "laser",
-  "large-format",
-  "3d-printers",
-  "inkjet-consumables",
-  "laser-consumables",
-  "large-format-consumables",
-  "ribbon-tape",
-  "3d-filament",
-  "other-consumables",
-  "a4-scanners",
-  "a3-scanners",
-  "portable-scanners",
-  "access-control",
-  "intercom-systems",
-  "ip-communications",
-  "ups-power",
-  "automation-lighting",
-  "energy-management",
-  "storage",
-  "switches",
-  "routers",
-  "access-points",
-  "networking-accessories",
-  "headsets",
-  "conference",
-  "voip",
-  "video-collab",
-  "uc-accessories",
-];
-
-const staticPaths = [
-  "about",
-  "contact",
-  "services",
-  "support/faq",
-  "support/shipping",
-  "support/warranty",
-  "support/returns",
-  "support/payment-security",
-  "support/consumer-guarantees",
-  "privacy",
-  "terms",
-];
-
 const urls = [
-  { loc: `${SITE_URL}/`, changefreq: "weekly", priority: "1.0" },
-  { loc: `${SITE_URL}/products`, changefreq: "daily", priority: "0.9" },
-  ...staticPaths.map((path) => ({
-    loc: `${SITE_URL}/${path}`,
-    changefreq: "monthly",
-    priority: "0.65",
-  })),
-  ...categoryPaths.map((path) => ({
-    loc: `${SITE_URL}/products/${path}`,
-    changefreq: "weekly",
-    priority: "0.75",
+  ...getIndexableRoutes().map((route) => ({
+    loc: `${SITE_URL}${route.path === "/" ? "/" : route.path}`,
   })),
   ...productCodes.map((code) => ({
     loc: `${SITE_URL}/products/item/${encodeURIComponent(code)}`,
-    changefreq: "weekly",
-    priority: "0.8",
   })),
 ];
 
 const sitemap = [
   '<?xml version="1.0" encoding="UTF-8"?>',
   '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
-  ...urls.map(
-    (url) =>
-      `  <url><loc>${escapeXml(url.loc)}</loc><lastmod>${today}</lastmod><changefreq>${url.changefreq}</changefreq><priority>${url.priority}</priority></url>`,
-  ),
+  ...urls.map((url) => `  <url><loc>${escapeXml(url.loc)}</loc></url>`),
   "</urlset>",
   "",
 ].join("\n");

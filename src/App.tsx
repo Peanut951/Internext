@@ -9,6 +9,7 @@ import RequireAuth from "./components/auth/RequireAuth";
 import RequirePortalHome from "./components/auth/RequirePortalHome";
 import RouteErrorBoundary from "./components/AppErrorBoundary";
 import Layout from "./components/layout/Layout";
+import RouteSeo from "./components/RouteSeo";
 import { trackPageView } from "@/lib/analytics";
 
 const Index = lazy(() => import("./pages/Index"));
@@ -80,6 +81,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <ScrollToTop />
+        <RouteSeo />
         <Layout>
           <RouteErrorBoundary>
             <Suspense fallback={<RouteFallback />}>
