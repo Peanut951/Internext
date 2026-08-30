@@ -39,6 +39,7 @@ import {
   loadCatalogProducts,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 
 type OrderView = "all" | "active" | "completed";
 type ShipmentFormState = OrderShipment;
@@ -78,18 +79,8 @@ const emptyManualInvoiceLine = (): ManualInvoiceLine => ({
   unitPrice: "",
 });
 
-const formatProductSuggestionName = (product: CatalogProductWithLive) => {
-  const manufacturer = product.manufacturer.trim();
-  const description = product.description.trim();
-
-  if (!manufacturer) {
-    return description;
-  }
-
-  return description.toLowerCase().includes(manufacturer.toLowerCase())
-    ? description
-    : `${manufacturer} ${description}`;
-};
+const formatProductSuggestionName = (product: CatalogProductWithLive) =>
+  buildProductDisplayTitle(product);
 
 const getProductUnitPriceExGst = (product: CatalogProductWithLive) => {
   if (typeof product.price !== "number" || !Number.isFinite(product.price)) {

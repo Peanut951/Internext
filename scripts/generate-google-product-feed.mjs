@@ -8,6 +8,10 @@ import {
   buildSourcedShippingMeasurementMap,
   loadSourcedShippingMeasurements,
 } from "./lib/sourced-shipping-measurements.mjs";
+import {
+  applyPublicPriceFloor,
+  loadPublicPriceFloorMap,
+} from "./lib/public-price-floors.mjs";
 
 const SITE_URL = "https://www.internext.com.au";
 const publicDir = path.resolve("public");
@@ -646,10 +650,10 @@ const TITLE_ACRONYMS = new Set([
 ]);
 
 const SHOPPING_TITLE_OVERRIDES = new Map([
-  ["AK-K32-B4-EU-KIT", "Akubela K32 Intercom Kit with Frame"],
+  ["AK-K32-B4-EU-KIT", "Akubela K32 AK-K32-B4-EU-KIT Intercom Kit with Frame"],
   ["INT-LG-RC-WMP-1", "Intesis LG Air Conditioner Wall Mounted Controller Interface"],
-  ["R411018", "Ricoh Type 1027 Photoconductor Unit 60000 Pages"],
-  ["R885274", "Ricoh Type 6210D Toner Cartridge 43000 Pages"],
+  ["R411018", "Ricoh 411018 Type 1027 Photoconductor Unit 60000 Pages"],
+  ["R885274", "Ricoh 885274 Type 6210D Toner Cartridge 43000 Pages"],
 ]);
 
 const toTitleWord = (word) => {
@@ -788,6 +792,7 @@ const shippingMeasurementOverrides = buildShippingMeasurementOverrideMap(
 const sourcedShippingMeasurements = buildSourcedShippingMeasurementMap(
   loadSourcedShippingMeasurements(),
 );
+const publicPriceFloors = loadPublicPriceFloorMap();
 const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems])
   .map(annotateSupplierMeasurements)
   .map((product) => applySourcedShippingMeasurement(product, sourcedShippingMeasurements))
@@ -838,8 +843,9 @@ const products = mergeProducts(mergeAlloysLivePricing([
   .map((product) => {
     const sourcedProduct = applySourcedShippingMeasurement(product, sourcedShippingMeasurements);
     const measuredProduct = applyShippingMeasurementOverride(sourcedProduct, shippingMeasurementOverrides);
-    const overrideImages = imageOverrideMap.get(String(measuredProduct.code || "").trim().toUpperCase());
-    return overrideImages?.length ? { ...measuredProduct, googleImageOverrides: overrideImages } : measuredProduct;
+    const pricedProduct = applyPublicPriceFloor(measuredProduct, publicPriceFloors);
+    const overrideImages = imageOverrideMap.get(String(pricedProduct.code || "").trim().toUpperCase());
+    return overrideImages?.length ? { ...pricedProduct, googleImageOverrides: overrideImages } : pricedProduct;
   })
   .filter(isTangibleCatalogProduct)
   .filter((product) => typeof product.price === "number" && product.price > 0)

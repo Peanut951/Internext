@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-08-18T01:50:54.390Z",
+  "generatedAt": "2026-08-24T00:08:23.256Z",
   "summary": {
-    "totalPhysical": 6543,
-    "completeSupplierDimensionFields": 5195,
-    "missingAnyDimensionFields": 1348,
+    "totalPhysical": 6551,
+    "completeSupplierDimensionFields": 5192,
+    "missingAnyDimensionFields": 1359,
     "canPartlyParseFromText": 75,
-    "needsCategoryFallback": 1273,
+    "needsCategoryFallback": 1284,
     "adminMeasurementOverrides": 0,
     "sourcedVerifiedMeasurements": 1372,
     "confidence": {
-      "verified": 1376,
-      "high": 3819,
+      "verified": 1375,
+      "high": 3817,
       "medium": 75,
-      "low": 1273
+      "low": 1284
     },
     "sampleFallback": [
       {
@@ -1996,6 +1996,25 @@
       "textContainsMeasurement": false
     },
     {
+      "code": "AX9155101B",
+      "supplierCode": "01272-001",
+      "manufacturer": "Axis",
+      "name": "IP Verso Main Unit Without Camera Black",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
       "code": "AX9155101CB",
       "supplierCode": "01274-001",
       "manufacturer": "Axis",
@@ -3900,6 +3919,25 @@
       "supplierCode": "PFI-3100GY",
       "manufacturer": "Canon",
       "name": "PFI-3100GY Grey Ink for Gp/pro -160ml",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "CPFI-706PGY",
+      "supplierCode": "PFI-706PGY",
+      "manufacturer": "Canon",
+      "name": "PFI-706PGY Lucia Ex Photo Grey Ink for IPF8300 IPF8400 - 70",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -9310,7 +9348,7 @@
     },
     {
       "code": "HPP-8K6P2AA",
-      "supplierCode": "8K6P2AA",
+      "supplierCode": "8K6P2AA#AC3",
       "manufacturer": "HP",
       "name": "Poly Ear Cushion Kit Doughnut 01",
       "missingFields": [
@@ -9386,7 +9424,7 @@
     },
     {
       "code": "HPP-8K6Q2AA",
-      "supplierCode": "8K6Q2AA",
+      "supplierCode": "8K6Q2AA#AC3",
       "manufacturer": "HP",
       "name": "Poly Supraplus Encorepro Kit C Ircumaural Cushions (1 Piece)",
       "missingFields": [
@@ -10602,7 +10640,7 @@
     },
     {
       "code": "HPP-AW6U4AA",
-      "supplierCode": "AW6U4AA",
+      "supplierCode": "AW6U4AA#AC3",
       "manufacturer": "HP",
       "name": "Poly Voyager Legend 50/30 Eart Ips S/m/l",
       "missingFields": [
@@ -23251,24 +23289,6 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "F16-AS400",
-      "supplierCode": "F16-AS400",
-      "manufacturer": "ION",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
       "code": "F-ATS32M",
       "supplierCode": "F-ATS32M",
       "manufacturer": "ION",
@@ -23289,6 +23309,24 @@
     {
       "code": "F-ATSSNMP",
       "supplierCode": "F-ATSSNMP",
+      "manufacturer": "ION",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "F16-AS400",
+      "supplierCode": "F16-AS400",
       "manufacturer": "ION",
       "missingFields": [
         "weightKg",
@@ -23326,6 +23364,42 @@
       "code": "FEBM-240",
       "supplierCode": "FEBM-240",
       "manufacturer": "ION",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LEV-1105W",
+      "supplierCode": "1105W",
+      "manufacturer": "Leviton Security & Automation",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LEV-95A14-1",
+      "supplierCode": "95A14-1",
+      "manufacturer": "Leviton Security & Automation",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23413,9 +23487,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "PM-ASB-40-RC",
-      "supplierCode": "ASB-40-RC",
-      "manufacturer": "Promethean",
+      "code": "AK-R29INWALLH",
+      "supplierCode": "00405P11--",
+      "manufacturer": "Akuvox",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23431,9 +23505,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "LEV-1105W",
-      "supplierCode": "1105W",
-      "manufacturer": "Leviton Security & Automation",
+      "code": "SG-ST10000VE001",
+      "supplierCode": "ST10000VE001",
+      "manufacturer": "Seagate-Skyhawk",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23449,9 +23523,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "LEV-95A14-1",
-      "supplierCode": "95A14-1",
-      "manufacturer": "Leviton Security & Automation",
+      "code": "LM32D0826",
+      "supplierCode": "32D0826",
+      "manufacturer": "Lexmark",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23467,8 +23541,8 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "LMCX963SE2K",
-      "supplierCode": "20L9316",
+      "code": "LM57X0300",
+      "supplierCode": "57X0300",
       "manufacturer": "Lexmark",
       "missingFields": [
         "weightKg",
@@ -23503,27 +23577,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "AK-R29INWALLH",
-      "supplierCode": "00405P11--",
-      "manufacturer": "Akuvox",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-77R32A6",
-      "supplierCode": "77R32A6",
-      "manufacturer": "HP",
+      "code": "PM-ASB-40-RC",
+      "supplierCode": "ASB-40-RC",
+      "manufacturer": "Promethean",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23542,6 +23598,24 @@
       "code": "CCART070H",
       "supplierCode": "CART070H",
       "manufacturer": "Canon",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-8D3E9AA",
+      "supplierCode": "8D3E9AA",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23578,6 +23652,24 @@
       "code": "HPP-R87090802",
       "supplierCode": "R87090802",
       "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "RW-127102",
+      "supplierCode": "127102",
+      "manufacturer": "RealWear",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23647,9 +23739,243 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "RW-127102",
-      "supplierCode": "127102",
-      "manufacturer": "RealWear",
+      "code": "HPP-77R32A6",
+      "supplierCode": "77R32A6",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LMCX963SE2K",
+      "supplierCode": "20L9316",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-PHX1-ST",
+      "supplierCode": "00951P11--",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-KXPW-B1A960",
+      "supplierCode": "KXPW-B1A960",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-K32-M-EU",
+      "supplierCode": "K32-M-EU",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LM20L8842",
+      "supplierCode": "20L8842",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-R20KANGLE",
+      "supplierCode": "00390P11--",
+      "manufacturer": "Akuvox",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "CNB-CP2LI",
+      "supplierCode": "NB-CP2LI",
+      "manufacturer": "Canon",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "SH-SHELLYLORAAO",
+      "supplierCode": "3800238071684",
+      "manufacturer": "Shelly",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "IVK-18B-BUN",
+      "supplierCode": "IVK-18B-BUN",
+      "manufacturer": "IVSEC",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "GR-GS-POE60W-MG",
+      "supplierCode": "GS-POE60W-MG",
+      "manufacturer": "Grandstream",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "GR-GWN7062M",
+      "supplierCode": "GWN7062M",
+      "manufacturer": "Grandstream",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-K32-FRAME-D02",
+      "supplierCode": "K32-FRAME-D02",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-KNXUSB",
+      "supplierCode": "39184-11-1",
+      "manufacturer": "Akubela",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -23719,800 +24045,8 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "BQSL4304",
-      "supplierCode": "SL4304",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-G32",
-      "supplierCode": "00056P91--",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-ACR-CRM11",
-      "supplierCode": "39161-11-1",
-      "manufacturer": "Akuvox",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AX9151301",
-      "supplierCode": "03359-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AX9151301K",
-      "supplierCode": "03365-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AX9151301RP",
-      "supplierCode": "03366-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AX9151302R",
-      "supplierCode": "03368-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AX9151304",
-      "supplierCode": "03360-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AXAUDIOMANV2",
-      "supplierCode": "03401-001",
-      "manufacturer": "Axis",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "ST-SMS-TE-IQ4",
-      "supplierCode": "SMS-TE-IQ4",
-      "manufacturer": "Smart",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "CCPPAPTRAYBUNDLE",
-      "supplierCode": "CPPAPERTRAYBUNDLE",
-      "manufacturer": "Canon",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-R20ABLK-ONWALL",
-      "supplierCode": "01063P11--",
-      "manufacturer": "Akuvox",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "BQSL5504",
-      "supplierCode": "SL5504",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "BQSL6504",
-      "supplierCode": "SL6504",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "BQSL7504",
-      "supplierCode": "SL7504",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "BQSL8604",
-      "supplierCode": "SL8604",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "LG-LASA136",
-      "supplierCode": "LASA136",
-      "manufacturer": "LG",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-MIR-MC100",
-      "supplierCode": "MIR-MC100",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-MIR-TE100",
-      "supplierCode": "MIR-TE100",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-MIR-IR100",
-      "supplierCode": "MIR-IR100",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-CB25L",
-      "supplierCode": "CB25L",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-CB19",
-      "supplierCode": "CB19",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-K32-B4-EU-UNIT",
-      "supplierCode": "K32-B4-EU-UNIT",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-K32-M-EU-UNIT",
-      "supplierCode": "K32-M-EU-UNIT",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-K32-FRAME-D02",
-      "supplierCode": "K32-FRAME-D02",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-KNXUSB",
-      "supplierCode": "39184-11-1",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05052",
-      "supplierCode": "006R05052",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05053",
-      "supplierCode": "006R05053",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05054",
-      "supplierCode": "006R05054",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05051",
-      "supplierCode": "006R05051",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05072",
-      "supplierCode": "006R05072",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05073",
-      "supplierCode": "006R05073",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05074",
-      "supplierCode": "006R05074",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X006R05071",
-      "supplierCode": "006R05071",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X008R08165",
-      "supplierCode": "008R08165",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X097S05292",
-      "supplierCode": "097S05292",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "BQPT04GN",
-      "supplierCode": "PT04GN",
-      "manufacturer": "Benq",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "ES-ZLED120H",
-      "supplierCode": "ZLED120H",
-      "manufacturer": "Elite Screens",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "X097S05316",
-      "supplierCode": "097S05316",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "LM20L8842",
-      "supplierCode": "20L8842",
-      "manufacturer": "Lexmark",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-KXPW-B1A960",
-      "supplierCode": "KXPW-B1A960",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-K32-M-EU",
-      "supplierCode": "K32-M-EU",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "CNB-CP2LI",
-      "supplierCode": "NB-CP2LI",
-      "manufacturer": "Canon",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "AK-PHX1-ST",
-      "supplierCode": "00951P11--",
-      "manufacturer": "Akubela",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "SH-SHELLYPRESB",
-      "supplierCode": "3800238072407",
+      "code": "SH-THEPILL",
+      "supplierCode": "3800238073558",
       "manufacturer": "Shelly",
       "missingFields": [
         "weightKg",
@@ -24529,9 +24063,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "GR-GS-POE60W-MG",
-      "supplierCode": "GS-POE60W-MG",
-      "manufacturer": "Grandstream",
+      "code": "SH-PILL1-3",
+      "supplierCode": "3800238073565",
+      "manufacturer": "Shelly",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -24547,81 +24081,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "GR-GWN7062M",
-      "supplierCode": "GWN7062M",
-      "manufacturer": "Grandstream",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UL5R7PV",
-      "supplierCode": "UL5R7PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UF4W1PV",
-      "supplierCode": "UF4W1PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UL5V2PV",
-      "supplierCode": "UL5V2PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "LVK-522A-BUN",
-      "supplierCode": "LVK-522A-BUN",
-      "manufacturer": "LX-Series",
+      "code": "SH-PILL0-30",
+      "supplierCode": "3800238073596",
+      "manufacturer": "Shelly",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -24835,8 +24297,548 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "PM-AP10-A86SB1K",
-      "supplierCode": "AP10-A86SB1K",
+      "code": "BQPT04GN",
+      "supplierCode": "PT04GN",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-ACR-CRM11",
+      "supplierCode": "39161-11-1",
+      "manufacturer": "Akuvox",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-MR02F",
+      "supplierCode": "MR02F",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AX9151301",
+      "supplierCode": "03359-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AX9151301K",
+      "supplierCode": "03365-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AX9151301RP",
+      "supplierCode": "03366-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AX9151302R",
+      "supplierCode": "03368-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AX9151304",
+      "supplierCode": "03360-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AXAUDIOMANV2",
+      "supplierCode": "03401-001",
+      "manufacturer": "Axis",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "ST-SMS-TE-IQ4",
+      "supplierCode": "SMS-TE-IQ4",
+      "manufacturer": "Smart",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "CCPPAPTRAYBUNDLE",
+      "supplierCode": "CPPAPERTRAYBUNDLE",
+      "manufacturer": "Canon",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-MIR-MC100",
+      "supplierCode": "MIR-MC100",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-MIR-TE100",
+      "supplierCode": "MIR-TE100",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-MIR-IR100",
+      "supplierCode": "MIR-IR100",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-CB25L",
+      "supplierCode": "CB25L",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-CB19",
+      "supplierCode": "CB19",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-K32-B4-EU-UNIT",
+      "supplierCode": "K32-B4-EU-UNIT",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-K32-M-EU-UNIT",
+      "supplierCode": "K32-M-EU-UNIT",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-UL5R7PV",
+      "supplierCode": "UL5R7PV",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-UF4W1PV",
+      "supplierCode": "UF4W1PV",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-UL5V2PV",
+      "supplierCode": "UL5V2PV",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LVK-522A-BUN",
+      "supplierCode": "LVK-522A-BUN",
+      "manufacturer": "LX-Series",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "BQSL4304",
+      "supplierCode": "SL4304",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-G32",
+      "supplierCode": "00056P91--",
+      "manufacturer": "Akubela",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "AK-R20ABLK-ONWALL",
+      "supplierCode": "01063P11--",
+      "manufacturer": "Akuvox",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "BQSL5504",
+      "supplierCode": "SL5504",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "BQSL6504",
+      "supplierCode": "SL6504",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "BQSL7504",
+      "supplierCode": "SL7504",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "BQSL8604",
+      "supplierCode": "SL8604",
+      "manufacturer": "Benq",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LG-LASA136",
+      "supplierCode": "LASA136",
+      "manufacturer": "LG",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "PM-OPS4-5P8R256SV-WIN",
+      "supplierCode": "OPS4-5P8R256SV-WIN",
       "manufacturer": "Promethean",
       "missingFields": [
         "weightKg",
@@ -24853,225 +24855,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "SH-THEPILL",
-      "supplierCode": "3800238073558",
-      "manufacturer": "Shelly",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "SH-PILL1-3",
-      "supplierCode": "3800238073565",
-      "manufacturer": "Shelly",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "SH-PILL0-30",
-      "supplierCode": "3800238073596",
-      "manufacturer": "Shelly",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "IVK-18B-BUN",
-      "supplierCode": "IVK-18B-BUN",
-      "manufacturer": "IVSEC",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UL5W4PB",
-      "supplierCode": "UL5W4PB",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UJ9J6PV",
-      "supplierCode": "UJ9J6PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UF4V9PV",
-      "supplierCode": "UF4V9PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UF4W0PV",
-      "supplierCode": "UF4W0PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "HPP-UF4V4PV",
-      "supplierCode": "UF4V4PV",
-      "manufacturer": "HP",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "IV-IPAUDIO-W",
-      "supplierCode": "IV-IPAUDIO-W",
-      "manufacturer": "IVSEC",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "IV-IPAUDIO-S",
-      "supplierCode": "IV-IPAUDIO-S",
-      "manufacturer": "IVSEC",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "IV-IPAUDIO-C",
-      "supplierCode": "IV-IPAUDIO-C",
-      "manufacturer": "IVSEC",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "IV-IPAUDIO-G",
-      "supplierCode": "IV-IPAUDIO-G",
-      "manufacturer": "IVSEC",
+      "code": "PM-OPS4-7P16R256SV-WIN",
+      "supplierCode": "OPS4-7P16R256SV-WIN",
+      "manufacturer": "Promethean",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25090,24 +24876,6 @@
       "code": "PM-OPS4-5P8R256SV",
       "supplierCode": "OPS4-5P8R256SV",
       "manufacturer": "Promethean",
-      "missingFields": [
-        "weightKg",
-        "heightCm",
-        "widthCm",
-        "depthCm"
-      ],
-      "currentValues": {
-        "weightKg": null,
-        "heightCm": null,
-        "widthCm": null,
-        "depthCm": null
-      },
-      "textContainsMeasurement": false
-    },
-    {
-      "code": "SH-SHELLYFLOODG4-S",
-      "supplierCode": "3800238073701",
-      "manufacturer": "Shelly",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25285,9 +25053,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "LMCX952SE",
-      "supplierCode": "20L9318",
-      "manufacturer": "Lexmark",
+      "code": "HPP-UL5W5PB",
+      "supplierCode": "UL5W5PB",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25303,9 +25071,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "LMCX953SE",
-      "supplierCode": "20L9319",
-      "manufacturer": "Lexmark",
+      "code": "HPP-UL5W4PB",
+      "supplierCode": "UL5W4PB",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25321,9 +25089,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "X097S05315",
-      "supplierCode": "097S05315",
-      "manufacturer": "Lexmark",
+      "code": "HPP-UJ9J6PV",
+      "supplierCode": "UJ9J6PV",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25339,9 +25107,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "X097S05314",
-      "supplierCode": "097S05314",
-      "manufacturer": "Lexmark",
+      "code": "HPP-UF4V9PV",
+      "supplierCode": "UF4V9PV",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25357,9 +25125,99 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "X497K26270",
-      "supplierCode": "497K26270",
-      "manufacturer": "Lexmark",
+      "code": "HPP-UF4W0PV",
+      "supplierCode": "UF4W0PV",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-UF4V4PV",
+      "supplierCode": "UF4V4PV",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-C56Y0AA",
+      "supplierCode": "C56Y0AA",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-C56Y1AA",
+      "supplierCode": "C56Y1AA",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-C56XPAA",
+      "supplierCode": "C56XPAA",
+      "manufacturer": "HP",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "HPP-C56XSAA",
+      "supplierCode": "C56XSAA",
+      "manufacturer": "HP",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25483,8 +25341,314 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "PM-OPS4-5P8R256SV-WIN",
-      "supplierCode": "OPS4-5P8R256SV-WIN",
+      "code": "X008R08165",
+      "supplierCode": "008R08165",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X097S05292",
+      "supplierCode": "097S05292",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X097S05316",
+      "supplierCode": "097S05316",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X097S05315",
+      "supplierCode": "097S05315",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X097S05314",
+      "supplierCode": "097S05314",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X497K26270",
+      "supplierCode": "497K26270",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LMCX952SE",
+      "supplierCode": "20L9318",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "LMCX953SE",
+      "supplierCode": "20L9319",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05052",
+      "supplierCode": "006R05052",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05053",
+      "supplierCode": "006R05053",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05054",
+      "supplierCode": "006R05054",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05051",
+      "supplierCode": "006R05051",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05072",
+      "supplierCode": "006R05072",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05073",
+      "supplierCode": "006R05073",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05074",
+      "supplierCode": "006R05074",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "X006R05071",
+      "supplierCode": "006R05071",
+      "manufacturer": "Lexmark",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "ES-ZLED120H",
+      "supplierCode": "ZLED120H",
+      "manufacturer": "Elite Screens",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "PM-AP10-A86SB1K",
+      "supplierCode": "AP10-A86SB1K",
       "manufacturer": "Promethean",
       "missingFields": [
         "weightKg",
@@ -25501,9 +25665,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "PM-OPS4-7P16R256SV-WIN",
-      "supplierCode": "OPS4-7P16R256SV-WIN",
-      "manufacturer": "Promethean",
+      "code": "IV-IPAUDIO-W",
+      "supplierCode": "IV-IPAUDIO-W",
+      "manufacturer": "IVSEC",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25519,9 +25683,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "HPP-UL5W5PB",
-      "supplierCode": "UL5W5PB",
-      "manufacturer": "HP",
+      "code": "IV-IPAUDIO-S",
+      "supplierCode": "IV-IPAUDIO-S",
+      "manufacturer": "IVSEC",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25537,9 +25701,9 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "AK-R20KANGLE",
-      "supplierCode": "00390P11--",
-      "manufacturer": "Akuvox",
+      "code": "IV-IPAUDIO-C",
+      "supplierCode": "IV-IPAUDIO-C",
+      "manufacturer": "IVSEC",
       "missingFields": [
         "weightKg",
         "heightCm",
@@ -25555,8 +25719,44 @@
       "textContainsMeasurement": false
     },
     {
-      "code": "SH-SHELLYLORAAO",
-      "supplierCode": "3800238071684",
+      "code": "IV-IPAUDIO-G",
+      "supplierCode": "IV-IPAUDIO-G",
+      "manufacturer": "IVSEC",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "SH-SHELLYPRESB",
+      "supplierCode": "3800238072407",
+      "manufacturer": "Shelly",
+      "missingFields": [
+        "weightKg",
+        "heightCm",
+        "widthCm",
+        "depthCm"
+      ],
+      "currentValues": {
+        "weightKg": null,
+        "heightCm": null,
+        "widthCm": null,
+        "depthCm": null
+      },
+      "textContainsMeasurement": false
+    },
+    {
+      "code": "SH-SHELLYFLOODG4-S",
+      "supplierCode": "3800238073701",
       "manufacturer": "Shelly",
       "missingFields": [
         "weightKg",

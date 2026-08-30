@@ -101,12 +101,97 @@ type CachedCatalogProducts = {
   products: CatalogProductWithLive[];
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products-v6";
+type PublicPriceFloorEntry = {
+  alloysSku?: string;
+  vendorCode?: string;
+  floorIncGst?: number;
+};
+
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v7";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
 let staticCatalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
+let publicPriceFloorMapPromise: Promise<Map<string, number>> | null = null;
+
+const formatCustomerAud = (value: number) =>
+  `${new Intl.NumberFormat("en-AU", {
+    style: "currency",
+    currency: "AUD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value)} Inc GST`;
+
+const loadPublicPriceFloorMap = () => {
+  if (!publicPriceFloorMapPromise) {
+    publicPriceFloorMapPromise = fetch("/data/catalog-public-price-floors.json")
+      .then(async (response) => {
+        if (!response.ok) return new Map<string, number>();
+
+        const data = (await response.json()) as { prices?: PublicPriceFloorEntry[] };
+        const floorByKey = new Map<string, number>();
+
+        for (const entry of Array.isArray(data.prices) ? data.prices : []) {
+          const floor = Number(entry.floorIncGst);
+          if (!Number.isFinite(floor) || floor <= 0) continue;
+
+          for (const value of [entry.alloysSku, entry.vendorCode]) {
+            const key = String(value || "").trim().toLowerCase();
+            if (key) floorByKey.set(key, floor);
+          }
+        }
+
+        return floorByKey;
+      })
+      .catch(() => new Map<string, number>());
+  }
+
+  return publicPriceFloorMapPromise;
+};
+
+const applyPublicPriceFloor = (
+  product: CatalogProductWithLive,
+  floorByKey: Map<string, number>,
+): CatalogProductWithLive => {
+  const floor = getProductKeys(product)
+    .map((key) => floorByKey.get(key))
+    .find((value): value is number => typeof value === "number");
+  const currentPrice = Number(product.price);
+
+  if (
+    floor === undefined ||
+    !Number.isFinite(currentPrice) ||
+    currentPrice <= 0 ||
+    currentPrice >= floor
+  ) {
+    return product;
+  }
+
+  const currentRrp = Number(product.rrp);
+  const minimumRrp = Math.round(floor * 1.1 * 100) / 100;
+  const rrp = Number.isFinite(currentRrp) && currentRrp >= minimumRrp
+    ? currentRrp
+    : minimumRrp;
+
+  return {
+    ...product,
+    price: floor,
+    priceText: formatCustomerAud(floor),
+    rrp,
+    rrpText: new Intl.NumberFormat("en-AU", {
+      style: "currency",
+      currency: "AUD",
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    }).format(rrp),
+  };
+};
+
+const applyPublicPriceFloors = async (products: CatalogProductWithLive[]) => {
+  const floorByKey = await loadPublicPriceFloorMap();
+  return products.map((product) => applyPublicPriceFloor(product, floorByKey));
+};
 
 const stripCachedEtaData = (product: CatalogProductWithLive): CatalogProductWithLive => {
   const {
@@ -321,7 +406,7 @@ const loadStaticCatalogProducts = async () => {
             return hasCurrentSupplierRecord ? product : requireCurrentQuote(product);
           });
 
-          return mergeCatalogProductUpdates(
+          return applyPublicPriceFloors(mergeCatalogProductUpdates(
             quoteSafeProducts,
             stripCachedEtaProductsData(
               liveOverrides.items.map((item) => ({
@@ -330,7 +415,7 @@ const loadStaticCatalogProducts = async () => {
                 quoteRequired: false,
               })),
             ),
-          );
+          ));
         } catch (error) {
           throw error instanceof Error
             ? error
@@ -373,9 +458,9 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
       if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
-        const products = normalizeCatalogProducts(
+        const products = await applyPublicPriceFloors(normalizeCatalogProducts(
           mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
-        );
+        ));
         writeCachedProducts(products);
         return products;
       }
@@ -413,7 +498,7 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
     }
   }
 
-  const products = staticProducts
+  const products = await applyPublicPriceFloors(staticProducts
     .map((product) => {
       const live = getProductKeys(product)
         .map((key) => liveByKey.get(key))
@@ -454,7 +539,7 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         liveUpdatedAt: liveData.updatedAt,
         quoteRequired: false,
       };
-    });
+    }));
 
   writeCachedProducts(products);
   return products;

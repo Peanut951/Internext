@@ -11,6 +11,7 @@ import {
   loadCatalogProducts,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
+import { buildProductDisplayTitle } from "@/lib/productTitles";
 
 /**
  * Navigation items for the site. The Product Range dropdown lists
@@ -249,10 +250,11 @@ const Header = () => {
           {searchSuggestions.map((product, index) => {
             const price = formatSuggestionPrice(product);
             const code = product.code || product.supplierCode || product.description;
+            const productTitle = buildProductDisplayTitle(product);
 
             return (
               <button
-                key={`${code}-${product.description}`}
+                key={`${code}-${productTitle}`}
                 type="button"
                 onMouseDown={(event) => event.preventDefault()}
                 onMouseEnter={() => setActiveSuggestionIndex(index)}
@@ -267,7 +269,7 @@ const Header = () => {
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
-                      alt=""
+                      alt={productTitle}
                       className="h-full w-full object-contain"
                       loading="lazy"
                     />
@@ -277,7 +279,7 @@ const Header = () => {
                 </span>
                 <span className="min-w-0 flex-1">
                   <span className="line-clamp-2 block text-sm font-semibold text-foreground">
-                    {product.description}
+                    {productTitle}
                   </span>
                   <span className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
                     <span>{product.manufacturer}</span>

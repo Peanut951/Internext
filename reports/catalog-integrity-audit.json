@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-08-18T01:50:53.550Z",
-  "verifiedSnapshotUpdatedAt": "2026-08-18T01:49:07.152Z",
+  "auditedAt": "2026-08-24T00:07:42.852Z",
+  "verifiedSnapshotUpdatedAt": "2026-08-23T23:29:15.875Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified"
@@ -8,15 +8,27 @@
   "counts": {
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
-    "verifiedSupplierProducts": 7246,
+    "verifiedSupplierProducts": 7247,
     "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 740,
+    "unsupportedRawEnrichmentProducts": 750,
     "googleProducts": 4943,
-    "sitemapProducts": 5908,
-    "staticProductPages": 5907
+    "sitemapProducts": 5905,
+    "staticProductPages": 5905
   },
   "unsupportedCustomerFacing": {
-    "googleProductCodes": [],
+    "googleProductCodes": [
+      "ax9155101b",
+      "cpfi-706pgy",
+      "hpp-8j8w1aa",
+      "hpp-8k6p2aa",
+      "hpp-8k6p3aa",
+      "hpp-8k6q2aa",
+      "hpp-8k6q8aa",
+      "hpp-8y9c3aa",
+      "hpp-aw6u4aa",
+      "hpp-b0vr7aa",
+      "lg-65um662h"
+    ],
     "sitemapProductCodes": [],
     "staticPageProductCodes": []
   },
@@ -148,12 +160,6 @@
       "description": "Wall Mount Bracket for The 2N IP Phone D7A"
     },
     {
-      "code": "AX91378401",
-      "supplierCode": "01698-001",
-      "manufacturer": "Axis",
-      "description": "Indoor Talk Answering Unit Black 7 Capacitive Buttons HD Audio Precision Installation Box"
-    },
-    {
       "code": "AX9138522",
       "supplierCode": "03449-001",
       "manufacturer": "Axis",
@@ -272,6 +278,12 @@
       "supplierCode": "01271-001",
       "manufacturer": "Axis",
       "description": "IP Verso Main Unit Without Camera Nickel"
+    },
+    {
+      "code": "AX9155101B",
+      "supplierCode": "01272-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Main Unit Without Camera Black"
     },
     {
       "code": "AX9155101CB",

@@ -31,6 +31,8 @@
   measurementOverride?: boolean;
 };
 
+import { buildProductDisplayTitle } from "@/lib/productTitles";
+
 export type CartItem = CatalogProductLite & { qty: number };
 export type OrderSerialNumbers = Record<string, string[]>;
 export type OrderShipment = {
@@ -201,7 +203,7 @@ export const toCartProduct = <T extends CatalogProductLite>(product: T): Catalog
   return {
     code: product.code,
     manufacturer: product.manufacturer,
-    description: product.description,
+    description: buildProductDisplayTitle(product),
     longDescription: product.longDescription,
     price: product.price,
     priceText: product.priceText,
@@ -501,7 +503,11 @@ const submitToWebhook = async (
   }
 };
 
-export const getCartItems = () => readJson<CartItem[]>(CART_STORAGE_KEY, []);
+export const getCartItems = () =>
+  readJson<CartItem[]>(CART_STORAGE_KEY, []).map((item) => ({
+    ...item,
+    description: buildProductDisplayTitle(item),
+  }));
 
 export const saveCartItems = (items: CartItem[]) => writeJson(CART_STORAGE_KEY, items);
 

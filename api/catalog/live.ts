@@ -498,6 +498,75 @@ const getServerCatalogCacheMs = () =>
 const getServerCatalogStaleMs = () =>
   parseCacheMs("CATALOG_SERVER_STALE_MS", DEFAULT_SERVER_CATALOG_STALE_MS);
 
+type PublicPriceFloorEntry = {
+  alloysSku?: string;
+  vendorCode?: string;
+  floorIncGst?: number;
+};
+
+let publicPriceFloorMapPromise: Promise<Map<string, number>> | null = null;
+
+const loadPublicPriceFloorMap = () => {
+  if (!publicPriceFloorMapPromise) {
+    publicPriceFloorMapPromise = readFile(
+      join(process.cwd(), "public", "data", "catalog-public-price-floors.json"),
+      "utf8",
+    ).then((raw) => {
+      const data = JSON.parse(raw) as { prices?: PublicPriceFloorEntry[] };
+      const floorByKey = new Map<string, number>();
+
+      for (const entry of Array.isArray(data.prices) ? data.prices : []) {
+        const floor = Number(entry.floorIncGst);
+        if (!Number.isFinite(floor) || floor <= 0) continue;
+
+        for (const value of [entry.alloysSku, entry.vendorCode]) {
+          const key = String(value || "").trim().toLowerCase();
+          if (key) floorByKey.set(key, floor);
+        }
+      }
+
+      return floorByKey;
+    });
+  }
+
+  return publicPriceFloorMapPromise;
+};
+
+const applyPublicPriceFloor = <T extends {
+  code?: string | null;
+  supplierCode?: string | null;
+  price?: number | null;
+  priceText?: string;
+  rrp?: number | null;
+  rrpText?: string;
+}>(product: T, floorByKey: Map<string, number>): T => {
+  const floor = [product.code, product.supplierCode]
+    .map((value) => floorByKey.get(String(value || "").trim().toLowerCase()))
+    .find((value): value is number => typeof value === "number");
+  const currentPrice = Number(product.price);
+
+  if (
+    floor === undefined ||
+    !Number.isFinite(currentPrice) ||
+    currentPrice <= 0 ||
+    currentPrice >= floor
+  ) {
+    return product;
+  }
+
+  const currentRrp = Number(product.rrp);
+  const minimumRrp = Math.round(floor * MIN_RRP_PRICE_MULTIPLIER * 100) / 100;
+  const rrp = Number.isFinite(currentRrp) && currentRrp >= minimumRrp ? currentRrp : minimumRrp;
+
+  return {
+    ...product,
+    price: floor,
+    priceText: formatCustomerAud(floor),
+    rrp,
+    rrpText: formatAud(rrp),
+  };
+};
+
 const applyCustomerPrice = (value: number | null) =>
   value === null
     ? null
@@ -1440,9 +1509,14 @@ const loadPersistedVerifiedCatalog = async (): Promise<LiveCatalogResult> => {
     throw new Error("The persisted supplier catalogue snapshot is unavailable.");
   }
 
-  const overridesByKey = buildStockOverrideMap(await fetchStockOverrides());
+  const [stockOverrides, publicPriceFloors] = await Promise.all([
+    fetchStockOverrides(),
+    loadPublicPriceFloorMap(),
+  ]);
+  const overridesByKey = buildStockOverrideMap(stockOverrides);
   const items = mergeLiveCatalogItems(snapshot.items)
     .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
+    .map((item) => applyPublicPriceFloor(item, publicPriceFloors))
     .filter((item) => isTangibleCatalogProduct(item as unknown as Record<string, unknown>));
 
   return {
@@ -1525,9 +1599,14 @@ const loadLiveCatalogItemsUncached = async (
     if (alloysItems.length === 0) {
       throw new Error("Alloys feed returned no products.");
     }
-    const overridesByKey = buildStockOverrideMap(await fetchStockOverrides());
+    const [stockOverrides, publicPriceFloors] = await Promise.all([
+      fetchStockOverrides(),
+      loadPublicPriceFloorMap(),
+    ]);
+    const overridesByKey = buildStockOverrideMap(stockOverrides);
     const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems])
       .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
+      .map((item) => applyPublicPriceFloor(item, publicPriceFloors))
       .filter((item) =>
         isTangibleCatalogProduct(item as unknown as Record<string, unknown>),
       );
@@ -1622,14 +1701,16 @@ const loadMergedCatalogProductsUncached = async (
   let stockOverrides: StockOverride[];
   let shippingMeasurementOverrides: Awaited<ReturnType<typeof fetchShippingMeasurementOverrides>>;
   let sourcedShippingMeasurements: SourcedShippingMeasurement[];
+  let publicPriceFloors: Map<string, number>;
 
   try {
-    [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides, sourcedShippingMeasurements] = await Promise.all([
+    [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides, sourcedShippingMeasurements, publicPriceFloors] = await Promise.all([
       loadStaticCatalogProducts(),
       loadLiveCatalogItems(options),
       fetchStockOverrides(),
       fetchShippingMeasurementOverrides(),
       loadSourcedShippingMeasurements(),
+      loadPublicPriceFloorMap(),
     ]);
   } catch (error) {
     if (cached && cached.staleUntil > now) {
@@ -1757,7 +1838,8 @@ const loadMergedCatalogProductsUncached = async (
     })
     .filter((item): item is MergedCatalogItem =>
       Boolean(item) && isTangibleCatalogProduct(item as Record<string, unknown>),
-    );
+    )
+    .map((item) => applyPublicPriceFloor(item, publicPriceFloors));
 
   globalCatalogCache.__internextMergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),
