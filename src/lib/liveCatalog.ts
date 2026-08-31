@@ -449,11 +449,18 @@ const loadStaticCatalogProducts = async () => {
   return staticCatalogProductsPromise;
 };
 
-const loadCatalogProductsInternal = async (skipCache = false) => {
+const loadCatalogProductsInternal = async (
+  skipCache = false,
+  refreshStockOverrides = false,
+) => {
   try {
-    const refreshSuffix = skipCache ? `&refresh=${Date.now()}` : "";
+    const refreshSuffix = skipCache
+      ? `&refresh=${Date.now()}`
+      : refreshStockOverrides
+        ? `&stockRefresh=${Date.now()}`
+        : "";
     const mergedResponse = await fetch(`/api/catalog/live?view=products${refreshSuffix}`, {
-      cache: skipCache ? "no-store" : "default",
+      cache: skipCache || refreshStockOverrides ? "no-store" : "default",
     });
     if (mergedResponse.ok) {
       const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
@@ -465,12 +472,18 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
         return products;
       }
     }
-  } catch {
+    if (refreshStockOverrides) {
+      throw new Error("Unable to refresh admin stock overrides.");
+    }
+  } catch (error) {
+    if (refreshStockOverrides) {
+      throw error;
+    }
     // Fall back to the original client-side merge path below.
   }
 
   const staticProducts = await loadStaticCatalogProducts();
-  const cachedProducts = skipCache ? null : readCachedProducts();
+  const cachedProducts = skipCache || refreshStockOverrides ? null : readCachedProducts();
   if (cachedProducts) {
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
@@ -545,10 +558,16 @@ const loadCatalogProductsInternal = async (skipCache = false) => {
   return products;
 };
 
-export const loadCatalogProducts = async (options?: { forceRefresh?: boolean }) => {
-  if (options?.forceRefresh) {
+export const loadCatalogProducts = async (options?: {
+  forceRefresh?: boolean;
+  refreshStockOverrides?: boolean;
+}) => {
+  if (options?.forceRefresh || options?.refreshStockOverrides) {
     if (!catalogProductsRefreshPromise) {
-      catalogProductsRefreshPromise = loadCatalogProductsInternal(true)
+      catalogProductsRefreshPromise = loadCatalogProductsInternal(
+        Boolean(options.forceRefresh),
+        Boolean(options.refreshStockOverrides),
+      )
         .then((products) => {
           catalogProductsPromise = Promise.resolve(products);
           return products;

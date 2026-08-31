@@ -988,9 +988,12 @@ const normalizeOverrideRow = (row: Record<string, unknown>): StockOverride | nul
   };
 };
 
-const fetchStockOverrides = async (): Promise<StockOverride[]> => {
+const fetchStockOverrides = async (options?: { strict?: boolean }): Promise<StockOverride[]> => {
   const config = getSupabaseRestConfig();
   if (!config) {
+    if (options?.strict) {
+      throw new Error("Supabase stock override storage is not configured.");
+    }
     return [];
   }
 
@@ -1007,12 +1010,18 @@ const fetchStockOverrides = async (): Promise<StockOverride[]> => {
     );
 
     if (!response.ok) {
+      if (options?.strict) {
+        throw new Error(`Stock override lookup failed with status ${response.status}.`);
+      }
       return [];
     }
 
     const rows = (await response.json()) as Record<string, unknown>[];
     return rows.map(normalizeOverrideRow).filter((row): row is StockOverride => Boolean(row));
-  } catch {
+  } catch (error) {
+    if (options?.strict) {
+      throw error;
+    }
     return [];
   }
 };
@@ -1082,6 +1091,50 @@ const applyStockOverrideToProduct = <
     stockByWarehouse,
     stockRecordUpdated: latestUpdatedAt,
   };
+};
+
+const removeAppliedStockOverrides = <T extends MergedCatalogItem>(product: T): T => {
+  const currentStock = product.stockByWarehouse;
+  const recordedAdjustments = currentStock.adminAdjustments || {};
+  const adjustments = Object.keys(recordedAdjustments).length > 0
+    ? recordedAdjustments
+    : currentStock.adminLocation && typeof currentStock.adminAdjustment === "number"
+      ? { [currentStock.adminLocation]: currentStock.adminAdjustment }
+      : {};
+  const supplierStock = {
+    adl: currentStock.adl ?? 0,
+    bne: currentStock.bne ?? 0,
+    mel: currentStock.mel ?? 0,
+    syd: currentStock.syd ?? 0,
+    wa: currentStock.wa ?? 0,
+    internext: currentStock.internext ?? 0,
+  };
+
+  for (const [rawLocation, rawAdjustment] of Object.entries(adjustments)) {
+    const location = normalizeStockOverrideLocation(rawLocation) as keyof typeof supplierStock;
+    const adjustment = Number(rawAdjustment);
+    if (!Number.isFinite(adjustment)) continue;
+    supplierStock[location] = Math.max(0, (supplierStock[location] ?? 0) - adjustment);
+  }
+
+  const totalStock = sumWarehouseStock(supplierStock);
+  return {
+    ...product,
+    availabilityText: normalizeAvailabilityStatus(product.etaStatus, totalStock),
+    stockQuantity: totalStock,
+    stockByWarehouse: supplierStock,
+  };
+};
+
+const refreshStockOverridesOnMergedCatalog = async (items: MergedCatalogItem[]) => {
+  const overridesByKey = buildStockOverrideMap(await fetchStockOverrides({ strict: true }));
+  return items.map((product) => {
+    const supplierProduct = removeAppliedStockOverrides(product);
+    return applyStockOverrideToProduct(
+      supplierProduct,
+      getStockOverrideForProduct(supplierProduct, overridesByKey),
+    );
+  });
 };
 
 const upsertStockOverride = async (input: {
@@ -1660,21 +1713,39 @@ const loadStaticCatalogProducts = async () => {
   ) as StaticCatalogProduct[];
 };
 
-export const loadMergedCatalogProducts = async (options?: { forceRefresh?: boolean }) => {
+export const loadMergedCatalogProducts = async (options?: {
+  forceRefresh?: boolean;
+  refreshStockOverrides?: boolean;
+}) => {
   const cached = globalCatalogCache.__internextMergedCatalogCache;
   const now = Date.now();
   if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
+    const items = options?.refreshStockOverrides
+      ? await refreshStockOverridesOnMergedCatalog(cached.items)
+      : cached.items;
+    if (options?.refreshStockOverrides) {
+      cached.items = items;
+    }
     return {
       updatedAt: cached.updatedAt,
-      count: cached.items.length,
+      count: items.length,
       source: cached.source,
       cached: true,
-      items: cached.items,
+      items,
     };
   }
 
   if (!options?.forceRefresh && globalCatalogCache.__internextMergedCatalogPromise) {
-    return globalCatalogCache.__internextMergedCatalogPromise;
+    const catalog = await globalCatalogCache.__internextMergedCatalogPromise;
+    if (!options?.refreshStockOverrides) {
+      return catalog;
+    }
+
+    const items = await refreshStockOverridesOnMergedCatalog(catalog.items);
+    if (globalCatalogCache.__internextMergedCatalogCache) {
+      globalCatalogCache.__internextMergedCatalogCache.items = items;
+    }
+    return { ...catalog, count: items.length, items };
   }
 
   const loadPromise = loadMergedCatalogProductsUncached(cached, now, options);
@@ -1694,7 +1765,7 @@ export const loadMergedCatalogProducts = async (options?: { forceRefresh?: boole
 const loadMergedCatalogProductsUncached = async (
   cached: typeof globalCatalogCache.__internextMergedCatalogCache,
   now: number,
-  options?: { forceRefresh?: boolean },
+  options?: { forceRefresh?: boolean; refreshStockOverrides?: boolean },
 ): Promise<MergedCatalogResult> => {
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
@@ -1707,13 +1778,13 @@ const loadMergedCatalogProductsUncached = async (
     [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides, sourcedShippingMeasurements, publicPriceFloors] = await Promise.all([
       loadStaticCatalogProducts(),
       loadLiveCatalogItems(options),
-      fetchStockOverrides(),
+      fetchStockOverrides({ strict: options?.refreshStockOverrides }),
       fetchShippingMeasurementOverrides(),
       loadSourcedShippingMeasurements(),
       loadPublicPriceFloorMap(),
     ]);
   } catch (error) {
-    if (cached && cached.staleUntil > now) {
+    if (!options?.refreshStockOverrides && cached && cached.staleUntil > now) {
       return {
         updatedAt: cached.updatedAt,
         count: cached.items.length,
@@ -1925,12 +1996,15 @@ export default async function handler(
   try {
     const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
     const forceRefresh = requestUrl.searchParams.has("refresh");
+    const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
     const catalog = requestUrl.searchParams.get("view") === "products"
-      ? await loadMergedCatalogProducts({ forceRefresh })
+      ? await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
       : await loadLiveCatalogItems({ forceRefresh });
     res.setHeader(
       "Cache-Control",
-      forceRefresh ? "no-store, no-cache, must-revalidate" : "s-maxage=1800, stale-while-revalidate=21600",
+      forceRefresh || refreshStockOverrides
+        ? "no-store, no-cache, must-revalidate"
+        : "s-maxage=1800, stale-while-revalidate=21600",
     );
     return sendJson(res, 200, catalog);
   } catch (error) {

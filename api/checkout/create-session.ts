@@ -265,7 +265,10 @@ const verifyCheckoutItems = async (
   submittedItems: NonNullable<RequestBody["items"]>,
   role?: string,
 ) => {
-  const catalog = await loadMergedCatalogProducts({ forceRefresh: true });
+  const catalog = await loadMergedCatalogProducts({
+    forceRefresh: true,
+    refreshStockOverrides: true,
+  });
   const productsByKey = new Map<string, (typeof catalog.items)[number]>();
   for (const product of catalog.items) {
     for (const key of getCatalogProductKeys(product)) {

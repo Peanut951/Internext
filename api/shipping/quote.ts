@@ -61,7 +61,7 @@ const parseJsonBody = <T extends Record<string, unknown>>(body: string | T | und
 const normalizeProductKey = (value: unknown) => String(value || "").trim().toLowerCase();
 
 const loadVerifiedQuoteItems = async (items: ShippingQuoteItem[]) => {
-  const catalog = await loadMergedCatalogProducts();
+  const catalog = await loadMergedCatalogProducts({ refreshStockOverrides: true });
   const productsByKey = new Map<string, (typeof catalog.items)[number]>();
   for (const product of catalog.items) {
     for (const key of [product.code, product.supplierCode]) {

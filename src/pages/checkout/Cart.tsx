@@ -17,7 +17,7 @@ const refreshCartStock = async (items: CartItem[]) => {
     return items;
   }
 
-  const liveProducts = await loadCatalogProducts();
+  const liveProducts = await loadCatalogProducts({ refreshStockOverrides: true });
   const liveByCode = new Map(
     liveProducts.flatMap((product) =>
       [product.code, product.supplierCode]
