@@ -542,6 +542,22 @@ const removeLeadingBrandFromTitle = (title, brand) => {
   return cleanTitle.replace(new RegExp(`^${escapedBrand}\\s+`, "i"), "").trim();
 };
 
+const removeMpnFromTitle = (title, mpn) => {
+  const cleanTitle = stripHtml(title || "");
+  const cleanMpn = stripHtml(mpn || "");
+  if (!cleanMpn) return cleanTitle;
+
+  const escapedMpn = cleanMpn
+    .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+    .replace(/\s+/g, "\\s+");
+
+  return cleanTitle
+    .replace(new RegExp(escapedMpn, "i"), " ")
+    .replace(/\(\s*\)|\[\s*\]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+};
+
 const normalizeBaseTitleForProduct = (base, product, mpn) => {
   const brand = normalizeToken(product.manufacturer);
   const normalizedMpn = normalizeToken(mpn);
@@ -564,11 +580,14 @@ const buildShoppingTitle = (product) => {
   }
 
   const brand = stripHtml(product.manufacturer || "");
+  const mpn = getProductMpn(product);
   const rawBase = removeLeadingBrandFromTitle(
-    removeSupplierReferences(product.description || product.name || product.code),
+    removeMpnFromTitle(
+      removeSupplierReferences(product.description || product.name || product.code),
+      mpn,
+    ),
     brand,
   ).replace(/^\s*\d{8,14}\s+/, "");
-  const mpn = getProductMpn(product);
   const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
   const productType = getShoppingTitleProductType(product);
   const normalizedBase = normalizeToken(base);
@@ -580,7 +599,7 @@ const buildShoppingTitle = (product) => {
     /indoor monitor/i.test(base);
   const parts = [
     brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
-    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
+    mpn && normalizedMpn ? mpn : "",
     productType &&
     !skipProductType &&
     normalizedType &&
