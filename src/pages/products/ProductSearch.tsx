@@ -1,6 +1,7 @@
 import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
+import ProductPrice from "@/components/products/ProductPrice";
 import { Search, ArrowRight, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,7 +13,6 @@ import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
 } from "@/lib/catalogSearch";
-import { getDisplayPrice } from "@/lib/pricing";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 type CatalogProduct = {
@@ -355,9 +355,11 @@ const ProductSearch = () => {
                               {getCatalogSummaryText(product)}
                             </p>
                             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                              <span className="text-xl font-bold text-foreground">
-                                {getDisplayPrice(product, session?.role)}
-                              </span>
+                              <ProductPrice
+                                product={product}
+                                role={session?.role}
+                                currentClassName="text-xl font-bold text-foreground"
+                              />
                               {availability ? (
                                 <span className="text-sm text-muted-foreground">{availability}</span>
                               ) : null}

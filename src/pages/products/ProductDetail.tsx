@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ProductPrice from "@/components/products/ProductPrice";
 import { ArrowLeft, CheckCircle2, Headphones, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -13,7 +14,7 @@ import {
 import { clearCatalogProductsCache, loadCatalogProducts } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { formatAud, getCartPricedProduct, getDisplayPrice } from "@/lib/pricing";
+import { formatAud, getCartPricedProduct } from "@/lib/pricing";
 import { trackAddToCart } from "@/lib/analytics";
 import { getCartItems, saveCartItems, toCartProduct, type CartItem } from "@/lib/orderManagement";
 import { useToast } from "@/hooks/use-toast";
@@ -90,6 +91,15 @@ type AdminMeasurementFormState = {
   sourceReference: string;
   confidence: "verified" | "high" | "medium" | "low";
   note: string;
+};
+
+type AdminCompetitorPricingSummary = {
+  loading: boolean;
+  mode?: "disabled" | "observe" | "active";
+  databaseEnabled?: boolean;
+  observations?: Array<{ id?: string }>;
+  recommendations?: Array<{ id?: string; status?: string; recommended_price_inc_gst?: number }>;
+  error?: string;
 };
 
 const SITE_URL = "https://www.internext.com.au";
@@ -946,6 +956,9 @@ const ProductDetail = () => {
   });
   const [adminMeasurementSaving, setAdminMeasurementSaving] = useState(false);
   const [adminMeasurementMessage, setAdminMeasurementMessage] = useState<AdminStockMessage | null>(null);
+  const [adminCompetitorPricing, setAdminCompetitorPricing] = useState<AdminCompetitorPricingSummary>({
+    loading: false,
+  });
   const { session } = useAuthSession();
   const { toast } = useToast();
 
@@ -1005,16 +1018,6 @@ const ProductDetail = () => {
     };
   }, [productCode]);
 
-  const displayPrice = useMemo(() => {
-    if (!product) {
-      return "";
-    }
-    if (!hasCheckedFullCatalog && !hasCustomerPrice(product)) {
-      return "Loading price...";
-    }
-    return isLivePriceReady || hasCheckedFullCatalog ? getDisplayPrice(product, session?.role) : "Loading price...";
-  }, [hasCheckedFullCatalog, isLivePriceReady, product, session?.role]);
-
   useEffect(() => {
     if (session?.role !== "admin" || !product) {
       return;
@@ -1028,6 +1031,40 @@ const ProductDetail = () => {
     });
     setAdminStockMessage(null);
   }, [product, session?.role]);
+
+  useEffect(() => {
+    if (session?.role !== "admin" || !product?.code) {
+      setAdminCompetitorPricing({ loading: false });
+      return;
+    }
+
+    let cancelled = false;
+    setAdminCompetitorPricing({ loading: true });
+    fetch(`/api/catalog/competitor-pricing?code=${encodeURIComponent(product.code)}`, {
+      credentials: "same-origin",
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const data = await response.json().catch(() => ({})) as AdminCompetitorPricingSummary & { message?: string };
+        if (!response.ok) throw new Error(data.message || "Competitor pricing status is unavailable.");
+        return data;
+      })
+      .then((data) => {
+        if (!cancelled) setAdminCompetitorPricing({ ...data, loading: false });
+      })
+      .catch((statusError) => {
+        if (!cancelled) {
+          setAdminCompetitorPricing({
+            loading: false,
+            error: statusError instanceof Error ? statusError.message : "Competitor pricing status is unavailable.",
+          });
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.code, session?.role]);
 
   useEffect(() => {
     if (session?.role !== "admin" || !product) {
@@ -1875,7 +1912,12 @@ const ProductDetail = () => {
 
                       <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card">
                         <p className="mb-2 text-sm text-muted-foreground">Price</p>
-                        <p className="mb-2 text-3xl font-bold text-foreground">{displayPrice}</p>
+                        <ProductPrice
+                          product={product}
+                          role={session?.role}
+                          className="mb-2"
+                          currentClassName="text-3xl font-bold text-foreground"
+                        />
                         {product.quoteRequired ? (
                           <p className="mb-3 max-w-2xl text-sm leading-6 text-muted-foreground">
                             Current pricing for large or specialist products can take some time to confirm.
@@ -2233,6 +2275,50 @@ const ProductDetail = () => {
                               </Button>
                             ) : null}
                           </div>
+                          <div className="mt-5 rounded-xl border border-border/70 bg-secondary/25 p-4">
+                            <div className="flex flex-wrap items-start justify-between gap-3">
+                              <div>
+                                <p className="text-sm font-semibold text-foreground">
+                                  Competitor pricing
+                                </p>
+                                <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                                  Staged recommendations for this product. Customer pricing remains unchanged while disabled.
+                                </p>
+                              </div>
+                              <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold capitalize text-accent">
+                                {adminCompetitorPricing.mode || "disabled"}
+                              </span>
+                            </div>
+
+                            {adminCompetitorPricing.loading ? (
+                              <p className="mt-3 text-sm text-muted-foreground">Loading pricing status...</p>
+                            ) : adminCompetitorPricing.error ? (
+                              <p className="mt-3 rounded-lg border border-border/60 bg-background px-3 py-2 text-xs leading-5 text-muted-foreground">
+                                {adminCompetitorPricing.error}
+                              </p>
+                            ) : (
+                              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                                <div className="rounded-lg border border-border/60 bg-background px-2 py-3">
+                                  <p className="text-lg font-semibold text-foreground">
+                                    {adminCompetitorPricing.databaseEnabled ? "On" : "Off"}
+                                  </p>
+                                  <p className="mt-1 text-[11px] text-muted-foreground">Database switch</p>
+                                </div>
+                                <div className="rounded-lg border border-border/60 bg-background px-2 py-3">
+                                  <p className="text-lg font-semibold text-foreground">
+                                    {adminCompetitorPricing.observations?.length || 0}
+                                  </p>
+                                  <p className="mt-1 text-[11px] text-muted-foreground">Observations</p>
+                                </div>
+                                <div className="rounded-lg border border-border/60 bg-background px-2 py-3">
+                                  <p className="text-lg font-semibold text-foreground">
+                                    {adminCompetitorPricing.recommendations?.filter((item) => item.status === "pending").length || 0}
+                                  </p>
+                                  <p className="mt-1 text-[11px] text-muted-foreground">Pending</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                           </>
                         ) : null}
 
@@ -2271,7 +2357,6 @@ const ProductDetail = () => {
                         const relatedName = buildProductDisplayTitle(relatedProduct);
                         const relatedBrand = safeText(relatedProduct.manufacturer) || "Unbranded";
                         const relatedCode = safeText(relatedProduct.code);
-                        const relatedPrice = getDisplayPrice(relatedProduct, session?.role);
                         const relatedAvailability =
                           safeText(relatedProduct.availabilityText) ||
                           (typeof relatedProduct.stockQuantity === "number"
@@ -2309,7 +2394,11 @@ const ProductDetail = () => {
                                 {relatedName}
                               </h3>
                               <div className="mt-auto pt-4">
-                                <p className="text-lg font-bold text-foreground">{relatedPrice}</p>
+                                <ProductPrice
+                                  product={relatedProduct}
+                                  role={session?.role}
+                                  currentClassName="text-lg font-bold text-foreground"
+                                />
                                 {relatedAvailability ? (
                                   <p className="mt-1 text-xs font-medium text-accent">{relatedAvailability}</p>
                                 ) : null}

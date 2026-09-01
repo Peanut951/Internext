@@ -7,6 +7,11 @@ export type CatalogProductWithLive = {
   longDescription?: string;
   price: number | null;
   priceText?: string;
+  publicPriceFloor?: number;
+  originalPrice?: number | null;
+  originalPriceText?: string;
+  competitorAdjusted?: boolean;
+  competitorPriceObservedAt?: string;
   resellerPrice?: number | null;
   resellerPriceText?: string;
   rrp?: number | null;
@@ -53,6 +58,11 @@ type LiveCatalogItem = {
   longDescription?: string;
   price: number | null;
   priceText: string;
+  publicPriceFloor?: number;
+  originalPrice?: number | null;
+  originalPriceText?: string;
+  competitorAdjusted?: boolean;
+  competitorPriceObservedAt?: string;
   resellerPrice: number | null;
   resellerPriceText: string;
   rrp: number | null;
@@ -159,13 +169,12 @@ const applyPublicPriceFloor = (
     .find((value): value is number => typeof value === "number");
   const currentPrice = Number(product.price);
 
-  if (
-    floor === undefined ||
-    !Number.isFinite(currentPrice) ||
-    currentPrice <= 0 ||
-    currentPrice >= floor
-  ) {
+  if (floor === undefined || !Number.isFinite(currentPrice) || currentPrice <= 0) {
     return product;
+  }
+
+  if (currentPrice >= floor) {
+    return { ...product, publicPriceFloor: floor };
   }
 
   const currentRrp = Number(product.rrp);
@@ -176,6 +185,7 @@ const applyPublicPriceFloor = (
 
   return {
     ...product,
+    publicPriceFloor: floor,
     price: floor,
     priceText: formatCustomerAud(floor),
     rrp,

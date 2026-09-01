@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import authHandler from "./api/auth/[action]";
 import catalogHandler from "./api/catalog/live";
+import competitorPricingHandler from "./api/catalog/competitor-pricing";
 import resellerApplicationHandler from "./api/reseller-application";
 
 const readRequestBody = async (req: NodeJS.ReadableStream) => {
@@ -18,6 +19,7 @@ const readRequestBody = async (req: NodeJS.ReadableStream) => {
 const devAuthApiPlugin = (): Plugin => {
   const handlers = {
     "/api/catalog/live": catalogHandler,
+    "/api/catalog/competitor-pricing": competitorPricingHandler,
     "/api/reseller-application": resellerApplicationHandler,
   } as const;
 

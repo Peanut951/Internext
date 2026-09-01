@@ -11,6 +11,10 @@ import {
   getShippingMeasurementOverride,
   upsertShippingMeasurementOverride,
 } from "./_shippingMeasurements.js";
+import {
+  applyCompetitorPriceAdjustments,
+  getCompetitorPricingMode,
+} from "./_competitorPricing.js";
 
 export type LiveCatalogItem = {
   code: string;
@@ -20,6 +24,11 @@ export type LiveCatalogItem = {
   longDescription?: string;
   price: number | null;
   priceText: string;
+  publicPriceFloor?: number;
+  originalPrice?: number | null;
+  originalPriceText?: string;
+  competitorAdjusted?: boolean;
+  competitorPriceObservedAt?: string;
   resellerPrice: number | null;
   resellerPriceText: string;
   rrp: number | null;
@@ -106,6 +115,11 @@ type MergedCatalogItem = StaticCatalogProduct & {
   googleImageOverrides?: unknown;
   price: number | null;
   priceText: string;
+  publicPriceFloor?: number;
+  originalPrice?: number | null;
+  originalPriceText?: string;
+  competitorAdjusted?: boolean;
+  competitorPriceObservedAt?: string;
   resellerPrice: number | null;
   resellerPriceText: string;
   rrp: number | null;
@@ -537,6 +551,7 @@ const applyPublicPriceFloor = <T extends {
   supplierCode?: string | null;
   price?: number | null;
   priceText?: string;
+  publicPriceFloor?: number;
   rrp?: number | null;
   rrpText?: string;
 }>(product: T, floorByKey: Map<string, number>): T => {
@@ -545,13 +560,12 @@ const applyPublicPriceFloor = <T extends {
     .find((value): value is number => typeof value === "number");
   const currentPrice = Number(product.price);
 
-  if (
-    floor === undefined ||
-    !Number.isFinite(currentPrice) ||
-    currentPrice <= 0 ||
-    currentPrice >= floor
-  ) {
+  if (floor === undefined || !Number.isFinite(currentPrice) || currentPrice <= 0) {
     return product;
+  }
+
+  if (currentPrice >= floor) {
+    return { ...product, publicPriceFloor: floor };
   }
 
   const currentRrp = Number(product.rrp);
@@ -560,6 +574,7 @@ const applyPublicPriceFloor = <T extends {
 
   return {
     ...product,
+    publicPriceFloor: floor,
     price: floor,
     priceText: formatCustomerAud(floor),
     rrp,
@@ -1713,7 +1728,7 @@ const loadStaticCatalogProducts = async () => {
   ) as StaticCatalogProduct[];
 };
 
-export const loadMergedCatalogProducts = async (options?: {
+const loadSupplierMergedCatalogProducts = async (options?: {
   forceRefresh?: boolean;
   refreshStockOverrides?: boolean;
 }) => {
@@ -1929,6 +1944,19 @@ const loadMergedCatalogProductsUncached = async (
   };
 };
 
+export const loadMergedCatalogProducts = async (options?: {
+  forceRefresh?: boolean;
+  refreshStockOverrides?: boolean;
+}) => {
+  const catalog = await loadSupplierMergedCatalogProducts(options);
+  const items = await applyCompetitorPriceAdjustments(catalog.items);
+  return {
+    ...catalog,
+    count: items.length,
+    items,
+  };
+};
+
 export default async function handler(
   req: {
     method?: string;
@@ -1997,14 +2025,21 @@ export default async function handler(
     const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
-    const catalog = requestUrl.searchParams.get("view") === "products"
+    const wantsMergedProducts = requestUrl.searchParams.get("view") === "products";
+    const catalog = wantsMergedProducts
       ? await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
-      : await loadLiveCatalogItems({ forceRefresh });
+      : await loadLiveCatalogItems({ forceRefresh }).then(async (supplierCatalog) => ({
+          ...supplierCatalog,
+          items: await applyCompetitorPriceAdjustments(supplierCatalog.items),
+        }));
+    const competitorPricingActive = getCompetitorPricingMode() === "active";
     res.setHeader(
       "Cache-Control",
       forceRefresh || refreshStockOverrides
         ? "no-store, no-cache, must-revalidate"
-        : "s-maxage=1800, stale-while-revalidate=21600",
+        : competitorPricingActive
+          ? "s-maxage=60, stale-while-revalidate=60"
+          : "s-maxage=1800, stale-while-revalidate=21600",
     );
     return sendJson(res, 200, catalog);
   } catch (error) {

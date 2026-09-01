@@ -48,8 +48,31 @@ export type PriceRole = "customer" | "reseller";
 export type PricedProduct = {
   price: number | null;
   priceText?: string;
+  originalPrice?: number | null;
+  originalPriceText?: string;
+  competitorAdjusted?: boolean;
   resellerPrice?: number | null;
   resellerPriceText?: string;
+};
+
+export const getPublicPricePresentation = (product: PricedProduct, role?: string | null) => {
+  const currentPrice = getDisplayPrice(product, role);
+  const originalPrice = Number(product.originalPrice);
+  const adjustedPrice = Number(product.price);
+  const showCompetitorAdjustment =
+    getPriceRole(role) === "customer" &&
+    product.competitorAdjusted === true &&
+    Number.isFinite(originalPrice) &&
+    Number.isFinite(adjustedPrice) &&
+    originalPrice > adjustedPrice;
+
+  return {
+    currentPrice,
+    originalPrice: showCompetitorAdjustment
+      ? formatCustomerPrice(originalPrice, product.originalPriceText)
+      : null,
+    showCompetitorAdjustment,
+  };
 };
 
 export const getPriceRole = (role?: string | null): PriceRole =>

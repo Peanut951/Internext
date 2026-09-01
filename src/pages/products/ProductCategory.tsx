@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
+import ProductPrice from "@/components/products/ProductPrice";
 import { Link, useParams } from "react-router-dom";
 import { Phone, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,6 @@ import {
   formatStoredPrice,
   formatStoredTotal,
   getCartPricedProduct,
-  getDisplayPrice,
   getPriceRole,
 } from "@/lib/pricing";
 import { trackAddToCart } from "@/lib/analytics";
@@ -1501,7 +1501,6 @@ const ProductCategory = () => {
                       rrp: safeNumber(product.rrp),
                     };
                     const productName = buildProductDisplayTitle(displayProduct);
-                    const priceLabel = getDisplayPrice(displayProduct, session?.role);
                     const productImage = getOptionalProductImage(displayProduct);
                     const summary = getCardSummary(displayProduct);
                     const highlights = getCardHighlights(displayProduct);
@@ -1573,9 +1572,11 @@ const ProductCategory = () => {
 
                           <div className="mt-5 rounded-xl border border-border/50 bg-secondary/35 px-4 py-4">
                             <div className="flex items-end justify-between gap-3">
-                              <span className="text-2xl font-bold leading-none text-foreground">
-                                {priceLabel}
-                              </span>
+                              <ProductPrice
+                                product={displayProduct}
+                                role={session?.role}
+                                currentClassName="text-2xl font-bold leading-none text-foreground"
+                              />
                               {displayProduct.rrp ? (
                                 <span className="text-xs text-right text-muted-foreground">
                                   RRP {formatPrice(displayProduct.rrp)}

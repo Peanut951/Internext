@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import ProductPrice from "@/components/products/ProductPrice";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
   searchCatalogProducts,
@@ -62,18 +63,6 @@ const navItems = [
   },
   { label: "Contact Us", href: "/contact" },
 ];
-
-const formatSuggestionPrice = (product: CatalogProductWithLive) => {
-  if (product.priceText) {
-    return product.priceText;
-  }
-
-  if (typeof product.price === "number") {
-    return `$${product.price.toFixed(2)}`;
-  }
-
-  return null;
-};
 
 const hasVerifiedSuggestionPrice = (product: CatalogProductWithLive) =>
   Boolean(product.liveUpdatedAt) || product.manufacturer.trim().toLowerCase() === "leader";
@@ -248,7 +237,6 @@ const Header = () => {
       {searchSuggestions.length ? (
         <div className="max-h-[420px] overflow-y-auto py-2">
           {searchSuggestions.map((product, index) => {
-            const price = formatSuggestionPrice(product);
             const code = product.code || product.supplierCode || product.description;
             const productTitle = buildProductDisplayTitle(product);
 
@@ -286,10 +274,15 @@ const Header = () => {
                     <span>{code}</span>
                   </span>
                 </span>
-                {price ? (
-                  <span className="hidden shrink-0 text-sm font-semibold text-foreground sm:block">
-                    {price}
-                  </span>
+                {hasVerifiedSuggestionPrice(product) ? (
+                  <ProductPrice
+                    product={product}
+                    role={session?.role}
+                    layout="inline"
+                    className="hidden shrink-0 sm:flex"
+                    currentClassName="text-sm font-semibold text-foreground"
+                    originalClassName="text-xs"
+                  />
                 ) : null}
               </button>
             );

@@ -1,5 +1,6 @@
 import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
 import Layout from "@/components/layout/Layout";
+import ProductPrice from "@/components/products/ProductPrice";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -7,7 +8,6 @@ import { loadCatalogProducts } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
-import { getDisplayPrice } from "@/lib/pricing";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   Monitor,
@@ -401,7 +401,6 @@ const ProductsIndex = () => {
                       {searchPreviewMatches.map(({ product }, index) => {
                         const image = getOptionalProductImage(product);
                         const productTitle = buildProductDisplayTitle(product);
-                        const price = getDisplayPrice(product, session?.role);
                         const availability =
                           product.availabilityText ||
                           (typeof product.stockQuantity === "number"
@@ -441,7 +440,14 @@ const ProductsIndex = () => {
                               </p>
                             </div>
                             <div className={`${image ? "col-start-2 sm:col-start-auto" : ""} text-sm sm:text-right`}>
-                              <p className="whitespace-nowrap font-semibold text-foreground">{price}</p>
+                              <ProductPrice
+                                product={product}
+                                role={session?.role}
+                                layout="inline"
+                                className="justify-end whitespace-nowrap"
+                                currentClassName="font-semibold text-foreground"
+                                originalClassName="text-xs"
+                              />
                               {availability ? (
                                 <p className="mt-1 whitespace-nowrap text-xs text-muted-foreground">
                                   {availability}
