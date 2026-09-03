@@ -1,0 +1,6 @@
+audience_name,membership_days,required_before_launch,purpose
+All website visitors,180,No,Site visitor signal
+Product viewers,90,No,Product-interest signal
+Cart and checkout abandoners,30,No,High-intent signal
+Previous purchasers,540,No,Customer recognition and retention
+Existing customer list,540,No,New-customer recognition

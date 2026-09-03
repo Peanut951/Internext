@@ -214,7 +214,7 @@ The remaining work is commercial rather than purely technical: define the actual
 
 ## 18. Legal, Trust, and Business Content
 
-I rewrote return and legal content for an Australian IP product technology distribution company rather than leaving generic retail text. The return policy includes a 15% restocking fee for eligible change-of-mind returns. Warranty, damaged-goods, business-customer, software, licence, special-order, and freight considerations need to be described consistently with Australian Consumer Law and actual supplier terms. Formal legal review remains `To be confirmed`.
+I rewrote return and legal content for an Australian IP product technology distribution company rather than leaving generic retail text. The return policy does not accept change-of-mind returns, while expressly preserving rights and remedies that cannot be excluded under Australian Consumer Law. Warranty, damaged-goods, business-customer, software, licence, special-order, and freight considerations need to be described consistently with Australian Consumer Law and actual supplier terms. Formal legal review remains `To be confirmed`.
 
 Business contact details were standardised. Internext's address is shown in full as `Unit 7, 7B/256 New Line Rd, Dural NSW 2158`. The phone presentation retains `1300 U R NEXT` with the numeric form `1300 876 398`. Earlier incomplete addresses and inconsistent phone formats were corrected across relevant content and email templates.
 

@@ -1,0 +1,13 @@
+setting,value
+promotion_id,internext_first_order_10
+title,10% off your first Internext order
+country,Australia
+language,English
+destination,Shopping ads
+product_applicability,All products
+discount_type,Percentage discount
+discount_value,10
+eligibility,First order
+audience,New customers
+minimum_spend,None
+maximum_discount,None

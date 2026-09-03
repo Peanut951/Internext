@@ -32,13 +32,30 @@ const ReturnsRefunds = () => {
                   <RotateCcw className="h-5 w-5 text-accent" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-semibold text-foreground">Return Window</h2>
-                  <p className="mt-3 leading-7 text-muted-foreground">
-                    Return requests for non-faulty items should be lodged within 30 days of purchase.
-                    Products must be unopened, unused, uninstalled, complete, and in original packaging
-                    unless the item is faulty or your rights under Australian Consumer Law apply.
-                    Serial-numbered products must match the serial number supplied or recorded at sale.
-                  </p>
+                  <h2 className="text-xl font-semibold text-foreground">Change of Mind Returns</h2>
+                  <div className="mt-3 space-y-3 leading-7 text-muted-foreground">
+                    <p>
+                      We do not accept returns, refunds, or exchanges where a customer has changed their
+                      mind, selected the incorrect product, ordered an incorrect size or specification, or
+                      subsequently determines that the goods are no longer required or suitable for their
+                      application.
+                    </p>
+                    <p>
+                      Customers are responsible for ensuring that products are suitable for their intended
+                      application before placing an order. We recommend confirming product specifications
+                      and compatibility before purchase if there is any uncertainty. This does not limit any
+                      guarantee that goods will be fit for a purpose disclosed to us before purchase where the
+                      customer reasonably relied on our skill or judgement.
+                    </p>
+                    <p>
+                      Change-of-mind returns are not accepted, including where goods are unopened, unused,
+                      or in their original packaging.
+                    </p>
+                    <p className="font-medium text-foreground">
+                      This policy does not exclude, restrict, or modify any rights or remedies that cannot be
+                      excluded under the Australian Consumer Law.
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
@@ -49,18 +66,18 @@ const ReturnsRefunds = () => {
                   title: "Faulty or DOA Items",
                   points: [
                     "Report faults as soon as possible after discovery.",
-                    "Dead-on-arrival claims should be raised within 14 days of delivery.",
+                    "Our dead-on-arrival process applies to faults reported within 14 days of delivery, but this does not limit rights that may apply for a longer period under Australian Consumer Law.",
                     "We may request photos, serial numbers, diagnostic logs, configuration notes, or vendor troubleshooting results.",
-                    "Approved claims may be repaired, replaced, credited, or refunded.",
+                    "The available remedy depends on whether the failure is major or minor and the requirements of Australian Consumer Law.",
                   ],
                 },
                 {
-                  title: "Change of Mind",
+                  title: "Australian Consumer Law",
                   points: [
-                    "Approval is required before sending goods back.",
-                    "Items must be unopened, uninstalled, unregistered, complete, and resaleable.",
-                    "Return freight is normally the customer's responsibility.",
-                    "Approved change-of-mind returns are subject to a 15% restocking fee.",
+                    "Consumer guarantees apply independently of this change-of-mind policy and any manufacturer warranty.",
+                    "For a major failure, the customer may be entitled to choose a refund or replacement.",
+                    "For a minor failure, we may provide a repair within a reasonable time or another remedy required by law.",
+                    "Goods that are faulty, unsafe, materially different from their description, or otherwise fail a consumer guarantee will be handled in accordance with Australian Consumer Law.",
                   ],
                 },
               ].map((section) => (
@@ -81,10 +98,10 @@ const ReturnsRefunds = () => {
             <div className="rounded-2xl border border-border/50 bg-card p-5 shadow-card sm:p-7">
               <h2 className="text-xl font-semibold text-foreground">Refund Timing</h2>
               <p className="mt-3 leading-7 text-muted-foreground">
-                Refunds are processed after returned goods are received, checked against the approved
-                return authorisation, and assessed for condition, serial number, accessories, and packaging.
-                Approved refunds are returned to the original payment method where possible. Bank and
-                payment provider processing times may vary.
+                Where a refund is required under Australian Consumer Law, it will be processed after the
+                claim has been assessed and any required returned goods have been received. Refunds are
+                returned to the original payment method where possible. Bank and payment provider processing
+                times may vary.
               </p>
             </div>
 
@@ -92,11 +109,13 @@ const ReturnsRefunds = () => {
               <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
                 <AlertCircle className="h-6 w-6 shrink-0 text-accent" />
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">Items That May Be Excluded</h2>
+                  <h2 className="text-lg font-semibold text-foreground">Product-Specific Considerations</h2>
                   <p className="mt-2 leading-7 text-muted-foreground">
-                    Software licences, subscriptions, activated cloud services, opened print consumables,
-                    configured or installed hardware, hygiene-sensitive items, custom orders, project stock,
-                    and special-order products may not be returnable unless faulty or required by law.
+                    Software licences, subscriptions, activated cloud services, print consumables, configured
+                    or installed hardware, hygiene-sensitive items, custom orders, project stock, and
+                    special-order products can have product-specific warranty and assessment requirements.
+                    These requirements do not exclude any rights or remedies available under Australian
+                    Consumer Law.
                   </p>
                 </div>
               </div>

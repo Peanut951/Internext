@@ -718,6 +718,25 @@ const getAvailability = (product) => {
   return typeof product.stockQuantity === "number" && product.stockQuantity <= 0 ? "out_of_stock" : "in_stock";
 };
 
+const hasCompleteShippingMeasurements = (product) =>
+  [product.weightKg, product.heightCm, product.widthCm, product.depthCm]
+    .every((value) => Number.isFinite(Number(value)) && Number(value) > 0);
+
+const getPaidCampaignReadiness = (product, availability) => {
+  if (availability !== "in_stock") return "hold_not_in_stock";
+  if (!hasCompleteShippingMeasurements(product)) return "hold_shipping_data";
+  return "launch_ready";
+};
+
+const getPaidCampaignPriceBand = (product) => {
+  const price = Number(product.price);
+  if (!Number.isFinite(price) || price <= 0) return "price_unknown";
+  if (price < 250) return "price_under_250";
+  if (price < 750) return "price_250_749";
+  if (price < 2000) return "price_750_1999";
+  return "price_2000_plus";
+};
+
 const optionalTag = (name, value) => (value ? `      <${name}>${escapeXml(value)}</${name}>` : null);
 
 const getAvailabilityDate = (product) => {
@@ -916,6 +935,8 @@ const items = products.map((product) => {
     optionalTag("g:custom_label_0", productType.split(" > ")[0]) || "",
     optionalTag("g:custom_label_1", product.manufacturer || "Internext") || "",
     optionalTag("g:custom_label_2", availability) || "",
+    optionalTag("g:custom_label_3", getPaidCampaignReadiness(product, availability)) || "",
+    optionalTag("g:custom_label_4", getPaidCampaignPriceBand(product)) || "",
     ...shippingTags,
     "    </item>",
   ].join("\n");

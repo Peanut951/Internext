@@ -36,16 +36,16 @@ const faqCategories = [
     questions: [
       { q: "What warranty coverage do products have?", a: "Warranty periods vary by manufacturer and product. Details are included with each product listing and on the manufacturer's documentation." },
       { q: "How do I make a warranty claim?", a: "Warranty claims can be started by contacting our support team with the product details, proof of purchase, and issue description." },
-      { q: "What is your DOA (Dead on Arrival) policy?", a: "Products found to be faulty within 14 days of delivery can be returned as DOA for immediate replacement, subject to our returns policy." },
+      { q: "What is your DOA (Dead on Arrival) policy?", a: "Products reported as faulty within 14 days of delivery may qualify for our expedited DOA assessment process. This process does not limit any rights or remedies available under Australian Consumer Law." },
       { q: "Are there any exclusions to warranty coverage?", a: "Warranties typically don't cover physical damage, misuse, or issues caused by incorrect installation. See specific product warranty terms for details." },
     ],
   },
   {
     title: "Returns",
     questions: [
-      { q: "What is your returns policy?", a: "Non-faulty returns may be accepted within 30 days of purchase, subject to a restocking fee. Products must be unopened and in original packaging." },
-      { q: "How do I arrange a return?", a: "Contact our returns team with the order and product details. We will review the request and provide the next steps." },
-      { q: "Who pays for return shipping?", a: "For faulty products covered under warranty, we cover return shipping. For non-faulty returns, the customer is responsible for shipping costs." },
+      { q: "What is your returns policy?", a: "We do not accept returns, refunds, or exchanges for change of mind, including where the incorrect product, size, or specification was ordered or the goods are unopened. This does not affect any rights or remedies available under Australian Consumer Law." },
+      { q: "How do I arrange a return?", a: "If you believe goods are faulty or do not comply with a consumer guarantee, contact our returns team with your order and product details. We will assess the claim and provide the next steps." },
+      { q: "Who pays for return shipping?", a: "If we confirm that goods have a problem covered by Australian Consumer Law, we will reimburse reasonable return costs already paid. Please contact us before returning goods so we can provide the appropriate instructions." },
       { q: "How long do refunds take to process?", a: "Refunds are typically processed within 5-7 business days of receiving the returned goods and completing inspection." },
     ],
   },

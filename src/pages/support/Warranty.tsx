@@ -53,7 +53,7 @@ const Warranty = () => {
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
                 <p className="text-muted-foreground mb-4">
                   If a product is found to be faulty within <strong>14 days</strong> of delivery, 
-                  it may be eligible for DOA replacement. To qualify:
+                  it may be eligible for our expedited DOA process. To help us assess a DOA claim:
                 </p>
                 <ul className="space-y-2 text-muted-foreground mb-4">
                   <li className="flex items-start gap-2">
@@ -62,7 +62,7 @@ const Warranty = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    All original packaging, accessories, and documentation must be included
+                    Retain the original packaging, accessories, and documentation where available
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
@@ -74,7 +74,9 @@ const Warranty = () => {
                   </li>
                 </ul>
                 <p className="text-sm text-muted-foreground">
-                  DOA products will be replaced with the same model, subject to stock availability.
+                  This DOA process is additional to, and does not limit, rights or remedies under Australian
+                  Consumer Law. The applicable remedy depends on the circumstances and whether a failure is
+                  major or minor.
                 </p>
               </div>
             </div>
@@ -104,41 +106,33 @@ const Warranty = () => {
             <div className="mb-10">
               <h2 className="text-2xl font-bold text-foreground mb-6">Returns Policy</h2>
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
-                <h3 className="font-semibold text-foreground mb-3">Non-Faulty Returns</h3>
-                <p className="text-muted-foreground mb-4">
-                  Non-faulty returns are subject to approval because many IP technology products are
-                  serial-numbered, vendor-controlled, special-order, licensed, or no longer resaleable once
-                  opened, installed, activated, or configured. Our policy for non-faulty returns is as follows:
-                </p>
-                <ul className="space-y-2 text-muted-foreground mb-4">
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Returns must be requested within 30 days of purchase
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Products must be unopened, uninstalled, unregistered, and in original packaging
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Approved change-of-mind returns are subject to a 15% restocking fee
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Return shipping costs are the responsibility of the customer
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    Custom orders, project stock, special orders, software, licences, subscriptions, opened consumables, and configured hardware may be excluded
-                  </li>
-                </ul>
+                <h3 className="font-semibold text-foreground mb-3">Change of Mind Returns</h3>
+                <div className="space-y-3 text-muted-foreground mb-4">
+                  <p>
+                    We do not accept returns, refunds, or exchanges where a customer has changed their
+                    mind, selected the incorrect product, ordered an incorrect size or specification, or
+                    subsequently determines that the goods are no longer required or suitable for their
+                    application.
+                  </p>
+                  <p>
+                    Customers are responsible for ensuring that products are suitable for their intended
+                    application before placing an order. We recommend confirming product specifications
+                    and compatibility before purchase if there is any uncertainty. This does not limit any
+                    guarantee that goods will be fit for a purpose disclosed to us before purchase where the
+                    customer reasonably relied on our skill or judgement.
+                  </p>
+                  <p>
+                    Change-of-mind returns are not accepted, including where goods are unopened, unused,
+                    or in their original packaging.
+                  </p>
+                </div>
 
                 <div className="bg-secondary rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-muted-foreground">
-                    Software, activated services, licences, opened consumables, configured hardware, and
-                    opened hygiene products such as headsets or earphones cannot be returned unless faulty
-                    or required by law.
+                    This change-of-mind policy does not exclude, restrict, or modify any rights or remedies
+                    that cannot be excluded under Australian Consumer Law. Faulty goods and other failures
+                    to comply with consumer guarantees will be handled in accordance with the law.
                   </p>
                 </div>
               </div>

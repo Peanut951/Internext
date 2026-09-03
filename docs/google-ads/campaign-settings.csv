@@ -1,0 +1,21 @@
+setting,value
+campaign_name,Internext - PMax - AU - Launch Ready Products
+status,Paused
+campaign_type,Performance Max with Merchant Center feed
+sales_country,Australia
+location,Australia
+location_option,Presence only
+language,English
+daily_budget_aud,40.00
+bid_strategy,Maximize conversion value
+target_roas,Not set
+primary_conversion,Purchase only
+final_url,https://www.internext.com.au/products
+final_url_expansion,On
+text_customization,On
+call_to_action,Shop now
+business_name,Internext
+asset_group,In-stock business technology
+included_listing_group,custom_label_3=launch_ready
+excluded_listing_group,Everything else
+new_customer_acquisition,On after customer value is confirmed

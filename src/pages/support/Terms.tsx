@@ -24,7 +24,7 @@ const Terms = () => {
             <div className="space-y-8 rounded-2xl border border-border/50 bg-card p-5 shadow-card sm:p-7 md:p-8">
               <div>
                 <p className="text-sm text-muted-foreground mb-6">
-                  Last updated: June 2026
+                  Last updated: September 2026
                 </p>
                 <p className="text-muted-foreground">
                   These terms and conditions ("Terms") govern your use of Internext Pty Ltd's 
@@ -83,10 +83,12 @@ const Terms = () => {
                 <p className="text-muted-foreground">
                   Returns and warranty claims are subject to our Returns Policy and Australian Consumer Law.
                   Manufacturer and vendor warranties apply to many products and may require serial numbers,
-                  proof of purchase, diagnostic steps, photos, logs, or direct vendor assessment. Approved
-                  change-of-mind returns are subject to a 15% restocking fee and may be refused for software,
-                  licences, subscriptions, opened consumables, custom orders, special orders, activated services,
-                  or configured/installed hardware unless faulty or required by law.
+                  proof of purchase, diagnostic steps, photos, logs, or direct vendor assessment. We do not
+                  accept returns, refunds, or exchanges where a customer changes their mind, selects the
+                  incorrect product, orders an incorrect size or specification, or no longer requires the
+                  goods, including where the goods are unopened or unused. This policy does not exclude,
+                  restrict, or modify any rights or remedies that cannot be excluded under Australian Consumer
+                  Law.
                 </p>
               </div>
 
