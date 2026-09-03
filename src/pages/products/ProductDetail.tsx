@@ -99,6 +99,28 @@ type AdminCompetitorPricingSummary = {
   databaseEnabled?: boolean;
   observations?: Array<{ id?: string }>;
   recommendations?: Array<{ id?: string; status?: string; recommended_price_inc_gst?: number }>;
+  candidates?: Array<{
+    id: string;
+    provider: "prisync" | "price2spy" | "dataforseo";
+    seller_name: string;
+    seller_domain: string;
+    competitor_product_url: string;
+    observed_price_inc_gst: number;
+    observed_shipping_inc_gst: number;
+    currency: string;
+    review_reason: string;
+    status: "pending" | "approved" | "rejected";
+  }>;
+  productControl?: {
+    product_code: string;
+    mode: "monitor_only" | "automatic" | "excluded";
+  };
+  productMatches?: Array<{
+    provider: "dataforseo";
+    provider_product_id: string;
+    match_method: "gtin" | "brand_mpn";
+    verified: boolean;
+  }>;
   error?: string;
 };
 
@@ -959,6 +981,8 @@ const ProductDetail = () => {
   const [adminCompetitorPricing, setAdminCompetitorPricing] = useState<AdminCompetitorPricingSummary>({
     loading: false,
   });
+  const [adminCompetitorReviewId, setAdminCompetitorReviewId] = useState("");
+  const [adminCompetitorModeSaving, setAdminCompetitorModeSaving] = useState(false);
   const { session } = useAuthSession();
   const { toast } = useToast();
 
@@ -1632,6 +1656,71 @@ const ProductDetail = () => {
     }
   };
 
+  const reviewCompetitorSeller = async (
+    candidateId: string,
+    action: "approve-seller" | "reject-seller",
+  ) => {
+    if (!product?.code || adminCompetitorReviewId) return;
+    setAdminCompetitorReviewId(candidateId);
+    try {
+      const response = await fetch("/api/catalog/competitor-pricing", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, candidateId }),
+      });
+      const result = await response.json().catch(() => ({})) as { message?: string };
+      if (!response.ok) throw new Error(result.message || "The seller review could not be saved.");
+
+      const statusResponse = await fetch(
+        `/api/catalog/competitor-pricing?code=${encodeURIComponent(product.code)}`,
+        { credentials: "same-origin", cache: "no-store" },
+      );
+      const status = await statusResponse.json().catch(() => ({})) as AdminCompetitorPricingSummary & { message?: string };
+      if (!statusResponse.ok) throw new Error(status.message || "Competitor pricing status is unavailable.");
+      setAdminCompetitorPricing({ ...status, loading: false });
+      toast({ title: action === "approve-seller" ? "Seller approved" : "Seller rejected", description: result.message });
+    } catch (reviewError) {
+      toast({
+        variant: "destructive",
+        title: "Review not saved",
+        description: reviewError instanceof Error ? reviewError.message : "The seller review could not be saved.",
+      });
+    } finally {
+      setAdminCompetitorReviewId("");
+    }
+  };
+
+  const setCompetitorProductMode = async (
+    mode: "monitor_only" | "automatic" | "excluded",
+  ) => {
+    if (!product?.code || adminCompetitorModeSaving) return;
+    setAdminCompetitorModeSaving(true);
+    try {
+      const response = await fetch("/api/catalog/competitor-pricing", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set-product-mode", productCode: product.code, mode }),
+      });
+      const result = await response.json().catch(() => ({})) as { message?: string };
+      if (!response.ok) throw new Error(result.message || "The product pricing mode could not be saved.");
+      setAdminCompetitorPricing((current) => ({
+        ...current,
+        productControl: { product_code: product.code, mode },
+      }));
+      toast({ title: "Pricing mode updated", description: `This product is now set to ${mode.replace("_", " ")}.` });
+    } catch (modeError) {
+      toast({
+        variant: "destructive",
+        title: "Mode not saved",
+        description: modeError instanceof Error ? modeError.message : "The product pricing mode could not be saved.",
+      });
+    } finally {
+      setAdminCompetitorModeSaving(false);
+    }
+  };
+
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
     const currentIndex = galleryImages.indexOf(activeImage);
     const nextImage = currentIndex >= 0 ? galleryImages[currentIndex + 1] : galleryImages[0];
@@ -2297,7 +2386,37 @@ const ProductDetail = () => {
                                 {adminCompetitorPricing.error}
                               </p>
                             ) : (
-                              <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+                              <>
+                              <div className="mt-4">
+                                <p className="mb-2 text-xs font-semibold text-foreground">Product mode</p>
+                                <div className="grid grid-cols-3 rounded-lg border border-border/60 bg-background p-1">
+                                  {([
+                                    ["monitor_only", "Monitor"],
+                                    ["automatic", "Automatic"],
+                                    ["excluded", "Excluded"],
+                                  ] as const).map(([value, label]) => (
+                                    <button
+                                      key={value}
+                                      type="button"
+                                      onClick={() => setCompetitorProductMode(value)}
+                                      disabled={adminCompetitorModeSaving}
+                                      className={`min-h-9 rounded-md px-2 text-xs font-semibold transition-colors ${
+                                        (adminCompetitorPricing.productControl?.mode || "monitor_only") === value
+                                          ? "bg-secondary text-foreground shadow-sm"
+                                          : "text-muted-foreground hover:text-foreground"
+                                      }`}
+                                    >
+                                      {label}
+                                    </button>
+                                  ))}
+                                </div>
+                                <p className="mt-2 text-xs text-muted-foreground">
+                                  {adminCompetitorPricing.productMatches?.length
+                                    ? `Google product identity verified by ${adminCompetitorPricing.productMatches[0].match_method.replace("_", " + ")}.`
+                                    : "Google product identity has not been verified yet."}
+                                </p>
+                              </div>
+                              <div className="mt-4 grid grid-cols-2 gap-2 text-center sm:grid-cols-4">
                                 <div className="rounded-lg border border-border/60 bg-background px-2 py-3">
                                   <p className="text-lg font-semibold text-foreground">
                                     {adminCompetitorPricing.databaseEnabled ? "On" : "Off"}
@@ -2316,7 +2435,58 @@ const ProductDetail = () => {
                                   </p>
                                   <p className="mt-1 text-[11px] text-muted-foreground">Pending</p>
                                 </div>
+                                <div className="rounded-lg border border-border/60 bg-background px-2 py-3">
+                                  <p className="text-lg font-semibold text-foreground">
+                                    {adminCompetitorPricing.candidates?.filter((item) => item.status === "pending").length || 0}
+                                  </p>
+                                  <p className="mt-1 text-[11px] text-muted-foreground">Seller reviews</p>
+                                </div>
                               </div>
+                              {adminCompetitorPricing.candidates?.some((item) => item.status === "pending") ? (
+                                <div className="mt-4 space-y-3 border-t border-border/60 pt-4">
+                                  {adminCompetitorPricing.candidates
+                                    .filter((item) => item.status === "pending")
+                                    .slice(0, 3)
+                                    .map((candidate) => (
+                                      <div key={candidate.id} className="text-xs leading-5 text-muted-foreground">
+                                        <div className="flex flex-wrap items-start justify-between gap-2">
+                                          <div>
+                                            <p className="font-semibold text-foreground">{candidate.seller_name}</p>
+                                            <a
+                                              href={candidate.competitor_product_url}
+                                              target="_blank"
+                                              rel="noreferrer"
+                                              className="text-accent underline-offset-2 hover:underline"
+                                            >
+                                              {candidate.seller_domain}
+                                            </a>
+                                            <p>{candidate.currency} {Number(candidate.observed_price_inc_gst || 0).toFixed(2)} via {candidate.provider}</p>
+                                          </div>
+                                          <div className="flex gap-2">
+                                            <Button
+                                              type="button"
+                                              size="sm"
+                                              variant="outline"
+                                              onClick={() => reviewCompetitorSeller(candidate.id, "reject-seller")}
+                                              disabled={Boolean(adminCompetitorReviewId)}
+                                            >
+                                              Reject
+                                            </Button>
+                                            <Button
+                                              type="button"
+                                              size="sm"
+                                              onClick={() => reviewCompetitorSeller(candidate.id, "approve-seller")}
+                                              disabled={Boolean(adminCompetitorReviewId)}
+                                            >
+                                              {adminCompetitorReviewId === candidate.id ? "Saving..." : "Approve seller"}
+                                            </Button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    ))}
+                                </div>
+                              ) : null}
+                              </>
                             )}
                           </div>
                           </>

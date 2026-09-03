@@ -13,7 +13,7 @@
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
     "audit:titles": "node scripts/audit-google-product-titles.mjs",
     "audit:price-floors": "node scripts/audit-public-price-floors.mjs",
-    "test:competitor-pricing": "node --test tests/competitor-pricing.test.mjs",
+    "test:competitor-pricing": "node --test tests/competitor-pricing.test.mjs tests/competitor-provider-normalization.test.mjs",
     "enrich:shipping:alloys": "node scripts/enrich-shipping-measurements-alloys.mjs",
     "enrich:shipping:icecat": "node scripts/enrich-shipping-measurements-icecat.mjs",
     "lint": "eslint .",

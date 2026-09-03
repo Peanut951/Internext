@@ -1,4 +1,10 @@
 {
+  "crons": [
+    {
+      "path": "/api/cron/competitor-pricing",
+      "schedule": "15 4 * * *"
+    }
+  ],
   "redirects": [
     {
       "source": "/products/item/:code/index.html",
