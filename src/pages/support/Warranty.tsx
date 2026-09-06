@@ -52,7 +52,7 @@ const Warranty = () => {
               <h2 className="text-2xl font-bold text-foreground mb-6">Dead on Arrival (DOA) Policy</h2>
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
                 <p className="text-muted-foreground mb-4">
-                  If a product is found to be faulty within <strong>14 days</strong> of delivery, 
+                  If a product is found to be faulty within <strong>7 days</strong> of delivery,
                   it may be eligible for our expedited DOA process. To help us assess a DOA claim:
                 </p>
                 <ul className="space-y-2 text-muted-foreground mb-4">
@@ -66,7 +66,7 @@ const Warranty = () => {
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                    The fault must be reported within the 14-day DOA period
+                    The fault must be reported within the 7-day DOA period
                   </li>
                   <li className="flex items-start gap-2">
                     <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
@@ -107,32 +107,19 @@ const Warranty = () => {
               <h2 className="text-2xl font-bold text-foreground mb-6">Returns Policy</h2>
               <div className="bg-card rounded-xl p-6 shadow-card border border-border/50">
                 <h3 className="font-semibold text-foreground mb-3">Change of Mind Returns</h3>
-                <div className="space-y-3 text-muted-foreground mb-4">
-                  <p>
-                    We do not accept returns, refunds, or exchanges where a customer has changed their
-                    mind, selected the incorrect product, ordered an incorrect size or specification, or
-                    subsequently determines that the goods are no longer required or suitable for their
-                    application.
-                  </p>
-                  <p>
-                    Customers are responsible for ensuring that products are suitable for their intended
-                    application before placing an order. We recommend confirming product specifications
-                    and compatibility before purchase if there is any uncertainty. This does not limit any
-                    guarantee that goods will be fit for a purpose disclosed to us before purchase where the
-                    customer reasonably relied on our skill or judgement.
-                  </p>
-                  <p>
-                    Change-of-mind returns are not accepted, including where goods are unopened, unused,
-                    or in their original packaging.
-                  </p>
-                </div>
+                <p className="text-muted-foreground mb-4">
+                  We accept change-of-mind returns with prior approval where goods are unopened, unused,
+                  uninstalled, unregistered, complete, and in resaleable condition with original packaging
+                  and seals intact. Approved returns incur a 15% restocking fee. Return freight is the
+                  customer's responsibility, and original delivery charges are not refundable.
+                </p>
 
                 <div className="bg-secondary rounded-lg p-4 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-accent flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-muted-foreground">
-                    This change-of-mind policy does not exclude, restrict, or modify any rights or remedies
-                    that cannot be excluded under Australian Consumer Law. Faulty goods and other failures
-                    to comply with consumer guarantees will be handled in accordance with the law.
+                    This policy applies only to change-of-mind returns and does not affect or limit any rights
+                    you may have under the Australian Consumer Law. See our Returns &amp; Refunds Policy for
+                    all return conditions.
                   </p>
                 </div>
               </div>

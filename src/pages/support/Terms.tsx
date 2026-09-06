@@ -83,12 +83,11 @@ const Terms = () => {
                 <p className="text-muted-foreground">
                   Returns and warranty claims are subject to our Returns Policy and Australian Consumer Law.
                   Manufacturer and vendor warranties apply to many products and may require serial numbers,
-                  proof of purchase, diagnostic steps, photos, logs, or direct vendor assessment. We do not
-                  accept returns, refunds, or exchanges where a customer changes their mind, selects the
-                  incorrect product, orders an incorrect size or specification, or no longer requires the
-                  goods, including where the goods are unopened or unused. This policy does not exclude,
-                  restrict, or modify any rights or remedies that cannot be excluded under Australian Consumer
-                  Law.
+                  proof of purchase, diagnostic steps, photos, logs, or direct vendor assessment. Approved
+                  change-of-mind returns must satisfy the conditions in our Returns Policy and incur a 15%
+                  restocking fee. Return freight is the customer's responsibility, and original delivery
+                  charges are not refundable. These change-of-mind conditions do not affect or limit any
+                  rights or remedies available under Australian Consumer Law.
                 </p>
               </div>
 
