@@ -2,6 +2,7 @@ import { getSessionFromRequest } from "../auth/_shared.js";
 import { readEnv, sendJson } from "../checkout/_shared.js";
 import { normalizeCompetitorDomain } from "../../shared/competitor-provider-normalization.js";
 import { getCompetitorPricingMode } from "./_competitorPricing.js";
+import { runCompetitorProviderSync } from "./_competitorProviderSync.js";
 
 const TABLES = {
   settings: "competitor_pricing_settings",
@@ -112,6 +113,29 @@ export default async function handler(
       }
     }
     const action = String(body.action || "").trim();
+
+    if (action === "run-provider-sync") {
+      try {
+        const result = await runCompetitorProviderSync();
+        if (result.skipped) {
+          return sendJson(res, 409, {
+            message: "Competitor discovery is disabled. Set COMPETITOR_DISCOVERY_ENABLED=true and redeploy.",
+            ...result,
+          });
+        }
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        return sendJson(res, 200, {
+          ok: true,
+          message: `Competitor scan completed for ${result.productsRead} products.`,
+          ...result,
+        });
+      } catch (error) {
+        return sendJson(res, 502, {
+          message: "The competitor scan failed.",
+          detail: error instanceof Error ? error.message : "Unknown provider error.",
+        });
+      }
+    }
 
     if (action === "set-product-mode") {
       const productCode = String(body.productCode || "").trim();

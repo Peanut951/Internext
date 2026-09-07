@@ -4,7 +4,7 @@ import Layout from "@/components/layout/Layout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ProductPrice from "@/components/products/ProductPrice";
-import { ArrowLeft, CheckCircle2, Headphones, Minus, Plus, ShieldCheck, Truck } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Headphones, Minus, Plus, RefreshCw, ShieldCheck, Truck } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   getProductImageCandidates,
@@ -120,6 +120,16 @@ type AdminCompetitorPricingSummary = {
     provider_product_id: string;
     match_method: "gtin" | "brand_mpn";
     verified: boolean;
+  }>;
+  syncRuns?: Array<{
+    id: string;
+    provider: "prisync" | "price2spy" | "dataforseo";
+    status: "running" | "completed" | "failed";
+    products_read: number;
+    listings_read: number;
+    error_message?: string | null;
+    started_at: string;
+    finished_at?: string | null;
   }>;
   error?: string;
 };
@@ -982,6 +992,7 @@ const ProductDetail = () => {
   });
   const [adminCompetitorReviewId, setAdminCompetitorReviewId] = useState("");
   const [adminCompetitorModeSaving, setAdminCompetitorModeSaving] = useState(false);
+  const [adminCompetitorSyncing, setAdminCompetitorSyncing] = useState(false);
   const { session } = useAuthSession();
   const { toast } = useToast();
 
@@ -1685,6 +1696,45 @@ const ProductDetail = () => {
     }
   };
 
+  const runCompetitorScan = async () => {
+    if (!product?.code || adminCompetitorSyncing) return;
+    setAdminCompetitorSyncing(true);
+    try {
+      const response = await fetch("/api/catalog/competitor-pricing", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "run-provider-sync" }),
+      });
+      const result = await response.json().catch(() => ({})) as {
+        message?: string;
+        detail?: string;
+        productsRead?: number;
+      };
+      if (!response.ok) throw new Error(result.detail || result.message || "The competitor scan could not be run.");
+
+      const statusResponse = await fetch(
+        `/api/catalog/competitor-pricing?code=${encodeURIComponent(product.code)}`,
+        { credentials: "same-origin", cache: "no-store" },
+      );
+      const status = await statusResponse.json().catch(() => ({})) as AdminCompetitorPricingSummary & { message?: string };
+      if (!statusResponse.ok) throw new Error(status.message || "The scan completed, but its status could not be refreshed.");
+      setAdminCompetitorPricing({ ...status, loading: false });
+      toast({
+        title: "Competitor scan completed",
+        description: result.message || `${result.productsRead || 0} products were submitted or processed.`,
+      });
+    } catch (syncError) {
+      toast({
+        variant: "destructive",
+        title: "Competitor scan failed",
+        description: syncError instanceof Error ? syncError.message : "The competitor scan could not be run.",
+      });
+    } finally {
+      setAdminCompetitorSyncing(false);
+    }
+  };
+
   const handleActiveImageError = (event: SyntheticEvent<HTMLImageElement>) => {
     const currentIndex = galleryImages.indexOf(activeImage);
     const nextImage = currentIndex >= 0 ? galleryImages[currentIndex + 1] : galleryImages[0];
@@ -2338,9 +2388,21 @@ const ProductDetail = () => {
                                   Staged recommendations for this product. Customer pricing remains unchanged while disabled.
                                 </p>
                               </div>
-                              <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold capitalize text-accent">
-                                {adminCompetitorPricing.mode || "disabled"}
-                              </span>
+                              <div className="flex flex-wrap items-center justify-end gap-2">
+                                <span className="rounded-full bg-background px-2 py-1 text-xs font-semibold capitalize text-accent">
+                                  {adminCompetitorPricing.mode || "disabled"}
+                                </span>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={runCompetitorScan}
+                                  disabled={adminCompetitorSyncing || adminCompetitorPricing.loading}
+                                >
+                                  <RefreshCw className={`mr-2 h-4 w-4 ${adminCompetitorSyncing ? "animate-spin" : ""}`} />
+                                  {adminCompetitorSyncing ? "Running..." : "Run competitor scan"}
+                                </Button>
+                              </div>
                             </div>
 
                             {adminCompetitorPricing.loading ? (
@@ -2406,6 +2468,15 @@ const ProductDetail = () => {
                                   <p className="mt-1 text-[11px] text-muted-foreground">Seller reviews</p>
                                 </div>
                               </div>
+                              {adminCompetitorPricing.syncRuns?.[0] ? (
+                                <p className="mt-3 text-xs leading-5 text-muted-foreground">
+                                  Latest scan: {adminCompetitorPricing.syncRuns[0].status} at{" "}
+                                  {new Date(adminCompetitorPricing.syncRuns[0].started_at).toLocaleString("en-AU")}
+                                  {adminCompetitorPricing.syncRuns[0].error_message
+                                    ? ` - ${adminCompetitorPricing.syncRuns[0].error_message}`
+                                    : ` - ${adminCompetitorPricing.syncRuns[0].products_read} products, ${adminCompetitorPricing.syncRuns[0].listings_read} listings`}
+                                </p>
+                              ) : null}
                               {adminCompetitorPricing.candidates?.some((item) => item.status === "pending") ? (
                                 <div className="mt-4 space-y-3 border-t border-border/60 pt-4">
                                   {adminCompetitorPricing.candidates
