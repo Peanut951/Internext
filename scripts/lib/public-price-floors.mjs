@@ -36,13 +36,7 @@ export const getPublicPriceFloor = (product, floorByKey) => {
 
 export const applyPublicPriceFloor = (product, floorByKey) => {
   const floor = getPublicPriceFloor(product, floorByKey);
-  const currentPrice = Number(product?.price);
-  if (
-    floor === null ||
-    !Number.isFinite(currentPrice) ||
-    currentPrice <= 0 ||
-    currentPrice >= floor
-  ) {
+  if (floor === null) {
     return product;
   }
 
@@ -57,5 +51,6 @@ export const applyPublicPriceFloor = (product, floorByKey) => {
     rrp,
     rrpText: formatAud(rrp),
     publicPriceFloorIncGst: floor,
+    publicPriceFixed: true,
   };
 };

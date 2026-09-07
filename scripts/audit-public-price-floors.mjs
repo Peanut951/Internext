@@ -24,6 +24,10 @@ const seenAlloysSkus = new Set();
 const seenVendorCodes = new Set();
 const dataErrors = [];
 
+if (floorData.pricingMode !== "fixed") {
+  dataErrors.push("The Grandstream advertised-price table must use fixed pricing mode.");
+}
+
 for (const [index, row] of rows.entries()) {
   const alloysSku = normalize(row.alloysSku);
   const vendorCode = normalize(row.vendorCode);
@@ -53,13 +57,24 @@ if (
   invariantResult.resellerPrice !== invariantInput.resellerPrice ||
   invariantResult.resellerPriceText !== invariantInput.resellerPriceText
 ) {
-  dataErrors.push("Applying a public price floor changed reseller pricing.");
+  dataErrors.push("Applying a fixed public price changed reseller pricing.");
+}
+
+const configuredPrice = Number(rows[0]?.floorIncGst);
+if (invariantResult.price !== configuredPrice || invariantResult.publicPriceFixed !== true) {
+  dataErrors.push("A fixed public price was not applied when the supplier price was lower.");
+}
+
+const higherSupplierPriceInput = { ...invariantInput, price: configuredPrice + 100 };
+const higherSupplierPriceResult = applyPublicPriceFloor(higherSupplierPriceInput, floorByKey);
+if (higherSupplierPriceResult.price !== configuredPrice) {
+  dataErrors.push("A higher supplier price replaced a fixed advertised price.");
 }
 
 const missingPriceInput = { ...invariantInput, price: null, priceText: "Contact for pricing" };
 const missingPriceResult = applyPublicPriceFloor(missingPriceInput, floorByKey);
-if (missingPriceResult.price !== null || missingPriceResult.priceText !== "Contact for pricing") {
-  dataErrors.push("A public price floor replaced a missing supplier price.");
+if (missingPriceResult.price !== configuredPrice) {
+  dataErrors.push("A fixed advertised price was not applied when the supplier price was missing.");
 }
 
 const feedXml = fs.readFileSync(feedPath, "utf8");
@@ -82,18 +97,18 @@ for (const row of rows) {
   if (!product) continue;
 
   advertisedMatches += 1;
-  const floor = Number(row.floorIncGst);
-  if (!Number.isFinite(product.price) || product.price + 0.001 < floor) {
-    violations.push(`${row.alloysSku}: feed ${product.price || "missing"}, floor ${floor}`);
+  const fixedPrice = Number(row.floorIncGst);
+  if (!Number.isFinite(product.price) || Math.abs(product.price - fixedPrice) > 0.001) {
+    violations.push(`${row.alloysSku}: feed ${product.price || "missing"}, fixed ${fixedPrice}`);
   }
 }
 
 if (dataErrors.length || violations.length) {
-  for (const error of dataErrors) console.error(`Price-floor data error: ${error}`);
-  for (const violation of violations) console.error(`Price-floor violation: ${violation}`);
+  for (const error of dataErrors) console.error(`Fixed-price data error: ${error}`);
+  for (const violation of violations) console.error(`Fixed-price violation: ${violation}`);
   process.exitCode = 1;
 } else {
   console.log(
-    `Public price-floor audit passed: ${rows.length} configured, ${advertisedMatches} currently advertised, 0 below floor, reseller invariant preserved.`,
+    `Fixed public-price audit passed: ${rows.length} configured, ${advertisedMatches} currently advertised, exact prices enforced, reseller invariant preserved.`,
   );
 }

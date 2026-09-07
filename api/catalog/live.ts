@@ -25,6 +25,7 @@ export type LiveCatalogItem = {
   price: number | null;
   priceText: string;
   publicPriceFloor?: number;
+  publicPriceFixed?: boolean;
   originalPrice?: number | null;
   originalPriceText?: string;
   competitorAdjusted?: boolean;
@@ -552,20 +553,15 @@ const applyPublicPriceFloor = <T extends {
   price?: number | null;
   priceText?: string;
   publicPriceFloor?: number;
+  publicPriceFixed?: boolean;
   rrp?: number | null;
   rrpText?: string;
 }>(product: T, floorByKey: Map<string, number>): T => {
   const floor = [product.code, product.supplierCode]
     .map((value) => floorByKey.get(String(value || "").trim().toLowerCase()))
     .find((value): value is number => typeof value === "number");
-  const currentPrice = Number(product.price);
-
-  if (floor === undefined || !Number.isFinite(currentPrice) || currentPrice <= 0) {
+  if (floor === undefined) {
     return product;
-  }
-
-  if (currentPrice >= floor) {
-    return { ...product, publicPriceFloor: floor };
   }
 
   const currentRrp = Number(product.rrp);
@@ -575,6 +571,7 @@ const applyPublicPriceFloor = <T extends {
   return {
     ...product,
     publicPriceFloor: floor,
+    publicPriceFixed: true,
     price: floor,
     priceText: formatCustomerAud(floor),
     rrp,

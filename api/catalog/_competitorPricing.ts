@@ -21,6 +21,7 @@ export type CompetitorAdjustableProduct = {
   price?: number | null;
   priceText?: string;
   publicPriceFloor?: number | null;
+  publicPriceFixed?: boolean;
   resellerPrice?: number | null;
   resellerPriceText?: string;
   originalPrice?: number | null;
@@ -174,6 +175,8 @@ export const applyCompetitorPriceAdjustments = async <T extends CompetitorAdjust
   }
 
   return products.map((product) => {
+    if (product.publicPriceFixed) return product;
+
     const currentPrice = toPositiveMoney(product.price);
     if (currentPrice === null) return product;
 

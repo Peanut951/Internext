@@ -1,6 +1,7 @@
 {
   "currency": "AUD",
   "taxInclusive": true,
+  "pricingMode": "fixed",
   "source": "Grandstream advertised price table supplied 2026-08-31",
   "prices": [
     { "alloysSku": "GR-GWN7062E", "vendorCode": "GWN7062E", "floorIncGst": 89.79 },

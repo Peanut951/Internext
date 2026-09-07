@@ -8,6 +8,7 @@ export type CatalogProductWithLive = {
   price: number | null;
   priceText?: string;
   publicPriceFloor?: number;
+  publicPriceFixed?: boolean;
   originalPrice?: number | null;
   originalPriceText?: string;
   competitorAdjusted?: boolean;
@@ -167,14 +168,8 @@ const applyPublicPriceFloor = (
   const floor = getProductKeys(product)
     .map((key) => floorByKey.get(key))
     .find((value): value is number => typeof value === "number");
-  const currentPrice = Number(product.price);
-
-  if (floor === undefined || !Number.isFinite(currentPrice) || currentPrice <= 0) {
+  if (floor === undefined) {
     return product;
-  }
-
-  if (currentPrice >= floor) {
-    return { ...product, publicPriceFloor: floor };
   }
 
   const currentRrp = Number(product.rrp);
@@ -186,6 +181,7 @@ const applyPublicPriceFloor = (
   return {
     ...product,
     publicPriceFloor: floor,
+    publicPriceFixed: true,
     price: floor,
     priceText: formatCustomerAud(floor),
     rrp,
