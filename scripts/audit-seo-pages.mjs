@@ -81,8 +81,15 @@ const uniqueSitemapUrls = new Set(sitemapUrls);
 if (uniqueSitemapUrls.size !== sitemapUrls.length) {
   errors.push(`sitemap.xml: contains ${sitemapUrls.length - uniqueSitemapUrls.size} duplicate URLs`);
 }
+for (const sitemapUrl of sitemapUrls) {
+  const url = new URL(sitemapUrl);
+  if (url.pathname !== "/" && url.pathname.endsWith("/")) {
+    errors.push(`${url.pathname}: sitemap URL must not end with a trailing slash`);
+  }
+}
 
 let productPageCount = 0;
+const productCodesByTitle = new Map();
 for (const sitemapUrl of sitemapUrls) {
   const url = new URL(sitemapUrl);
   if (!url.pathname.startsWith("/products/item/")) {
@@ -99,15 +106,55 @@ for (const sitemapUrl of sitemapUrls) {
   if (!getRobots(html).includes("index, follow")) {
     errors.push(`${url.pathname}: product page is not index, follow`);
   }
+  if (!/<h1>[^<]+<\/h1>/i.test(html)) {
+    errors.push(`${url.pathname}: product page is missing static heading content`);
+  }
+  if (/"merchantReturnDays"\s*:\s*30/i.test(html)) {
+    errors.push(`${url.pathname}: product schema contains the obsolete 30-day return policy`);
+  }
+  if (/"shippingRate"\s*:\s*\{[\s\S]*?"value"\s*:\s*"35\.00"/i.test(html)) {
+    errors.push(`${url.pathname}: product schema contains the obsolete flat $35 shipping rate`);
+  }
+
+  const title = getMatches(html, /<title>([\s\S]*?)<\/title>/gi)[0]?.[1]
+    ?.replace(/\s+/g, " ")
+    .trim()
+    .toLowerCase();
+  if (title) {
+    const codes = productCodesByTitle.get(title) || [];
+    codes.push(decodeURIComponent(encodedCode));
+    productCodesByTitle.set(title, codes);
+  }
   productPageCount += 1;
 }
 
+const duplicateProductTitles = Array.from(productCodesByTitle.entries())
+  .filter(([, codes]) => codes.length > 1)
+  .sort((a, b) => b[1].length - a[1].length);
+if (duplicateProductTitles.length > 0) {
+  const duplicatePageCount = duplicateProductTitles.reduce((total, [, codes]) => total + codes.length, 0);
+  errors.push(
+    `${duplicatePageCount} product pages share an exact title across ${duplicateProductTitles.length} title groups`,
+  );
+  for (const [title, codes] of duplicateProductTitles.slice(0, 10)) {
+    errors.push(`duplicate product title for ${codes.join(", ")}: ${title}`);
+  }
+}
+
 const vercelConfig = JSON.parse(read(path.resolve("vercel.json")) || "{}");
+if (vercelConfig.trailingSlash !== false) {
+  errors.push("vercel.json: trailingSlash must be false so slash variants redirect to canonical URLs");
+}
 const fallbackRewrite = (vercelConfig.rewrites || []).find(
   (rewrite) => rewrite.destination === "/index.html" && /\.\*/.test(rewrite.source),
 );
 if (fallbackRewrite) {
   errors.push("vercel.json: catch-all SPA rewrite would turn unknown URLs into soft 404 responses");
+}
+
+const homeHtml = read(routeFile("/"));
+if (!homeHtml.includes('"merchantReturnLink": "https://www.internext.com.au/support/returns"')) {
+  errors.push("homepage: missing the canonical merchant return-policy link in organization schema");
 }
 
 if (errors.length > 0) {

@@ -1813,6 +1813,7 @@ const loadMergedCatalogProductsUncached = async (
     throw error;
   }
   const liveByKey = new Map<string, LiveCatalogItem>();
+  const liveByCode = new Map<string, LiveCatalogItem>();
   const overridesByKey = buildStockOverrideMap(stockOverrides);
   const shippingMeasurementsByKey = buildShippingMeasurementOverrideMap(shippingMeasurementOverrides);
   const sourcedShippingMeasurementsByKey = buildSourcedShippingMeasurementMap(
@@ -1820,6 +1821,10 @@ const loadMergedCatalogProductsUncached = async (
   );
 
   for (const item of liveCatalog.items) {
+    const normalizedCode = item.code?.trim().toLowerCase();
+    if (normalizedCode) {
+      liveByCode.set(normalizedCode, item);
+    }
     for (const key of [item.code, item.supplierCode]) {
       const normalizedKey = key?.trim().toLowerCase();
       if (normalizedKey) {
@@ -1828,9 +1833,9 @@ const loadMergedCatalogProductsUncached = async (
     }
   }
 
-  const items = staticProducts
+  const mergedItems = staticProducts
     .map((product) => {
-      const live = getProductKeys(product)
+      const live = liveByCode.get(product.code.trim().toLowerCase()) || getProductKeys(product)
         .map((key) => liveByKey.get(key))
         .find(Boolean);
 
@@ -1852,6 +1857,7 @@ const loadMergedCatalogProductsUncached = async (
       const mergedProduct: MergedCatalogItem = live
         ? {
             ...product,
+            code: live.code,
             price: live.price,
             priceText: live.priceText,
             resellerPrice: live.resellerPrice,
@@ -1860,7 +1866,7 @@ const loadMergedCatalogProductsUncached = async (
             rrpText: live.rrpText,
             rrpExGst: live.rrpExGst,
             taxRate: live.taxRate,
-            supplierCode: product.supplierCode || live.supplierCode,
+            supplierCode: live.supplierCode || live.code,
             longDescription: chooseLongDescription(live.longDescription, product.longDescription),
             availabilityText: live.availabilityText,
             etaDate: live.etaDate,
@@ -1924,8 +1930,15 @@ const loadMergedCatalogProductsUncached = async (
     })
     .filter((item): item is MergedCatalogItem =>
       Boolean(item) && isTangibleCatalogProduct(item as Record<string, unknown>),
-    )
-    .map((item) => applyPublicPriceFloor(item, publicPriceFloors));
+    );
+  const itemsByCode = new Map<string, MergedCatalogItem>();
+  for (const item of mergedItems) {
+    const code = item.code.trim().toLowerCase();
+    if (!itemsByCode.has(code)) {
+      itemsByCode.set(code, applyPublicPriceFloor(item, publicPriceFloors));
+    }
+  }
+  const items = Array.from(itemsByCode.values());
 
   globalCatalogCache.__internextMergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),

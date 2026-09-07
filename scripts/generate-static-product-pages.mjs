@@ -4,6 +4,10 @@ import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import {
+  applyVerifiedProductIdentities,
+  dedupeVerifiedProducts,
+} from "./lib/verified-product-identity.mjs";
+import {
   applyPublicPriceFloor,
   loadPublicPriceFloorMap,
 } from "./lib/public-price-floors.mjs";
@@ -287,26 +291,6 @@ const buildStructuredData = (product, url, images) => ({
               ? "https://schema.org/OutOfStock"
               : "https://schema.org/InStock",
           itemCondition: "https://schema.org/NewCondition",
-          shippingDetails: {
-            "@type": "OfferShippingDetails",
-            shippingRate: {
-              "@type": "MonetaryAmount",
-              value: "35.00",
-              currency: "AUD",
-            },
-            shippingDestination: {
-              "@type": "DefinedRegion",
-              addressCountry: "AU",
-            },
-          },
-          hasMerchantReturnPolicy: {
-            "@type": "MerchantReturnPolicy",
-            applicableCountry: "AU",
-            returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-            merchantReturnDays: 30,
-            returnMethod: "https://schema.org/ReturnByMail",
-            returnFees: "https://schema.org/ReturnShippingFees",
-          },
         },
       }
     : {}),
@@ -379,11 +363,6 @@ const template = fs.readFileSync(templatePath, "utf8");
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 
-const getSupplierKeys = (product) =>
-  [product.code, product.supplierCode]
-    .map((value) => String(value || "").trim().toLowerCase())
-    .filter(Boolean);
-
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
 } catch (error) {
@@ -411,17 +390,16 @@ const activeLeaderItems = leaderFeedProducts.length > 0
   : previousLeaderItems.length > 0
     ? previousLeaderItems
     : staticLeaderProducts;
-const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getSupplierKeys));
-const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getSupplierKeys));
 const publicPriceFloors = loadPublicPriceFloorMap();
-const products = filterTangibleCatalogProducts(mergeAlloysLivePricing([
-  ...readJson(path.join(dataDir, "catalog-products.json")),
-  ...staticLeaderProducts,
-  ...previousSnapshotItems,
-], activeAlloysItems)).filter(
-  (product) =>
-    getSupplierKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
-).map((product) => applyPublicPriceFloor(product, publicPriceFloors));
+const verifiedProducts = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems]);
+const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
+  mergeAlloysLivePricing([
+    ...readJson(path.join(dataDir, "catalog-products.json")),
+    ...staticLeaderProducts,
+    ...previousSnapshotItems,
+  ], activeAlloysItems),
+  verifiedProducts,
+)).map((product) => applyPublicPriceFloor(product, publicPriceFloors));
 const uniqueProducts = new Map();
 
 for (const product of products) {

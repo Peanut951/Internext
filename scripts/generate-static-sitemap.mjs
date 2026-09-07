@@ -4,6 +4,10 @@ import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import { getIndexableRoutes, SITE_URL } from "./lib/seo-routes.mjs";
+import {
+  applyVerifiedProductIdentities,
+  dedupeVerifiedProducts,
+} from "./lib/verified-product-identity.mjs";
 
 const publicDir = path.resolve("public");
 
@@ -44,11 +48,6 @@ try {
   console.warn(`Alloys feed unavailable for sitemap build: ${error.message}`);
 }
 
-const getProductKeys = (product) =>
-  [product.code, product.supplierCode]
-    .map((value) => String(value || "").trim().toLowerCase())
-    .filter(Boolean);
-
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
@@ -61,22 +60,17 @@ const activeLeaderItems = leaderFeedProducts.length > 0
     ? previousLeaderItems
     : leaderProducts;
 const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
-const currentLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
-const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
+const verifiedProducts = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems]);
 const productCodes = Array.from(
   new Set(
-    filterTangibleCatalogProducts([
-      ...staticProducts,
-      ...leaderProducts,
-      ...previousLiveItems,
-    ])
-      .filter((product) =>
-        getProductKeys(product).some(
-          (key) =>
-            currentAlloysKeys.has(key) ||
-            currentLeaderKeys.has(key),
-        ),
-      )
+    filterTangibleCatalogProducts(applyVerifiedProductIdentities(
+      [
+        ...staticProducts,
+        ...leaderProducts,
+        ...previousLiveItems,
+      ],
+      verifiedProducts,
+    ))
       .map((product) => String(product.code || "").trim())
       .filter(Boolean),
   ),

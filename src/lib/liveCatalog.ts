@@ -313,6 +313,17 @@ export const clearCatalogProductsCache = () => {
   }
 };
 
+const dedupeCatalogProductsByCode = (products: CatalogProductWithLive[]) => {
+  const productsByCode = new Map<string, CatalogProductWithLive>();
+  for (const product of products) {
+    const code = String(product.code || "").trim().toLowerCase();
+    if (code && !productsByCode.has(code)) {
+      productsByCode.set(code, product);
+    }
+  }
+  return Array.from(productsByCode.values());
+};
+
 export const mergeCatalogProductUpdates = (
   currentProducts: CatalogProductWithLive[],
   updatedProducts: CatalogProductWithLive[],
@@ -345,7 +356,7 @@ export const mergeCatalogProductUpdates = (
   });
 
   const newProducts = updatedProducts.filter((product) => !appliedUpdates.has(product));
-  return [...mergedProducts, ...newProducts];
+  return dedupeCatalogProductsByCode([...mergedProducts, ...newProducts]);
 };
 
 const reconcileCachedProductsWithVerifiedSnapshot = (
@@ -511,8 +522,13 @@ const loadCatalogProductsInternal = async (
   }
 
   const liveByKey = new Map<string, LiveCatalogItem>();
+  const liveByCode = new Map<string, LiveCatalogItem>();
 
   for (const item of liveData.items) {
+    const normalizedCode = item.code?.trim().toLowerCase();
+    if (normalizedCode) {
+      liveByCode.set(normalizedCode, item);
+    }
     for (const key of [item.code, item.supplierCode]) {
       const normalizedKey = key?.trim().toLowerCase();
       if (normalizedKey) {
@@ -521,9 +537,9 @@ const loadCatalogProductsInternal = async (
     }
   }
 
-  const products = await applyPublicPriceFloors(staticProducts
+  const products = await applyPublicPriceFloors(dedupeCatalogProductsByCode(staticProducts
     .map((product) => {
-      const live = getProductKeys(product)
+      const live = liveByCode.get(product.code.trim().toLowerCase()) || getProductKeys(product)
         .map((key) => liveByKey.get(key))
         .find(Boolean);
 
@@ -533,6 +549,7 @@ const loadCatalogProductsInternal = async (
 
       return {
         ...product,
+        code: live.code,
         price: live.price,
         priceText: live.priceText,
         resellerPrice: live.resellerPrice,
@@ -541,7 +558,7 @@ const loadCatalogProductsInternal = async (
         rrpText: live.rrpText,
         rrpExGst: live.rrpExGst,
         taxRate: live.taxRate,
-        supplierCode: product.supplierCode || live.supplierCode,
+        supplierCode: live.supplierCode || live.code,
         longDescription: chooseLongDescription(live.longDescription, product.longDescription),
         availabilityText: live.availabilityText,
         etaDate: live.etaDate,
@@ -562,7 +579,7 @@ const loadCatalogProductsInternal = async (
         liveUpdatedAt: liveData.updatedAt,
         quoteRequired: false,
       };
-    }));
+    })));
 
   writeCachedProducts(products);
   return products;

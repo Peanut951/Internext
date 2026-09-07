@@ -125,7 +125,6 @@ type AdminCompetitorPricingSummary = {
 };
 
 const SITE_URL = "https://www.internext.com.au";
-const DEFAULT_PUBLIC_SHIPPING_PRICE = 35;
 const DEFAULT_DOCUMENT_TITLE = "Internext";
 const STOCK_OVERRIDE_LOCATIONS = [
   { value: "internext", label: "Internext Warehouse" },
@@ -1259,41 +1258,6 @@ const ProductDetail = () => {
             price: schemaPrice.toFixed(2),
             availability: getSchemaAvailability(product),
             itemCondition: "https://schema.org/NewCondition",
-            shippingDetails: {
-              "@type": "OfferShippingDetails",
-              shippingRate: {
-                "@type": "MonetaryAmount",
-                value: DEFAULT_PUBLIC_SHIPPING_PRICE.toFixed(2),
-                currency: "AUD",
-              },
-              shippingDestination: {
-                "@type": "DefinedRegion",
-                addressCountry: "AU",
-              },
-              deliveryTime: {
-                "@type": "ShippingDeliveryTime",
-                handlingTime: {
-                  "@type": "QuantitativeValue",
-                  minValue: 1,
-                  maxValue: 2,
-                  unitCode: "DAY",
-                },
-                transitTime: {
-                  "@type": "QuantitativeValue",
-                  minValue: 2,
-                  maxValue: 7,
-                  unitCode: "DAY",
-                },
-              },
-            },
-            hasMerchantReturnPolicy: {
-              "@type": "MerchantReturnPolicy",
-              applicableCountry: "AU",
-              returnPolicyCategory: "https://schema.org/MerchantReturnFiniteReturnWindow",
-              merchantReturnDays: 30,
-              returnMethod: "https://schema.org/ReturnByMail",
-              returnFees: "https://schema.org/ReturnShippingFees",
-            },
           }
         : undefined,
     };

@@ -2,6 +2,10 @@ import fs from "node:fs";
 import path from "node:path";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
+import {
+  applyVerifiedProductIdentities,
+  dedupeVerifiedProducts,
+} from "./lib/verified-product-identity.mjs";
 import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
 import {
   applySourcedShippingMeasurement,
@@ -831,13 +835,10 @@ const sourcedShippingMeasurements = buildSourcedShippingMeasurementMap(
   loadSourcedShippingMeasurements(),
 );
 const publicPriceFloors = loadPublicPriceFloorMap();
-const generatedCatalogItems = mergeProducts([...activeAlloysItems, ...activeLeaderItems])
+const generatedCatalogItems = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems])
   .map(annotateSupplierMeasurements)
   .map((product) => applySourcedShippingMeasurement(product, sourcedShippingMeasurements))
   .map((product) => applyShippingMeasurementOverride(product, shippingMeasurementOverrides));
-const currentAlloysKeys = new Set(activeAlloysItems.flatMap(getProductKeys));
-const knownLeaderKeys = new Set(activeLeaderItems.flatMap(getProductKeys));
-
 if (generatedCatalogItems.length > 0) {
   fs.writeFileSync(
     liveOverridesPath,
@@ -868,16 +869,15 @@ const imageOverrideMap = new Map(
 const excludedCodes = new Set(
   [...(exclusions.codes || []), ...(invalidImageCodeData.codes || [])].map((code) => String(code || "").trim().toUpperCase()).filter(Boolean),
 );
-const products = mergeProducts(mergeAlloysLivePricing([
-  ...readJson(path.join(dataDir, "catalog-products.json")),
-  ...staticLeaderProducts,
-  ...activeAlloysItems,
-  ...activeLeaderItems,
-], activeAlloysItems))
-  .filter(
-    (product) =>
-      getProductKeys(product).some((key) => currentAlloysKeys.has(key) || knownLeaderKeys.has(key)),
-  )
+const products = mergeProducts(applyVerifiedProductIdentities(
+  mergeAlloysLivePricing([
+    ...readJson(path.join(dataDir, "catalog-products.json")),
+    ...staticLeaderProducts,
+    ...activeAlloysItems,
+    ...activeLeaderItems,
+  ], activeAlloysItems),
+  generatedCatalogItems,
+))
   .map((product) => {
     const sourcedProduct = applySourcedShippingMeasurement(product, sourcedShippingMeasurements);
     const measuredProduct = applyShippingMeasurementOverride(sourcedProduct, shippingMeasurementOverrides);

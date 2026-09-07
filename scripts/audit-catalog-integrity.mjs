@@ -30,15 +30,6 @@ const verifiedKeys = new Set(verifiedProducts.flatMap(getKeys));
 const verifiedCodes = new Set(verifiedProducts.map((product) => String(product.code || "").trim().toLowerCase()).filter(Boolean));
 const allowedCustomerCodes = new Set(verifiedCodes);
 
-// Public catalogue codes can differ from supplier SKUs. Permit an alias only when
-// that exact enrichment record is linked to a currently verified supplier key.
-for (const product of [...rawProducts, ...leaderProducts]) {
-  if (getKeys(product).some((key) => verifiedKeys.has(key))) {
-    const code = String(product.code || "").trim().toLowerCase();
-    if (code) allowedCustomerCodes.add(code);
-  }
-}
-
 const unsupportedRawProducts = [...rawProducts, ...leaderProducts].filter(
   (product) => !getKeys(product).some((key) => verifiedKeys.has(key)),
 );
