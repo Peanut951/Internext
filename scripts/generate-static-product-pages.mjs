@@ -193,6 +193,14 @@ const buildSearchTitleText = (product) => {
   return parts.join(" ");
 };
 
+const buildDocumentTitle = (product) => {
+  const titleText = buildSearchTitleText(product);
+  const productCode = stripHtml(product.code || "");
+  const suffix = ` | ${productCode} | Internext Australia`;
+  const prefixLength = Math.max(30, 110 - suffix.length);
+  return `${truncate(titleText, prefixLength)}${suffix}`;
+};
+
 const getProductUrl = (code) => `${SITE_URL}/products/item/${encodeURIComponent(code)}`;
 
 const isPlaceholderImage = (value) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
@@ -313,7 +321,7 @@ const removeExistingHeadTags = (html) =>
 
 const createProductHtml = (template, product) => {
   const titleText = buildSearchTitleText(product);
-  const title = truncate(`${titleText} | Internext Australia`, 90);
+  const title = buildDocumentTitle(product);
   const url = getProductUrl(product.code);
   const description = buildDescription(product);
   const images = getImages(product);
