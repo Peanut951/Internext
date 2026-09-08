@@ -1,7 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
-import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
-import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
+import { mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import {
   applyVerifiedProductIdentities,
@@ -368,44 +367,23 @@ if (!fs.existsSync(templatePath)) {
 }
 
 const template = fs.readFileSync(templatePath, "utf8");
-let leaderFeedProducts = [];
-let alloysLiveItems = [];
-
-try {
-  leaderFeedProducts = await loadLeaderFeedProducts();
-} catch (error) {
-  console.warn(`Leader feed unavailable for static product pages: ${error.message}`);
-}
-
-try {
-  alloysLiveItems = await loadAlloysLiveCatalogItems();
-} catch (error) {
-  console.warn(`Alloys live feed unavailable for static product pages: ${error.message}`);
-}
-
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
 const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
+// Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
   product?.leaderCategory != null;
-const previousLeaderItems = previousSnapshotItems.filter(isLeaderSnapshotItem);
 const previousAlloysItems = previousSnapshotItems.filter((product) => !isLeaderSnapshotItem(product));
-const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
-const activeLeaderItems = leaderFeedProducts.length > 0
-  ? leaderFeedProducts
-  : previousLeaderItems.length > 0
-    ? previousLeaderItems
-    : staticLeaderProducts;
 const publicPriceFloors = loadPublicPriceFloorMap();
-const verifiedProducts = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems]);
+const verifiedProducts = dedupeVerifiedProducts(previousSnapshotItems);
 const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
   mergeAlloysLivePricing([
     ...readJson(path.join(dataDir, "catalog-products.json")),
     ...staticLeaderProducts,
     ...previousSnapshotItems,
-  ], activeAlloysItems),
+  ], previousAlloysItems),
   verifiedProducts,
 )).map((product) => applyPublicPriceFloor(product, publicPriceFloors));
 const uniqueProducts = new Map();

@@ -1,7 +1,5 @@
 import fs from "node:fs";
 import path from "node:path";
-import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
-import { loadAlloysLiveCatalogItems } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import { getIndexableRoutes, SITE_URL } from "./lib/seo-routes.mjs";
 import {
@@ -33,34 +31,8 @@ const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },
 ).items || [];
-let leaderFeedProducts = [];
-let alloysLiveItems = [];
-
-try {
-  leaderFeedProducts = await loadLeaderFeedProducts();
-} catch (error) {
-  console.warn(`Leader feed unavailable for sitemap build: ${error.message}`);
-}
-
-try {
-  alloysLiveItems = await loadAlloysLiveCatalogItems();
-} catch (error) {
-  console.warn(`Alloys feed unavailable for sitemap build: ${error.message}`);
-}
-
-const isLeaderSnapshotItem = (product) =>
-  product?.supplierSource === "leader" ||
-  product?.leaderDealerBuyEx != null ||
-  product?.leaderCategory != null;
-const previousLeaderItems = previousLiveItems.filter(isLeaderSnapshotItem);
-const previousAlloysItems = previousLiveItems.filter((product) => !isLeaderSnapshotItem(product));
-const activeLeaderItems = leaderFeedProducts.length > 0
-  ? leaderFeedProducts
-  : previousLeaderItems.length > 0
-    ? previousLeaderItems
-    : leaderProducts;
-const activeAlloysItems = alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems;
-const verifiedProducts = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems]);
+// Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
+const verifiedProducts = dedupeVerifiedProducts(previousLiveItems);
 const productCodes = Array.from(
   new Set(
     filterTangibleCatalogProducts(applyVerifiedProductIdentities(
