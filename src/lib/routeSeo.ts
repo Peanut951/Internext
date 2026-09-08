@@ -111,6 +111,7 @@ export const NOINDEX_PATHS = new Set([
   "/portal",
   "/portal/orders",
   "/admin/orders",
+  "/admin/competitor-pricing",
   "/services/request",
   "/login",
   "/signup",

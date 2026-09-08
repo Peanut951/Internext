@@ -152,6 +152,11 @@ const PortalDashboard = () => {
                           description: "Manage supplier submissions and fulfillment state changes.",
                           href: "/admin/orders",
                         },
+                        {
+                          title: "Competitor Pricing",
+                          description: "Review scans, seller matches, observations, and pricing controls.",
+                          href: "/admin/competitor-pricing",
+                        },
                       ]
                     : []),
                 ].map((item) => (

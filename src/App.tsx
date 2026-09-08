@@ -25,6 +25,7 @@ const ProductSearch = lazy(() => import("./pages/products/ProductSearch"));
 const Cart = lazy(() => import("./pages/checkout/Cart"));
 const Checkout = lazy(() => import("./pages/checkout/Checkout"));
 const OrdersAdmin = lazy(() => import("./pages/admin/OrdersAdmin"));
+const CompetitorPricingAdmin = lazy(() => import("./pages/admin/CompetitorPricingAdmin"));
 const PortalDashboard = lazy(() => import("./pages/portal/Dashboard"));
 const PortalOrders = lazy(() => import("./pages/portal/Orders"));
 const ServicesIndex = lazy(() => import("./pages/services/ServicesIndex"));
@@ -120,6 +121,14 @@ const App = () => (
               element={
                 <RequireAdmin>
                   <OrdersAdmin />
+                </RequireAdmin>
+              }
+            />
+            <Route
+              path="/admin/competitor-pricing"
+              element={
+                <RequireAdmin>
+                  <CompetitorPricingAdmin />
                 </RequireAdmin>
               }
             />

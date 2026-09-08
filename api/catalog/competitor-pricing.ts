@@ -266,13 +266,19 @@ export default async function handler(
             config,
             `${TABLES.observations}?select=id,product_code,supplier_code,item_price_inc_gst,shipping_price_inc_gst,landed_price_inc_gst,in_stock,match_method,match_verified,observed_at,expires_at,competitor_product_url,seller:competitor_sellers(name,domain,verified,enabled)&product_code=eq.${encodedCode}&order=observed_at.desc&limit=25`,
           )
-        : Promise.resolve([]),
+        : fetchRows(
+            config,
+            `${TABLES.observations}?select=id,product_code,supplier_code,item_price_inc_gst,shipping_price_inc_gst,landed_price_inc_gst,in_stock,match_method,match_verified,observed_at,expires_at,competitor_product_url,seller:competitor_sellers(name,domain,verified,enabled)&order=observed_at.desc&limit=100`,
+          ),
       productCode
         ? fetchRows(
             config,
             `${TABLES.recommendations}?select=id,product_code,standard_price_inc_gst,minimum_allowed_price_inc_gst,competitor_price_inc_gst,recommended_price_inc_gst,status,decision_note,generated_at,expires_at&product_code=eq.${encodedCode}&order=generated_at.desc&limit=25`,
           )
-        : Promise.resolve([]),
+        : fetchRows(
+            config,
+            `${TABLES.recommendations}?select=id,product_code,standard_price_inc_gst,minimum_allowed_price_inc_gst,competitor_price_inc_gst,recommended_price_inc_gst,status,decision_note,generated_at,expires_at&order=generated_at.desc&limit=100`,
+          ),
       fetchRows(
         config,
         `${TABLES.candidates}?select=id,provider,product_code,seller_name,seller_domain,competitor_product_url,observed_price_inc_gst,observed_shipping_inc_gst,currency,in_stock,match_method,review_reason,status,last_seen_at${productCode ? `&product_code=eq.${encodedCode}` : "&status=eq.pending"}&order=last_seen_at.desc&limit=50`,
@@ -290,13 +296,19 @@ export default async function handler(
             config,
             `${TABLES.productControls}?select=product_code,mode,reason,updated_by,updated_at&product_code=eq.${encodedCode}&limit=1`,
           )
-        : Promise.resolve([]),
+        : fetchRows(
+            config,
+            `${TABLES.productControls}?select=product_code,mode,reason,updated_by,updated_at&order=updated_at.desc&limit=500`,
+          ),
       productCode
         ? fetchRows(
             config,
-            `${TABLES.productMatches}?select=provider,provider_product_id,provider_product_name,match_method,verified,verified_at,last_seen_at&product_code=eq.${encodedCode}&order=last_seen_at.desc&limit=10`,
+            `${TABLES.productMatches}?select=product_code,provider,provider_product_id,provider_product_name,match_method,verified,verified_at,last_seen_at&product_code=eq.${encodedCode}&order=last_seen_at.desc&limit=10`,
           )
-        : Promise.resolve([]),
+        : fetchRows(
+            config,
+            `${TABLES.productMatches}?select=product_code,provider,provider_product_id,provider_product_name,match_method,verified,verified_at,last_seen_at&order=last_seen_at.desc&limit=250`,
+          ),
     ]);
     const settings = settingsRows[0] || null;
 
@@ -310,7 +322,10 @@ export default async function handler(
       candidates,
       sellers,
       syncRuns,
-      productControl: controlRows[0] || { product_code: productCode, mode: "monitor_only" },
+      productControl: productCode
+        ? controlRows[0] || { product_code: productCode, mode: "monitor_only" }
+        : null,
+      productControls: productCode ? [] : controlRows,
       productMatches,
     });
   } catch (error) {

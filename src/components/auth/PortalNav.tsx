@@ -54,18 +54,24 @@ const PortalNav = () => {
             );
           })}
 
-          {showAdmin ? (
-            <Link
-              to="/admin/orders"
-              className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
-                location.pathname === "/admin/orders"
-                  ? "border-accent bg-accent text-accent-foreground shadow-sm"
-                  : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
-              }`}
-            >
-              Order Ops
-            </Link>
-          ) : null}
+          {showAdmin
+            ? [
+                { label: "Order Ops", href: "/admin/orders" },
+                { label: "Price Monitor", href: "/admin/competitor-pricing" },
+              ].map((link) => (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  className={`rounded-full border px-4 py-2 text-sm font-medium transition-colors ${
+                    location.pathname === link.href
+                      ? "border-accent bg-accent text-accent-foreground shadow-sm"
+                      : "border-border/60 bg-background text-foreground hover:border-accent/40 hover:text-accent"
+                  }`}
+                >
+                  {link.label}
+                </Link>
+              ))
+            : null}
 
           <Button
             variant="outline"
