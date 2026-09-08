@@ -194,7 +194,7 @@ const getDataForSeoProductNode = (payload) =>
     (row) => Boolean(row?.product_id) && (
       Array.isArray(row?.sellers) ||
       Array.isArray(row?.specifications) ||
-      String(row?.type || "").includes("product_info")
+      Array.isArray(row?.offers)
     ),
   )[0] || null;
 
@@ -246,8 +246,19 @@ export const normalizeDataForSeoProductInfo = (payload, product, options = {}) =
   if (!gtinMatch && !brandMpnMatch) return null;
 
   const now = options.now || new Date().toISOString();
+  const responseMetadata = collectObjects(
+    payload,
+    (row) => Boolean(row?.datetime || row?.timestamp || row?.updated_at),
+  )[0] || {};
   const observedAt = toIsoTimestamp(
-    firstValue(productNode.datetime, productNode.timestamp, productNode.updated_at),
+    firstValue(
+      productNode.datetime,
+      productNode.timestamp,
+      productNode.updated_at,
+      responseMetadata.datetime,
+      responseMetadata.timestamp,
+      responseMetadata.updated_at,
+    ),
     now,
   );
   const providerProductId = String(productNode.product_id || "").trim();

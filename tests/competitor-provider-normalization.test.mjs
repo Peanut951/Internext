@@ -108,11 +108,13 @@ test("accepts DataForSEO sellers only after exact brand and part-number verifica
     tasks: [{
       data: { tag: "internext:info:fixture" },
       result: [{
+        type: "product_info",
+        product_id: "google-product-1",
+        datetime: "2026-09-03T01:00:00Z",
         items: [{
-          type: "google_shopping_product_info",
+          type: "product_info_element",
           product_id: "google-product-1",
           title: "Grandstream GRP2613W IP Phone",
-          datetime: "2026-09-03T01:00:00Z",
           specifications: [
             { specification_name: "Brand", specification_value: "Grandstream" },
             { specification_name: "Part Numbers", specification_value: "GR-GRP2613W" },
