@@ -1,6 +1,6 @@
 ﻿import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { ArrowRight, Users, ShieldCheck, Truck, ChevronRight } from "lucide-react";
+import { ArrowRight, CheckCircle2, Users, ShieldCheck, Truck } from "lucide-react";
 
 const operationalPillars = [
   "Product sourcing",
@@ -14,41 +14,30 @@ const spotlightStats = [
     value: "7,500+",
     label: "Products in catalogue",
     eyebrow: "Product Range",
-    valueClassName: "text-[1.9rem] md:text-[2.1rem]",
-    valueDisplay: "7,500+",
-    labelDisplay: "Products\nin catalogue",
   },
   {
     value: "500+",
     label: "Australian reseller partners",
     eyebrow: "Channel Reach",
-    valueClassName: "text-[1.9rem] md:text-[2.1rem]",
-    valueDisplay: "500+",
-    labelDisplay: "Australian\nreseller partners",
   },
   {
     value: "Statewide",
     label: "Coverage across government and business",
     eyebrow: "Trusted Footprint",
-    valueClassName: "text-[1.35rem] md:text-[1.55rem] leading-tight",
-    valueDisplay: "Statewide",
-    labelDisplay: "Coverage across\ngovernment and\nbusiness",
   },
 ];
 
 const HeroSection = () => {
   return (
-    <section className="relative overflow-hidden bg-gradient-hero">
+    <section className="relative overflow-hidden bg-[#252b34]">
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_24%,rgba(72,139,184,0.32),transparent_34%),radial-gradient(circle_at_78%_20%,rgba(255,255,255,0.16),transparent_28%)]" />
-        <div className="absolute inset-x-0 bottom-0 h-48 bg-gradient-to-t from-navy-dark/45 to-transparent" />
-        <div className="absolute inset-0 opacity-[0.1] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:72px_72px]" />
+        <div className="absolute inset-0 opacity-[0.07] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:88px_88px]" />
       </div>
 
-      <div className="container-wide relative py-20 md:py-28 lg:py-32">
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(420px,480px)] xl:gap-16">
+      <div className="container-wide relative py-14 sm:py-16 md:py-20 lg:py-24">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1.1fr)_minmax(440px,520px)] xl:gap-16">
           <div className="max-w-4xl">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/14 px-4 py-2 text-sm font-medium text-white shadow-[0_10px_30px_-18px_rgba(255,255,255,0.5)] backdrop-blur animate-fade-in-up">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/[0.14] px-4 py-2 text-sm font-medium text-white shadow-[0_10px_30px_-18px_rgba(255,255,255,0.5)] backdrop-blur animate-fade-in-up">
               <span className="h-2 w-2 rounded-full bg-accent" />
               Reseller-first technology distribution across Australia
             </div>
@@ -71,19 +60,19 @@ const HeroSection = () => {
               className="mt-8 flex flex-col gap-4 sm:flex-row animate-fade-in-up"
               style={{ animationDelay: "0.15s" }}
             >
-              <Link to="/products" className="group">
+              <Link to="/products" className="group w-full sm:w-auto">
                 <Button
                   size="lg"
-                  className="h-14 gap-3 rounded-xl bg-[#58a6da] px-7 text-base font-bold text-white shadow-[0_18px_42px_-18px_rgba(88,166,218,0.95)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6bb7e8] hover:shadow-[0_22px_52px_-20px_rgba(107,183,232,1)]"
+                  className="h-14 w-full gap-3 rounded-lg bg-[#58a6da] px-7 text-base font-bold text-white shadow-[0_18px_42px_-18px_rgba(88,166,218,0.95)] ring-1 ring-white/20 transition-all duration-200 hover:-translate-y-0.5 hover:bg-[#6bb7e8] hover:shadow-[0_22px_52px_-20px_rgba(107,183,232,1)] sm:w-auto"
                 >
                   Browse Product Range
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/18 transition-transform duration-200 group-hover:translate-x-0.5">
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/[0.18] transition-transform duration-200 group-hover:translate-x-0.5">
                     <ArrowRight className="h-4 w-4" />
                   </span>
                 </Button>
               </Link>
-              <Link to="/about/customers">
-                <Button variant="hero-outline" size="lg" className="gap-2">
+              <Link to="/about/customers" className="w-full sm:w-auto">
+                <Button variant="hero-outline" size="lg" className="w-full gap-2 sm:w-auto">
                   <Users className="h-5 w-5" />
                   See Who We Support
                 </Button>
@@ -97,8 +86,9 @@ const HeroSection = () => {
               {operationalPillars.map((pillar) => (
                 <div
                   key={pillar}
-                  className="rounded-xl border border-white/22 bg-white/10 px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_34px_-24px_rgba(255,255,255,0.6)] backdrop-blur-sm"
+                  className="flex min-h-9 items-center gap-2 text-sm font-semibold text-white/[0.85]"
                 >
+                  <CheckCircle2 className="h-4 w-4 shrink-0 text-[#72b9e8]" aria-hidden="true" />
                   {pillar}
                 </div>
               ))}
@@ -106,74 +96,52 @@ const HeroSection = () => {
           </div>
 
           <div className="animate-fade-in-up" style={{ animationDelay: "0.18s" }}>
-            <div className="rounded-[1.75rem] border border-white/18 bg-white/10 p-5 shadow-[0_28px_90px_-32px_rgba(0,0,0,0.55)] backdrop-blur-md">
-              <div className="rounded-2xl border border-white/22 bg-navy-dark/70 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)]">
-                <div className="flex items-center justify-between gap-3">
+            <div className="rounded-2xl border border-white/[0.22] bg-[#1d222a]/95 p-5 shadow-[0_28px_70px_-34px_rgba(0,0,0,0.75)] sm:p-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#72b9e8]">Why Internext</p>
+                  <h2 className="mt-2 max-w-sm text-2xl font-semibold leading-tight text-primary-foreground">
+                    Built to help resellers move faster
+                  </h2>
+                </div>
+                <div className="shrink-0 rounded-lg bg-[#72b9e8]/[0.15] p-3 text-[#72b9e8]">
+                  <ShieldCheck className="h-6 w-6" aria-hidden="true" />
+                </div>
+              </div>
+
+              <div className="mt-5 border-t border-white/[0.12]">
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 py-4">
+                  <ShieldCheck className="mt-0.5 h-5 w-5 text-[#72b9e8]" aria-hidden="true" />
                   <div>
-                    <p className="text-sm uppercase tracking-[0.18em] text-accent/90">Why Internext</p>
-                    <h2 className="mt-2 text-2xl font-semibold text-primary-foreground">Built to help resellers move faster</h2>
-                  </div>
-                  <div className="rounded-xl bg-accent/15 p-3 text-accent">
-                    <ShieldCheck className="h-6 w-6" />
+                    <p className="text-sm font-semibold text-white">Own the customer relationship</p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/80">
+                      Present a clean Internext experience while we support product supply behind the scenes.
+                    </p>
                   </div>
                 </div>
 
-                <div className="mt-6 space-y-3">
-                  <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-white">Own the customer relationship</p>
-                        <p className="mt-1 text-sm leading-relaxed text-white" style={{ color: "rgba(255,255,255,0.84)" }}>
-                          Present a clean Internext experience while we support product supply behind the scenes.
-                        </p>
-                      </div>
-                      <ChevronRight className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                    </div>
-                  </div>
-
-                  <div className="rounded-xl border border-primary-foreground/10 bg-primary-foreground/8 p-4">
-                    <div className="flex items-start justify-between gap-4">
-                      <div>
-                        <p className="text-sm font-semibold text-white">Operational support that feels practical</p>
-                        <p className="mt-1 text-sm leading-relaxed text-white" style={{ color: "rgba(255,255,255,0.84)" }}>
-                          Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
-                        </p>
-                      </div>
-                      <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
-                    </div>
+                <div className="grid grid-cols-[auto_minmax(0,1fr)] gap-3 border-t border-white/[0.12] py-4">
+                  <Truck className="mt-0.5 h-5 w-5 text-[#72b9e8]" aria-hidden="true" />
+                  <div>
+                    <p className="text-sm font-semibold text-white">Operational support that feels practical</p>
+                    <p className="mt-1 text-sm leading-relaxed text-white/80">
+                      Stock access, fulfilment workflows, and sales support designed for real reseller pressure.
+                    </p>
                   </div>
                 </div>
               </div>
 
-              <div className="mt-5 grid gap-3 sm:grid-cols-3">
+              <div className="grid border-t border-white/[0.15] sm:grid-cols-3">
                 {spotlightStats.map((stat) => (
                   <div
                     key={stat.label}
-                    className="group relative min-w-0 overflow-hidden rounded-2xl border border-white/16 bg-gradient-to-br from-white/14 via-white/8 to-transparent px-5 py-5 text-white backdrop-blur-md transition-transform duration-300 hover:-translate-y-1"
+                    className="min-w-0 border-t border-white/[0.12] py-4 first:border-t-0 sm:border-l sm:border-t-0 sm:px-4 sm:first:border-l-0"
                   >
-                    <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-accent/70 to-transparent" />
-                    <p className="min-h-[2rem] flex items-start justify-center text-center text-[10px] font-semibold uppercase tracking-[0.22em] text-accent/90">
-                      {stat.eyebrow}
+                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8acdf5]">{stat.eyebrow}</p>
+                    <p className={`mt-2 whitespace-nowrap font-bold text-white ${stat.value === "Statewide" ? "text-xl" : "text-3xl"}`}>
+                      {stat.value}
                     </p>
-                    <div className="mt-2 mb-3 min-h-[3.5rem] flex items-center justify-center text-center">
-                      <p className={`font-bold tracking-tight text-white ${stat.valueClassName}`}>
-                        {(stat.valueDisplay || stat.value).split("\n").map((line) => (
-                          <span key={line} className="block">
-                            {line}
-                          </span>
-                        ))}
-                      </p>
-                    </div>
-                    <div className="mx-auto flex min-h-[4.5rem] max-w-[11rem] items-start justify-center text-center">
-                      <p className="text-sm leading-5 text-white/82">
-                        {(stat.labelDisplay || stat.label).split("\n").map((line) => (
-                          <span key={line} className="block">
-                            {line}
-                          </span>
-                        ))}
-                      </p>
-                    </div>
-                    <div className="pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-accent/10 blur-2xl transition-opacity duration-300 group-hover:opacity-100 opacity-70" />
+                    <p className="mt-2 max-w-[15rem] text-sm leading-5 text-white/80">{stat.label}</p>
                   </div>
                 ))}
               </div>
