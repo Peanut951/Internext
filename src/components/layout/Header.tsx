@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Menu, X, ChevronDown, ShoppingCart, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuthSession } from "@/hooks/use-auth-session";
+import { getPortalDestination } from "@/lib/auth";
 import ProductPrice from "@/components/products/ProductPrice";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
@@ -78,6 +79,7 @@ const Header = () => {
   const [searchSuggestionsOpen, setSearchSuggestionsOpen] = useState(false);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(-1);
   const { session } = useAuthSession();
+  const portal = getPortalDestination(session);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
@@ -493,7 +495,15 @@ const Header = () => {
                 ) : null}
               </div>
             ))}
-            {session ? null : (
+            {session ? (
+              <Link
+                to={portal?.href || "/portal/orders"}
+                className="block rounded-md px-4 py-3 font-medium text-foreground transition-colors hover:bg-secondary hover:text-accent"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                {portal?.label || "User Portal"}
+              </Link>
+            ) : (
               <Link
                 to="/login"
                 className="block px-4 py-3 text-foreground hover:text-accent hover:bg-secondary rounded-md transition-colors"

@@ -1,14 +1,12 @@
 import { Phone, Mail, LogOut, User } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { clearAuthSession } from "@/lib/auth";
+import { clearAuthSession, getPortalDestination } from "@/lib/auth";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 const TopBar = () => {
   const { session } = useAuthSession();
-  const canAccessResellerPortal = session?.role === "reseller" || session?.role === "admin";
-  const portalHref = canAccessResellerPortal ? "/portal" : "/portal/orders";
-  const portalLabel = canAccessResellerPortal ? "Reseller Portal" : "User Portal";
+  const portal = getPortalDestination(session);
 
   return (
     <div className="bg-primary text-primary-foreground">
@@ -29,8 +27,8 @@ const TopBar = () => {
         <div className="flex shrink-0 items-center gap-2 sm:gap-4">
           {session ? (
             <>
-              <Link to={portalHref} className="hidden sm:inline text-primary-foreground/80 hover:text-accent transition-colors">
-                {portalLabel}
+              <Link to={portal?.href || "/portal/orders"} className="hidden sm:inline text-primary-foreground/80 transition-colors hover:text-accent">
+                {portal?.label || "User Portal"}
               </Link>
               <Button
                 variant="accent"

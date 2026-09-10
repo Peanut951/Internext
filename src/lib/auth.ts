@@ -29,6 +29,9 @@ type SignUpInput = {
 };
 
 const AUTH_STORAGE_KEY = "internext-auth-session";
+const AUTH_SESSION_CHANGED_EVENT = "internext-auth-session-changed";
+let authMutationVersion = 0;
+let sessionSyncPromise: Promise<AuthSession | null> | null = null;
 
 const readCachedSession = (): AuthSession | null => {
   if (typeof window === "undefined") {
@@ -65,15 +68,42 @@ const saveCachedSession = (session: AuthSession | null) => {
 
   if (!session) {
     window.localStorage.removeItem(AUTH_STORAGE_KEY);
-    return;
+  } else {
+    window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
   }
 
-  window.localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(session));
+  window.dispatchEvent(
+    new CustomEvent<AuthSession | null>(AUTH_SESSION_CHANGED_EVENT, { detail: session }),
+  );
+};
+
+export const subscribeAuthSession = (listener: (session: AuthSession | null) => void) => {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  const handleSessionChanged = (event: Event) => {
+    listener((event as CustomEvent<AuthSession | null>).detail ?? null);
+  };
+  const handleStorage = (event: StorageEvent) => {
+    if (event.key === AUTH_STORAGE_KEY) {
+      listener(readCachedSession());
+    }
+  };
+
+  window.addEventListener(AUTH_SESSION_CHANGED_EVENT, handleSessionChanged);
+  window.addEventListener("storage", handleStorage);
+
+  return () => {
+    window.removeEventListener(AUTH_SESSION_CHANGED_EVENT, handleSessionChanged);
+    window.removeEventListener("storage", handleStorage);
+  };
 };
 
 export const getAuthSession = () => readCachedSession();
 
 export const clearAuthSession = async () => {
+  authMutationVersion += 1;
   saveCachedSession(null);
 
   if (typeof window === "undefined") {
@@ -100,6 +130,8 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
       message: "Email and password are required.",
     };
   }
+
+  authMutationVersion += 1;
 
   try {
     const response = await fetch("/api/auth/login", {
@@ -137,6 +169,8 @@ export const signIn = async (email: string, password: string): Promise<SignInRes
 };
 
 export const signUp = async (input: SignUpInput): Promise<SignInResult> => {
+  authMutationVersion += 1;
+
   try {
     const response = await fetch("/api/auth/signup", {
       method: "POST",
@@ -169,10 +203,12 @@ export const signUp = async (input: SignUpInput): Promise<SignInResult> => {
   }
 };
 
-export const syncAuthSession = async (): Promise<AuthSession | null> => {
+const syncAuthSessionOnce = async (): Promise<AuthSession | null> => {
   if (typeof window === "undefined") {
     return null;
   }
+
+  const syncVersion = authMutationVersion;
 
   try {
     const response = await fetch("/api/auth/session", {
@@ -183,12 +219,19 @@ export const syncAuthSession = async (): Promise<AuthSession | null> => {
       },
     });
 
+    if (syncVersion !== authMutationVersion) {
+      return readCachedSession();
+    }
+
     if (!response.ok) {
       saveCachedSession(null);
       return null;
     }
 
     const payload = (await response.json()) as { session?: AuthSession | null };
+    if (syncVersion !== authMutationVersion) {
+      return readCachedSession();
+    }
     const session = payload.session ?? null;
     saveCachedSession(session);
     return session;
@@ -197,10 +240,27 @@ export const syncAuthSession = async (): Promise<AuthSession | null> => {
   }
 };
 
+export const syncAuthSession = (): Promise<AuthSession | null> => {
+  if (!sessionSyncPromise) {
+    sessionSyncPromise = syncAuthSessionOnce().finally(() => {
+      sessionSyncPromise = null;
+    });
+  }
+
+  return sessionSyncPromise;
+};
+
 export const isAdminSession = (session: AuthSession | null) => {
   return Boolean(session && session.role === "admin");
 };
 
 export const isAuthenticatedSession = (session: AuthSession | null) => {
   return Boolean(session);
+};
+
+export const getPortalDestination = (session: AuthSession | null) => {
+  if (!session) return null;
+  if (session.role === "admin") return { href: "/admin/orders", label: "Admin Portal" };
+  if (session.role === "reseller") return { href: "/portal", label: "Reseller Portal" };
+  return { href: "/portal/orders", label: "User Portal" };
 };
