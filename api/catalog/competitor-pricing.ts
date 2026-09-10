@@ -124,9 +124,12 @@ export default async function handler(
           });
         }
         res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        const diagnostics = result.diagnostics;
         return sendJson(res, 200, {
           ok: true,
-          message: `Competitor scan completed for ${result.productsRead} products.`,
+          message: diagnostics
+            ? `Scan cycle completed: ${result.productsRead} products submitted, ${diagnostics.tasksCollected} completed tasks collected, and ${diagnostics.searchMatchesQueued} seller lookups queued.`
+            : `Competitor scan completed for ${result.productsRead} products.`,
           ...result,
         });
       } catch (error) {

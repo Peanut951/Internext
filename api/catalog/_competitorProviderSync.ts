@@ -151,7 +151,7 @@ const candidateRow = (
   provider: listing.provider,
   provider_product_id: listing.providerProductId || null,
   provider_listing_id: listing.providerListingId,
-  product_code: match?.product?.code || listing.providerProductCode || "unmatched",
+  product_code: match?.product?.code || listing.requestedProductCode || listing.providerProductCode || "unmatched",
   supplier_code: match?.product?.supplierCode || null,
   seller_name: listing.sellerName || listing.sellerDomain,
   seller_domain: listing.sellerDomain,
@@ -392,7 +392,23 @@ export const runCompetitorProviderSync = async () => {
       candidatesStored: processed.candidates.length,
       ignoredOwnListings: processed.ignoredOwnListings,
       requestsMade: providerResult.requestsMade,
+      diagnostics: providerResult.diagnostics,
     };
+    const resultParts = [];
+    if (result.diagnostics) {
+      resultParts.push(`${result.productsRead} catalogue products submitted`);
+      resultParts.push(`${result.diagnostics.tasksCollected} completed tasks collected`);
+      resultParts.push(`${result.diagnostics.searchMatchesQueued} seller lookups queued`);
+    }
+    if (result.diagnostics?.noResultTasks) {
+      resultParts.push(`${result.diagnostics.noResultTasks} DataForSEO tasks returned no results`);
+    }
+    if (result.diagnostics?.failedTasks) {
+      resultParts.push(`${result.diagnostics.failedTasks} task results could not be collected`);
+    }
+    if (result.diagnostics?.unverifiedProductPages) {
+      resultParts.push(`${result.diagnostics.unverifiedProductPages} product pages require identity review`);
+    }
     await finishSyncRun(config, runId, {
       status: "completed",
       products_read: result.productsRead,
@@ -401,6 +417,7 @@ export const runCompetitorProviderSync = async () => {
       candidates_stored: result.candidatesStored,
       ignored_own_listings: result.ignoredOwnListings,
       requests_made: result.requestsMade,
+      error_message: resultParts.length > 0 ? `${resultParts.join("; ")}.` : null,
     });
     return result;
   } catch (error) {

@@ -3,6 +3,7 @@ export type NormalizedProviderListing = {
   providerProductId: string;
   providerListingId: string;
   providerProductCode: string;
+  requestedProductCode?: string;
   gtin: string;
   mpn: string;
   brand: string;
@@ -40,8 +41,8 @@ export function normalizeDataForSeoProductInfo(
   providerProductId: string;
   productName: string;
   observedAt: string;
-  matchMethod: "gtin" | "brand_mpn";
-  matchVerified: true;
+  matchMethod: "gtin" | "brand_mpn" | null;
+  matchVerified: boolean;
   listings: NormalizedProviderListing[];
 } | null;
 export function resolveExactCatalogMatch<T extends object>(

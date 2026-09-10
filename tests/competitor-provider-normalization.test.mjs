@@ -7,6 +7,11 @@ import {
   normalizePrisyncListing,
   resolveExactCatalogMatch,
 } from "../shared/competitor-provider-normalization.js";
+import {
+  buildDataForSeoSearchKeyword,
+  classifyDataForSeoTaskPayload,
+  collectDataForSeoTaskPayloads,
+} from "../shared/dataforseo-task-utils.js";
 
 const catalog = [
   {
@@ -140,7 +145,7 @@ test("accepts DataForSEO sellers only after exact brand and part-number verifica
   assert.equal(result.listings[0].isNew, true);
 });
 
-test("rejects DataForSEO title-only matches", () => {
+test("does not verify DataForSEO title-only matches", () => {
   const result = normalizeDataForSeoProductInfo({
     tasks: [{
       result: [{
@@ -158,7 +163,102 @@ test("rejects DataForSEO title-only matches", () => {
     }],
   }, catalog[0]);
 
-  assert.equal(result, null);
+  assert.equal(result.matchVerified, false);
+  assert.equal(result.matchMethod, null);
+  assert.equal(result.listings.length, 0);
+});
+
+test("keeps unverified DataForSEO sellers in review without creating an exact match", () => {
+  const result = normalizeDataForSeoProductInfo({
+    tasks: [{
+      result: [{
+        items: [{
+          type: "product_info_element",
+          product_id: "unverified-google-product",
+          title: "Similar Grandstream phone",
+          specifications: [],
+          sellers: [{
+            data_docid: "unverified-offer",
+            title: "Example seller",
+            url: "https://seller.example.com.au/similar-phone",
+            price: { current: 199, currency: "AUD" },
+            delivery_info: { delivery_price: { current: 10, currency: "AUD" } },
+            product_availability: "in_stock",
+          }],
+        }],
+      }],
+    }],
+  }, catalog[0]);
+
+  assert.equal(result.matchVerified, false);
+  assert.equal(result.matchMethod, null);
+  assert.equal(result.listings.length, 1);
+  assert.equal(result.listings[0].requestedProductCode, "GRP2613W");
+  assert.equal(resolveExactCatalogMatch(result.listings[0], catalog), null);
+});
+
+test("does not redirect a DataForSEO result to a different catalogue product", () => {
+  const listing = {
+    provider: "dataforseo",
+    providerProductId: "wrong-google-product",
+    providerListingId: "wrong-offer",
+    providerProductCode: "",
+    requestedProductCode: "GRP2613W",
+    gtin: "9312345678901",
+    mpn: "OTHER-MODEL",
+    brand: "Other Brand",
+    productName: "Other Brand Other Model",
+    sellerName: "Example seller",
+    sellerDomain: "seller.example.com.au",
+    productUrl: "https://seller.example.com.au/other-model",
+    itemPriceIncGst: 99,
+    shippingPriceIncGst: 10,
+    currency: "AUD",
+    inStock: true,
+    observedAt: "2026-09-10T00:00:00.000Z",
+    sourceReference: "dataforseo:wrong-google-product:wrong-offer:Australia",
+  };
+  const otherProduct = {
+    code: "OTHER-MODEL",
+    supplierCode: "OTHER-MODEL",
+    manufacturer: "Other Brand",
+    gtin: "9312345678901",
+  };
+
+  assert.equal(resolveExactCatalogMatch(listing, [...catalog, otherProduct]), null);
+});
+
+test("treats DataForSEO no-results tasks as an empty product result", () => {
+  assert.deepEqual(classifyDataForSeoTaskPayload({
+    tasks: [{ status_code: 40102, status_message: "No Search Results." }],
+  }), {
+    outcome: "no_results",
+    statusCode: 40102,
+    statusMessage: "No Search Results.",
+  });
+});
+
+test("still identifies real DataForSEO task failures", () => {
+  assert.equal(classifyDataForSeoTaskPayload({
+    tasks: [{ status_code: 40210, status_message: "Insufficient Funds." }],
+  }).outcome, "failed");
+});
+
+test("a no-results task does not discard successful tasks from the same batch", async () => {
+  const results = await collectDataForSeoTaskPayloads([
+    { id: "empty", tag: "first" },
+    { id: "valid", tag: "second" },
+  ], async ({ id }) => id === "empty"
+    ? { tasks: [{ status_code: 40102, status_message: "No Search Results." }] }
+    : { tasks: [{ status_code: 20000, result: [{ product_id: "product-1" }] }] });
+
+  assert.equal(results[0].outcome, "no_results");
+  assert.equal(results[1].outcome, "success");
+  assert.equal(results[1].payload.tasks[0].result[0].product_id, "product-1");
+});
+
+test("searches Google Shopping by brand and model instead of an overly narrow GTIN", () => {
+  assert.equal(buildDataForSeoSearchKeyword(catalog[0]), "Grandstream GR-GRP2613W");
 });
 
 test("marks used DataForSEO offers as ineligible", () => {

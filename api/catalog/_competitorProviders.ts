@@ -21,6 +21,13 @@ export type ProviderFetchResult = {
   productsRead: number;
   requestsMade: number;
   nextCursor: string | null;
+  diagnostics?: {
+    tasksCollected: number;
+    noResultTasks: number;
+    failedTasks: number;
+    searchMatchesQueued: number;
+    unverifiedProductPages: number;
+  };
 };
 
 export type ProviderFetchOptions = {

@@ -4,6 +4,13 @@ import {
   normalizeDataForSeoProductInfo,
   type NormalizedProviderListing,
 } from "../../shared/competitor-provider-normalization.js";
+import {
+  buildDataForSeoSearchKeyword,
+  classifyDataForSeoTaskPayload,
+  collectDataForSeoTaskPayloads,
+} from "../../shared/dataforseo-task-utils.js";
+
+export { buildDataForSeoSearchKeyword } from "../../shared/dataforseo-task-utils.js";
 
 type CatalogProduct = Record<string, unknown> & {
   code?: string;
@@ -38,6 +45,13 @@ export type DataForSeoFetchResult = {
   productsRead: number;
   requestsMade: number;
   nextCursor: string | null;
+  diagnostics: {
+    tasksCollected: number;
+    noResultTasks: number;
+    failedTasks: number;
+    searchMatchesQueued: number;
+    unverifiedProductPages: number;
+  };
 };
 
 const API_ROOT = "https://api.dataforseo.com/v3/merchant/google";
@@ -94,10 +108,6 @@ const requestJson = async (
   }
   if (Number(payload.status_code) !== 20000) {
     throw new Error(`DataForSEO rejected the request: ${String(payload.status_message || "unknown error")}`);
-  }
-  const failedTask = getTasks(payload).find((task) => Number(task.status_code) >= 40000);
-  if (failedTask) {
-    throw new Error(`DataForSEO rejected a task: ${String(failedTask.status_message || "unknown task error")}`);
   }
   return payload;
 };
@@ -186,28 +196,14 @@ const postTasks = async (
 ) => {
   let requests = 0;
   for (let offset = 0; offset < tasks.length; offset += 100) {
-    await requestJson(path, authorization, tasks.slice(offset, offset + 100));
+    const payload = await requestJson(path, authorization, tasks.slice(offset, offset + 100));
     requests += 1;
+    const taskStatus = classifyDataForSeoTaskPayload(payload);
+    if (taskStatus.outcome !== "success") {
+      throw new Error(`DataForSEO rejected a submitted task: ${taskStatus.statusMessage}`);
+    }
   }
   return requests;
-};
-
-const mapWithConcurrency = async <T, R>(
-  values: T[],
-  concurrency: number,
-  mapper: (value: T) => Promise<R>,
-) => {
-  const results = new Array<R>(values.length);
-  let index = 0;
-  const workers = Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-    while (index < values.length) {
-      const currentIndex = index;
-      index += 1;
-      results[currentIndex] = await mapper(values[currentIndex]);
-    }
-  });
-  await Promise.all(workers);
-  return results;
 };
 
 const parseCursor = (cursor: string | null | undefined) => {
@@ -220,24 +216,6 @@ const parseCursor = (cursor: string | null | undefined) => {
   } catch {
     return { offset: 0, nextScanAt: "" };
   }
-};
-
-const getGtin = (product: CatalogProduct) => {
-  for (const value of [product.gtin, product.ean, product.upc, product.barcode]) {
-    const digits = String(value || "").replace(/\D/g, "");
-    if (/^(?:\d{8}|\d{12}|\d{13}|\d{14})$/.test(digits)) return digits;
-  }
-  return "";
-};
-
-const buildSearchKeyword = (product: CatalogProduct) => {
-  const gtin = getGtin(product);
-  if (gtin) return gtin;
-  return [product.manufacturer, product.supplierCode || product.code]
-    .map((value) => String(value || "").trim())
-    .filter(Boolean)
-    .join(" ")
-    .slice(0, 700);
 };
 
 export const fetchDataForSeoListings = async (
@@ -254,6 +232,13 @@ export const fetchDataForSeoListings = async (
   const listings: NormalizedProviderListing[] = [];
   const productMatches: DataForSeoProductMatch[] = [];
   const productInfoTasks: Record<string, unknown>[] = [];
+  const diagnostics = {
+    tasksCollected: 0,
+    noResultTasks: 0,
+    failedTasks: 0,
+    searchMatchesQueued: 0,
+    unverifiedProductPages: 0,
+  };
 
   const [searchReadyPayload, infoReadyPayload] = await Promise.all([
     requestJson("products/tasks_ready", config.authorization),
@@ -262,19 +247,25 @@ export const fetchDataForSeoListings = async (
   requests.count += 2;
 
   const searchReady = getReadyTasks(searchReadyPayload).slice(0, maxReady);
-  const searchResults = await mapWithConcurrency(searchReady, 8, async (ready) => {
-    const payload = await requestJson(
-      `products/task_get/advanced/${encodeURIComponent(ready.id)}`,
-      config.authorization,
-    );
-    requests.count += 1;
-    return payload;
+  const searchResults = await collectDataForSeoTaskPayloads(searchReady, async (ready) => {
+    try {
+      return await requestJson(
+        `products/task_get/advanced/${encodeURIComponent(ready.id)}`,
+        config.authorization,
+      );
+    } finally {
+      requests.count += 1;
+    }
   });
-  for (const payload of searchResults) {
-    const tag = decodeTag(getTaskTag(payload));
+  for (const result of searchResults) {
+    diagnostics.tasksCollected += 1;
+    if (result.outcome === "no_results") diagnostics.noResultTasks += 1;
+    if (result.outcome === "failed") diagnostics.failedTasks += 1;
+    if (!result.payload) continue;
+    const tag = decodeTag(result.ready.tag || getTaskTag(result.payload));
     const product = tag ? catalogByCode.get(tag.productCode.toLowerCase()) : null;
     if (!tag || tag.stage !== "search" || !product) continue;
-    const candidate = findSearchCandidate(payload, product);
+    const candidate = findSearchCandidate(result.payload, product);
     const productId = String(candidate?.product_id || "").trim();
     if (!productId) continue;
     productInfoTasks.push({
@@ -284,27 +275,38 @@ export const fetchDataForSeoListings = async (
       se_domain: config.seDomain,
       tag: encodeTag("info", String(product.code)),
     });
+    diagnostics.searchMatchesQueued += 1;
   }
 
   const infoReady = getReadyTasks(infoReadyPayload).slice(0, maxReady);
-  const infoResults = await mapWithConcurrency(infoReady, 8, async (ready) => {
-    const payload = await requestJson(
-      `product_info/task_get/advanced/${encodeURIComponent(ready.id)}`,
-      config.authorization,
-    );
-    requests.count += 1;
-    return payload;
+  const infoResults = await collectDataForSeoTaskPayloads(infoReady, async (ready) => {
+    try {
+      return await requestJson(
+        `product_info/task_get/advanced/${encodeURIComponent(ready.id)}`,
+        config.authorization,
+      );
+    } finally {
+      requests.count += 1;
+    }
   });
-  for (const payload of infoResults) {
-    const tag = decodeTag(getTaskTag(payload));
+  for (const result of infoResults) {
+    diagnostics.tasksCollected += 1;
+    if (result.outcome === "no_results") diagnostics.noResultTasks += 1;
+    if (result.outcome === "failed") diagnostics.failedTasks += 1;
+    if (!result.payload) continue;
+    const tag = decodeTag(result.ready.tag || getTaskTag(result.payload));
     const product = tag ? catalogByCode.get(tag.productCode.toLowerCase()) : null;
     if (!tag || tag.stage !== "info" || !product) continue;
-    const normalized = normalizeDataForSeoProductInfo(payload, product, {
+    const normalized = normalizeDataForSeoProductInfo(result.payload, product, {
       currency: "AUD",
       locationName: config.locationName,
     });
-    if (!normalized?.matchVerified) continue;
+    if (!normalized) continue;
     listings.push(...normalized.listings);
+    if (!normalized.matchVerified) {
+      diagnostics.unverifiedProductPages += 1;
+      continue;
+    }
     productMatches.push({
       provider: "dataforseo",
       productCode: String(product.code),
@@ -341,7 +343,7 @@ export const fetchDataForSeoListings = async (
         tag: encodeTag("info", code),
       });
     } else {
-      const keyword = buildSearchKeyword(product);
+      const keyword = buildDataForSeoSearchKeyword(product);
       if (!keyword) continue;
       searchTasks.push({
         ...common,
@@ -372,5 +374,6 @@ export const fetchDataForSeoListings = async (
     productsRead: batch.length,
     requestsMade: requests.count,
     nextCursor,
+    diagnostics,
   };
 };

@@ -243,8 +243,6 @@ export const normalizeDataForSeoProductInfo = (payload, product, options = {}) =
     observedBrands.includes(expectedBrand) &&
     expectedMpns.some((mpn) => observedMpns.includes(mpn)),
   );
-  if (!gtinMatch && !brandMpnMatch) return null;
-
   const now = options.now || new Date().toISOString();
   const responseMetadata = collectObjects(
     payload,
@@ -315,6 +313,7 @@ export const normalizeDataForSeoProductInfo = (payload, product, options = {}) =
         productUrl,
       )),
       providerProductCode: "",
+      requestedProductCode: String(product?.code || "").trim(),
       gtin: observedGtins[0] || "",
       mpn: getSpecificationValues(
         specifications,
@@ -341,8 +340,8 @@ export const normalizeDataForSeoProductInfo = (payload, product, options = {}) =
     providerProductId,
     productName,
     observedAt,
-    matchMethod: gtinMatch ? "gtin" : "brand_mpn",
-    matchVerified: true,
+    matchMethod: gtinMatch ? "gtin" : brandMpnMatch ? "brand_mpn" : null,
+    matchVerified: gtinMatch || brandMpnMatch,
     listings,
   };
 };
@@ -357,12 +356,14 @@ const normalizeGtin = (value) => {
 
 export const resolveExactCatalogMatch = (listing, products) => {
   const providerCode = normalizeIdentity(listing?.providerProductCode);
+  const requestedProductCode = normalizeIdentity(listing?.requestedProductCode);
   const listingGtin = normalizeGtin(listing?.gtin) || normalizeGtin(listing?.providerProductCode);
   const listingBrand = normalizeIdentity(listing?.brand);
   const listingMpn = normalizeIdentity(listing?.mpn);
 
   for (const product of Array.isArray(products) ? products : []) {
     const productCode = String(product?.code || "").trim();
+    if (requestedProductCode && normalizeIdentity(productCode) !== requestedProductCode) continue;
     const supplierCode = String(product?.supplierCode || "").trim();
     const productCodes = [productCode, supplierCode].map(normalizeIdentity).filter(Boolean);
     const productGtins = [product?.gtin, product?.ean, product?.upc, product?.barcode]
