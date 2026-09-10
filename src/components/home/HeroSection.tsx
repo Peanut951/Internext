@@ -21,7 +21,7 @@ const spotlightStats = [
     eyebrow: "Channel Reach",
   },
   {
-    value: "Statewide",
+    value: "Australia-wide",
     label: "Coverage across government and business",
     eyebrow: "Trusted Footprint",
   },
@@ -138,7 +138,7 @@ const HeroSection = () => {
                     className="min-w-0 border-t border-white/[0.12] py-4 first:border-t-0 sm:border-l sm:border-t-0 sm:px-4 sm:first:border-l-0"
                   >
                     <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8acdf5]">{stat.eyebrow}</p>
-                    <p className={`mt-2 whitespace-nowrap font-bold text-white ${stat.value === "Statewide" ? "text-xl" : "text-3xl"}`}>
+                    <p className={`mt-2 whitespace-nowrap font-bold text-white ${stat.value === "Australia-wide" ? "text-xl" : "text-3xl"}`}>
                       {stat.value}
                     </p>
                     <p className="mt-2 max-w-[15rem] text-sm leading-5 text-white/80">{stat.label}</p>

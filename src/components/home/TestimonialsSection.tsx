@@ -62,7 +62,7 @@ const TestimonialsSection = () => {
                 <p className="mt-1 text-sm text-primary-foreground/70">Australian reseller relationships supported</p>
               </div>
               <div className="rounded-2xl border border-primary-foreground/14 bg-primary-foreground/8 p-4">
-                <p className="text-2xl font-bold">Statewide</p>
+                <p className="text-2xl font-bold">Australia-wide</p>
                 <p className="mt-1 text-sm text-primary-foreground/70">Coverage across business and government buyers</p>
               </div>
               <div className="rounded-2xl border border-primary-foreground/14 bg-primary-foreground/8 p-4">

@@ -107,7 +107,7 @@ const BrandsSection = () => {
                 <p className="mt-1 text-sm text-primary-foreground/75">Australian reseller relationships supported</p>
               </div>
               <div>
-                <p className="text-3xl font-bold">Statewide</p>
+                <p className="text-3xl font-bold">Australia-wide</p>
                 <p className="mt-1 text-sm text-primary-foreground/75">Coverage across business and government environments</p>
               </div>
             </div>

@@ -23,7 +23,7 @@ const highlights = [
 const stats = [
   { value: "7,500+", label: "Products in catalogue" },
   { value: "500+", label: "Australian reseller partners" },
-  { value: "Statewide", label: "Coverage across business and government" },
+  { value: "Australia-wide", label: "Coverage across business and government" },
 ];
 
 const aboutLinks = [
@@ -47,15 +47,15 @@ const aboutLinks = [
 const AboutIndex = () => {
   return (
     <Layout>
-      <section className="relative overflow-hidden bg-gradient-hero py-20 md:py-28">
-        <div className="absolute inset-0 opacity-[0.08] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:72px_72px]" />
+      <section className="relative overflow-hidden bg-[#252b34] py-14 md:py-20">
+        <div className="absolute inset-0 opacity-[0.05] [background-image:linear-gradient(to_right,white_1px,transparent_1px),linear-gradient(to_bottom,white_1px,transparent_1px)] [background-size:88px_88px]" />
         <div className="container-wide relative">
-          <div className="grid gap-8 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)] xl:items-end">
+          <div className="grid gap-10 xl:grid-cols-[minmax(0,1.15fr)_minmax(380px,0.85fr)] xl:items-center">
             <div className="max-w-4xl">
               <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent/90">
                 About Internext
               </p>
-              <h1 className="mt-4 text-4xl font-bold leading-tight text-primary-foreground md:text-6xl">
+              <h1 className="mt-4 text-4xl font-bold leading-tight text-primary-foreground md:text-5xl">
                 Built to help Australian resellers move faster.
               </h1>
               <p className="mt-6 max-w-3xl text-lg leading-relaxed text-primary-foreground/80 md:text-xl">
@@ -64,24 +64,27 @@ const AboutIndex = () => {
               </p>
             </div>
 
-            <div className="rounded-[1.75rem] border border-primary-foreground/15 bg-primary-foreground/10 p-6 backdrop-blur-sm">
-              <div className="rounded-2xl border border-primary-foreground/15 bg-navy-dark/55 p-5">
-                <div className="flex items-center gap-3">
-                  <div className="rounded-xl bg-accent/15 p-2 text-accent">
-                    <Building2 className="h-5 w-5" />
+            <div className="rounded-2xl border border-white/[0.2] bg-[#1d222a]/95 p-5 shadow-[0_24px_60px_-36px_rgba(0,0,0,0.8)] sm:p-6">
+              <div className="flex items-center gap-3">
+                <div className="rounded-lg bg-[#72b9e8]/[0.15] p-2 text-[#72b9e8]">
+                  <Building2 className="h-5 w-5" aria-hidden="true" />
+                </div>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#72b9e8]">
+                  Internext Snapshot
+                </p>
+              </div>
+              <div className="mt-5 grid border-t border-white/[0.15] sm:grid-cols-3 xl:grid-cols-1">
+                {stats.map((item) => (
+                  <div
+                    key={item.value}
+                    className="min-w-0 border-t border-white/[0.12] py-4 first:border-t-0 sm:border-l sm:border-t-0 sm:px-4 sm:first:border-l-0 xl:border-l-0 xl:border-t xl:px-0 xl:first:border-t-0"
+                  >
+                    <p className={`whitespace-nowrap font-bold text-primary-foreground ${item.value === "Australia-wide" ? "text-xl" : "text-2xl"}`}>
+                      {item.value}
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-primary-foreground/75">{item.label}</p>
                   </div>
-                  <p className="text-sm font-semibold uppercase tracking-[0.16em] text-accent/90">
-                    Internext Snapshot
-                  </p>
-                </div>
-                <div className="mt-5 grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
-                  {stats.map((item) => (
-                    <div key={item.value} className="rounded-xl border border-primary-foreground/15 bg-primary-foreground/8 px-4 py-3">
-                      <p className="text-2xl font-bold text-primary-foreground">{item.value}</p>
-                      <p className="mt-1 text-sm leading-relaxed text-primary-foreground/75">{item.label}</p>
-                    </div>
-                  ))}
-                </div>
+                ))}
               </div>
             </div>
           </div>
