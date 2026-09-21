@@ -677,13 +677,14 @@ const readCatalogJsonArray = async (relativePath: string, host = "") => {
 };
 
 const loadInventorySyncProducts = async (host = "") => {
-  const [catalogProducts, leaderProducts] = await Promise.all([
+  const [catalogProducts, leaderProducts, fourCProducts] = await Promise.all([
     readCatalogJsonArray("public/data/catalog-products.json", host),
     readCatalogJsonArray("public/data/leader-products.json", host),
+    readCatalogJsonArray("public/data/4c-products.json", host),
   ]);
   const productsByCode = new Map<string, Record<string, unknown>>();
 
-  for (const rawProduct of [...catalogProducts, ...leaderProducts]) {
+  for (const rawProduct of [...catalogProducts, ...leaderProducts, ...fourCProducts]) {
     if (!rawProduct || typeof rawProduct !== "object") {
       continue;
     }

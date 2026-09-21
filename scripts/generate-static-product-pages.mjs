@@ -368,6 +368,7 @@ if (!fs.existsSync(templatePath)) {
 
 const template = fs.readFileSync(templatePath, "utf8");
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
 const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
@@ -375,13 +376,16 @@ const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
   product?.leaderCategory != null;
-const previousAlloysItems = previousSnapshotItems.filter((product) => !isLeaderSnapshotItem(product));
+const previousAlloysItems = previousSnapshotItems.filter(
+  (product) => !isLeaderSnapshotItem(product) && product?.supplierSource !== "4cabling",
+);
 const publicPriceFloors = loadPublicPriceFloorMap();
 const verifiedProducts = dedupeVerifiedProducts(previousSnapshotItems);
 const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
   mergeAlloysLivePricing([
     ...readJson(path.join(dataDir, "catalog-products.json")),
     ...staticLeaderProducts,
+    ...staticFourCProducts,
     ...previousSnapshotItems,
   ], previousAlloysItems),
   verifiedProducts,

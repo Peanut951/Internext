@@ -23,6 +23,7 @@ const decodeXmlText = (value) => String(value || "")
 
 const rawProducts = readJson("public/data/catalog-products.json", []);
 const leaderProducts = readJson("public/data/leader-products.json", []);
+const fourCProducts = readJson("public/data/4c-products.json", []);
 const snapshot = readJson("public/data/catalog-live-overrides.json", { items: [] });
 const quoteProducts = readJson("public/data/supplier-quote-products.json", { products: [] }).products || [];
 const verifiedProducts = [...(snapshot.items || []), ...quoteProducts];
@@ -30,7 +31,7 @@ const verifiedKeys = new Set(verifiedProducts.flatMap(getKeys));
 const verifiedCodes = new Set(verifiedProducts.map((product) => String(product.code || "").trim().toLowerCase()).filter(Boolean));
 const allowedCustomerCodes = new Set(verifiedCodes);
 
-const unsupportedRawProducts = [...rawProducts, ...leaderProducts].filter(
+const unsupportedRawProducts = [...rawProducts, ...leaderProducts, ...fourCProducts].filter(
   (product) => !getKeys(product).some((key) => verifiedKeys.has(key)),
 );
 
@@ -65,6 +66,7 @@ const report = {
   counts: {
     rawEnrichmentProducts: rawProducts.length,
     leaderEnrichmentProducts: leaderProducts.length,
+    fourCEnrichmentProducts: fourCProducts.length,
     verifiedSupplierProducts: (snapshot.items || []).length,
     verifiedQuoteProducts: quoteProducts.length,
     unsupportedRawEnrichmentProducts: unsupportedRawProducts.length,

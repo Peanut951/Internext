@@ -81,6 +81,7 @@ const itemDescription = (product) =>
 const sourceProducts = [
   ...loadProducts("public/data/catalog-products.json"),
   ...loadProducts("public/data/leader-products.json"),
+  ...loadProducts("public/data/4c-products.json"),
 ];
 
 const productsByCode = new Map();

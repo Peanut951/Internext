@@ -83,7 +83,9 @@ const annotateSupplierMeasurements = (product) => {
   const hasMeasurements = [product.weightKg, product.heightCm, product.widthCm, product.depthCm]
     .some((value) => Number.isFinite(Number(value)) && Number(value) > 0);
   if (!hasMeasurements || product.measurementOverride) return product;
-  const supplierName = product.supplierSource === "leader" ? "Leader" : "Alloys";
+  const supplierName = product.supplierSource === "leader"
+    ? "Leader"
+    : product.supplierSource === "4cabling" ? "4Cabling" : "Alloys";
   return {
     ...product,
     measurementSource: product.measurementSource || `${supplierName} supplier feed`,
@@ -800,12 +802,17 @@ let alloysLiveItems = [];
 const previousSnapshot = readJson(liveOverridesPath, { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
   product?.leaderCategory != null;
+const isFourCSnapshotItem = (product) => product?.supplierSource === "4cabling";
 const previousLeaderItems = previousSnapshotItems.filter(isLeaderSnapshotItem);
-const previousAlloysItems = previousSnapshotItems.filter((product) => !isLeaderSnapshotItem(product));
+const previousFourCItems = previousSnapshotItems.filter(isFourCSnapshotItem);
+const previousAlloysItems = previousSnapshotItems.filter(
+  (product) => !isLeaderSnapshotItem(product) && !isFourCSnapshotItem(product),
+);
 
 try {
   leaderFeedProducts = await loadLeaderFeedProducts();
@@ -828,6 +835,9 @@ const activeLeaderItems = (
       ? previousLeaderItems
       : staticLeaderProducts
 ).map((product) => ({ ...product, supplierSource: "leader" }));
+const activeFourCItems = (
+  staticFourCProducts.length > 0 ? staticFourCProducts : previousFourCItems
+).map((product) => ({ ...product, supplierSource: "4cabling" }));
 const shippingMeasurementOverrides = buildShippingMeasurementOverrideMap(
   await loadShippingMeasurementOverrides(),
 );
@@ -835,7 +845,11 @@ const sourcedShippingMeasurements = buildSourcedShippingMeasurementMap(
   loadSourcedShippingMeasurements(),
 );
 const publicPriceFloors = loadPublicPriceFloorMap();
-const generatedCatalogItems = dedupeVerifiedProducts([...activeAlloysItems, ...activeLeaderItems])
+const generatedCatalogItems = dedupeVerifiedProducts([
+  ...activeAlloysItems,
+  ...activeLeaderItems,
+  ...activeFourCItems,
+])
   .map(annotateSupplierMeasurements)
   .map((product) => applySourcedShippingMeasurement(product, sourcedShippingMeasurements))
   .map((product) => applyShippingMeasurementOverride(product, shippingMeasurementOverrides));
@@ -848,6 +862,7 @@ if (generatedCatalogItems.length > 0) {
         suppliers: {
           alloys: alloysLiveItems.length > 0 ? "live" : "last_verified",
           leader: leaderFeedProducts.length > 0 ? "live" : "last_verified",
+          fourCabling: staticFourCProducts.length > 0 ? "provided_snapshot" : "last_verified",
         },
         items: generatedCatalogItems,
       },
@@ -873,8 +888,10 @@ const products = mergeProducts(applyVerifiedProductIdentities(
   mergeAlloysLivePricing([
     ...readJson(path.join(dataDir, "catalog-products.json")),
     ...staticLeaderProducts,
+    ...staticFourCProducts,
     ...activeAlloysItems,
     ...activeLeaderItems,
+    ...activeFourCItems,
   ], activeAlloysItems),
   generatedCatalogItems,
 ))

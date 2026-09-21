@@ -61,10 +61,11 @@ const loadShippingMeasurementOverrides = async () => {
 
 const baseProducts = readJson("public/data/catalog-products.json");
 const leaderProducts = readJson("public/data/leader-products.json");
+const fourCProducts = readJson("public/data/4c-products.json");
 const liveOverrides = readJson("public/data/catalog-live-overrides.json").items || [];
 
 const productsByKey = new Map();
-for (const product of [...baseProducts, ...leaderProducts]) {
+for (const product of [...baseProducts, ...leaderProducts, ...fourCProducts]) {
   const key = keyFor(product);
   if (key) {
     productsByKey.set(key, product);

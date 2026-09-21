@@ -1,34 +1,24 @@
 {
-  "auditedAt": "2026-08-24T00:07:42.852Z",
-  "verifiedSnapshotUpdatedAt": "2026-08-23T23:29:15.875Z",
+  "auditedAt": "2026-09-21T01:25:22.067Z",
+  "verifiedSnapshotUpdatedAt": "2026-09-21T01:23:45.209Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
-    "leader": "last_verified"
+    "leader": "last_verified",
+    "fourCabling": "provided_snapshot"
   },
   "counts": {
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
-    "verifiedSupplierProducts": 7247,
+    "fourCEnrichmentProducts": 4542,
+    "verifiedSupplierProducts": 11572,
     "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 750,
-    "googleProducts": 4943,
-    "sitemapProducts": 5905,
-    "staticProductPages": 5905
+    "unsupportedRawEnrichmentProducts": 936,
+    "googleProducts": 9283,
+    "sitemapProducts": 10263,
+    "staticProductPages": 10263
   },
   "unsupportedCustomerFacing": {
-    "googleProductCodes": [
-      "ax9155101b",
-      "cpfi-706pgy",
-      "hpp-8j8w1aa",
-      "hpp-8k6p2aa",
-      "hpp-8k6p3aa",
-      "hpp-8k6q2aa",
-      "hpp-8k6q8aa",
-      "hpp-8y9c3aa",
-      "hpp-aw6u4aa",
-      "hpp-b0vr7aa",
-      "lg-65um662h"
-    ],
+    "googleProductCodes": [],
     "sitemapProductCodes": [],
     "staticPageProductCodes": []
   },
@@ -94,6 +84,12 @@
       "description": "Arkin 8K 48GBPS Hdmi 2.1 Cable with Ethernet - 1M"
     },
     {
+      "code": "AR-HDMI-FLAT-.5",
+      "supplierCode": "AR-HDMI-FLAT-.5",
+      "manufacturer": "Arkin",
+      "description": "Arkin 4K 18GBPS Hdmi 2.0 Flat Cable with Ethernet - 0.5M"
+    },
+    {
       "code": "AR-HDMI-FLAT-1",
       "supplierCode": "AR-HDMI-FLAT-1",
       "manufacturer": "Arkin",
@@ -116,6 +112,18 @@
       "supplierCode": "FB6380E",
       "manufacturer": "Avision",
       "description": "Avision FB6380E Bookedge Scanner (A3 Flatbed)"
+    },
+    {
+      "code": "AVPAV002-6381-0",
+      "supplierCode": "PAV002-6381-0-SP",
+      "manufacturer": "Avision",
+      "description": "Friction Roller Assembly for AV320D2+ / AV320E2+"
+    },
+    {
+      "code": "AVPAV002-7275-0",
+      "supplierCode": "002-7275-0-SP",
+      "manufacturer": "Avision",
+      "description": "**See Now AVPAV002-A401-0*** AD230 / AD240 (REV2) / AD260 / AD280/AD250F / AN240W"
     },
     {
       "code": "AX1120102",
@@ -484,6 +492,12 @@
       "description": "Canon IJM-416 Image Canvas 375GSM 1067MM X 18M"
     },
     {
+      "code": "CCART046BKH",
+      "supplierCode": "CART046BKH",
+      "manufacturer": "Canon",
+      "description": "Canon CART046BKH High Yield Black for LBP654CX / MF735CX 6.2K"
+    },
+    {
       "code": "CCART316C",
       "supplierCode": "CART316C",
       "manufacturer": "Canon",
@@ -502,10 +516,28 @@
       "description": "CART324 Toner Cartridge for Canon LBP6750DN Damaged Carton"
     },
     {
+      "code": "CCART332BK",
+      "supplierCode": "CART332BK",
+      "manufacturer": "Canon",
+      "description": "CART332BK Blk Cartridge for LBP7780CX"
+    },
+    {
       "code": "CCART333",
       "supplierCode": "CART333",
       "manufacturer": "Canon",
       "description": "Canon CART333 Std Black Toner Cartridge 10K to Suit LBP8780X"
+    },
+    {
+      "code": "CCART333-RET",
+      "supplierCode": "EA",
+      "manufacturer": "Canon",
+      "description": "Canon CART333 Std Black Toner Cartridge 10K to Suit **Damaged Carton**"
+    },
+    {
+      "code": "CCART416C",
+      "supplierCode": "CART416C",
+      "manufacturer": "Canon",
+      "description": "Cyan Cartridge for Canon MF8050CDN"
     },
     {
       "code": "CDR-C240",
@@ -590,48 +622,6 @@
       "supplierCode": "IPF-RUNIP-ALLOYS",
       "manufacturer": "Alloys",
       "description": "Alloys Prof Run Up Preperation Large Format Printers"
-    },
-    {
-      "code": "CLFM-WRBV236530",
-      "supplierCode": "LFM-WRBV2/36/530",
-      "manufacturer": "Canon",
-      "description": "Water Resistant Adhesive Matte Vinyl 530gsm 36\""
-    },
-    {
-      "code": "CMC100G914-46M1",
-      "supplierCode": "9200080001",
-      "manufacturer": "Canon",
-      "description": "Universal Matt Coated Paper 100GSM 914MM X 46M BOX OF 4 ROLLS"
-    },
-    {
-      "code": "CMF269DWII",
-      "supplierCode": "MF269DWII",
-      "manufacturer": "Canon",
-      "description": "Canon Imageclass MF269DWII A4 28PPM Duplex Print Copy Scan Fax WI-FI Mono MFP"
-    },
-    {
-      "code": "CPFI-2700O",
-      "supplierCode": "PFI-2700O",
-      "manufacturer": "Canon",
-      "description": "PFI-2700O Orange Ink For GP -700 ml"
-    },
-    {
-      "code": "CPFI-307BK",
-      "supplierCode": "PFI-307BK",
-      "manufacturer": "Canon",
-      "description": "PFI-307BK Black Ink - 330ML"
-    },
-    {
-      "code": "CPFI-307C",
-      "supplierCode": "PFI-307C",
-      "manufacturer": "Canon",
-      "description": "PFI-307C Cyan Ink - 3300ML"
-    },
-    {
-      "code": "CPFI-307MBK",
-      "supplierCode": "PFI-307MBK",
-      "manufacturer": "Canon",
-      "description": "PFI-307MBK Matte Black Ink - 330ML"
     }
   ]
 }

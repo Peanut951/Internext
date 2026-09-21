@@ -2,6 +2,7 @@ import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 
 export type CatalogProductWithLive = {
   code: string;
+  supplierSource?: "alloys" | "leader" | "4cabling";
   manufacturer: string;
   description: string;
   longDescription?: string;
@@ -441,19 +442,26 @@ const loadStaticCatalogProducts = async () => {
       };
 
       try {
-        const leaderResponse = await fetch("/data/leader-products.json");
-        if (!leaderResponse.ok) {
-          return applyStaticLiveOverrides(staticProducts);
-        }
-
-        const leaderProducts = normalizeCatalogProducts(
-          (await leaderResponse.json()) as CatalogProductWithLive[],
-        );
+        const [leaderResponse, fourCResponse] = await Promise.all([
+          fetch("/data/leader-products.json"),
+          fetch("/data/4c-products.json"),
+        ]);
+        const leaderProducts = leaderResponse.ok
+          ? normalizeCatalogProducts((await leaderResponse.json()) as CatalogProductWithLive[])
+          : [];
+        const fourCProducts = fourCResponse.ok
+          ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[])
+          : [];
         const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
         const leaderOnlyProducts = leaderProducts.filter((product) =>
           getProductKeys(product).every((key) => !existingKeys.has(key)),
         );
-        return applyStaticLiveOverrides([...staticProducts, ...leaderOnlyProducts]);
+        const currentProducts = [...staticProducts, ...leaderOnlyProducts];
+        const currentKeys = new Set(currentProducts.flatMap(getProductKeys));
+        const fourCOnlyProducts = fourCProducts.filter((product) =>
+          getProductKeys(product).every((key) => !currentKeys.has(key)),
+        );
+        return applyStaticLiveOverrides([...currentProducts, ...fourCOnlyProducts]);
       } catch {
         return applyStaticLiveOverrides(staticProducts);
       }

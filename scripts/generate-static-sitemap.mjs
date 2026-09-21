@@ -27,6 +27,7 @@ const escapeXml = (value) =>
 
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"), []);
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"), []);
+const fourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []);
 const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },
@@ -39,6 +40,7 @@ const productCodes = Array.from(
       [
         ...staticProducts,
         ...leaderProducts,
+        ...fourCProducts,
         ...previousLiveItems,
       ],
       verifiedProducts,

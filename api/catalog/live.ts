@@ -19,6 +19,7 @@ import {
 export type LiveCatalogItem = {
   code: string;
   supplierCode: string;
+  supplierSource?: "alloys" | "leader" | "4cabling";
   manufacturer: string;
   name: string;
   longDescription?: string;
@@ -202,6 +203,33 @@ type LeaderCatalogProduct = StaticCatalogProduct & {
   ean?: string;
   upc?: string;
   barcode?: string;
+};
+
+type FourCCatalogProduct = StaticCatalogProduct & {
+  supplierSource: "4cabling";
+  manufacturer: string;
+  name?: string;
+  description: string;
+  longDescription?: string;
+  price: number;
+  priceText: string;
+  resellerPrice: number;
+  resellerPriceText: string;
+  rrp: number;
+  rrpText: string;
+  rrpExGst: number;
+  taxRate: number;
+  availabilityText: string;
+  etaDate?: string;
+  etaStatus?: string;
+  stockQuantity: number;
+  stockByWarehouse?: LiveCatalogItem["stockByWarehouse"];
+  stockRecordUpdated?: string;
+  weightKg?: number | null;
+  heightCm?: number | null;
+  widthCm?: number | null;
+  depthCm?: number | null;
+  gtin?: string;
 };
 
 const parseNumber = (value: unknown) => {
@@ -707,6 +735,7 @@ const parseLiveCatalog = (csv: string) => {
       return {
         code,
         supplierCode: parts[13]?.trim() || code,
+        supplierSource: "alloys",
         manufacturer: parts[3]?.trim() || "",
         name: parts[1]?.trim() || "",
         longDescription: cleanSupplierDescription(getCsvField(headers, parts, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
@@ -802,6 +831,7 @@ const parseLiveCatalogXml = (xml: string) => {
       return {
         code,
         supplierCode: getXmlTag(row, "SupplierPartNumber") || code,
+        supplierSource: "alloys",
         manufacturer: getXmlTag(row, "Manufacturer"),
         name: getXmlTag(row, "Name"),
         longDescription: cleanSupplierDescription(getFirstXmlTag(row, SUPPLIER_DESCRIPTION_FIELDS)) || undefined,
@@ -848,6 +878,8 @@ const globalCatalogCache = globalThis as typeof globalThis & {
     products: LeaderCatalogProduct[];
   };
   __internextLeaderCatalogProductsPromise?: Promise<LeaderCatalogProduct[]>;
+  __internextFourCCatalogProductsCache?: FourCCatalogProduct[];
+  __internextFourCCatalogProductsPromise?: Promise<FourCCatalogProduct[]>;
 };
 
 const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode">) =>
@@ -855,10 +887,14 @@ const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCo
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
-const getSupplierMeasurementSource = (product: StaticCatalogProduct) =>
-  "leaderStatus" in product || "leaderDealerBuyEx" in product
-    ? "Leader supplier feed"
-    : "Alloys supplier feed";
+const getSupplierMeasurementSource = (product: StaticCatalogProduct) => {
+  const supplierSource = String(product.supplierSource || "").trim().toLowerCase();
+  if (supplierSource === "4cabling") return "4Cabling supplier catalogue";
+  if (supplierSource === "leader" || "leaderStatus" in product || "leaderDealerBuyEx" in product) {
+    return "Leader supplier feed";
+  }
+  return "Alloys supplier feed";
+};
 
 const hasAnyMeasurements = (product: Pick<LiveCatalogItem, "weightKg" | "heightCm" | "widthCm" | "depthCm">) =>
   [product.weightKg, product.heightCm, product.widthCm, product.depthCm].some(
@@ -960,6 +996,42 @@ const loadLeaderPdfExclusionCodes = async () => {
 
 const isLeaderPdfExcluded = (product: Pick<LeaderCatalogProduct, "code" | "supplierCode">) =>
   getProductKeys(product).some((key) => leaderPdfExclusionCodes?.has(key));
+
+const loadFourCCatalogProducts = async (): Promise<FourCCatalogProduct[]> => {
+  if (globalCatalogCache.__internextFourCCatalogProductsCache) {
+    return globalCatalogCache.__internextFourCCatalogProductsCache;
+  }
+  if (globalCatalogCache.__internextFourCCatalogProductsPromise) {
+    return globalCatalogCache.__internextFourCCatalogProductsPromise;
+  }
+
+  const loadPromise = (async () => {
+    try {
+      const catalogPath = join(process.cwd(), "public", "data", "4c-products.json");
+      const raw = await readFile(catalogPath, "utf8");
+      const parsed = JSON.parse(raw) as FourCCatalogProduct[];
+      const products = (Array.isArray(parsed) ? parsed : []).filter((product) =>
+        product?.supplierSource === "4cabling" &&
+        Boolean(product.code?.trim()) &&
+        Boolean(product.supplierCode?.trim()) &&
+        typeof product.price === "number" &&
+        product.price > 0 &&
+        isTangibleCatalogProduct(product as Record<string, unknown>),
+      );
+      globalCatalogCache.__internextFourCCatalogProductsCache = products;
+      return products;
+    } catch {
+      return [] as FourCCatalogProduct[];
+    }
+  })();
+  globalCatalogCache.__internextFourCCatalogProductsPromise = loadPromise;
+
+  try {
+    return await loadPromise;
+  } finally {
+    delete globalCatalogCache.__internextFourCCatalogProductsPromise;
+  }
+};
 
 const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
 const STOCK_OVERRIDE_LOCATIONS = new Set(["internext", "adl", "bne", "mel", "syd", "wa"]);
@@ -1489,6 +1561,7 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
   return {
     code: product.code,
     supplierCode: product.supplierCode || product.code,
+    supplierSource: "leader",
     manufacturer: product.manufacturer || "Leader",
     name: product.description || product.code,
     longDescription: product.longDescription,
@@ -1519,6 +1592,40 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
     gtin: getProductGtin(product),
   };
 };
+
+const createFourCLiveCatalogItem = (product: FourCCatalogProduct): LiveCatalogItem => ({
+  code: product.code,
+  supplierCode: product.supplierCode || product.code,
+  supplierSource: "4cabling",
+  manufacturer: product.manufacturer || "4Cabling",
+  name: product.description || product.name || product.code,
+  longDescription: product.longDescription,
+  price: product.price,
+  priceText: product.priceText || formatCustomerAud(product.price),
+  resellerPrice: product.resellerPrice,
+  resellerPriceText: product.resellerPriceText || formatResellerAud(product.resellerPrice),
+  rrp: product.rrp,
+  rrpText: product.rrpText || formatAud(product.rrp),
+  rrpExGst: product.rrpExGst,
+  taxRate: product.taxRate || 10,
+  availabilityText: product.availabilityText || (product.stockQuantity > 0 ? "In Stock" : "Check availability"),
+  etaDate: product.etaDate || "",
+  etaStatus: product.etaStatus || "",
+  stockQuantity: Math.max(0, Math.floor(product.stockQuantity || 0)),
+  stockByWarehouse: {
+    adl: product.stockByWarehouse?.adl ?? 0,
+    bne: product.stockByWarehouse?.bne ?? 0,
+    mel: product.stockByWarehouse?.mel ?? 0,
+    syd: product.stockByWarehouse?.syd ?? 0,
+    wa: product.stockByWarehouse?.wa ?? 0,
+  },
+  stockRecordUpdated: product.stockRecordUpdated || "",
+  weightKg: product.weightKg ?? null,
+  heightCm: product.heightCm ?? null,
+  widthCm: product.widthCm ?? null,
+  depthCm: product.depthCm ?? null,
+  gtin: getProductGtin(product),
+});
 
 const getComparablePrice = (item: LiveCatalogItem) =>
   item.resellerPrice ?? item.price ?? 0;
@@ -1629,8 +1736,12 @@ const loadLiveCatalogItemsUncached = async (
   cached: typeof globalCatalogCache.__internextLiveCatalogCache,
   now: number,
 ): Promise<LiveCatalogResult> => {
-  const leaderProducts = await loadLeaderCatalogProducts();
+  const [leaderProducts, fourCProducts] = await Promise.all([
+    loadLeaderCatalogProducts(),
+    loadFourCCatalogProducts(),
+  ]);
   const leaderItems = leaderProducts.map(createLeaderLiveCatalogItem);
+  const fourCItems = fourCProducts.map(createFourCLiveCatalogItem);
   const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
   if (!feedUrl) {
     if (cached && cached.staleUntil > now) {
@@ -1669,14 +1780,16 @@ const loadLiveCatalogItemsUncached = async (
       loadPublicPriceFloorMap(),
     ]);
     const overridesByKey = buildStockOverrideMap(stockOverrides);
-    const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems])
+    const items = mergeLiveCatalogItems([...alloysItems, ...leaderItems, ...fourCItems])
       .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
       .map((item) => applyPublicPriceFloor(item, publicPriceFloors))
       .filter((item) =>
         isTangibleCatalogProduct(item as unknown as Record<string, unknown>),
       );
     const updatedAt = new Date().toISOString();
-    const source = leaderItems.length > 0 ? "combined" : feedText.trim().startsWith("<") ? "xml" : "csv";
+    const source = leaderItems.length > 0 || fourCItems.length > 0
+      ? "combined"
+      : feedText.trim().startsWith("<") ? "xml" : "csv";
     const cacheMs = getServerCatalogCacheMs();
     const staleMs = getServerCatalogStaleMs();
 
@@ -1715,12 +1828,19 @@ const loadStaticCatalogProducts = async () => {
   const catalogPath = join(process.cwd(), "public", "data", "catalog-products.json");
   const raw = await readFile(catalogPath, "utf8");
   const staticProducts = JSON.parse(raw) as StaticCatalogProduct[];
-  const leaderProducts = await loadLeaderCatalogProducts();
+  const [leaderProducts, fourCProducts] = await Promise.all([
+    loadLeaderCatalogProducts(),
+    loadFourCCatalogProducts(),
+  ]);
   const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
   const leaderOnlyProducts = leaderProducts.filter((product) =>
     getProductKeys(product).every((key) => !existingKeys.has(key)),
   );
-  return [...staticProducts, ...leaderOnlyProducts].filter((product) =>
+  const currentKeys = new Set([...staticProducts, ...leaderOnlyProducts].flatMap(getProductKeys));
+  const fourCOnlyProducts = fourCProducts.filter((product) =>
+    getProductKeys(product).every((key) => !currentKeys.has(key)),
+  );
+  return [...staticProducts, ...leaderOnlyProducts, ...fourCOnlyProducts].filter((product) =>
     isTangibleCatalogProduct(product as Record<string, unknown>),
   ) as StaticCatalogProduct[];
 };
