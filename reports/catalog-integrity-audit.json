@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-09-21T01:25:22.067Z",
-  "verifiedSnapshotUpdatedAt": "2026-09-21T01:23:45.209Z",
+  "auditedAt": "2026-09-22T00:37:45.631Z",
+  "verifiedSnapshotUpdatedAt": "2026-09-22T00:36:22.428Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -202,12 +202,6 @@
       "supplierCode": "01337-001",
       "manufacturer": "Axis",
       "description": "IP Force Intercom System 1 Button HD Camera 10W Speaker"
-    },
-    {
-      "code": "AX9151101KW",
-      "supplierCode": "01338-001",
-      "manufacturer": "Axis",
-      "description": "IP Force Intercom System 1 Button Keypad 10W Speaker"
     },
     {
       "code": "AX9151101RPW",
@@ -622,6 +616,12 @@
       "supplierCode": "IPF-RUNIP-ALLOYS",
       "manufacturer": "Alloys",
       "description": "Alloys Prof Run Up Preperation Large Format Printers"
+    },
+    {
+      "code": "CIPFTM-240LM-MFP",
+      "supplierCode": "BDL_TM240LM MFP",
+      "manufacturer": "Canon",
+      "description": "iPF TM-240 24\" Technical & Poster Large Format Printer with Stand & Scanner"
     }
   ]
 }

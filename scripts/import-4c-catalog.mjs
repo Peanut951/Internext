@@ -4,14 +4,20 @@ import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
 
 const CUSTOMER_MARKUP_RATE = 0.2;
 const GST_RATE = 0.1;
-const MIN_RRP_MULTIPLIER = 1.1;
 const DEFAULT_OUTPUT_PATH = path.resolve("public", "data", "4c-products.json");
 
-const inputPath = process.argv[2] ? path.resolve(process.argv[2]) : "";
+const refreshIfConfigured = process.argv[2] === "--refresh-if-configured";
+const inputSource = refreshIfConfigured ? String(process.env.FOUR_C_CATALOG_CSV_URL || "").trim() : String(process.argv[2] || "");
+if (refreshIfConfigured && !inputSource) {
+  console.log("4C catalogue refresh skipped: FOUR_C_CATALOG_CSV_URL is not configured.");
+  process.exit(0);
+}
+const isRemoteSource = /^https:\/\//i.test(inputSource);
+const inputPath = isRemoteSource ? "" : inputSource ? path.resolve(inputSource) : "";
 const outputPath = process.argv[3] ? path.resolve(process.argv[3]) : DEFAULT_OUTPUT_PATH;
 
-if (!inputPath || !fs.existsSync(inputPath)) {
-  throw new Error("Usage: node scripts/import-4c-catalog.mjs <4C CSV path> [output JSON path]");
+if ((!inputPath || !fs.existsSync(inputPath)) && !isRemoteSource) {
+  throw new Error("Usage: node scripts/import-4c-catalog.mjs <4C CSV path or HTTPS URL> [output JSON path]");
 }
 
 const parseCsvRecords = (text) => {
@@ -87,10 +93,27 @@ const createProductCode = (sku) => {
   return safeSku ? `4C-${safeSku}` : "";
 };
 
-const sourceText = fs.readFileSync(inputPath, "utf8").replace(/^\uFEFF/, "");
+let sourceText;
+let sourceUpdatedAt;
+if (isRemoteSource) {
+  const authorization = String(process.env.FOUR_C_CATALOG_CSV_AUTHORIZATION || "").trim();
+  const response = await fetch(inputSource, {
+    headers: authorization ? { Authorization: authorization } : {},
+    signal: AbortSignal.timeout(60_000),
+  });
+  if (!response.ok) throw new Error(`4C feed returned HTTP ${response.status}.`);
+  sourceText = (await response.text()).replace(/^\uFEFF/, "");
+  sourceUpdatedAt = new Date().toISOString();
+} else {
+  sourceText = fs.readFileSync(inputPath, "utf8").replace(/^\uFEFF/, "");
+  sourceUpdatedAt = fs.statSync(inputPath).mtime.toISOString();
+}
 const [rawHeaders = [], ...records] = parseCsvRecords(sourceText);
 const headers = rawHeaders.map(normalizeHeader);
-const sourceUpdatedAt = fs.statSync(inputPath).mtime.toISOString();
+for (const requiredHeader of ["SKU", "Product_Name", "Price_Ex", "Stock"]) {
+  if (!headers.includes(requiredHeader)) throw new Error(`4C feed is missing required column ${requiredHeader}.`);
+}
+if (records.length === 0) throw new Error("4C feed is empty.");
 const products = [];
 const skipped = [];
 const seenCodes = new Set();
@@ -114,10 +137,9 @@ for (const record of records) {
   const publicPrice = roundMoney(costExGst * (1 + CUSTOMER_MARKUP_RATE) * (1 + GST_RATE));
   const resellerPrice = roundMoney(costExGst * (1 + CUSTOMER_MARKUP_RATE));
   const suppliedRrpInc = parseNumber(row.RRP_Inc);
-  const minimumRrp = roundMoney(publicPrice * MIN_RRP_MULTIPLIER);
-  const rrp = suppliedRrpInc !== null && suppliedRrpInc >= minimumRrp
+  const rrp = suppliedRrpInc !== null && suppliedRrpInc > publicPrice
     ? roundMoney(suppliedRrpInc)
-    : minimumRrp;
+    : null;
   const stockValue = parseNumber(row.Stock);
   const stockQuantity = Math.max(0, Math.floor(stockValue ?? 0));
   const manufacturer = cleanText(row.Manufacturer) || "4Cabling";
@@ -142,8 +164,8 @@ for (const record of records) {
     resellerPrice,
     resellerPriceText: `${formatAud(resellerPrice)} Ex GST`,
     rrp,
-    rrpText: formatAud(rrp),
-    rrpExGst: roundMoney(rrp / (1 + GST_RATE)),
+    rrpText: rrp === null ? "" : formatAud(rrp),
+    rrpExGst: rrp === null ? null : roundMoney(rrp / (1 + GST_RATE)),
     taxRate: 10,
     availabilityText: stockQuantity > 0 ? "In Stock" : "Check availability",
     etaDate: "",
@@ -151,6 +173,7 @@ for (const record of records) {
     stockQuantity,
     stockByWarehouse: { adl: 0, bne: 0, mel: 0, syd: 0, wa: 0 },
     stockRecordUpdated: sourceUpdatedAt,
+    supplierCatalogUpdatedAt: sourceUpdatedAt,
     weightKg: null,
     heightCm: null,
     widthCm: null,
@@ -164,6 +187,12 @@ for (const record of records) {
 }
 
 products.sort((left, right) => left.code.localeCompare(right.code));
+if (fs.existsSync(outputPath)) {
+  const previous = JSON.parse(fs.readFileSync(outputPath, "utf8"));
+  if (Array.isArray(previous) && previous.length >= 100 && products.length < previous.length * 0.8) {
+    throw new Error(`4C feed has only ${products.length} products versus ${previous.length} previously; review before replacing the snapshot.`);
+  }
+}
 fs.mkdirSync(path.dirname(outputPath), { recursive: true });
 fs.writeFileSync(outputPath, `${JSON.stringify(products)}\n`);
 
@@ -174,7 +203,7 @@ const reasonCounts = Object.fromEntries(
   ]),
 );
 console.log(JSON.stringify({
-  source: inputPath,
+  source: isRemoteSource ? new URL(inputSource).origin : inputPath,
   output: outputPath,
   rowsRead: records.length,
   productsWritten: products.length,

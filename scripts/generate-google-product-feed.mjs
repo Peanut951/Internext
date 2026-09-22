@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import {
@@ -802,14 +803,14 @@ let alloysLiveItems = [];
 const previousSnapshot = readJson(liveOverridesPath, { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
+const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json")).filter((product) => isCurrentFourCProduct(product));
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
   product?.leaderCategory != null;
 const isFourCSnapshotItem = (product) => product?.supplierSource === "4cabling";
 const previousLeaderItems = previousSnapshotItems.filter(isLeaderSnapshotItem);
-const previousFourCItems = previousSnapshotItems.filter(isFourCSnapshotItem);
+const previousFourCItems = previousSnapshotItems.filter((product) => isFourCSnapshotItem(product) && isCurrentFourCProduct(product));
 const previousAlloysItems = previousSnapshotItems.filter(
   (product) => !isLeaderSnapshotItem(product) && !isFourCSnapshotItem(product),
 );

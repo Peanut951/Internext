@@ -1,4 +1,5 @@
 import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
 
 export type CatalogProductWithLive = {
   code: string;
@@ -41,6 +42,7 @@ export type CatalogProductWithLive = {
     adminLocation?: string;
   };
   stockRecordUpdated?: string;
+  supplierCatalogUpdatedAt?: string;
   weightKg?: number | null;
   heightCm?: number | null;
   widthCm?: number | null;
@@ -86,6 +88,7 @@ type LiveCatalogItem = {
     adminLocation?: string;
   };
   stockRecordUpdated: string;
+  supplierCatalogUpdatedAt?: string;
   weightKg: number | null;
   heightCm: number | null;
   widthCm: number | null;
@@ -100,11 +103,17 @@ type LiveCatalogItem = {
 
 type LiveCatalogResponse = {
   updatedAt?: string;
+  count?: number;
+  page?: number;
+  pageCount?: number;
   items?: LiveCatalogItem[];
 };
 
 type MergedCatalogResponse = {
   updatedAt?: string;
+  count?: number;
+  page?: number;
+  pageCount?: number;
   items?: CatalogProductWithLive[];
 };
 
@@ -121,6 +130,8 @@ type PublicPriceFloorEntry = {
 
 const CATALOG_CACHE_KEY = "internext-live-catalog-products-v7";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
+const CATALOG_PAGE_SIZE = 500;
+const CATALOG_PAGE_CONCURRENCY = 4;
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
@@ -270,7 +281,7 @@ const readCachedProducts = () => {
       return null;
     }
 
-    return cached.products;
+    return cached.products.filter((product) => isCurrentFourCProduct(product));
   } catch {
     window.localStorage.removeItem(CATALOG_CACHE_KEY);
     return null;
@@ -362,7 +373,7 @@ const reconcileCachedProductsWithVerifiedSnapshot = (
 ) => {
   const verifiedKeys = new Set(verifiedProducts.flatMap(getProductKeys));
   const stillActiveCachedProducts = cachedProducts.filter((product) =>
-    getProductKeys(product).some((key) => verifiedKeys.has(key)),
+    isCurrentFourCProduct(product) && getProductKeys(product).some((key) => verifiedKeys.has(key)),
   );
 
   return mergeCatalogProductUpdates(stillActiveCachedProducts, verifiedProducts);
@@ -405,7 +416,8 @@ const loadStaticCatalogProducts = async () => {
           }
 
           const updatedAt = liveOverrides.updatedAt || new Date().toISOString();
-          const currentLiveKeys = new Set(liveOverrides.items.flatMap(getProductKeys));
+          const currentLiveItems = liveOverrides.items.filter((item) => isCurrentFourCProduct(item));
+          const currentLiveKeys = new Set(currentLiveItems.flatMap(getProductKeys));
           const verifiedQuoteData = verifiedQuoteResponse.ok
             ? ((await verifiedQuoteResponse.json()) as { products?: CatalogProductWithLive[] })
             : { products: [] };
@@ -427,7 +439,7 @@ const loadStaticCatalogProducts = async () => {
           return applyPublicPriceFloors(mergeCatalogProductUpdates(
             quoteSafeProducts,
             stripCachedEtaProductsData(
-              liveOverrides.items.map((item) => ({
+              currentLiveItems.map((item) => ({
                 ...item,
                 liveUpdatedAt: item.liveUpdatedAt || updatedAt,
                 quoteRequired: false,
@@ -450,7 +462,7 @@ const loadStaticCatalogProducts = async () => {
           ? normalizeCatalogProducts((await leaderResponse.json()) as CatalogProductWithLive[])
           : [];
         const fourCProducts = fourCResponse.ok
-          ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[])
+          ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[]).filter((product) => isCurrentFourCProduct(product))
           : [];
         const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
         const leaderOnlyProducts = leaderProducts.filter((product) =>
@@ -474,6 +486,48 @@ const loadStaticCatalogProducts = async () => {
   return staticCatalogProductsPromise;
 };
 
+const fetchCatalogPages = async <T extends { updatedAt?: string; count?: number; page?: number; pageCount?: number; items?: unknown[] }>(
+  url: string,
+  noStore: boolean,
+): Promise<T> => {
+  const fetchPage = async (page: number) => {
+    const separator = url.includes("?") ? "&" : "?";
+    const response = await fetch(`${url}${separator}page=${page}&pageSize=${CATALOG_PAGE_SIZE}`, {
+      cache: noStore ? "no-store" : "default",
+    });
+    if (!response.ok) throw new Error(`Catalogue page ${page} returned ${response.status}.`);
+    return await response.json() as T;
+  };
+
+  const first = await fetchPage(1);
+  if (!Array.isArray(first.items) || !Number.isInteger(first.pageCount) || !first.pageCount || first.page !== 1) {
+    throw new Error("The supplier catalogue returned an invalid first page.");
+  }
+  const pages: T[] = [first];
+  for (let start = 2; start <= first.pageCount; start += CATALOG_PAGE_CONCURRENCY) {
+    const numbers = Array.from(
+      { length: Math.min(CATALOG_PAGE_CONCURRENCY, first.pageCount - start + 1) },
+      (_, offset) => start + offset,
+    );
+    pages.push(...await Promise.all(numbers.map(fetchPage)));
+  }
+
+  if (pages.some((page, index) =>
+    page.page !== index + 1 || page.count !== first.count || page.pageCount !== first.pageCount || !Array.isArray(page.items)
+  )) {
+    throw new Error("The supplier catalogue changed during pagination. Please retry.");
+  }
+  const items = pages.flatMap((page) => page.items || []);
+  if (items.length !== first.count) {
+    throw new Error("The supplier catalogue was incomplete. Please retry.");
+  }
+  const codes = items.map((item) => String((item as { code?: string }).code || "").trim().toLowerCase());
+  if (codes.some((code) => !code) || new Set(codes).size !== codes.length) {
+    throw new Error("The supplier catalogue changed during pagination. Please retry.");
+  }
+  return { ...first, items } as T;
+};
+
 const loadCatalogProductsInternal = async (
   skipCache = false,
   refreshStockOverrides = false,
@@ -484,18 +538,16 @@ const loadCatalogProductsInternal = async (
       : refreshStockOverrides
         ? `&stockRefresh=${Date.now()}`
         : "";
-    const mergedResponse = await fetch(`/api/catalog/live?view=products${refreshSuffix}`, {
-      cache: skipCache || refreshStockOverrides ? "no-store" : "default",
-    });
-    if (mergedResponse.ok) {
-      const mergedData = (await mergedResponse.json()) as MergedCatalogResponse;
-      if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
-        const products = await applyPublicPriceFloors(normalizeCatalogProducts(
-          mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
-        ));
-        writeCachedProducts(products);
-        return products;
-      }
+    const mergedData = await fetchCatalogPages<MergedCatalogResponse>(
+      `/api/catalog/live?view=products${refreshSuffix}`,
+      skipCache || refreshStockOverrides,
+    );
+    if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
+      const products = await applyPublicPriceFloors(normalizeCatalogProducts(
+        mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
+      ));
+      writeCachedProducts(products);
+      return products;
     }
     if (refreshStockOverrides) {
       throw new Error("Unable to refresh admin stock overrides.");
@@ -507,20 +559,16 @@ const loadCatalogProductsInternal = async (
     // Fall back to the original client-side merge path below.
   }
 
-  const staticProducts = await loadStaticCatalogProducts();
+  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isCurrentFourCProduct(product));
   const cachedProducts = skipCache || refreshStockOverrides ? null : readCachedProducts();
   if (cachedProducts) {
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
 
-  const liveResponse = await fetch(skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live", {
-    cache: skipCache ? "no-store" : "default",
-  });
-  if (!liveResponse.ok) {
-    throw new Error("Live Alloys feed is unavailable.");
-  }
-
-  const liveData = (await liveResponse.json()) as LiveCatalogResponse;
+  const liveData = await fetchCatalogPages<LiveCatalogResponse>(
+    skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live",
+    skipCache,
+  );
   if (!Array.isArray(liveData.items) || liveData.items.length === 0) {
     throw new Error("Live Alloys feed returned no products.");
   }
@@ -570,6 +618,7 @@ const loadCatalogProductsInternal = async (
         stockQuantity: live.stockQuantity,
         stockByWarehouse: live.stockByWarehouse,
         stockRecordUpdated: live.stockRecordUpdated,
+        supplierCatalogUpdatedAt: live.supplierCatalogUpdatedAt,
         weightKg: live.weightKg,
         heightCm: live.heightCm,
         widthCm: live.widthCm,
@@ -612,7 +661,7 @@ export const loadCatalogProducts = async (options?: {
         });
     }
 
-    return catalogProductsRefreshPromise;
+    return catalogProductsRefreshPromise.then((products) => products.filter((product) => isCurrentFourCProduct(product)));
   }
 
   if (!catalogProductsPromise) {
@@ -622,13 +671,13 @@ export const loadCatalogProducts = async (options?: {
     });
   }
 
-  return catalogProductsPromise;
+  return catalogProductsPromise.then((products) => products.filter((product) => isCurrentFourCProduct(product)));
 };
 
 export const loadCatalogProductsFast = async (
   _onLiveProducts?: (products: CatalogProductWithLive[]) => void,
 ) => {
-  const staticProducts = await loadStaticCatalogProducts();
+  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isCurrentFourCProduct(product));
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);

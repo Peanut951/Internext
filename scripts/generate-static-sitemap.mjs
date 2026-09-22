@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import { getIndexableRoutes, SITE_URL } from "./lib/seo-routes.mjs";
 import {
@@ -27,11 +28,11 @@ const escapeXml = (value) =>
 
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"), []);
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"), []);
-const fourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []);
+const fourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []).filter((product) => isCurrentFourCProduct(product));
 const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },
-).items || [];
+).items?.filter((product) => isCurrentFourCProduct(product)) || [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
 const verifiedProducts = dedupeVerifiedProducts(previousLiveItems);
 const productCodes = Array.from(

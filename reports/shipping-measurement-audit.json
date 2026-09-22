@@ -1,11 +1,16 @@
 {
-  "generatedAt": "2026-09-21T01:27:19.783Z",
+  "generatedAt": "2026-09-22T00:29:16.241Z",
   "summary": {
     "totalPhysical": 11113,
     "completeSupplierDimensionFields": 5048,
     "missingAnyDimensionFields": 6065,
     "canPartlyParseFromText": 1937,
     "needsCategoryFallback": 4128,
+    "fourCabling": {
+      "physicalProducts": 4542,
+      "missingMeasurements": 4521,
+      "needsCategoryFallback": 2672
+    },
     "adminMeasurementOverrides": 0,
     "sourcedVerifiedMeasurements": 1372,
     "confidence": {

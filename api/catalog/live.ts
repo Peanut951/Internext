@@ -3,6 +3,7 @@ import { readEnv, sendJson } from "../checkout/_shared.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inflateRawSync } from "node:zlib";
+import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
 import {
   applyShippingMeasurementOverride,
   buildShippingMeasurementOverrideMap,
@@ -53,6 +54,7 @@ export type LiveCatalogItem = {
     adminAdjustments?: Record<string, number>;
   };
   stockRecordUpdated: string;
+  supplierCatalogUpdatedAt?: string;
   weightKg: number | null;
   heightCm: number | null;
   widthCm: number | null;
@@ -108,6 +110,8 @@ type MergedCatalogResult = {
 type MergedCatalogItem = StaticCatalogProduct & {
   code: string;
   supplierCode?: string;
+  supplierSource?: "alloys" | "leader" | "4cabling";
+  supplierCatalogUpdatedAt?: string;
   manufacturer?: string;
   name?: string;
   description?: string;
@@ -215,9 +219,9 @@ type FourCCatalogProduct = StaticCatalogProduct & {
   priceText: string;
   resellerPrice: number;
   resellerPriceText: string;
-  rrp: number;
+  rrp: number | null;
   rrpText: string;
-  rrpExGst: number;
+  rrpExGst: number | null;
   taxRate: number;
   availabilityText: string;
   etaDate?: string;
@@ -225,6 +229,7 @@ type FourCCatalogProduct = StaticCatalogProduct & {
   stockQuantity: number;
   stockByWarehouse?: LiveCatalogItem["stockByWarehouse"];
   stockRecordUpdated?: string;
+  supplierCatalogUpdatedAt: string;
   weightKg?: number | null;
   heightCm?: number | null;
   widthCm?: number | null;
@@ -999,7 +1004,7 @@ const isLeaderPdfExcluded = (product: Pick<LeaderCatalogProduct, "code" | "suppl
 
 const loadFourCCatalogProducts = async (): Promise<FourCCatalogProduct[]> => {
   if (globalCatalogCache.__internextFourCCatalogProductsCache) {
-    return globalCatalogCache.__internextFourCCatalogProductsCache;
+    return globalCatalogCache.__internextFourCCatalogProductsCache.filter((product) => isCurrentFourCProduct(product));
   }
   if (globalCatalogCache.__internextFourCCatalogProductsPromise) {
     return globalCatalogCache.__internextFourCCatalogProductsPromise;
@@ -1012,6 +1017,7 @@ const loadFourCCatalogProducts = async (): Promise<FourCCatalogProduct[]> => {
       const parsed = JSON.parse(raw) as FourCCatalogProduct[];
       const products = (Array.isArray(parsed) ? parsed : []).filter((product) =>
         product?.supplierSource === "4cabling" &&
+        isCurrentFourCProduct(product) &&
         Boolean(product.code?.trim()) &&
         Boolean(product.supplierCode?.trim()) &&
         typeof product.price === "number" &&
@@ -1605,7 +1611,7 @@ const createFourCLiveCatalogItem = (product: FourCCatalogProduct): LiveCatalogIt
   resellerPrice: product.resellerPrice,
   resellerPriceText: product.resellerPriceText || formatResellerAud(product.resellerPrice),
   rrp: product.rrp,
-  rrpText: product.rrpText || formatAud(product.rrp),
+  rrpText: product.rrp === null ? "" : product.rrpText || formatAud(product.rrp),
   rrpExGst: product.rrpExGst,
   taxRate: product.taxRate || 10,
   availabilityText: product.availabilityText || (product.stockQuantity > 0 ? "In Stock" : "Check availability"),
@@ -1620,6 +1626,7 @@ const createFourCLiveCatalogItem = (product: FourCCatalogProduct): LiveCatalogIt
     wa: product.stockByWarehouse?.wa ?? 0,
   },
   stockRecordUpdated: product.stockRecordUpdated || "",
+  supplierCatalogUpdatedAt: product.supplierCatalogUpdatedAt,
   weightKg: product.weightKg ?? null,
   heightCm: product.heightCm ?? null,
   widthCm: product.widthCm ?? null,
@@ -1689,7 +1696,7 @@ const loadPersistedVerifiedCatalog = async (): Promise<LiveCatalogResult> => {
   const items = mergeLiveCatalogItems(snapshot.items)
     .map((item) => applyStockOverrideToProduct(item, getStockOverrideForProduct(item, overridesByKey)))
     .map((item) => applyPublicPriceFloor(item, publicPriceFloors))
-    .filter((item) => isTangibleCatalogProduct(item as unknown as Record<string, unknown>));
+    .filter((item) => isCurrentFourCProduct(item) && isTangibleCatalogProduct(item as unknown as Record<string, unknown>));
 
   return {
     updatedAt: snapshot.updatedAt || new Date(0).toISOString(),
@@ -1705,12 +1712,13 @@ export const loadLiveCatalogItems = async (options?: { forceRefresh?: boolean })
   const cached = globalCatalogCache.__internextLiveCatalogCache;
   const now = Date.now();
   if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
+    const items = cached.items.filter((item) => isCurrentFourCProduct(item));
     return {
       updatedAt: cached.updatedAt,
-      count: cached.items.length,
+      count: items.length,
       source: cached.source,
       cached: true,
-      items: cached.items,
+      items,
     };
   }
 
@@ -1745,13 +1753,14 @@ const loadLiveCatalogItemsUncached = async (
   const feedUrl = readEnv("ALLOYS_CATALOG_XML_FEED_URL") || readEnv("ALLOYS_CATALOG_FEED_URL");
   if (!feedUrl) {
     if (cached && cached.staleUntil > now) {
+      const items = cached.items.filter((item) => isCurrentFourCProduct(item));
       return {
         updatedAt: cached.updatedAt,
-        count: cached.items.length,
+        count: items.length,
         source: cached.source,
         cached: true,
         stale: true,
-        items: cached.items,
+        items,
       };
     }
     return loadPersistedVerifiedCatalog();
@@ -1810,13 +1819,14 @@ const loadLiveCatalogItemsUncached = async (
     };
   } catch (error) {
     if (cached && cached.staleUntil > now) {
+      const items = cached.items.filter((item) => isCurrentFourCProduct(item));
       return {
         updatedAt: cached.updatedAt,
-        count: cached.items.length,
+        count: items.length,
         source: cached.source,
         cached: true,
         stale: true,
-        items: cached.items,
+        items,
       };
     }
 
@@ -1852,9 +1862,9 @@ const loadSupplierMergedCatalogProducts = async (options?: {
   const cached = globalCatalogCache.__internextMergedCatalogCache;
   const now = Date.now();
   if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
-    const items = options?.refreshStockOverrides
+    const items = (options?.refreshStockOverrides
       ? await refreshStockOverridesOnMergedCatalog(cached.items)
-      : cached.items;
+      : cached.items).filter((item) => isCurrentFourCProduct(item));
     if (options?.refreshStockOverrides) {
       cached.items = items;
     }
@@ -1870,10 +1880,11 @@ const loadSupplierMergedCatalogProducts = async (options?: {
   if (!options?.forceRefresh && globalCatalogCache.__internextMergedCatalogPromise) {
     const catalog = await globalCatalogCache.__internextMergedCatalogPromise;
     if (!options?.refreshStockOverrides) {
-      return catalog;
+      const items = catalog.items.filter((item) => isCurrentFourCProduct(item));
+      return { ...catalog, count: items.length, items };
     }
 
-    const items = await refreshStockOverridesOnMergedCatalog(catalog.items);
+    const items = (await refreshStockOverridesOnMergedCatalog(catalog.items)).filter((item) => isCurrentFourCProduct(item));
     if (globalCatalogCache.__internextMergedCatalogCache) {
       globalCatalogCache.__internextMergedCatalogCache.items = items;
     }
@@ -1917,13 +1928,14 @@ const loadMergedCatalogProductsUncached = async (
     ]);
   } catch (error) {
     if (!options?.refreshStockOverrides && cached && cached.staleUntil > now) {
+      const items = cached.items.filter((item) => isCurrentFourCProduct(item));
       return {
         updatedAt: cached.updatedAt,
-        count: cached.items.length,
+        count: items.length,
         source: cached.source,
         cached: true,
         stale: true,
-        items: cached.items,
+        items,
       };
     }
 
@@ -1991,6 +2003,7 @@ const loadMergedCatalogProductsUncached = async (
             stockQuantity: live.stockQuantity,
             stockByWarehouse: live.stockByWarehouse,
             stockRecordUpdated: live.stockRecordUpdated,
+            supplierCatalogUpdatedAt: live.supplierCatalogUpdatedAt,
             weightKg: live.weightKg ?? staticWeightKg,
             heightCm: live.heightCm ?? staticHeightCm,
             widthCm: live.widthCm ?? staticWidthCm,
@@ -2055,7 +2068,7 @@ const loadMergedCatalogProductsUncached = async (
       itemsByCode.set(code, applyPublicPriceFloor(item, publicPriceFloors));
     }
   }
-  const items = Array.from(itemsByCode.values());
+  const items = Array.from(itemsByCode.values()).filter((item) => isCurrentFourCProduct(item));
 
   globalCatalogCache.__internextMergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),
@@ -2153,6 +2166,11 @@ export default async function handler(
 
   try {
     const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
+    const page = Number(requestUrl.searchParams.get("page") || "1");
+    const pageSize = Number(requestUrl.searchParams.get("pageSize") || "500");
+    if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 500) {
+      return sendJson(res, 400, { message: "A valid page and pageSize (1-500) are required." });
+    }
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
     const wantsMergedProducts = requestUrl.searchParams.get("view") === "products";
@@ -2171,7 +2189,14 @@ export default async function handler(
           ? "s-maxage=60, stale-while-revalidate=60"
           : "s-maxage=1800, stale-while-revalidate=21600",
     );
-    return sendJson(res, 200, catalog);
+    const start = (page - 1) * pageSize;
+    return sendJson(res, 200, {
+      ...catalog,
+      page,
+      pageSize,
+      pageCount: Math.ceil(catalog.items.length / pageSize),
+      items: catalog.items.slice(start, start + pageSize),
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unable to load Alloys catalog feed.";
     return sendJson(res, message.includes("not configured") ? 500 : 502, {

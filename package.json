@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/generate-google-product-feed.mjs && node scripts/audit-google-product-titles.mjs && node scripts/audit-public-price-floors.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-route-pages.mjs && node scripts/generate-static-product-pages.mjs && node scripts/audit-seo-pages.mjs && node scripts/audit-catalog-integrity.mjs",
+    "build": "node scripts/import-4c-catalog.mjs --refresh-if-configured && node scripts/generate-google-product-feed.mjs && node scripts/audit-google-product-titles.mjs && node scripts/audit-public-price-floors.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-route-pages.mjs && node scripts/generate-static-product-pages.mjs && node scripts/audit-seo-pages.mjs && node scripts/audit-catalog-integrity.mjs",
     "build:dev": "vite build --mode development",
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "audit:mobile": "node scripts/audit-mobile-layout.mjs",
@@ -13,6 +13,7 @@
     "test:catalog-identity": "node --test tests/verified-product-identity.test.mjs",
     "test:4c-catalog": "node --test tests/four-c-catalog.test.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
+    "audit:4c-images": "node scripts/audit-4c-images.mjs",
     "audit:titles": "node scripts/audit-google-product-titles.mjs",
     "audit:price-floors": "node scripts/audit-public-price-floors.mjs",
     "test:google-ads": "node --test tests/google-ads-campaign.test.mjs",

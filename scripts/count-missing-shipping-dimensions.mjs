@@ -1,4 +1,5 @@
 import fs from "node:fs";
+import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
 import {
   applySourcedShippingMeasurement,
@@ -61,8 +62,8 @@ const loadShippingMeasurementOverrides = async () => {
 
 const baseProducts = readJson("public/data/catalog-products.json");
 const leaderProducts = readJson("public/data/leader-products.json");
-const fourCProducts = readJson("public/data/4c-products.json");
-const liveOverrides = readJson("public/data/catalog-live-overrides.json").items || [];
+const fourCProducts = readJson("public/data/4c-products.json").filter((product) => isCurrentFourCProduct(product));
+const liveOverrides = (readJson("public/data/catalog-live-overrides.json").items || []).filter((product) => isCurrentFourCProduct(product));
 
 const productsByKey = new Map();
 for (const product of [...baseProducts, ...leaderProducts, ...fourCProducts]) {
@@ -119,6 +120,8 @@ const parseable = physicalProducts.filter(
 const fallback = physicalProducts.filter(
   (product) => !hasCompleteDimensionFields(product) && !(hasParsedWeight(product) || hasParsedDimensions(product)),
 );
+const fourCPhysical = physicalProducts.filter((product) => product.supplierSource === "4cabling");
+const fourCMissing = fourCPhysical.filter((product) => !hasCompleteDimensionFields(product));
 
 const audit = {
   generatedAt: new Date().toISOString(),
@@ -128,6 +131,11 @@ const audit = {
       missingAnyDimensionFields: physicalProducts.length - complete.length,
       canPartlyParseFromText: parseable.length,
       needsCategoryFallback: fallback.length,
+      fourCabling: {
+        physicalProducts: fourCPhysical.length,
+        missingMeasurements: fourCMissing.length,
+        needsCategoryFallback: fourCMissing.filter((product) => !(hasParsedWeight(product) || hasParsedDimensions(product))).length,
+      },
       adminMeasurementOverrides: measurementOverrides.length,
       sourcedVerifiedMeasurements: sourcedMeasurements.length,
       confidence: {

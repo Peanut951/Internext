@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
 import {
@@ -368,9 +369,9 @@ if (!fs.existsSync(templatePath)) {
 
 const template = fs.readFileSync(templatePath, "utf8");
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
+const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json")).filter((product) => isCurrentFourCProduct(product));
 const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
-const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
+const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items.filter((product) => isCurrentFourCProduct(product)) : [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||

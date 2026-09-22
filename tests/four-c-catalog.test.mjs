@@ -11,6 +11,7 @@ test("4C snapshot contains only unique, priced physical products", () => {
   assert.ok(products.every((product) => /^4C-[A-Za-z0-9._-]+$/.test(product.code)));
   assert.ok(products.every((product) => Number.isFinite(product.price) && product.price > 0));
   assert.ok(products.every((product) => Number.isInteger(product.stockQuantity) && product.stockQuantity >= 0));
+  assert.ok(products.every((product) => product.supplierCatalogUpdatedAt === product.stockRecordUpdated));
 });
 
 test("4C prices use the existing 20 percent markup and GST rule", () => {
@@ -20,7 +21,7 @@ test("4C prices use the existing 20 percent markup and GST rule", () => {
   assert.equal(cableTies.resellerPrice, 2.4);
   assert.equal(cableTies.price, 2.64);
   assert.equal(cableTies.stockQuantity, 84);
-  assert.ok(cableTies.rrp >= Math.round(cableTies.price * 1.1 * 100) / 100);
+  assert.equal(cableTies.rrp, 2.89);
 });
 
 test("invalid supplier prices and private cost fields are not published", () => {
@@ -30,4 +31,10 @@ test("invalid supplier prices and private cost fields are not published", () => 
     assert.equal(Object.hasOwn(product, "Price_Inc"), false);
     assert.equal(Object.hasOwn(product, "costExGst"), false);
   }
+});
+
+test("an RRP is never generated above the supplier's real RRP", () => {
+  assert.ok(products.some((product) => product.rrp === null));
+  assert.ok(products.every((product) => product.rrp === null || product.rrp > product.price));
+  assert.ok(products.every((product) => product.rrp !== null || product.rrpText === ""));
 });

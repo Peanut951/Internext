@@ -1,0 +1,130 @@
+{
+  "generatedAt": "2026-09-22T00:27:43.395Z",
+  "checked": 20,
+  "passed": 0,
+  "blockedByHost": 20,
+  "failed": 0,
+  "blockedSample": [
+    {
+      "code": "4C-001.002.0008",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.003.0005",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.003.1008",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.004.0013",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.004.0468",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0002",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0003",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0004",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0006",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0007",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0014",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0020",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0500",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0510",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0520",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0520.BLADE",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.0530",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-001.006.1400",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-002.001.1810",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    },
+    {
+      "code": "4C-002.001.1810.SP",
+      "status": "blocked_by_host",
+      "httpStatus": 403,
+      "contentType": "text/html; charset=utf-8"
+    }
+  ],
+  "failures": []
+}
