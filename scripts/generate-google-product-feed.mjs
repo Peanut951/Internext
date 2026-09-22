@@ -64,7 +64,8 @@ const buildShippingMeasurementOverrideMap = (rows) => {
 };
 
 const applyShippingMeasurementOverride = (product, overridesByKey) => {
-  const override = getProductKeys(product).map((key) => overridesByKey.get(key)).find(Boolean);
+  const keys = product.supplierSource === "4cabling" ? [String(product.code || "").trim().toLowerCase()] : getProductKeys(product);
+  const override = keys.map((key) => overridesByKey.get(key)).find(Boolean);
   if (!override) return product;
   return {
     ...product,

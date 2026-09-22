@@ -1097,7 +1097,7 @@ const ProductDetail = () => {
   }, [product]);
   const keyHighlights = useMemo(() => specHighlights.slice(0, 6), [specHighlights]);
 
-  const fullDescriptionBlocks = useMemo(() => {
+  const fullDescriptionBlocks = useMemo<DescriptionBlock[]>(() => {
     if (!product) {
       return [];
     }

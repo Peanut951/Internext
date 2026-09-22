@@ -32,7 +32,8 @@ export const buildSourcedShippingMeasurementMap = (measurements) => {
 };
 
 export const applySourcedShippingMeasurement = (product, measurementsByKey) => {
-  const measurement = [product.code, product.supplierCode]
+  const measurementKeys = product.supplierSource === "4cabling" ? [product.code] : [product.code, product.supplierCode];
+  const measurement = measurementKeys
     .map(normalizeKey)
     .filter(Boolean)
     .map((key) => measurementsByKey.get(key))

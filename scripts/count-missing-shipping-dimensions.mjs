@@ -94,6 +94,7 @@ for (const override of measurementOverrides) {
   const existingKey = overrideKeys.find((key) => productsByKey.has(key));
   if (!existingKey) continue;
   const product = productsByKey.get(existingKey);
+  if (product.supplierSource === "4cabling" && String(override.code || "").trim().toLowerCase() !== existingKey) continue;
   const correctedProduct = {
     ...product,
     weightKg: Number(override.weight_kg),
@@ -170,4 +171,17 @@ const audit = {
 
 fs.mkdirSync("reports", { recursive: true });
 fs.writeFileSync("reports/shipping-measurement-audit.json", `${JSON.stringify(audit, null, 2)}\n`);
+const csvCell = (value) => {
+  const text = String(value ?? "");
+  const safe = /^[=+@-]/.test(text) ? `'${text}` : text;
+  return `"${safe.replace(/"/g, '""')}"`;
+};
+const requestHeaders = ["SKU", "Product_Name", "Package_Weight_Kg", "Package_Height_Cm", "Package_Width_Cm", "Package_Depth_Cm", "Source_Reference"];
+const requestRows = fourCMissing
+  .sort((left, right) => (right.stockQuantity || 0) - (left.stockQuantity || 0))
+  .map((product) => [product.supplierCode, product.description || product.name, "", "", "", "", ""]);
+fs.writeFileSync(
+  "reports/4c-package-measurements-needed.csv",
+  `${[requestHeaders, ...requestRows].map((row) => row.map(csvCell).join(",")).join("\n")}\n`,
+);
 console.log(JSON.stringify(audit.summary, null, 2));

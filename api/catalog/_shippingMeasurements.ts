@@ -123,9 +123,10 @@ export const buildShippingMeasurementOverrideMap = (overrides: ShippingMeasureme
 };
 
 export const getShippingMeasurementOverride = (
-  product: Pick<ProductMeasurementTarget, "code" | "supplierCode">,
+  product: Pick<ProductMeasurementTarget, "code" | "supplierCode"> & { supplierSource?: string },
   overridesByKey: Map<string, ShippingMeasurementOverride>,
-) => getProductKeys(product).map((key) => overridesByKey.get(key)).find(Boolean);
+) => (product.supplierSource === "4cabling" ? [String(product.code || "").trim().toLowerCase()] : getProductKeys(product))
+  .map((key) => overridesByKey.get(key)).find(Boolean);
 
 export const applyShippingMeasurementOverride = <T extends ProductMeasurementTarget>(
   product: T,

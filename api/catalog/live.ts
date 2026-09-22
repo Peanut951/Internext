@@ -937,7 +937,8 @@ const applySourcedShippingMeasurement = <T extends MergedCatalogItem>(
   product: T,
   measurementsByKey: Map<string, SourcedShippingMeasurement>,
 ) => {
-  const measurement = getProductKeys(product)
+  const measurementKeys = product.supplierSource === "4cabling" ? [product.code.trim().toLowerCase()] : getProductKeys(product);
+  const measurement = measurementKeys
     .map((key) => measurementsByKey.get(key))
     .find(Boolean);
   if (!measurement) return product;
@@ -1040,11 +1041,12 @@ const loadFourCCatalogProducts = async (): Promise<FourCCatalogProduct[]> => {
 };
 
 const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
-const STOCK_OVERRIDE_LOCATIONS = new Set(["internext", "adl", "bne", "mel", "syd", "wa"]);
+type StockOverrideLocation = "internext" | "adl" | "bne" | "mel" | "syd" | "wa";
+const STOCK_OVERRIDE_LOCATIONS = new Set<StockOverrideLocation>(["internext", "adl", "bne", "mel", "syd", "wa"]);
 
-const normalizeStockOverrideLocation = (value: unknown) => {
+const normalizeStockOverrideLocation = (value: unknown): StockOverrideLocation => {
   const location = String(value || "").trim().toLowerCase();
-  return STOCK_OVERRIDE_LOCATIONS.has(location) ? location : "internext";
+  return STOCK_OVERRIDE_LOCATIONS.has(location as StockOverrideLocation) ? location as StockOverrideLocation : "internext";
 };
 
 const getSupabaseRestConfig = () => {

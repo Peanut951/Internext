@@ -49,7 +49,7 @@ const Signup = () => {
       marketingOptIn: formData.marketingOptIn,
     });
 
-    if (!result.ok) {
+    if (result.ok === false) {
       setError(result.message);
       setSubmitting(false);
       return;

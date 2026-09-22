@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { isTangibleCatalogProduct } from "./lib/product-classification.mjs";
+import { parseCsvRecords } from "./lib/csv-records.mjs";
 
 const CUSTOMER_MARKUP_RATE = 0.2;
 const GST_RATE = 0.1;
@@ -19,46 +20,6 @@ const outputPath = process.argv[3] ? path.resolve(process.argv[3]) : DEFAULT_OUT
 if ((!inputPath || !fs.existsSync(inputPath)) && !isRemoteSource) {
   throw new Error("Usage: node scripts/import-4c-catalog.mjs <4C CSV path or HTTPS URL> [output JSON path]");
 }
-
-const parseCsvRecords = (text) => {
-  const records = [];
-  let record = [];
-  let field = "";
-  let quoted = false;
-
-  for (let index = 0; index < text.length; index += 1) {
-    const character = text[index];
-    if (character === '"') {
-      if (quoted && text[index + 1] === '"') {
-        field += '"';
-        index += 1;
-      } else {
-        quoted = !quoted;
-      }
-      continue;
-    }
-    if (character === "," && !quoted) {
-      record.push(field);
-      field = "";
-      continue;
-    }
-    if ((character === "\n" || character === "\r") && !quoted) {
-      if (character === "\r" && text[index + 1] === "\n") index += 1;
-      record.push(field);
-      if (record.some((value) => value !== "")) records.push(record);
-      record = [];
-      field = "";
-      continue;
-    }
-    field += character;
-  }
-
-  if (field || record.length > 0) {
-    record.push(field);
-    if (record.some((value) => value !== "")) records.push(record);
-  }
-  return records;
-};
 
 const normalizeHeader = (value) => String(value || "").replace(/^\uFEFF/, "").trim();
 const parseNumber = (value) => {

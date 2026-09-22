@@ -117,7 +117,7 @@ export default async function handler(
     if (action === "run-provider-sync") {
       try {
         const result = await runCompetitorProviderSync();
-        if (result.skipped) {
+        if (!("productsRead" in result)) {
           return sendJson(res, 409, {
             message: "Competitor discovery is disabled. Set COMPETITOR_DISCOVERY_ENABLED=true and redeploy.",
             ...result,

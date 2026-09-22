@@ -26,7 +26,7 @@ const Login = () => {
     setSubmitting(true);
 
     const result = await signIn(email, password);
-    if (!result.ok) {
+    if (result.ok === false) {
       setError(result.message);
       setSubmitting(false);
       return;

@@ -303,7 +303,7 @@ export const fetchDataForSeoListings = async (
     });
     if (!normalized) continue;
     listings.push(...normalized.listings);
-    if (!normalized.matchVerified) {
+    if (!normalized.matchVerified || !normalized.matchMethod) {
       diagnostics.unverifiedProductPages += 1;
       continue;
     }
