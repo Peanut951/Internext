@@ -1,4 +1,4 @@
-import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import Layout from "@/components/layout/Layout";
 import ProductPrice from "@/components/products/ProductPrice";
@@ -8,11 +8,8 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
-import {
-  MIN_CATALOG_SEARCH_LENGTH,
-  searchCatalogProducts,
-} from "@/lib/catalogSearch";
+import { searchCatalogProductsPage } from "@/lib/liveCatalog";
+import { MIN_CATALOG_SEARCH_LENGTH } from "@/lib/catalogSearch";
 import { useAuthSession } from "@/hooks/use-auth-session";
 
 type CatalogProduct = {
@@ -43,54 +40,49 @@ const QUICK_SEARCHES = [
   "Hisense display",
 ];
 
-const hasVerifiedSearchPrice = (product: CatalogProduct) =>
-  Boolean(product.liveUpdatedAt) ||
-  Boolean(product.quoteRequired) ||
-  product.manufacturer.trim().toLowerCase() === "leader";
-
 const ProductSearch = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const currentQuery = searchParams.get("q") || "";
   const [inputValue, setInputValue] = useState(currentQuery);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
+  const [matchCount, setMatchCount] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [liveRefreshing, setLiveRefreshing] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const { session } = useAuthSession();
-  const deferredQuery = useDeferredValue(currentQuery);
+  const requestedPage = Number(searchParams.get("page") || "1");
+  const page = Number.isInteger(requestedPage) && requestedPage > 0 ? requestedPage : 1;
 
   useEffect(() => {
     setInputValue(currentQuery);
   }, [currentQuery]);
 
   useEffect(() => {
-    let mounted = true;
-
-    const loadProducts = async () => {
-      try {
-        setLiveRefreshing(true);
-        const data = (await loadCatalogProducts()) as CatalogProduct[];
-        if (mounted) {
-          setProducts(data);
-          setLoading(false);
-          setLiveRefreshing(false);
-        }
-      } catch (err) {
-        if (mounted) {
-          setError(err instanceof Error ? err.message : "Unable to load product catalog.");
-          setLoading(false);
-          setLiveRefreshing(false);
-        }
-      }
-    };
-
-    loadProducts();
-    return () => {
-      mounted = false;
-    };
-  }, []);
+    if (currentQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH) {
+      setProducts([]);
+      setMatchCount(0);
+      setLoading(false);
+      setError(null);
+      return;
+    }
+    const controller = new AbortController();
+    setLoading(true);
+    setError(null);
+    searchCatalogProductsPage(currentQuery.trim(), page, SEARCH_RESULTS_PER_PAGE, controller.signal)
+      .then(({ items, count }) => {
+        if (controller.signal.aborted) return;
+        setProducts(items as CatalogProduct[]);
+        setMatchCount(count);
+      })
+      .catch((err) => {
+        if (!controller.signal.aborted) setError(err instanceof Error ? err.message : "Unable to search products.");
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [currentQuery, page]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -120,21 +112,10 @@ const ProductSearch = () => {
     });
   };
 
-  const searchableProducts = useMemo(
-    () => (liveRefreshing ? products.filter(hasVerifiedSearchPrice) : products),
-    [liveRefreshing, products],
-  );
-  const matches = useMemo(
-    () => searchCatalogProducts(searchableProducts, deferredQuery),
-    [searchableProducts, deferredQuery],
-  );
-  const page = Math.max(1, Number(searchParams.get("page") || "1"));
-  const totalPages = Math.max(1, Math.ceil(matches.length / SEARCH_RESULTS_PER_PAGE));
+  const matches = products.map((product) => ({ product }));
+  const totalPages = Math.max(1, Math.ceil(matchCount / SEARCH_RESULTS_PER_PAGE));
   const currentPage = Math.min(page, totalPages);
-  const currentItems = matches.slice(
-    (currentPage - 1) * SEARCH_RESULTS_PER_PAGE,
-    currentPage * SEARCH_RESULTS_PER_PAGE,
-  );
+  const currentItems = matches;
 
   useEffect(() => {
     if (page !== currentPage) {
@@ -161,10 +142,9 @@ const ProductSearch = () => {
     setSearchParams({ q: value, page: "1" });
   };
 
-  const visibleStart = matches.length === 0 ? 0 : (currentPage - 1) * SEARCH_RESULTS_PER_PAGE + 1;
-  const visibleEnd = Math.min(currentPage * SEARCH_RESULTS_PER_PAGE, matches.length);
+  const visibleStart = matchCount === 0 ? 0 : (currentPage - 1) * SEARCH_RESULTS_PER_PAGE + 1;
+  const visibleEnd = Math.min(currentPage * SEARCH_RESULTS_PER_PAGE, matchCount);
   const canSearch = currentQuery.trim().length >= MIN_CATALOG_SEARCH_LENGTH;
-  const waitingForLiveMatches = canSearch && liveRefreshing && matches.length === 0;
   const pageWindow = Array.from(
     { length: Math.min(5, totalPages) },
     (_, index) => Math.min(
@@ -272,8 +252,6 @@ const ProductSearch = () => {
               <p className="text-sm text-muted-foreground">Loading search results...</p>
             ) : error ? (
               <p className="text-sm text-destructive">{error}</p>
-            ) : waitingForLiveMatches ? (
-              <p className="text-sm text-muted-foreground">Searching products...</p>
             ) : matches.length === 0 ? (
               <div className="space-y-2">
                 <p className="text-sm font-semibold text-foreground">No products matched "{currentQuery}".</p>
@@ -289,14 +267,14 @@ const ProductSearch = () => {
                       Search Results
                     </p>
                     <h2 className="mt-2 text-2xl font-semibold text-foreground">
-                      {matches.length} matches for "{currentQuery}"
+                      {matchCount} matches for "{currentQuery}"
                     </h2>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Showing {visibleStart}-{visibleEnd} of {matches.length} results.
+                      Showing {visibleStart}-{visibleEnd} of {matchCount} results.
                     </p>
                   </div>
 
-                  {matches[0] ? (
+                  {currentPage === 1 && matches[0] ? (
                     <Button
                       variant="outline"
                       asChild

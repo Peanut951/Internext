@@ -1,13 +1,13 @@
-import { FormEvent, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { FormEvent, useDeferredValue, useEffect, useState } from "react";
 import Layout from "@/components/layout/Layout";
 import ProductPrice from "@/components/products/ProductPrice";
 import { Link, useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { searchCatalogProductsPage } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
-import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
+import { MIN_CATALOG_SEARCH_LENGTH } from "@/lib/catalogSearch";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
   Monitor,
@@ -51,11 +51,6 @@ const QUICK_SEARCHES = [
 ];
 
 const SEARCH_PREVIEW_LIMIT = 24;
-
-const hasVerifiedSearchPrice = (product: CatalogProduct) =>
-  Boolean(product.liveUpdatedAt) ||
-  Boolean(product.quoteRequired) ||
-  product.manufacturer.trim().toLowerCase() === "leader";
 
 const categories = [
   {
@@ -200,42 +195,47 @@ const ProductsIndex = () => {
   const navigate = useNavigate();
   const { session } = useAuthSession();
   const [searchQuery, setSearchQuery] = useState("");
-  const [products, setProducts] = useState<CatalogProduct[]>([]);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [liveRefreshing, setLiveRefreshing] = useState(true);
-  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [searchPreviewProducts, setSearchPreviewProducts] = useState<CatalogProduct[]>([]);
+  const [searchMatchCount, setSearchMatchCount] = useState(0);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const deferredSearchQuery = useDeferredValue(searchQuery);
 
   useEffect(() => {
-    let isMounted = true;
+    const query = deferredSearchQuery.trim();
+    if (query.length < MIN_CATALOG_SEARCH_LENGTH) {
+      setSearchPreviewProducts([]);
+      setSearchMatchCount(0);
+      setSearchLoading(false);
+      setSearchError(null);
+      return;
+    }
 
-    const loadProducts = async () => {
+    const controller = new AbortController();
+    setSearchLoading(true);
+    setSearchError(null);
+    const timer = window.setTimeout(async () => {
       try {
-        setLiveRefreshing(true);
-        const data = (await loadCatalogProducts()) as CatalogProduct[];
-        if (isMounted) {
-          setProducts(data);
-          setCatalogLoading(false);
-          setLiveRefreshing(false);
+        const result = await searchCatalogProductsPage(query, 1, SEARCH_PREVIEW_LIMIT, controller.signal);
+        if (!controller.signal.aborted) {
+          setSearchPreviewProducts(result.items as CatalogProduct[]);
+          setSearchMatchCount(result.count);
+          setSearchLoading(false);
         }
       } catch (error) {
-        if (isMounted) {
-          setCatalogError(
-            error instanceof Error ? error.message : "Unable to load product catalog.",
-          );
-          setCatalogLoading(false);
-          setLiveRefreshing(false);
+        if (!controller.signal.aborted) {
+          setSearchError(error instanceof Error ? error.message : "Unable to search products.");
+          setSearchLoading(false);
         }
       }
-    };
-
-    loadProducts();
+    }, 180);
 
     return () => {
-      isMounted = false;
+      window.clearTimeout(timer);
+      controller.abort();
     };
-  }, []);
+  }, [deferredSearchQuery]);
 
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -280,23 +280,10 @@ const ProductsIndex = () => {
     setSearchQuery(value);
   };
 
-  const searchableProducts = useMemo(
-    () => (liveRefreshing ? products.filter(hasVerifiedSearchPrice) : products),
-    [liveRefreshing, products],
-  );
-  const allSearchMatches = useMemo(
-    () => searchCatalogProducts(searchableProducts, deferredSearchQuery),
-    [searchableProducts, deferredSearchQuery],
-  );
-  const searchPreviewMatches = useMemo(
-    () => allSearchMatches.slice(0, SEARCH_PREVIEW_LIMIT),
-    [allSearchMatches],
-  );
+  const searchPreviewMatches = searchPreviewProducts.map((product) => ({ product }));
 
   const queryTooShort = deferredSearchQuery.trim().length > 0 && deferredSearchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH;
   const hasSearchQuery = deferredSearchQuery.trim().length > 0;
-  const waitingForLiveMatches =
-    hasSearchQuery && !queryTooShort && liveRefreshing && searchPreviewMatches.length === 0;
 
   return (
     <Layout>
@@ -325,7 +312,7 @@ const ProductsIndex = () => {
                 <h2 className="text-xl font-semibold text-foreground">Search the Catalog</h2>
               </div>
               <p className="text-sm text-muted-foreground">
-                {catalogLoading ? "Loading catalogue..." : `${products.length.toLocaleString()} products available`}
+                Browse by category or search by product code
               </p>
             </div>
 
@@ -367,14 +354,10 @@ const ProductsIndex = () => {
 
             {hasSearchQuery && !queryTooShort ? (
               <div className="mt-4 overflow-hidden rounded-xl border border-border/60 bg-background">
-                {catalogLoading ? (
+                {searchLoading ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">Loading product search...</p>
-                ) : catalogError ? (
-                  <p className="px-4 py-3 text-sm text-destructive">{catalogError}</p>
-                ) : waitingForLiveMatches ? (
-                  <p className="px-4 py-3 text-sm text-muted-foreground">
-                    Searching products...
-                  </p>
+                ) : searchError ? (
+                  <p className="px-4 py-3 text-sm text-destructive">{searchError}</p>
                 ) : searchPreviewMatches.length === 0 ? (
                   <p className="px-4 py-3 text-sm text-muted-foreground">
                     No products matched "{searchQuery}".
@@ -387,7 +370,7 @@ const ProductsIndex = () => {
                           Top matches for "{searchQuery}"
                         </p>
                         <p className="text-xs text-muted-foreground">
-                          Showing {searchPreviewMatches.length} of {allSearchMatches.length} matches while you type.
+                          Showing {searchPreviewMatches.length} of {searchMatchCount} matches while you type.
                         </p>
                       </div>
                       <Button asChild variant="outline" size="sm">
@@ -559,11 +542,6 @@ const ProductsIndex = () => {
               );
             })}
 
-            {!catalogLoading && catalogError ? (
-              <div className="rounded-2xl border border-border/50 bg-card p-8 text-destructive shadow-card">
-                {catalogError}
-              </div>
-            ) : null}
           </div>
         </div>
       </section>

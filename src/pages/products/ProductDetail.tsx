@@ -11,7 +11,7 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { clearCatalogProductsCache, loadCatalogProducts } from "@/lib/liveCatalog";
+import { clearCatalogProductsCache, loadCatalogProductByCode, searchCatalogProductsPage } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct } from "@/lib/pricing";
@@ -116,24 +116,6 @@ const safeText = (value: unknown) => {
     return "";
   }
   return String(value).trim();
-};
-
-const normalizeProductLookupKey = (value: unknown) =>
-  safeText(value).toLowerCase();
-
-const findProductByCode = (products: CatalogProduct[], productCode: string) => {
-  const lookupKey = normalizeProductLookupKey(productCode);
-  if (!lookupKey) {
-    return null;
-  }
-
-  return (
-    products.find(
-      (item) =>
-        normalizeProductLookupKey(item.code) === lookupKey ||
-        normalizeProductLookupKey(item.supplierCode) === lookupKey,
-    ) || null
-  );
 };
 
 const hasCustomerPrice = (product?: CatalogProduct | null) =>
@@ -970,6 +952,7 @@ const ProductDetail = () => {
 
   useEffect(() => {
     let isMounted = true;
+    let recommendationsTimer: number | undefined;
     setIsInCart(isProductInStoredCart(productCode));
     setIsLivePriceReady(false);
     setHasCheckedFullCatalog(false);
@@ -979,17 +962,30 @@ const ProductDetail = () => {
     setAllProducts([]);
     const loadProduct = async () => {
       try {
-        const products = (await loadCatalogProducts()) as CatalogProduct[];
-        const found = findProductByCode(products, productCode);
+        const found = await loadCatalogProductByCode(productCode) as CatalogProduct | null;
         if (!isMounted) {
           return;
         }
 
-        setAllProducts(products);
         setProduct(found);
         setIsLivePriceReady(hasCustomerPrice(found));
         setHasCheckedFullCatalog(true);
         setLoading(false);
+        if (found) {
+          const seriesToken = Array.from(getSeriesTokens(found))[0];
+          const descriptionToken = Array.from(getRecommendationTokens(found)).find(
+            (token) => token !== safeText(found.manufacturer).toLowerCase() && !/\d/.test(token),
+          );
+          const query = [safeText(found.manufacturer), seriesToken || descriptionToken].filter(Boolean).join(" ");
+          recommendationsTimer = window.setTimeout(() => {
+            if (query.length < 2) return;
+            searchCatalogProductsPage(query, 1, 50)
+              .then(({ items }) => {
+                if (isMounted) setAllProducts(items as CatalogProduct[]);
+              })
+              .catch(() => undefined);
+          }, 1500);
+        }
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load product.");
@@ -1002,6 +998,7 @@ const ProductDetail = () => {
     loadProduct();
     return () => {
       isMounted = false;
+      window.clearTimeout(recommendationsTimer);
     };
   }, [productCode]);
 

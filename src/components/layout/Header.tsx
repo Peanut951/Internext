@@ -7,10 +7,9 @@ import { getPortalDestination } from "@/lib/auth";
 import ProductPrice from "@/components/products/ProductPrice";
 import {
   MIN_CATALOG_SEARCH_LENGTH,
-  searchCatalogProducts,
 } from "@/lib/catalogSearch";
 import {
-  loadCatalogProducts,
+  searchCatalogProductsPage,
   type CatalogProductWithLive,
 } from "@/lib/liveCatalog";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
@@ -111,31 +110,32 @@ const Header = () => {
   }, []);
 
   useEffect(() => {
-    let isMounted = true;
-
-    const loadSearchProducts = async () => {
-      try {
-        const products = await loadCatalogProducts();
-        if (isMounted) {
-          setSearchProducts(products);
-        }
-      } catch {
-        if (isMounted) {
-          setSearchProducts([]);
-        }
-      } finally {
-        if (isMounted) {
-          setSearchProductsRefreshing(false);
-        }
-      }
-    };
-
-    loadSearchProducts();
-
+    const query = deferredSearchQuery.trim();
+    if (query.length < MIN_CATALOG_SEARCH_LENGTH) {
+      setSearchProducts([]);
+      setSearchProductsRefreshing(false);
+      return;
+    }
+    const controller = new AbortController();
+    setSearchProducts([]);
+    setSearchProductsRefreshing(true);
+    const timer = window.setTimeout(() => {
+      searchCatalogProductsPage(query, 1, 6, controller.signal)
+        .then(({ items }) => {
+          if (!controller.signal.aborted) setSearchProducts(items);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) setSearchProducts([]);
+        })
+        .finally(() => {
+          if (!controller.signal.aborted) setSearchProductsRefreshing(false);
+        });
+    }, 180);
     return () => {
-      isMounted = false;
+      window.clearTimeout(timer);
+      controller.abort();
     };
-  }, []);
+  }, [deferredSearchQuery]);
 
   useEffect(() => {
     window.dispatchEvent(
@@ -154,18 +154,8 @@ const Header = () => {
   }, [mobileMenuOpen]);
 
   const searchSuggestions = useMemo(() => {
-    const products = searchProductsRefreshing
-      ? searchProducts.filter(hasVerifiedSuggestionPrice)
-      : searchProducts;
-
-    if (deferredSearchQuery.trim().length < MIN_CATALOG_SEARCH_LENGTH || !products.length) {
-      return [];
-    }
-
-    return searchCatalogProducts(products, deferredSearchQuery)
-      .slice(0, 6)
-      .map(({ product }) => product);
-  }, [deferredSearchQuery, searchProducts, searchProductsRefreshing]);
+    return searchProducts.slice(0, 6);
+  }, [searchProducts]);
 
   useEffect(() => {
     setActiveSuggestionIndex(-1);

@@ -1,21 +1,21 @@
 {
-  "auditedAt": "2026-09-22T01:19:28.210Z",
-  "verifiedSnapshotUpdatedAt": "2026-09-22T01:18:27.420Z",
+  "auditedAt": "2026-10-05T23:05:48.324Z",
+  "verifiedSnapshotUpdatedAt": "2026-10-05T23:04:57.239Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
-    "fourCabling": "provided_snapshot"
+    "fourCabling": "last_verified"
   },
   "counts": {
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
     "fourCEnrichmentProducts": 4542,
-    "verifiedSupplierProducts": 11572,
+    "verifiedSupplierProducts": 7106,
     "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 936,
-    "googleProducts": 9283,
-    "sitemapProducts": 10263,
-    "staticProductPages": 10263
+    "unsupportedRawEnrichmentProducts": 5446,
+    "googleProducts": 4778,
+    "sitemapProducts": 5796,
+    "staticProductPages": 5796
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],
@@ -168,6 +168,12 @@
       "description": "Wall Mount Bracket for The 2N IP Phone D7A"
     },
     {
+      "code": "AX91379030",
+      "supplierCode": "01672-001",
+      "manufacturer": "Axis",
+      "description": "Access Commander Box 2.24GHZ 120GB (2.5 SSD Sata Iii) 4GB Ram for Sme Installations"
+    },
+    {
       "code": "AX9138522",
       "supplierCode": "03449-001",
       "manufacturer": "Axis",
@@ -246,12 +252,6 @@
       "description": "IP Force Frame"
     },
     {
-      "code": "AX9152102W",
-      "supplierCode": "01354-001",
-      "manufacturer": "Axis",
-      "description": "IP Safety Intercom System 2 Buttons 10W Speaker Info and Sos Labels"
-    },
-    {
       "code": "AX9154001",
       "supplierCode": "02570-001",
       "manufacturer": "Axis",
@@ -268,6 +268,12 @@
       "supplierCode": "01268-001",
       "manufacturer": "Axis",
       "description": "IP Verso Sata Extension Connection Cable 3M Length Suitable for Connection of Departure Reader or Keyboard"
+    },
+    {
+      "code": "AX9155072",
+      "supplierCode": "01940-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Wedge Backplate for 2 Module 103 X 234 Mm"
     },
     {
       "code": "AX9155074",
@@ -354,6 +360,12 @@
       "description": "2N AU2.0 Reader RFID 125KHZ 13 56MHZ Nfc Secured Picard"
     },
     {
+      "code": "AXA9161",
+      "supplierCode": "0821-001",
+      "manufacturer": "Axis",
+      "description": "Axis A9161 Network I/o Relay Module"
+    },
+    {
       "code": "AXAUDIOMAN",
       "supplierCode": "02246-001",
       "manufacturer": "Axis",
@@ -364,6 +376,78 @@
       "supplierCode": "02062-001",
       "manufacturer": "Axis",
       "description": "Axis Audio Manager Pro - E-LICENSE"
+    },
+    {
+      "code": "AXC1210-E",
+      "supplierCode": "02324-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1210-E Network Ceiling Speaker Large"
+    },
+    {
+      "code": "AXC1410-MK2",
+      "supplierCode": "02838-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1410 Mk Ii Network Mini Speaker"
+    },
+    {
+      "code": "AXC1510",
+      "supplierCode": "02389-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1510 Network Pendant Speaker"
+    },
+    {
+      "code": "AXC1511",
+      "supplierCode": "02390-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1511 Network Pendant Speaker"
+    },
+    {
+      "code": "AXC1610-VE",
+      "supplierCode": "02380-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1610-VE Vandal Resistant Sound Projector"
+    },
+    {
+      "code": "AXC1710",
+      "supplierCode": "02959-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1710 Network Display Speaker"
+    },
+    {
+      "code": "AXC1720",
+      "supplierCode": "02960-001",
+      "manufacturer": "Axis",
+      "description": "Axis C1720 Network Display Speaker"
+    },
+    {
+      "code": "AXC7050-MK2",
+      "supplierCode": "02723-006",
+      "manufacturer": "Axis",
+      "description": "Axis C7050 Mk Iii Axis Audio Manager Pro"
+    },
+    {
+      "code": "AXCONBUN",
+      "supplierCode": "AXCONBUN",
+      "manufacturer": "Axis",
+      "description": "Axis Console Bundle"
+    },
+    {
+      "code": "AXD4200-VE",
+      "supplierCode": "02930-001",
+      "manufacturer": "Axis",
+      "description": "Axis D4200-VE"
+    },
+    {
+      "code": "AXI8116-E-B",
+      "supplierCode": "02409-001",
+      "manufacturer": "Axis",
+      "description": "Axis I8116-E Black"
+    },
+    {
+      "code": "AXI8307-VE",
+      "supplierCode": "02784-001",
+      "manufacturer": "Axis",
+      "description": "Axis I8307-VE"
     },
     {
       "code": "AXT8120-DC15W",
@@ -538,90 +622,6 @@
       "supplierCode": "DR-C240",
       "manufacturer": "Canon",
       "description": "DRC240 Duplex 60SHT Feeder 45PPM Document Scanner"
-    },
-    {
-      "code": "CDRG21YOS",
-      "supplierCode": "DRG21YOS",
-      "manufacturer": "Canon",
-      "description": "1 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
-    },
-    {
-      "code": "CDRG22YOS",
-      "supplierCode": "DRG22YOS",
-      "manufacturer": "Canon",
-      "description": "2 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
-    },
-    {
-      "code": "CDRG23YOS",
-      "supplierCode": "DRG23YOS",
-      "manufacturer": "Canon",
-      "description": "3 Years Onsite Warranty for Drg 2XXX Series Document Scanners"
-    },
-    {
-      "code": "CIPF-INSTL-24",
-      "supplierCode": "IPF-INSTL-24",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 24 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-24MFP",
-      "supplierCode": "IPF-INSTL-24MFP",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 24 Inch MFP Large Format Print (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-36",
-      "supplierCode": "IPF-INSTL-36",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 36 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-36MFP",
-      "supplierCode": "IPF-INSTL-36MFP",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 36 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-44",
-      "supplierCode": "IPF-INSTL-44",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 44 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-44MFP",
-      "supplierCode": "IPF-INSTL-44MFP",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 44 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-60",
-      "supplierCode": "IPF-INSTL-60",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 60 Inch Large Format Printers (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-60MFP",
-      "supplierCode": "IPF-INSTL-60MFP",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install 60 Inch MFP Large Format (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-INSTL-MSERIES",
-      "supplierCode": "IPF-INSTL-MSERIES",
-      "manufacturer": "Alloys",
-      "description": "Alloys Professional Install M-SERIES Large Format Printer (Melbourne Only - 50KM Radius)"
-    },
-    {
-      "code": "CIPF-RUNIP-ALLOYS",
-      "supplierCode": "IPF-RUNIP-ALLOYS",
-      "manufacturer": "Alloys",
-      "description": "Alloys Prof Run Up Preperation Large Format Printers"
-    },
-    {
-      "code": "CIPFTM-240LM-MFP",
-      "supplierCode": "BDL_TM240LM MFP",
-      "manufacturer": "Canon",
-      "description": "iPF TM-240 24\" Technical & Poster Large Format Printer with Stand & Scanner"
     }
   ]
 }

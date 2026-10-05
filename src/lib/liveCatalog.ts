@@ -1,4 +1,5 @@
 import { normalizeCatalogProducts } from "@/lib/catalogQuality";
+import { searchCatalogProducts } from "@/lib/catalogSearch";
 import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
 
 export type CatalogProductWithLive = {
@@ -132,6 +133,47 @@ const CATALOG_CACHE_KEY = "internext-live-catalog-products-v7";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 const CATALOG_PAGE_SIZE = 500;
 const CATALOG_PAGE_CONCURRENCY = 4;
+
+export const loadCatalogProductByCode = async (code: string, signal?: AbortSignal) => {
+  try {
+    const response = await fetch(`/api/catalog/live?view=product&code=${encodeURIComponent(code)}`, { signal });
+    if (response.status === 404) return null;
+    if (!response.ok) throw new Error(`Product lookup returned ${response.status}.`);
+    const data = await response.json() as { item?: CatalogProductWithLive | null };
+    const product = data.item ? normalizeCatalogProducts([data.item])[0] : null;
+    return product && isCurrentFourCProduct(product) ? product : null;
+  } catch (error) {
+    if (!import.meta.env.DEV || signal?.aborted) throw error;
+    const products = await loadCatalogProductsFast();
+    const lookup = code.trim().toLowerCase();
+    return products.find((product) => product.code.trim().toLowerCase() === lookup) ||
+      products.find((product) => product.supplierCode?.trim().toLowerCase() === lookup) || null;
+  }
+};
+
+export const searchCatalogProductsPage = async (query: string, page = 1, pageSize = 16, signal?: AbortSignal) => {
+  try {
+    const params = new URLSearchParams({ view: "search", q: query, page: String(page), pageSize: String(pageSize) });
+    const response = await fetch(`/api/catalog/live?${params}`, { signal });
+    if (!response.ok) throw new Error(`Product search returned ${response.status}.`);
+    const data = await response.json() as { items?: CatalogProductWithLive[]; count?: number; page?: number };
+    if (!Array.isArray(data.items) || !Number.isInteger(data.count) || data.page !== page) {
+      throw new Error("Product search returned an invalid response.");
+    }
+    return {
+      items: normalizeCatalogProducts(data.items).filter((product) => isCurrentFourCProduct(product)),
+      count: data.count as number,
+    };
+  } catch (error) {
+    if (!import.meta.env.DEV || signal?.aborted) throw error;
+    const products = await loadCatalogProductsFast();
+    const matches = searchCatalogProducts(products, query);
+    return {
+      items: matches.slice((page - 1) * pageSize, page * pageSize).map(({ product }) => product),
+      count: matches.length,
+    };
+  }
+};
 
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
@@ -490,11 +532,17 @@ const fetchCatalogPages = async <T extends { updatedAt?: string; count?: number;
   url: string,
   noStore: boolean,
 ): Promise<T> => {
+  // A shared run key prevents the CDN from combining independently cached pages
+  // from different supplier snapshots during one catalogue load.
+  const paginationRun = `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
   const fetchPage = async (page: number) => {
     const separator = url.includes("?") ? "&" : "?";
-    const response = await fetch(`${url}${separator}page=${page}&pageSize=${CATALOG_PAGE_SIZE}`, {
+    const response = await fetch(
+      `${url}${separator}page=${page}&pageSize=${CATALOG_PAGE_SIZE}&paginationRun=${paginationRun}`,
+      {
       cache: noStore ? "no-store" : "default",
-    });
+      },
+    );
     if (!response.ok) throw new Error(`Catalogue page ${page} returned ${response.status}.`);
     return await response.json() as T;
   };
@@ -565,10 +613,23 @@ const loadCatalogProductsInternal = async (
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
   }
 
-  const liveData = await fetchCatalogPages<LiveCatalogResponse>(
-    skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live",
-    skipCache,
-  );
+  let liveData: LiveCatalogResponse;
+  try {
+    liveData = await fetchCatalogPages<LiveCatalogResponse>(
+      skipCache ? `/api/catalog/live?refresh=${Date.now()}` : "/api/catalog/live",
+      skipCache,
+    );
+  } catch (error) {
+    if (skipCache) {
+      throw error;
+    }
+
+    // Ordinary catalogue browsing may use the last build-time supplier snapshot.
+    // Stock-sensitive checkout refreshes use skipCache and never enter this path.
+    const products = await applyPublicPriceFloors(dedupeCatalogProductsByCode(staticProducts));
+    writeCachedProducts(products);
+    return products;
+  }
   if (!Array.isArray(liveData.items) || liveData.items.length === 0) {
     throw new Error("Live Alloys feed returned no products.");
   }

@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inflateRawSync } from "node:zlib";
 import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
+import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
   buildShippingMeasurementOverrideMap,
@@ -2168,14 +2169,23 @@ export default async function handler(
 
   try {
     const requestUrl = new URL(req.url || "/api/catalog/live", "https://internext.local");
+    const view = requestUrl.searchParams.get("view");
     const page = Number(requestUrl.searchParams.get("page") || "1");
-    const pageSize = Number(requestUrl.searchParams.get("pageSize") || "500");
+    const pageSize = Number(requestUrl.searchParams.get("pageSize") || (view === "search" ? "16" : "500"));
     if (!Number.isInteger(page) || page < 1 || !Number.isInteger(pageSize) || pageSize < 1 || pageSize > 500) {
       return sendJson(res, 400, { message: "A valid page and pageSize (1-500) are required." });
     }
+    const query = String(requestUrl.searchParams.get("q") || "").trim();
+    const code = String(requestUrl.searchParams.get("code") || "").trim();
+    if (view === "search" && (query.length < 2 || query.length > 160 || pageSize > 50)) {
+      return sendJson(res, 400, { message: "Search requires 2-160 characters and a pageSize of 1-50." });
+    }
+    if (view === "product" && (!code || code.length > 200)) {
+      return sendJson(res, 400, { message: "A valid product code is required." });
+    }
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
-    const wantsMergedProducts = requestUrl.searchParams.get("view") === "products";
+    const wantsMergedProducts = view === "products" || view === "product" || view === "search";
     const catalog = wantsMergedProducts
       ? await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
       : await loadLiveCatalogItems({ forceRefresh }).then(async (supplierCatalog) => ({
@@ -2187,10 +2197,31 @@ export default async function handler(
       "Cache-Control",
       forceRefresh || refreshStockOverrides
         ? "no-store, no-cache, must-revalidate"
+        : view === "search" || view === "product"
+          ? "s-maxage=120, stale-while-revalidate=60"
         : competitorPricingActive
           ? "s-maxage=60, stale-while-revalidate=60"
           : "s-maxage=1800, stale-while-revalidate=21600",
     );
+    if (view === "product") {
+      const lookup = code.toLowerCase();
+      const exact = catalog.items.find((item) => item.code.trim().toLowerCase() === lookup);
+      const aliases = exact ? [] : catalog.items.filter((item) => item.supplierCode?.trim().toLowerCase() === lookup);
+      const item = exact || (aliases.length === 1 ? aliases[0] : null);
+      return sendJson(res, item ? 200 : 404, { item, updatedAt: catalog.updatedAt });
+    }
+    if (view === "search") {
+      const matches = searchCatalogProducts(catalog.items as MergedCatalogItem[], query);
+      const start = (page - 1) * pageSize;
+      return sendJson(res, 200, {
+        updatedAt: catalog.updatedAt,
+        count: matches.length,
+        page,
+        pageSize,
+        pageCount: Math.ceil(matches.length / pageSize),
+        items: matches.slice(start, start + pageSize).map(({ product }) => product),
+      });
+    }
     const start = (page - 1) * pageSize;
     return sendJson(res, 200, {
       ...catalog,

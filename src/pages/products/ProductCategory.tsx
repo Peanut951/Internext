@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import {
@@ -842,8 +842,8 @@ const ProductCategory = () => {
     const loadProducts = async () => {
       try {
         setLiveRefreshing(true);
-        const [catalogProducts, featuredResponse] = await Promise.all([
-          loadCatalogProducts() as Promise<CatalogProduct[]>,
+        const [initialProducts, featuredResponse] = await Promise.all([
+          loadCatalogProductsFast() as Promise<CatalogProduct[]>,
           fetch("/data/alloys-featured-rankings.json"),
         ]);
 
@@ -851,11 +851,24 @@ const ProductCategory = () => {
           ? ((await featuredResponse.json()) as FeaturedRankingsResponse)
           : { rankings: {} };
         if (isMounted) {
-          setProducts(catalogProducts);
+          setProducts(initialProducts);
           setFeaturedRankings(featuredData.rankings || {});
           setLoading(false);
-          setLiveRefreshing(false);
+          setError(null);
         }
+
+        loadCatalogProducts()
+          .then((catalogProducts) => {
+            if (!isMounted) return;
+            setProducts(catalogProducts as CatalogProduct[]);
+            setError(null);
+          })
+          .catch(() => {
+            // Keep the verified build snapshot visible when a live refresh fails.
+          })
+          .finally(() => {
+            if (isMounted) setLiveRefreshing(false);
+          });
       } catch (err) {
         if (isMounted) {
           setError(err instanceof Error ? err.message : "Unable to load products.");
