@@ -175,6 +175,31 @@ export const searchCatalogProductsPage = async (query: string, page = 1, pageSiz
   }
 };
 
+export const loadCartCatalogProducts = async (codes: string[], signal?: AbortSignal) => {
+  const normalizedCodes = Array.from(new Set(codes.map((code) => code.trim()).filter(Boolean)));
+  if (normalizedCodes.length === 0) return [];
+
+  try {
+    const params = new URLSearchParams({
+      view: "cart",
+      codes: normalizedCodes.join(","),
+      stockRefresh: String(Date.now()),
+    });
+    const response = await fetch(`/api/catalog/live?${params}`, { cache: "no-store", signal });
+    if (!response.ok) throw new Error(`Cart product lookup returned ${response.status}.`);
+    const data = await response.json() as { items?: CatalogProductWithLive[] };
+    if (!Array.isArray(data.items)) throw new Error("Cart product lookup returned an invalid response.");
+    return normalizeCatalogProducts(data.items).filter((product) => isCurrentFourCProduct(product));
+  } catch (error) {
+    if (!import.meta.env.DEV || signal?.aborted) throw error;
+    const products = await loadCatalogProductsFast();
+    const requested = new Set(normalizedCodes.map((code) => code.toLowerCase()));
+    return products.filter((product) =>
+      [product.code, product.supplierCode].some((key) => key && requested.has(key.trim().toLowerCase())),
+    );
+  }
+};
+
 let catalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;
 let catalogProductsRefreshPromise: Promise<CatalogProductWithLive[]> | null = null;
 let staticCatalogProductsPromise: Promise<CatalogProductWithLive[]> | null = null;

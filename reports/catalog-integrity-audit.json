@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-10-05T23:05:48.324Z",
-  "verifiedSnapshotUpdatedAt": "2026-10-05T23:04:57.239Z",
+  "auditedAt": "2026-10-08T03:27:35.765Z",
+  "verifiedSnapshotUpdatedAt": "2026-10-08T03:26:53.673Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -10,12 +10,12 @@
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
     "fourCEnrichmentProducts": 4542,
-    "verifiedSupplierProducts": 7106,
+    "verifiedSupplierProducts": 7078,
     "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 5446,
-    "googleProducts": 4778,
-    "sitemapProducts": 5796,
-    "staticProductPages": 5796
+    "unsupportedRawEnrichmentProducts": 5484,
+    "googleProducts": 4742,
+    "sitemapProducts": 5769,
+    "staticProductPages": 5769
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],
@@ -46,6 +46,12 @@
       "supplierCode": "F2",
       "manufacturer": "Akubela",
       "description": "Akubela Zigbee Smart Lock"
+    },
+    {
+      "code": "AK-PG71N-KNX-EU",
+      "supplierCode": "PG71N-KNX-EU",
+      "manufacturer": "Akubela",
+      "description": "Akubela 8\" Touch Screen in Grey Zigbee Gateway (Android 10 Version)"
     },
     {
       "code": "AK-R25AINWALLP",
@@ -168,6 +174,12 @@
       "description": "Wall Mount Bracket for The 2N IP Phone D7A"
     },
     {
+      "code": "AX91378401",
+      "supplierCode": "01698-001",
+      "manufacturer": "Axis",
+      "description": "Indoor Talk Answering Unit Black 7 Capacitive Buttons HD Audio Precision Installation Box"
+    },
+    {
       "code": "AX91379030",
       "supplierCode": "01672-001",
       "manufacturer": "Axis",
@@ -282,16 +294,16 @@
       "description": "IP Solo Glass Plate 103 X 126 Mm for Complete Installation of Intercom"
     },
     {
+      "code": "AX91550947-S",
+      "supplierCode": "02782-001",
+      "manufacturer": "Axis",
+      "description": "IP Verso Reader RFID Keypad Bluetooth RFID 125KHZ 13.56MHZ Nfc Picard Secured"
+    },
+    {
       "code": "AX9155101",
       "supplierCode": "01271-001",
       "manufacturer": "Axis",
       "description": "IP Verso Main Unit Without Camera Nickel"
-    },
-    {
-      "code": "AX9155101B",
-      "supplierCode": "01272-001",
-      "manufacturer": "Axis",
-      "description": "IP Verso Main Unit Without Camera Black"
     },
     {
       "code": "AX9155101CB",
@@ -358,6 +370,12 @@
       "supplierCode": "02773-001",
       "manufacturer": "Axis",
       "description": "2N AU2.0 Reader RFID 125KHZ 13 56MHZ Nfc Secured Picard"
+    },
+    {
+      "code": "AX916112",
+      "supplierCode": "02393-001",
+      "manufacturer": "Axis",
+      "description": "Access Unit M RFID 13.56 Mhz Nfc Ready 1 W/8OHM"
     },
     {
       "code": "AXA9161",
@@ -430,6 +448,12 @@
       "supplierCode": "AXCONBUN",
       "manufacturer": "Axis",
       "description": "Axis Console Bundle"
+    },
+    {
+      "code": "AXD4100-VE-MK2",
+      "supplierCode": "03105-001",
+      "manufacturer": "Axis",
+      "description": "Axis D4100-VE Mk Ii"
     },
     {
       "code": "AXD4200-VE",
@@ -598,30 +622,6 @@
       "supplierCode": "CART332BK",
       "manufacturer": "Canon",
       "description": "CART332BK Blk Cartridge for LBP7780CX"
-    },
-    {
-      "code": "CCART333",
-      "supplierCode": "CART333",
-      "manufacturer": "Canon",
-      "description": "Canon CART333 Std Black Toner Cartridge 10K to Suit LBP8780X"
-    },
-    {
-      "code": "CCART333-RET",
-      "supplierCode": "EA",
-      "manufacturer": "Canon",
-      "description": "Canon CART333 Std Black Toner Cartridge 10K to Suit **Damaged Carton**"
-    },
-    {
-      "code": "CCART416C",
-      "supplierCode": "CART416C",
-      "manufacturer": "Canon",
-      "description": "Cyan Cartridge for Canon MF8050CDN"
-    },
-    {
-      "code": "CDR-C240",
-      "supplierCode": "DR-C240",
-      "manufacturer": "Canon",
-      "description": "DRC240 Duplex 60SHT Feeder 45PPM Document Scanner"
     }
   ]
 }

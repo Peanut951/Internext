@@ -111,6 +111,7 @@
   <url><loc>https://www.internext.com.au/products/item/AK-E12S-2-SILVER</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-E12S-BLACK</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-E12W</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/AK-E12W-B-RET</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-E12W-BLACK</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-E12XANGLE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-E12XONH</loc></url>
@@ -152,6 +153,7 @@
   <url><loc>https://www.internext.com.au/products/item/AK-KNXUSB</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-KS41-KNX-EU</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-KS41-POE</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/AK-KS53-R2-EU</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-KXAC-G1DD4</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-KXPW-B1A960</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-LTEMOD</loc></url>
@@ -169,7 +171,6 @@
   <url><loc>https://www.internext.com.au/products/item/AK-NC-2</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-NK-2</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-NS-2</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/AK-PG71N-KNX-EU</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-PG71N-POE-US</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-PG71N-POE-US-W</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AK-PH81-KNX-EU</loc></url>
@@ -379,7 +380,6 @@
   <url><loc>https://www.internext.com.au/products/item/AX9137422E</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91378382</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91378382W</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/AX91378401</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91378401WH</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91378501</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91378501WH</loc></url>
@@ -467,11 +467,13 @@
   <url><loc>https://www.internext.com.au/products/item/AX9155063</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9155068</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9155071</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/AX9155084</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91550941</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/AX91550942</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91550945</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91550946</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX91550947</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/AX91550947-S</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/AX9155101B</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9155101C</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9155198SET</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9155211</loc></url>
@@ -506,7 +508,6 @@
   <url><loc>https://www.internext.com.au/products/item/AX9160347</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9160347-S</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9160501</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/AX916112</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9161151</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX9161161</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AX916121</loc></url>
@@ -523,7 +524,6 @@
   <url><loc>https://www.internext.com.au/products/item/AXC8210</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AXC8310</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AXD4100-E</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/AXD4100-VE-MK2</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AXI8016-LVE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AXI8116-E-W</loc></url>
   <url><loc>https://www.internext.com.au/products/item/AXTC6901</loc></url>
@@ -635,7 +635,6 @@
   <url><loc>https://www.internext.com.au/products/item/CCART329Y</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CCART332C</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CCART332Y</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/CCART333II</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CCART335BKH</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CCART335BKL</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CCART335CH</loc></url>
@@ -831,7 +830,9 @@
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-305TMFP</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-340LM-MFP</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-500NS</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/CIPFTM-510M</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-510ST</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/CIPFTM-600ST</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-610M</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CIPFTM-610ST</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CKC18IF</loc></url>
@@ -1256,7 +1257,6 @@
   <url><loc>https://www.internext.com.au/products/item/CPGI72PM</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CPGI72R</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CPGI72Y</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/CPGI7BK</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CPGI9C</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CPGI9CLEAR</loc></url>
   <url><loc>https://www.internext.com.au/products/item/CPGI9G</loc></url>
@@ -1535,7 +1535,6 @@
   <url><loc>https://www.internext.com.au/products/item/EPC13S015066</loc></url>
   <url><loc>https://www.internext.com.au/products/item/EPC13S015086</loc></url>
   <url><loc>https://www.internext.com.au/products/item/EPC13S015139</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/EPC13S015327</loc></url>
   <url><loc>https://www.internext.com.au/products/item/EPC13S015336</loc></url>
   <url><loc>https://www.internext.com.au/products/item/EPC13S015337</loc></url>
   <url><loc>https://www.internext.com.au/products/item/EPC13S015339</loc></url>
@@ -2150,6 +2149,7 @@
   <url><loc>https://www.internext.com.au/products/item/F11-LE-1500</loc></url>
   <url><loc>https://www.internext.com.au/products/item/F11-LE-2200</loc></url>
   <url><loc>https://www.internext.com.au/products/item/F11-LE-650</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/F15R-1150</loc></url>
   <url><loc>https://www.internext.com.au/products/item/F15R-1550</loc></url>
   <url><loc>https://www.internext.com.au/products/item/F15R-650</loc></url>
   <url><loc>https://www.internext.com.au/products/item/F16-1000</loc></url>
@@ -2267,16 +2267,14 @@
   <url><loc>https://www.internext.com.au/products/item/FGB-002</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FX016187900</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FX016197600</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/FX097S04276</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/FX016197800</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FX108R00663</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/FX108R00974</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FX113R00162</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT200382</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT200540</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT200541</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT200570</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT201262</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/FXCT201594</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT201664</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT201665</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT201666</loc></url>
@@ -2300,7 +2298,6 @@
   <url><loc>https://www.internext.com.au/products/item/FXCT202354</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT202355</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT202373</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/FXCT202384</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT202397</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT202398</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT202399</loc></url>
@@ -2359,7 +2356,6 @@
   <url><loc>https://www.internext.com.au/products/item/FXCT351103</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT351157</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT351168</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/FXCT351174</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT351192</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT351193</loc></url>
   <url><loc>https://www.internext.com.au/products/item/FXCT351194</loc></url>
@@ -2456,6 +2452,7 @@
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2614</loc></url>
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2615</loc></url>
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2616</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/GR-GRP2624PRO</loc></url>
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2636</loc></url>
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2650</loc></url>
   <url><loc>https://www.internext.com.au/products/item/GR-GRP2670</loc></url>
@@ -3117,10 +3114,7 @@
   <url><loc>https://www.internext.com.au/products/item/HPL4R66A</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPLC540A</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPLC600A</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/HPN9K01AA</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPN9K02AA</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/HPN9K03AA</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/HPN9K04AA</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPP-767F6AA</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPP-767G1AA</loc></url>
   <url><loc>https://www.internext.com.au/products/item/HPP-76U48AA</loc></url>
@@ -3975,7 +3969,7 @@
   <url><loc>https://www.internext.com.au/products/item/IVNC312XE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/IVNC317ADX</loc></url>
   <url><loc>https://www.internext.com.au/products/item/IVNC317XC</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/IVNC319XB</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/IVNC319XC</loc></url>
   <url><loc>https://www.internext.com.au/products/item/IVNC323ADX</loc></url>
   <url><loc>https://www.internext.com.au/products/item/IVNC323ADX-BLK</loc></url>
   <url><loc>https://www.internext.com.au/products/item/IVNC323XD</loc></url>
@@ -4432,7 +4426,6 @@
   <url><loc>https://www.internext.com.au/products/item/LM1021231</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM1021294</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM10B3100</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LM11K3188</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM14F0000</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM14F0100</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM14K0050</loc></url>
@@ -4534,7 +4527,6 @@
   <url><loc>https://www.internext.com.au/products/item/LM40G0852</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM40G0854</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM40N4250</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LM40N9575</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM42K1268</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM47C4597</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LM47C9067</loc></url>
@@ -4753,17 +4745,6 @@
   <url><loc>https://www.internext.com.au/products/item/LMC500S2YG</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMC500X26G</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMC540X75G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734A1CG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734A1KG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734A1MG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734A1YG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734X20G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734X24G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC734X77G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC746H1KG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC748H1CG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC748H1MG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMC748H1YG</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMC7700CH</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMC792X1CG</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMC792X1KG</loc></url>
@@ -4780,7 +4761,6 @@
   <url><loc>https://www.internext.com.au/products/item/LMCS531DW</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMCS632DWE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMCS963E</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMCX331ADWE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMCX532ADWE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMCX635ADWE</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMCX833SE</loc></url>
@@ -4809,13 +4789,6 @@
   <url><loc>https://www.internext.com.au/products/item/LMT650A11P</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMT650H04P</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMT650H11P</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX264A11G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX264H11G</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX746A1CG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX746A1MG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX746A1YG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX746H1KG</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/LMX748H1MG</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMX860H21G</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMX860H22G</loc></url>
   <url><loc>https://www.internext.com.au/products/item/LMX950X2CG</loc></url>
@@ -5221,7 +5194,6 @@
   <url><loc>https://www.internext.com.au/products/item/R406517</loc></url>
   <url><loc>https://www.internext.com.au/products/item/R406567</loc></url>
   <url><loc>https://www.internext.com.au/products/item/R406599</loc></url>
-  <url><loc>https://www.internext.com.au/products/item/R406627</loc></url>
   <url><loc>https://www.internext.com.au/products/item/R406643</loc></url>
   <url><loc>https://www.internext.com.au/products/item/R406647</loc></url>
   <url><loc>https://www.internext.com.au/products/item/R406650</loc></url>
@@ -5502,6 +5474,7 @@
   <url><loc>https://www.internext.com.au/products/item/SH-PILLTMP</loc></url>
   <url><loc>https://www.internext.com.au/products/item/SH-SHELLY-01DIM</loc></url>
   <url><loc>https://www.internext.com.au/products/item/SH-SHELLY-DALIG3</loc></url>
+  <url><loc>https://www.internext.com.au/products/item/SH-SHELLY-I4DC</loc></url>
   <url><loc>https://www.internext.com.au/products/item/SH-SHELLY-I4G3</loc></url>
   <url><loc>https://www.internext.com.au/products/item/SH-SHELLY1-M</loc></url>
   <url><loc>https://www.internext.com.au/products/item/SH-SHELLY1-MG4</loc></url>

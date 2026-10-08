@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import PortalNav from "@/components/auth/PortalNav";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { CartItem, getCartItems, saveCartItems } from "@/lib/orderManagement";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCartCatalogProducts } from "@/lib/liveCatalog";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, ShieldCheck, ShoppingCart, Trash2, Truck } from "lucide-react";
@@ -17,7 +17,9 @@ const refreshCartStock = async (items: CartItem[]) => {
     return items;
   }
 
-  const liveProducts = await loadCatalogProducts({ refreshStockOverrides: true });
+  const liveProducts = await loadCartCatalogProducts(
+    items.flatMap((item) => [item.code, item.supplierCode || ""]),
+  );
   const liveByCode = new Map(
     liveProducts.flatMap((product) =>
       [product.code, product.supplierCode]

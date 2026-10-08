@@ -1,6 +1,7 @@
 import { readEnv, sendJson } from "../checkout/_shared.js";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
 import { estimateShippingProfile } from "./_estimates.js";
+import { createShippingQuoteToken } from "./_quoteToken.js";
 
 type ShippingQuoteItem = {
   code?: string;
@@ -443,18 +444,20 @@ export const calculateAuthoritativeShippingQuote = async (
     parcelQuotes.length === 1 && parcels[0].qty === 1
       ? primaryService.name
       : `${primaryService.name} (${parcel.qty} parcels)`;
+  const service = {
+    ...primaryService,
+    name: serviceName,
+    price: totalPrice,
+    priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
+  };
 
   return {
     originPostcode: ORIGIN_POSTCODE,
     destinationPostcode,
     parcel,
     parcels,
-    service: {
-      ...primaryService,
-      name: serviceName,
-      price: totalPrice,
-      priceText: totalPrice.toLocaleString("en-AU", { style: "currency", currency: "AUD" }),
-    },
+    service,
+    quoteToken: createShippingQuoteToken({ destinationPostcode, items: verifiedItems, service }),
     quotedPrice,
     shippingFloor,
     estimatedDimensions,

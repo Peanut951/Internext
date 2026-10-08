@@ -43,3 +43,12 @@ test("search returns a bounded ranked page", async () => {
   assert.ok(body.items.length <= 6);
   assert.equal(body.items[0].code, "CPGI29M");
 });
+
+test("cart lookup returns only requested verified products", async () => {
+  const { status, body } = await request("/api/catalog/live?view=cart&codes=CPGI29M,DOES-NOT-EXIST");
+  assert.equal(status, 200);
+  assert.equal(body.requestedCount, 2);
+  assert.equal(body.count, 1);
+  assert.deepEqual(body.items.map((item) => item.code), ["CPGI29M"]);
+  assert.equal(Object.hasOwn(body, "pageCount"), false);
+});

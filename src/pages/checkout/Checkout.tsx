@@ -18,7 +18,7 @@ import {
   saveCartItems,
 } from "@/lib/orderManagement";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
-import { loadCatalogProducts } from "@/lib/liveCatalog";
+import { loadCartCatalogProducts } from "@/lib/liveCatalog";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldCheck, Truck } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -298,6 +298,7 @@ type OrderNotificationResult = {
 };
 
 type ShippingQuote = {
+  quoteToken?: string;
   service: {
     code: string;
     name: string;
@@ -411,7 +412,9 @@ const mergeLiveShippingMeasurements = async (items: CartItem[]) => {
     return items;
   }
 
-  const liveProducts = await loadCatalogProducts({ refreshStockOverrides: true });
+  const liveProducts = await loadCartCatalogProducts(
+    items.flatMap((item) => [item.code, item.supplierCode || ""]),
+  );
   const liveByCode = new Map(
     liveProducts.flatMap((product) =>
       [product.code, product.supplierCode]
@@ -1186,6 +1189,7 @@ const Checkout = () => {
                   price: activeShippingQuote.service.price,
                 }
               : undefined,
+          shippingQuoteToken: activeShippingQuote?.quoteToken,
         }),
       });
 

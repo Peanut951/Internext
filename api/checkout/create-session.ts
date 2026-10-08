@@ -11,6 +11,7 @@ import {
 import { getSessionFromRequest } from "../auth/_shared.js";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
 import { calculateAuthoritativeShippingQuote } from "../shipping/quote.js";
+import { verifyShippingQuoteToken } from "../shipping/_quoteToken.js";
 
 const FIRST_ORDER_DISCOUNT_RATE = 0.1;
 const FIRST_ORDER_DISCOUNT_NAME = "First order account discount";
@@ -47,6 +48,7 @@ type RequestBody = {
     name?: string;
     price?: number;
   };
+  shippingQuoteToken?: string;
 };
 
 const normalizeMoney = (value: number) => Math.round(value * 100) / 100;
@@ -316,10 +318,18 @@ const verifyCheckoutItems = async (
     verifiedItems.push({
       ...item,
       code: product.code,
+      supplierCode: product.supplierCode,
       description: String(product.description || product.name || item.description),
       manufacturer: String(product.manufacturer || item.manufacturer),
       price: currentPrice,
       stockQuantity: currentStock,
+      weightKg: product.weightKg,
+      heightCm: product.heightCm,
+      widthCm: product.widthCm,
+      depthCm: product.depthCm,
+      measurementSource: product.measurementSource,
+      measurementSourceReference: product.measurementSourceReference,
+      measurementConfidence: product.measurementConfidence,
     });
   }
 
@@ -393,14 +403,21 @@ export default async function handler(
 
   let verifiedShipping: { name: string; price: number };
   try {
-    const shippingQuote = await calculateAuthoritativeShippingQuote(
-      String(body.customer?.postcode || ""),
-      verifiedItems,
-    );
-    verifiedShipping = {
-      name: shippingQuote.service.name,
-      price: shippingQuote.service.price,
-    };
+    const destinationPostcode = String(body.customer?.postcode || "");
+    const tokenService = verifyShippingQuoteToken({
+      token: body.shippingQuoteToken,
+      destinationPostcode,
+      items: verifiedItems,
+    });
+    if (tokenService) {
+      verifiedShipping = tokenService;
+    } else {
+      const shippingQuote = await calculateAuthoritativeShippingQuote(destinationPostcode, verifiedItems);
+      verifiedShipping = {
+        name: shippingQuote.service.name,
+        price: shippingQuote.service.price,
+      };
+    }
   } catch {
     return sendJson(res, 503, {
       message: "Shipping could not be verified. No payment was created. Please check the delivery address and try again.",

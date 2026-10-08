@@ -2177,15 +2177,22 @@ export default async function handler(
     }
     const query = String(requestUrl.searchParams.get("q") || "").trim();
     const code = String(requestUrl.searchParams.get("code") || "").trim();
+    const requestedCodes = String(requestUrl.searchParams.get("codes") || "")
+      .split(",")
+      .map((value) => value.trim().toLowerCase())
+      .filter(Boolean);
     if (view === "search" && (query.length < 2 || query.length > 160 || pageSize > 50)) {
       return sendJson(res, 400, { message: "Search requires 2-160 characters and a pageSize of 1-50." });
     }
     if (view === "product" && (!code || code.length > 200)) {
       return sendJson(res, 400, { message: "A valid product code is required." });
     }
+    if (view === "cart" && (requestedCodes.length < 1 || requestedCodes.length > 100)) {
+      return sendJson(res, 400, { message: "Cart lookup requires between 1 and 100 product codes." });
+    }
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
-    const wantsMergedProducts = view === "products" || view === "product" || view === "search";
+    const wantsMergedProducts = view === "products" || view === "product" || view === "search" || view === "cart";
     const catalog = wantsMergedProducts
       ? await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
       : await loadLiveCatalogItems({ forceRefresh }).then(async (supplierCatalog) => ({
@@ -2209,6 +2216,31 @@ export default async function handler(
       const aliases = exact ? [] : catalog.items.filter((item) => item.supplierCode?.trim().toLowerCase() === lookup);
       const item = exact || (aliases.length === 1 ? aliases[0] : null);
       return sendJson(res, item ? 200 : 404, { item, updatedAt: catalog.updatedAt });
+    }
+    if (view === "cart") {
+      const productsByKey = new Map<string, MergedCatalogItem>();
+      for (const item of catalog.items as MergedCatalogItem[]) {
+        for (const key of [item.code, item.supplierCode]) {
+          const normalized = String(key || "").trim().toLowerCase();
+          if (normalized) productsByKey.set(normalized, item);
+        }
+      }
+      const seen = new Set<string>();
+      const items = requestedCodes
+        .map((requestedCode) => productsByKey.get(requestedCode))
+        .filter((item): item is MergedCatalogItem => Boolean(item))
+        .filter((item) => {
+          const key = item.code.trim().toLowerCase();
+          if (seen.has(key)) return false;
+          seen.add(key);
+          return true;
+        });
+      return sendJson(res, 200, {
+        updatedAt: catalog.updatedAt,
+        count: items.length,
+        requestedCount: requestedCodes.length,
+        items,
+      });
     }
     if (view === "search") {
       const matches = searchCatalogProducts(catalog.items as MergedCatalogItem[], query);
