@@ -108,6 +108,12 @@ type MergedCatalogResult = {
   items: MergedCatalogItem[];
 };
 
+type MergedCatalogLoadOptions = {
+  forceRefresh?: boolean;
+  refreshStockOverrides?: boolean;
+  persistedSnapshot?: boolean;
+};
+
 type MergedCatalogItem = StaticCatalogProduct & {
   code: string;
   supplierCode?: string;
@@ -878,6 +884,8 @@ const globalCatalogCache = globalThis as typeof globalThis & {
   __internextLiveCatalogPromise?: Promise<LiveCatalogResult>;
   __internextMergedCatalogCache?: MergedCatalogCache;
   __internextMergedCatalogPromise?: Promise<MergedCatalogResult>;
+  __internextBrowseCatalogCache?: MergedCatalogCache;
+  __internextBrowseCatalogPromise?: Promise<MergedCatalogResult>;
   __internextLeaderCatalogProductsCache?: {
     expiresAt: number;
     staleUntil: number;
@@ -979,6 +987,8 @@ const clearCatalogCaches = () => {
   delete globalCatalogCache.__internextLiveCatalogPromise;
   delete globalCatalogCache.__internextMergedCatalogCache;
   delete globalCatalogCache.__internextMergedCatalogPromise;
+  delete globalCatalogCache.__internextBrowseCatalogCache;
+  delete globalCatalogCache.__internextBrowseCatalogPromise;
 };
 
 let leaderPdfExclusionCodes: Set<string> | null = null;
@@ -1911,7 +1921,7 @@ const loadSupplierMergedCatalogProducts = async (options?: {
 const loadMergedCatalogProductsUncached = async (
   cached: typeof globalCatalogCache.__internextMergedCatalogCache,
   now: number,
-  options?: { forceRefresh?: boolean; refreshStockOverrides?: boolean },
+  options?: MergedCatalogLoadOptions,
 ): Promise<MergedCatalogResult> => {
   let staticProducts: StaticCatalogProduct[];
   let liveCatalog: Awaited<ReturnType<typeof loadLiveCatalogItems>>;
@@ -1923,7 +1933,7 @@ const loadMergedCatalogProductsUncached = async (
   try {
     [staticProducts, liveCatalog, stockOverrides, shippingMeasurementOverrides, sourcedShippingMeasurements, publicPriceFloors] = await Promise.all([
       loadStaticCatalogProducts(),
-      loadLiveCatalogItems(options),
+      options?.persistedSnapshot ? loadPersistedVerifiedCatalog() : loadLiveCatalogItems(options),
       fetchStockOverrides({ strict: options?.refreshStockOverrides }),
       fetchShippingMeasurementOverrides(),
       loadSourcedShippingMeasurements(),
@@ -2073,13 +2083,18 @@ const loadMergedCatalogProductsUncached = async (
   }
   const items = Array.from(itemsByCode.values()).filter((item) => isCurrentFourCProduct(item));
 
-  globalCatalogCache.__internextMergedCatalogCache = {
+  const cacheEntry: MergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),
     staleUntil: Date.now() + getServerCatalogCacheMs() + getServerCatalogStaleMs(),
     updatedAt: liveCatalog.updatedAt,
     source: liveCatalog.source,
     items,
   };
+  if (options?.persistedSnapshot) {
+    globalCatalogCache.__internextBrowseCatalogCache = cacheEntry;
+  } else {
+    globalCatalogCache.__internextMergedCatalogCache = cacheEntry;
+  }
 
   return {
     updatedAt: liveCatalog.updatedAt,
@@ -2101,6 +2116,35 @@ export const loadMergedCatalogProducts = async (options?: {
     count: items.length,
     items,
   };
+};
+
+const loadBrowseCatalogProducts = async () => {
+  const cached = globalCatalogCache.__internextBrowseCatalogCache;
+  if (cached && cached.expiresAt > Date.now()) {
+    const items = await applyCompetitorPriceAdjustments(cached.items.filter((item) => isCurrentFourCProduct(item)));
+    return {
+      updatedAt: cached.updatedAt,
+      count: items.length,
+      source: cached.source,
+      cached: true,
+      items,
+    } satisfies MergedCatalogResult;
+  }
+
+  if (!globalCatalogCache.__internextBrowseCatalogPromise) {
+    const now = Date.now();
+    globalCatalogCache.__internextBrowseCatalogPromise = loadMergedCatalogProductsUncached(
+      cached,
+      now,
+      { persistedSnapshot: true },
+    ).finally(() => {
+      delete globalCatalogCache.__internextBrowseCatalogPromise;
+    });
+  }
+
+  const catalog = await globalCatalogCache.__internextBrowseCatalogPromise;
+  const items = await applyCompetitorPriceAdjustments(catalog.items);
+  return { ...catalog, count: items.length, items };
 };
 
 export default async function handler(
@@ -2193,8 +2237,11 @@ export default async function handler(
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
     const wantsMergedProducts = view === "products" || view === "product" || view === "search" || view === "cart";
+    const usesBrowseSnapshot = view === "product" || view === "search";
     const catalog = wantsMergedProducts
-      ? await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
+      ? usesBrowseSnapshot
+        ? await loadBrowseCatalogProducts()
+        : await loadMergedCatalogProducts({ forceRefresh, refreshStockOverrides })
       : await loadLiveCatalogItems({ forceRefresh }).then(async (supplierCatalog) => ({
           ...supplierCatalog,
           items: await applyCompetitorPriceAdjustments(supplierCatalog.items),

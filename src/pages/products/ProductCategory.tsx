@@ -803,6 +803,9 @@ const getCardHighlights = (product: CatalogProduct) => {
   return extractProductSpecHighlights(product).slice(0, 3);
 };
 
+const getVisibleProductPrice = (product: CatalogProduct, role: "customer" | "reseller") =>
+  role === "reseller" ? safeNumber(product.resellerPrice) : safeNumber(product.price);
+
 const toTitle = (slug: string) =>
   slug
     .split("-")
@@ -1014,8 +1017,6 @@ const ProductCategory = () => {
   };
 
   const priceRole = getPriceRole(session?.role);
-  const getVisiblePrice = (product: CatalogProduct) =>
-    priceRole === "reseller" ? safeNumber(product.resellerPrice) : safeNumber(product.price);
 
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
@@ -1030,7 +1031,7 @@ const ProductCategory = () => {
 
       const parsedMin = Number(minPrice);
       const parsedMax = Number(maxPrice);
-      const visiblePrice = getVisiblePrice(product);
+      const visiblePrice = getVisibleProductPrice(product, priceRole);
 
       if (!Number.isNaN(parsedMin) && minPrice.trim() !== "" && (visiblePrice === null || visiblePrice < parsedMin)) {
         return false;
@@ -1084,8 +1085,8 @@ const ProductCategory = () => {
           return scoreDiff;
         }
 
-        const aPrice = getVisiblePrice(a);
-        const bPrice = getVisiblePrice(b);
+        const aPrice = getVisibleProductPrice(a, priceRole);
+        const bPrice = getVisibleProductPrice(b, priceRole);
         if (aPrice !== null && bPrice !== null && aPrice !== bPrice) {
           return aPrice - bPrice;
         }
@@ -1104,8 +1105,8 @@ const ProductCategory = () => {
 
     if (sort === "price-asc") {
       return [...filtered].sort((a, b) => {
-        const aPrice = getVisiblePrice(a);
-        const bPrice = getVisiblePrice(b);
+        const aPrice = getVisibleProductPrice(a, priceRole);
+        const bPrice = getVisibleProductPrice(b, priceRole);
         if (aPrice === null) return 1;
         if (bPrice === null) return -1;
         return aPrice - bPrice;
@@ -1114,8 +1115,8 @@ const ProductCategory = () => {
 
     if (sort === "price-desc") {
       return [...filtered].sort((a, b) => {
-        const aPrice = getVisiblePrice(a);
-        const bPrice = getVisiblePrice(b);
+        const aPrice = getVisibleProductPrice(a, priceRole);
+        const bPrice = getVisibleProductPrice(b, priceRole);
         if (aPrice === null) return 1;
         if (bPrice === null) return -1;
         return bPrice - aPrice;

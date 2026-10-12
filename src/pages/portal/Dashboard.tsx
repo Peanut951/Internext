@@ -18,6 +18,8 @@ import {
 const PortalDashboard = () => {
   const { session } = useAuthSession();
   const adminView = isAdminSession(session);
+  const sessionUserId = session?.userId;
+  const sessionEmail = session?.email;
   const [allOrders, setAllOrders] = useState<OrderRecord[]>(getOrders());
   const orders = useMemo(
     () =>
@@ -41,7 +43,7 @@ const PortalDashboard = () => {
   const openOrders = orders.filter((order) => order.fulfillmentStatus !== "delivered").length;
 
   useEffect(() => {
-    if (!session) {
+    if (!sessionUserId || !sessionEmail) {
       setAllOrders(getOrders());
       return;
     }
@@ -49,12 +51,12 @@ const PortalDashboard = () => {
     setAllOrders(
       adminView
         ? getOrders()
-        : getOrdersForReseller({ userId: session.userId, email: session.email }),
+        : getOrdersForReseller({ userId: sessionUserId, email: sessionEmail }),
     );
     void fetchSharedOrders().then((sharedOrders) => {
       setAllOrders(sharedOrders);
     });
-  }, [adminView, session?.userId, session?.email]);
+  }, [adminView, sessionEmail, sessionUserId]);
 
   return (
     <Layout>

@@ -20,19 +20,21 @@ const formatStatusLabel = (value: string) =>
 
 const PortalOrders = () => {
   const { session } = useAuthSession();
+  const sessionUserId = session?.userId;
+  const sessionEmail = session?.email;
   const [allOrders, setAllOrders] = useState<OrderRecord[]>([]);
 
   useEffect(() => {
-    if (!session) {
+    if (!sessionUserId || !sessionEmail) {
       setAllOrders([]);
       return;
     }
 
-    setAllOrders(getOrdersForReseller({ userId: session.userId, email: session.email }));
+    setAllOrders(getOrdersForReseller({ userId: sessionUserId, email: sessionEmail }));
     void fetchSharedOrders().then((sharedOrders) => {
       setAllOrders(sharedOrders);
     });
-  }, [session?.userId, session?.email]);
+  }, [sessionEmail, sessionUserId]);
 
   const orders = useMemo(
     () =>
