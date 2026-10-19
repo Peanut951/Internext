@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import path from "node:path";
+import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 
 const root = process.cwd();
 const readJson = (relativePath, fallback) => {
@@ -26,10 +27,21 @@ const leaderProducts = readJson("public/data/leader-products.json", []);
 const fourCProducts = readJson("public/data/4c-products.json", []);
 const snapshot = readJson("public/data/catalog-live-overrides.json", { items: [] });
 const quoteProducts = readJson("public/data/supplier-quote-products.json", { products: [] }).products || [];
-const verifiedProducts = [...(snapshot.items || []), ...quoteProducts];
+const expiredFourCQuoteProducts = fourCProducts
+  .filter((product) => !isCurrentFourCProduct(product))
+  .map((product) => ({ ...product, quoteRequired: true }));
+const verifiedQuoteProducts = Array.from(new Map(
+  [...expiredFourCQuoteProducts, ...quoteProducts]
+    .map((product) => [String(product.code || "").trim().toLowerCase(), product])
+    .filter(([code]) => Boolean(code)),
+).values());
+const verifiedProducts = [...(snapshot.items || []), ...verifiedQuoteProducts];
 const verifiedKeys = new Set(verifiedProducts.flatMap(getKeys));
 const verifiedCodes = new Set(verifiedProducts.map((product) => String(product.code || "").trim().toLowerCase()).filter(Boolean));
-const allowedCustomerCodes = new Set(verifiedCodes);
+const allowedVisibleCodes = new Set(verifiedCodes);
+const allowedPurchasableCodes = new Set(
+  (snapshot.items || []).map((product) => String(product.code || "").trim().toLowerCase()).filter(Boolean),
+);
 
 const unsupportedRawProducts = [...rawProducts, ...leaderProducts, ...fourCProducts].filter(
   (product) => !getKeys(product).some((key) => verifiedKeys.has(key)),
@@ -58,7 +70,8 @@ const staticPageCodes = fs.existsSync(staticPagesRoot)
       })
   : [];
 
-const findUnsupportedCodes = (codes) => Array.from(new Set(codes.filter((code) => !allowedCustomerCodes.has(code)))).sort();
+const findUnsupportedCodes = (codes, allowedCodes) =>
+  Array.from(new Set(codes.filter((code) => !allowedCodes.has(code)))).sort();
 const report = {
   auditedAt: new Date().toISOString(),
   verifiedSnapshotUpdatedAt: snapshot.updatedAt || null,
@@ -68,16 +81,16 @@ const report = {
     leaderEnrichmentProducts: leaderProducts.length,
     fourCEnrichmentProducts: fourCProducts.length,
     verifiedSupplierProducts: (snapshot.items || []).length,
-    verifiedQuoteProducts: quoteProducts.length,
+    verifiedQuoteProducts: verifiedQuoteProducts.length,
     unsupportedRawEnrichmentProducts: unsupportedRawProducts.length,
     googleProducts: googleIds.length,
     sitemapProducts: sitemapCodes.length,
     staticProductPages: staticPageCodes.length,
   },
   unsupportedCustomerFacing: {
-    googleProductCodes: findUnsupportedCodes(googleIds),
-    sitemapProductCodes: findUnsupportedCodes(sitemapCodes),
-    staticPageProductCodes: findUnsupportedCodes(staticPageCodes),
+    googleProductCodes: findUnsupportedCodes(googleIds, allowedPurchasableCodes),
+    sitemapProductCodes: findUnsupportedCodes(sitemapCodes, allowedVisibleCodes),
+    staticPageProductCodes: findUnsupportedCodes(staticPageCodes, allowedVisibleCodes),
   },
   unsupportedRawExamples: unsupportedRawProducts.slice(0, 100).map((product) => ({
     code: product.code,

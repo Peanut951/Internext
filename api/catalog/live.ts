@@ -598,11 +598,16 @@ const applyPublicPriceFloor = <T extends {
   supplierCode?: string | null;
   price?: number | null;
   priceText?: string;
+  quoteRequired?: boolean;
   publicPriceFloor?: number;
   publicPriceFixed?: boolean;
   rrp?: number | null;
   rrpText?: string;
 }>(product: T, floorByKey: Map<string, number>): T => {
+  if (product.quoteRequired) {
+    return product;
+  }
+
   const floor = [product.code, product.supplierCode]
     .map((value) => floorByKey.get(String(value || "").trim().toLowerCase()))
     .find((value): value is number => typeof value === "number");
@@ -1081,14 +1086,32 @@ const requireCurrentQuoteProduct = (product: StaticCatalogProduct): StaticCatalo
 const loadSupplierQuoteCatalogProducts = async (): Promise<StaticCatalogProduct[]> => {
   try {
     const quotePath = join(process.cwd(), "public", "data", "supplier-quote-products.json");
-    const raw = await readFile(quotePath, "utf8");
-    const data = JSON.parse(raw) as { products?: StaticCatalogProduct[] };
-    return (Array.isArray(data.products) ? data.products : [])
+    const fourCPath = join(process.cwd(), "public", "data", "4c-products.json");
+    const [quoteRaw, fourCRaw] = await Promise.all([
+      readFile(quotePath, "utf8"),
+      readFile(fourCPath, "utf8"),
+    ]);
+    const data = JSON.parse(quoteRaw) as { products?: StaticCatalogProduct[] };
+    const fourCProducts = JSON.parse(fourCRaw) as StaticCatalogProduct[];
+    const approvedQuoteProducts = (Array.isArray(data.products) ? data.products : [])
       .filter((product) =>
         Boolean(product?.code && product?.manufacturer && (product?.description || product?.name)) &&
         isTangibleCatalogProduct(product as Record<string, unknown>),
-      )
-      .map(requireCurrentQuoteProduct);
+      );
+    const expiredFourCProducts = (Array.isArray(fourCProducts) ? fourCProducts : [])
+      .filter((product) =>
+        product?.supplierSource === "4cabling" &&
+        !isCurrentFourCProduct(product) &&
+        isTangibleCatalogProduct(product as Record<string, unknown>),
+      );
+    const productsByCode = new Map<string, StaticCatalogProduct>();
+    for (const product of [...approvedQuoteProducts, ...expiredFourCProducts]) {
+      const code = String(product.code || "").trim().toLowerCase();
+      if (code && !productsByCode.has(code)) {
+        productsByCode.set(code, requireCurrentQuoteProduct(product));
+      }
+    }
+    return Array.from(productsByCode.values());
   } catch {
     return [];
   }
@@ -1908,11 +1931,11 @@ const loadStaticCatalogProducts = async () => {
     getProductKeys(product).every((key) => !currentKeys.has(key)),
   );
   const currentProducts = [...staticProducts, ...leaderOnlyProducts, ...fourCOnlyProducts];
-  const currentProductKeys = new Set(currentProducts.flatMap(getProductKeys));
-  const quoteOnlyProducts = quoteProducts.filter((product) =>
-    getProductKeys(product).every((key) => !currentProductKeys.has(key)),
+  const quoteProductKeys = new Set(quoteProducts.flatMap(getProductKeys));
+  const productsWithoutQuoteCollisions = currentProducts.filter((product) =>
+    getProductKeys(product).every((key) => !quoteProductKeys.has(key)),
   );
-  return [...currentProducts, ...quoteOnlyProducts].filter((product) =>
+  return [...quoteProducts, ...productsWithoutQuoteCollisions].filter((product) =>
     isTangibleCatalogProduct(product as Record<string, unknown>),
   ) as StaticCatalogProduct[];
 };
@@ -2078,6 +2101,7 @@ const loadMergedCatalogProductsUncached = async (
             measurementOverride: false,
             gtin: getProductGtin(product) || live.gtin,
             liveUpdatedAt: liveCatalog.updatedAt,
+            quoteRequired: false,
           }
         : {
             ...product,

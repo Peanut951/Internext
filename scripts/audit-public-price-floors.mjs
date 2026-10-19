@@ -77,6 +77,12 @@ if (missingPriceResult.price !== configuredPrice) {
   dataErrors.push("A fixed advertised price was not applied when the supplier price was missing.");
 }
 
+const quoteOnlyInput = { ...missingPriceInput, quoteRequired: true };
+const quoteOnlyResult = applyPublicPriceFloor(quoteOnlyInput, floorByKey);
+if (quoteOnlyResult.price !== null || quoteOnlyResult.priceText !== "Contact for pricing") {
+  dataErrors.push("A fixed advertised price made a quote-only product purchasable.");
+}
+
 const feedXml = fs.readFileSync(feedPath, "utf8");
 const feedItems = [...feedXml.matchAll(/<item>([\s\S]*?)<\/item>/g)].map((match) => {
   const item = match[1];

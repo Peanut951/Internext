@@ -387,8 +387,9 @@ if (!fs.existsSync(templatePath)) {
 
 const template = fs.readFileSync(templatePath, "utf8");
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json")).filter((product) => isCurrentFourCProduct(product));
-const quoteProducts = (readJson(path.join(dataDir, "supplier-quote-products.json"), { products: [] }).products || [])
+const allFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
+const staticFourCProducts = allFourCProducts.filter((product) => isCurrentFourCProduct(product));
+const approvedQuoteProducts = (readJson(path.join(dataDir, "supplier-quote-products.json"), { products: [] }).products || [])
   .filter((product) => product?.code && product?.manufacturer && (product?.description || product?.name))
   .map((product) => ({
     ...product,
@@ -401,9 +402,39 @@ const quoteProducts = (readJson(path.join(dataDir, "supplier-quote-products.json
     stockByWarehouse: undefined,
     quoteRequired: true,
   }));
+const expiredFourCQuoteProducts = allFourCProducts
+  .filter((product) => !isCurrentFourCProduct(product))
+  .map((product) => ({
+    ...product,
+    price: null,
+    priceText: "Contact for pricing",
+    resellerPrice: null,
+    resellerPriceText: "Contact for pricing",
+    availabilityText: "Contact us for current pricing and availability",
+    etaDate: "",
+    etaStatus: "",
+    stockQuantity: 0,
+    stockByWarehouse: undefined,
+    stockRecordUpdated: "",
+    quoteRequired: true,
+  }));
+const quoteProducts = dedupeVerifiedProducts([
+  ...approvedQuoteProducts,
+  ...expiredFourCQuoteProducts,
+]);
 const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items.filter((product) => isCurrentFourCProduct(product)) : [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
+const getIdentityKeys = (product) => [product?.code, product?.supplierCode]
+  .map((value) => String(value || "").trim().toLowerCase())
+  .filter(Boolean);
+const currentSupplierKeys = new Set(previousSnapshotItems.flatMap(getIdentityKeys));
+const quoteOnlyCodes = new Set(
+  quoteProducts
+    .filter((product) => getIdentityKeys(product).every((key) => !currentSupplierKeys.has(key)))
+    .map((product) => String(product.code || "").trim().toLowerCase())
+    .filter(Boolean),
+);
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
@@ -422,7 +453,25 @@ const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
     ...quoteProducts,
   ], previousAlloysItems),
   verifiedProducts,
-)).map((product) => applyPublicPriceFloor(product, publicPriceFloors));
+)).map((product) => {
+  const quoteSafeProduct = quoteOnlyCodes.has(String(product.code || "").trim().toLowerCase())
+    ? {
+        ...product,
+        price: null,
+        priceText: "Contact for pricing",
+        resellerPrice: null,
+        resellerPriceText: "Contact for pricing",
+        availabilityText: "Contact us for current pricing and availability",
+        etaDate: "",
+        etaStatus: "",
+        stockQuantity: 0,
+        stockByWarehouse: undefined,
+        stockRecordUpdated: "",
+        quoteRequired: true,
+      }
+    : product;
+  return applyPublicPriceFloor(quoteSafeProduct, publicPriceFloors);
+});
 const uniqueProducts = new Map();
 
 for (const product of products) {

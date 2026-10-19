@@ -247,6 +247,10 @@ const applyPublicPriceFloor = (
   product: CatalogProductWithLive,
   floorByKey: Map<string, number>,
 ): CatalogProductWithLive => {
+  if (product.quoteRequired) {
+    return product;
+  }
+
   const floor = getProductKeys(product)
     .map((key) => floorByKey.get(key))
     .find((value): value is number => typeof value === "number");
@@ -496,11 +500,14 @@ const loadStaticCatalogProducts = async () => {
           );
           const currentProducts = products.filter((product) => {
             const keys = getProductKeys(product);
-            return keys.some(
+            return product.quoteRequired || keys.some(
               (key) => currentLiveKeys.has(key) || verifiedQuoteKeys.has(key),
             );
           });
           const quoteSafeProducts = currentProducts.map((product) => {
+            if (product.quoteRequired) {
+              return requireCurrentQuote(product);
+            }
             const keys = getProductKeys(product);
             const hasCurrentSupplierRecord = keys.some((key) => currentLiveKeys.has(key));
             return hasCurrentSupplierRecord ? product : requireCurrentQuote(product);
@@ -532,9 +539,13 @@ const loadStaticCatalogProducts = async () => {
         const leaderProducts = leaderResponse.ok
           ? normalizeCatalogProducts((await leaderResponse.json()) as CatalogProductWithLive[])
           : [];
-        const fourCProducts = fourCResponse.ok
-          ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[]).filter((product) => isCurrentFourCProduct(product))
+        const allFourCProducts = fourCResponse.ok
+          ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[])
           : [];
+        const fourCProducts = allFourCProducts.filter((product) => isCurrentFourCProduct(product));
+        const expiredFourCQuoteProducts = allFourCProducts
+          .filter((product) => !isCurrentFourCProduct(product))
+          .map(requireCurrentQuote);
         const quoteData = quoteResponse.ok
           ? await quoteResponse.json() as { products?: CatalogProductWithLive[] }
           : { products: [] };
@@ -556,6 +567,7 @@ const loadStaticCatalogProducts = async () => {
           ...currentProducts,
           ...fourCOnlyProducts,
           ...detailedQuoteProducts,
+          ...expiredFourCQuoteProducts,
         ]));
       } catch {
         return applyStaticLiveOverrides(staticProducts);

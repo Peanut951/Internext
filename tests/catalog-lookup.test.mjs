@@ -30,6 +30,26 @@ test("exact product lookup returns only the current supplier product", async () 
   assert.equal(Object.hasOwn(body, "items"), false);
 });
 
+test("expired 4C products remain discoverable only as non-purchasable quotes", async () => {
+  const { status, body } = await request("/api/catalog/live?view=product&code=4C-016.008.0001");
+  assert.equal(status, 200);
+  assert.equal(body.item.code, "4C-016.008.0001");
+  assert.equal(body.item.quoteRequired, true);
+  assert.equal(body.item.price, null);
+  assert.equal(body.item.resellerPrice, null);
+  assert.equal(body.item.stockQuantity, 0);
+});
+
+test("stale enrichment collisions cannot restore a 4C price", async () => {
+  const { status, body } = await request("/api/catalog/live?view=product&code=4C-IVNC110XC");
+  assert.equal(status, 200);
+  assert.equal(body.item.code, "4C-IVNC110XC");
+  assert.equal(body.item.quoteRequired, true);
+  assert.equal(body.item.price, null);
+  assert.equal(body.item.resellerPrice, null);
+  assert.equal(body.item.stockQuantity, 0);
+});
+
 test("missing product lookup returns 404 without a catalogue payload", async () => {
   const { status, body } = await request("/api/catalog/live?view=product&code=DOES-NOT-EXIST");
   assert.equal(status, 404);

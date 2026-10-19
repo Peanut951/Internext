@@ -28,13 +28,27 @@ const escapeXml = (value) =>
 
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"), []);
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"), []);
-const fourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []).filter((product) => isCurrentFourCProduct(product));
-const quoteProducts = (readJson(
+const allFourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []);
+const fourCProducts = allFourCProducts.filter((product) => isCurrentFourCProduct(product));
+const approvedQuoteProducts = (readJson(
   path.join(publicDir, "data", "supplier-quote-products.json"),
   { products: [] },
 ).products || []).filter((product) =>
   product?.code && product?.manufacturer && (product?.description || product?.name),
 );
+const expiredFourCQuoteProducts = allFourCProducts
+  .filter((product) => !isCurrentFourCProduct(product))
+  .map((product) => ({
+    ...product,
+    price: null,
+    resellerPrice: null,
+    stockQuantity: 0,
+    quoteRequired: true,
+  }));
+const quoteProducts = dedupeVerifiedProducts([
+  ...approvedQuoteProducts,
+  ...expiredFourCQuoteProducts,
+]);
 const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },

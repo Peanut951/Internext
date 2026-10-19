@@ -35,6 +35,10 @@ export const getPublicPriceFloor = (product, floorByKey) => {
 };
 
 export const applyPublicPriceFloor = (product, floorByKey) => {
+  if (product?.quoteRequired) {
+    return product;
+  }
+
   const floor = getPublicPriceFloor(product, floorByKey);
   if (floor === null) {
     return product;
