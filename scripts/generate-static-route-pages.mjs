@@ -1,6 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import {
+  CATEGORY_PATHS,
+  getCategoryTitle,
   getIndexableRoutes,
   NOINDEX_ROUTES,
   SITE_URL,
@@ -57,10 +59,24 @@ const createHtml = (template, { path: routePath, title, description, index }) =>
   }
 
   const heading = title.split(" | ")[0];
+  const categoryLinks = routePath === "/products"
+    ? [
+        '<nav aria-label="Product categories"><h2>Browse product categories</h2><ul>',
+        ...CATEGORY_PATHS.map((slug) =>
+          `<li><a href="/products/${escapeHtml(slug)}">${escapeHtml(getCategoryTitle(slug))}</a></li>`,
+        ),
+        "</ul></nav>",
+      ].join("")
+    : "";
+  const productBackLink = routePath.startsWith("/products/")
+    ? '<p><a href="/products">Browse all technology products</a></p>'
+    : "";
   const staticContent = [
     '<main data-static-seo-content style="max-width:960px;margin:48px auto;padding:0 24px;font-family:Arial,sans-serif;line-height:1.6;color:#111827">',
     `<h1>${escapeHtml(heading)}</h1>`,
     `<p>${escapeHtml(description)}</p>`,
+    categoryLinks,
+    productBackLink,
     "</main>",
   ].join("");
 

@@ -10,6 +10,7 @@
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "audit:mobile": "node scripts/audit-mobile-layout.mjs",
     "audit:seo": "node scripts/audit-seo-pages.mjs",
+    "audit:seo:live": "node scripts/audit-live-indexability.mjs",
     "test:catalog-identity": "node --test tests/verified-product-identity.test.mjs",
     "test:4c-catalog": "node --test tests/four-c-catalog.test.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",

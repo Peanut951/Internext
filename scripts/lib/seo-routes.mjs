@@ -106,6 +106,7 @@ export const NOINDEX_ROUTES = [
   "/portal",
   "/portal/orders",
   "/admin/orders",
+  "/admin/competitor-pricing",
   "/services/request",
   "/login",
   "/signup",

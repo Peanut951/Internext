@@ -116,7 +116,6 @@ export const NOINDEX_PATHS = new Set([
   "/login",
   "/signup",
   "/login/register",
-  "/about/team",
 ]);
 
 const CATEGORY_TITLE_OVERRIDES: Record<string, string> = {

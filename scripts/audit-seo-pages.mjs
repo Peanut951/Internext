@@ -109,6 +109,9 @@ for (const sitemapUrl of sitemapUrls) {
   if (!/<h1>[^<]+<\/h1>/i.test(html)) {
     errors.push(`${url.pathname}: product page is missing static heading content`);
   }
+  if (!/<a\s+href="\/products">Products<\/a>/i.test(html)) {
+    errors.push(`${url.pathname}: product page is missing a crawlable catalogue breadcrumb`);
+  }
   if (/"merchantReturnDays"\s*:\s*30/i.test(html)) {
     errors.push(`${url.pathname}: product schema contains the obsolete 30-day return policy`);
   }
@@ -150,6 +153,17 @@ const fallbackRewrite = (vercelConfig.rewrites || []).find(
 );
 if (fallbackRewrite) {
   errors.push("vercel.json: catch-all SPA rewrite would turn unknown URLs into soft 404 responses");
+}
+const noindexHeaderSources = (vercelConfig.headers || [])
+  .filter((rule) => rule.headers?.some((header) =>
+    header.key?.toLowerCase() === "x-robots-tag" && header.value?.toLowerCase().includes("noindex"),
+  ))
+  .map((rule) => rule.source);
+if (!noindexHeaderSources.some((source) => source.includes("/api/"))) {
+  errors.push("vercel.json: API routes must send an X-Robots-Tag noindex header");
+}
+if (!noindexHeaderSources.some((source) => source.includes("products/search"))) {
+  errors.push("vercel.json: private and transactional routes must send an X-Robots-Tag noindex header");
 }
 
 const homeHtml = read(routeFile("/"));

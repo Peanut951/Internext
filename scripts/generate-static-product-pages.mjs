@@ -319,7 +319,7 @@ const removeExistingHeadTags = (html) =>
     .replace(/\s*<meta\s+name="twitter:image"[\s\S]*?>/gi, "")
     .replace(/\s*<link\s+rel="canonical"[\s\S]*?>/gi, "");
 
-const createProductHtml = (template, product) => {
+const createProductHtml = (template, product, relatedProducts = []) => {
   const titleText = buildSearchTitleText(product);
   const title = buildDocumentTitle(product);
   const url = getProductUrl(product.code);
@@ -346,12 +346,22 @@ const createProductHtml = (template, product) => {
     .join("\n    ");
   const staticContent = [
     `<main style="max-width:960px;margin:40px auto;padding:0 20px;font-family:Arial,sans-serif;line-height:1.5;color:#111827">`,
+    '<nav aria-label="Breadcrumb"><a href="/">Home</a> / <a href="/products">Products</a></nav>',
     `<p style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#2d79a8">${escapeHtml(product.manufacturer || "Internext")}</p>`,
     `<h1>${escapeHtml(titleText)}</h1>`,
     image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(titleText)}" style="max-width:480px;width:100%;height:auto;object-fit:contain" />` : "",
     product.price ? `<p><strong>${escapeHtml(formatAud(product.price))} Inc GST</strong></p>` : "",
     `<p>${escapeHtml(buildStructuredDescription(product))}</p>`,
     `<p>Product code: ${escapeHtml(product.code)}</p>`,
+    relatedProducts.length > 0
+      ? [
+          "<section><h2>Related products</h2><ul>",
+          ...relatedProducts.map((related) =>
+            `<li><a href="/products/item/${encodeURIComponent(related.code)}">${escapeHtml(buildSearchTitleText(related))}</a></li>`,
+          ),
+          "</ul></section>",
+        ].join("")
+      : "",
     `</main>`,
   ]
     .filter(Boolean)
@@ -400,10 +410,36 @@ for (const product of products) {
   }
 }
 
+const productsByBrand = new Map();
+for (const product of uniqueProducts.values()) {
+  const brand = normalizeToken(product.manufacturer) || "unbranded";
+  const brandProducts = productsByBrand.get(brand) || [];
+  brandProducts.push(product);
+  productsByBrand.set(brand, brandProducts);
+}
+const productPositionByBrand = new Map();
+for (const [brand, brandProducts] of productsByBrand) {
+  brandProducts.sort((a, b) => String(a.code).localeCompare(String(b.code)));
+  productPositionByBrand.set(
+    brand,
+    new Map(brandProducts.map((product, index) => [product.code, index])),
+  );
+}
+
 for (const product of uniqueProducts.values()) {
   const pageDir = path.join(distDir, "products", "item", encodeURIComponent(product.code));
+  const brand = normalizeToken(product.manufacturer) || "unbranded";
+  const brandProducts = productsByBrand.get(brand) || [];
+  const productIndex = productPositionByBrand.get(brand)?.get(product.code) ?? 0;
+  const relatedProducts = [];
+  for (let offset = 1; offset < brandProducts.length && relatedProducts.length < 8; offset += 1) {
+    relatedProducts.push(brandProducts[(productIndex + offset) % brandProducts.length]);
+  }
   fs.mkdirSync(pageDir, { recursive: true });
-  fs.writeFileSync(path.join(pageDir, "index.html"), createProductHtml(template, product));
+  fs.writeFileSync(
+    path.join(pageDir, "index.html"),
+    createProductHtml(template, product, relatedProducts),
+  );
 }
 
 console.log(`Generated ${uniqueProducts.size} static product pages.`);
