@@ -1,6 +1,9 @@
 import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 import { searchCatalogProducts } from "@/lib/catalogSearch";
-import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
+import {
+  isCurrentFourCProduct,
+  isVisibleCatalogProduct,
+} from "../../shared/four-c-catalog-freshness.js";
 
 export type CatalogProductWithLive = {
   code: string;
@@ -141,7 +144,7 @@ export const loadCatalogProductByCode = async (code: string, signal?: AbortSigna
     if (!response.ok) throw new Error(`Product lookup returned ${response.status}.`);
     const data = await response.json() as { item?: CatalogProductWithLive | null };
     const product = data.item ? normalizeCatalogProducts([data.item])[0] : null;
-    return product && isCurrentFourCProduct(product) ? product : null;
+    return product && isVisibleCatalogProduct(product) ? product : null;
   } catch (error) {
     if (!import.meta.env.DEV || signal?.aborted) throw error;
     const products = await loadCatalogProductsFast();
@@ -161,7 +164,7 @@ export const searchCatalogProductsPage = async (query: string, page = 1, pageSiz
       throw new Error("Product search returned an invalid response.");
     }
     return {
-      items: normalizeCatalogProducts(data.items).filter((product) => isCurrentFourCProduct(product)),
+      items: normalizeCatalogProducts(data.items).filter((product) => isVisibleCatalogProduct(product)),
       count: data.count as number,
     };
   } catch (error) {
@@ -189,7 +192,7 @@ export const loadCartCatalogProducts = async (codes: string[], signal?: AbortSig
     if (!response.ok) throw new Error(`Cart product lookup returned ${response.status}.`);
     const data = await response.json() as { items?: CatalogProductWithLive[] };
     if (!Array.isArray(data.items)) throw new Error("Cart product lookup returned an invalid response.");
-    return normalizeCatalogProducts(data.items).filter((product) => isCurrentFourCProduct(product));
+    return normalizeCatalogProducts(data.items).filter((product) => isVisibleCatalogProduct(product));
   } catch (error) {
     if (!import.meta.env.DEV || signal?.aborted) throw error;
     const products = await loadCatalogProductsFast();
@@ -348,7 +351,7 @@ const readCachedProducts = () => {
       return null;
     }
 
-    return cached.products.filter((product) => isCurrentFourCProduct(product));
+    return cached.products.filter((product) => isVisibleCatalogProduct(product));
   } catch {
     window.localStorage.removeItem(CATALOG_CACHE_KEY);
     return null;
@@ -440,7 +443,7 @@ const reconcileCachedProductsWithVerifiedSnapshot = (
 ) => {
   const verifiedKeys = new Set(verifiedProducts.flatMap(getProductKeys));
   const stillActiveCachedProducts = cachedProducts.filter((product) =>
-    isCurrentFourCProduct(product) && getProductKeys(product).some((key) => verifiedKeys.has(key)),
+    isVisibleCatalogProduct(product) && getProductKeys(product).some((key) => verifiedKeys.has(key)),
   );
 
   return mergeCatalogProductUpdates(stillActiveCachedProducts, verifiedProducts);
@@ -521,9 +524,10 @@ const loadStaticCatalogProducts = async () => {
       };
 
       try {
-        const [leaderResponse, fourCResponse] = await Promise.all([
+        const [leaderResponse, fourCResponse, quoteResponse] = await Promise.all([
           fetch("/data/leader-products.json"),
           fetch("/data/4c-products.json"),
+          fetch("/data/supplier-quote-products.json"),
         ]);
         const leaderProducts = leaderResponse.ok
           ? normalizeCatalogProducts((await leaderResponse.json()) as CatalogProductWithLive[])
@@ -531,6 +535,14 @@ const loadStaticCatalogProducts = async () => {
         const fourCProducts = fourCResponse.ok
           ? normalizeCatalogProducts((await fourCResponse.json()) as CatalogProductWithLive[]).filter((product) => isCurrentFourCProduct(product))
           : [];
+        const quoteData = quoteResponse.ok
+          ? await quoteResponse.json() as { products?: CatalogProductWithLive[] }
+          : { products: [] };
+        const detailedQuoteProducts = normalizeCatalogProducts(
+          (quoteData.products || []).filter((product) =>
+            Boolean(product?.code && product?.manufacturer && product?.description),
+          ),
+        ).map(requireCurrentQuote);
         const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
         const leaderOnlyProducts = leaderProducts.filter((product) =>
           getProductKeys(product).every((key) => !existingKeys.has(key)),
@@ -540,7 +552,11 @@ const loadStaticCatalogProducts = async () => {
         const fourCOnlyProducts = fourCProducts.filter((product) =>
           getProductKeys(product).every((key) => !currentKeys.has(key)),
         );
-        return applyStaticLiveOverrides([...currentProducts, ...fourCOnlyProducts]);
+        return applyStaticLiveOverrides(dedupeCatalogProductsByCode([
+          ...currentProducts,
+          ...fourCOnlyProducts,
+          ...detailedQuoteProducts,
+        ]));
       } catch {
         return applyStaticLiveOverrides(staticProducts);
       }
@@ -617,7 +633,10 @@ const loadCatalogProductsInternal = async (
     );
     if (Array.isArray(mergedData.items) && mergedData.items.length > 0) {
       const products = await applyPublicPriceFloors(normalizeCatalogProducts(
-        mergedData.items.map((item) => ({ ...item, quoteRequired: false })),
+        mergedData.items.map((item) => ({
+          ...item,
+          quoteRequired: Boolean(item.quoteRequired),
+        })),
       ));
       writeCachedProducts(products);
       return products;
@@ -632,7 +651,7 @@ const loadCatalogProductsInternal = async (
     // Fall back to the original client-side merge path below.
   }
 
-  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isCurrentFourCProduct(product));
+  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isVisibleCatalogProduct(product));
   const cachedProducts = skipCache || refreshStockOverrides ? null : readCachedProducts();
   if (cachedProducts) {
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);
@@ -747,7 +766,7 @@ export const loadCatalogProducts = async (options?: {
         });
     }
 
-    return catalogProductsRefreshPromise.then((products) => products.filter((product) => isCurrentFourCProduct(product)));
+    return catalogProductsRefreshPromise.then((products) => products.filter((product) => isVisibleCatalogProduct(product)));
   }
 
   if (!catalogProductsPromise) {
@@ -757,13 +776,13 @@ export const loadCatalogProducts = async (options?: {
     });
   }
 
-  return catalogProductsPromise.then((products) => products.filter((product) => isCurrentFourCProduct(product)));
+  return catalogProductsPromise.then((products) => products.filter((product) => isVisibleCatalogProduct(product)));
 };
 
 export const loadCatalogProductsFast = async (
   _onLiveProducts?: (products: CatalogProductWithLive[]) => void,
 ) => {
-  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isCurrentFourCProduct(product));
+  const staticProducts = (await loadStaticCatalogProducts()).filter((product) => isVisibleCatalogProduct(product));
   const cachedProducts = readCachedProducts();
   if (cachedProducts) {
     return reconcileCachedProductsWithVerifiedSnapshot(cachedProducts, staticProducts);

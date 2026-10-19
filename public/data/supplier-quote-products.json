@@ -3,6 +3,48 @@
     {
       "code": "ES-PMT106HT2-E12",
       "supplierCode": "PMT106HT2-E12"
+    },
+    {
+      "code": "4C-016.008.0001",
+      "supplierCode": "016.008.0001",
+      "supplierSource": "4cabling",
+      "manufacturer": "4Cabling",
+      "name": "Single Keystone Surface Mount Box",
+      "description": "Single Keystone Surface Mount Box",
+      "longDescription": "Side-entry surface mount box for Cat 5 or Cat 6 keystone jacks and F-connectors. It has a snap-on cover for installation and wiring access, includes double-sided mounting tape, and is supplied unloaded in white.",
+      "category": "Keystone Face Plates",
+      "imageUrl": "https://www.4cabling.com.au/media/catalog/product/0/1/016.008.0001.png",
+      "imageUrls": [
+        "https://www.4cabling.com.au/media/catalog/product/0/1/016.008.0001.png"
+      ],
+      "weightKg": 0.03,
+      "heightCm": null,
+      "widthCm": null,
+      "depthCm": null,
+      "gtin": "9358148021632",
+      "supplierCatalogUpdatedAt": "2026-09-21T01:10:21.830Z",
+      "quoteRequired": true
+    },
+    {
+      "code": "4C-016.008.0002",
+      "supplierCode": "016.008.0002",
+      "supplierSource": "4cabling",
+      "manufacturer": "4Cabling",
+      "name": "Double Keystone Surface Mount Box",
+      "description": "Double Keystone Surface Mount Box",
+      "longDescription": "Two-port side-entry surface mount box for Cat 5 or Cat 6 keystone jacks and F-connectors. It has a snap-on cover for installation and wiring access, includes double-sided mounting tape, and is supplied unloaded in white.",
+      "category": "Keystone Face Plates",
+      "imageUrl": "https://www.4cabling.com.au/media/catalog/product/0/1/016.008.0002.png",
+      "imageUrls": [
+        "https://www.4cabling.com.au/media/catalog/product/0/1/016.008.0002.png"
+      ],
+      "weightKg": 0.037,
+      "heightCm": null,
+      "widthCm": null,
+      "depthCm": null,
+      "gtin": "9358148021649",
+      "supplierCatalogUpdatedAt": "2026-09-21T01:10:21.830Z",
+      "quoteRequired": true
     }
   ]
 }

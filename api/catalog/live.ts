@@ -3,7 +3,10 @@ import { readEnv, sendJson } from "../checkout/_shared.js";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { inflateRawSync } from "node:zlib";
-import { isCurrentFourCProduct } from "../../shared/four-c-catalog-freshness.js";
+import {
+  isCurrentFourCProduct,
+  isVisibleCatalogProduct,
+} from "../../shared/four-c-catalog-freshness.js";
 import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
@@ -62,6 +65,7 @@ export type LiveCatalogItem = {
   depthCm: number | null;
   gtin: string;
   liveUpdatedAt?: string;
+  quoteRequired?: boolean;
 };
 
 type LiveCatalogCache = {
@@ -84,6 +88,7 @@ type LiveCatalogResult = {
 type StaticCatalogProduct = {
   code: string;
   supplierCode?: string;
+  quoteRequired?: boolean;
   gtin?: string;
   ean?: string;
   upc?: string;
@@ -156,6 +161,7 @@ type MergedCatalogItem = StaticCatalogProduct & {
   measurementOverride?: boolean;
   gtin: string;
   liveUpdatedAt: string;
+  quoteRequired?: boolean;
 };
 
 type StockOverride = {
@@ -1051,6 +1057,43 @@ const loadFourCCatalogProducts = async (): Promise<FourCCatalogProduct[]> => {
   }
 };
 
+const requireCurrentQuoteProduct = (product: StaticCatalogProduct): StaticCatalogProduct => ({
+  ...product,
+  price: null,
+  priceText: "Contact for pricing",
+  resellerPrice: null,
+  resellerPriceText: "Contact for pricing",
+  availabilityText: "Contact us for current pricing and availability",
+  etaDate: "",
+  etaStatus: "",
+  stockQuantity: 0,
+  stockByWarehouse: {
+    adl: 0,
+    bne: 0,
+    mel: 0,
+    syd: 0,
+    wa: 0,
+  },
+  stockRecordUpdated: "",
+  quoteRequired: true,
+});
+
+const loadSupplierQuoteCatalogProducts = async (): Promise<StaticCatalogProduct[]> => {
+  try {
+    const quotePath = join(process.cwd(), "public", "data", "supplier-quote-products.json");
+    const raw = await readFile(quotePath, "utf8");
+    const data = JSON.parse(raw) as { products?: StaticCatalogProduct[] };
+    return (Array.isArray(data.products) ? data.products : [])
+      .filter((product) =>
+        Boolean(product?.code && product?.manufacturer && (product?.description || product?.name)) &&
+        isTangibleCatalogProduct(product as Record<string, unknown>),
+      )
+      .map(requireCurrentQuoteProduct);
+  } catch {
+    return [];
+  }
+};
+
 const STOCK_OVERRIDES_TABLE = "catalog_stock_overrides";
 type StockOverrideLocation = "internext" | "adl" | "bne" | "mel" | "syd" | "wa";
 const STOCK_OVERRIDE_LOCATIONS = new Set<StockOverrideLocation>(["internext", "adl", "bne", "mel", "syd", "wa"]);
@@ -1851,9 +1894,10 @@ const loadStaticCatalogProducts = async () => {
   const catalogPath = join(process.cwd(), "public", "data", "catalog-products.json");
   const raw = await readFile(catalogPath, "utf8");
   const staticProducts = JSON.parse(raw) as StaticCatalogProduct[];
-  const [leaderProducts, fourCProducts] = await Promise.all([
+  const [leaderProducts, fourCProducts, quoteProducts] = await Promise.all([
     loadLeaderCatalogProducts(),
     loadFourCCatalogProducts(),
+    loadSupplierQuoteCatalogProducts(),
   ]);
   const existingKeys = new Set(staticProducts.flatMap(getProductKeys));
   const leaderOnlyProducts = leaderProducts.filter((product) =>
@@ -1863,7 +1907,12 @@ const loadStaticCatalogProducts = async () => {
   const fourCOnlyProducts = fourCProducts.filter((product) =>
     getProductKeys(product).every((key) => !currentKeys.has(key)),
   );
-  return [...staticProducts, ...leaderOnlyProducts, ...fourCOnlyProducts].filter((product) =>
+  const currentProducts = [...staticProducts, ...leaderOnlyProducts, ...fourCOnlyProducts];
+  const currentProductKeys = new Set(currentProducts.flatMap(getProductKeys));
+  const quoteOnlyProducts = quoteProducts.filter((product) =>
+    getProductKeys(product).every((key) => !currentProductKeys.has(key)),
+  );
+  return [...currentProducts, ...quoteOnlyProducts].filter((product) =>
     isTangibleCatalogProduct(product as Record<string, unknown>),
   ) as StaticCatalogProduct[];
 };
@@ -1877,7 +1926,7 @@ const loadSupplierMergedCatalogProducts = async (options?: {
   if (!options?.forceRefresh && cached && cached.expiresAt > Date.now()) {
     const items = (options?.refreshStockOverrides
       ? await refreshStockOverridesOnMergedCatalog(cached.items)
-      : cached.items).filter((item) => isCurrentFourCProduct(item));
+      : cached.items).filter((item) => isVisibleCatalogProduct(item));
     if (options?.refreshStockOverrides) {
       cached.items = items;
     }
@@ -1893,11 +1942,11 @@ const loadSupplierMergedCatalogProducts = async (options?: {
   if (!options?.forceRefresh && globalCatalogCache.__internextMergedCatalogPromise) {
     const catalog = await globalCatalogCache.__internextMergedCatalogPromise;
     if (!options?.refreshStockOverrides) {
-      const items = catalog.items.filter((item) => isCurrentFourCProduct(item));
+      const items = catalog.items.filter((item) => isVisibleCatalogProduct(item));
       return { ...catalog, count: items.length, items };
     }
 
-    const items = (await refreshStockOverridesOnMergedCatalog(catalog.items)).filter((item) => isCurrentFourCProduct(item));
+    const items = (await refreshStockOverridesOnMergedCatalog(catalog.items)).filter((item) => isVisibleCatalogProduct(item));
     if (globalCatalogCache.__internextMergedCatalogCache) {
       globalCatalogCache.__internextMergedCatalogCache.items = items;
     }
@@ -1941,7 +1990,7 @@ const loadMergedCatalogProductsUncached = async (
     ]);
   } catch (error) {
     if (!options?.refreshStockOverrides && cached && cached.staleUntil > now) {
-      const items = cached.items.filter((item) => isCurrentFourCProduct(item));
+      const items = cached.items.filter((item) => isVisibleCatalogProduct(item));
       return {
         updatedAt: cached.updatedAt,
         count: items.length,
@@ -1984,7 +2033,7 @@ const loadMergedCatalogProductsUncached = async (
       const stockOverride = getStockOverrideForProduct(product, overridesByKey);
       const shippingMeasurementOverride = getShippingMeasurementOverride(product, shippingMeasurementsByKey);
 
-      if (!live) {
+      if (!live && !product.quoteRequired) {
         return null;
       }
 
@@ -2066,6 +2115,9 @@ const loadMergedCatalogProductsUncached = async (
         mergedProduct,
         sourcedShippingMeasurementsByKey,
       );
+      if (mergedProduct.quoteRequired) {
+        return sourcedProduct;
+      }
       return applyShippingMeasurementOverride(
         applyStockOverrideToProduct(sourcedProduct, stockOverride),
         shippingMeasurementOverride,
@@ -2081,7 +2133,7 @@ const loadMergedCatalogProductsUncached = async (
       itemsByCode.set(code, applyPublicPriceFloor(item, publicPriceFloors));
     }
   }
-  const items = Array.from(itemsByCode.values()).filter((item) => isCurrentFourCProduct(item));
+  const items = Array.from(itemsByCode.values()).filter((item) => isVisibleCatalogProduct(item));
 
   const cacheEntry: MergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),
@@ -2121,7 +2173,7 @@ export const loadMergedCatalogProducts = async (options?: {
 const loadBrowseCatalogProducts = async () => {
   const cached = globalCatalogCache.__internextBrowseCatalogCache;
   if (cached && cached.expiresAt > Date.now()) {
-    const items = await applyCompetitorPriceAdjustments(cached.items.filter((item) => isCurrentFourCProduct(item)));
+    const items = await applyCompetitorPriceAdjustments(cached.items.filter((item) => isVisibleCatalogProduct(item)));
     return {
       updatedAt: cached.updatedAt,
       count: items.length,

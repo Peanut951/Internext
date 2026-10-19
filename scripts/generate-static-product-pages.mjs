@@ -240,7 +240,9 @@ const buildDescription = (product) => {
   const gtin = getProductGtin(product);
   const productType = getSeoProductType(product);
   const availability =
-    typeof product.stockQuantity === "number" && product.stockQuantity <= 0
+    product.quoteRequired
+      ? "contact Internext to confirm current pricing and availability"
+      : typeof product.stockQuantity === "number" && product.stockQuantity <= 0
       ? "out of stock"
       : "in stock or available to order";
   const parts = [
@@ -268,7 +270,9 @@ const buildStructuredDescription = (product) => {
     mpn ? `MPN: ${mpn}.` : "",
     gtin ? `GTIN: ${gtin}.` : "",
     sourceDescription && normalizeToken(sourceDescription) !== normalizeToken(title) ? sourceDescription : "",
-    "Includes secure checkout, Australian delivery options, and Internext customer support.",
+    product.quoteRequired
+      ? "Contact Internext to confirm current pricing and availability."
+      : "Includes secure checkout, Australian delivery options, and Internext customer support.",
   ].filter(Boolean);
 
   return parts.join(" ");
@@ -350,7 +354,11 @@ const createProductHtml = (template, product, relatedProducts = []) => {
     `<p style="font-size:12px;letter-spacing:.18em;text-transform:uppercase;color:#2d79a8">${escapeHtml(product.manufacturer || "Internext")}</p>`,
     `<h1>${escapeHtml(titleText)}</h1>`,
     image ? `<img src="${escapeHtml(image)}" alt="${escapeHtml(titleText)}" style="max-width:480px;width:100%;height:auto;object-fit:contain" />` : "",
-    product.price ? `<p><strong>${escapeHtml(formatAud(product.price))} Inc GST</strong></p>` : "",
+    product.price
+      ? `<p><strong>${escapeHtml(formatAud(product.price))} Inc GST</strong></p>`
+      : product.quoteRequired
+        ? "<p><strong>Contact for pricing</strong></p>"
+        : "",
     `<p>${escapeHtml(buildStructuredDescription(product))}</p>`,
     `<p>Product code: ${escapeHtml(product.code)}</p>`,
     relatedProducts.length > 0
@@ -380,6 +388,19 @@ if (!fs.existsSync(templatePath)) {
 const template = fs.readFileSync(templatePath, "utf8");
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
 const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json")).filter((product) => isCurrentFourCProduct(product));
+const quoteProducts = (readJson(path.join(dataDir, "supplier-quote-products.json"), { products: [] }).products || [])
+  .filter((product) => product?.code && product?.manufacturer && (product?.description || product?.name))
+  .map((product) => ({
+    ...product,
+    price: null,
+    priceText: "Contact for pricing",
+    resellerPrice: null,
+    resellerPriceText: "Contact for pricing",
+    availabilityText: "Contact us for current pricing and availability",
+    stockQuantity: 0,
+    stockByWarehouse: undefined,
+    quoteRequired: true,
+  }));
 const previousSnapshot = readJson(path.join(dataDir, "catalog-live-overrides.json"), { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items.filter((product) => isCurrentFourCProduct(product)) : [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
@@ -391,13 +412,14 @@ const previousAlloysItems = previousSnapshotItems.filter(
   (product) => !isLeaderSnapshotItem(product) && product?.supplierSource !== "4cabling",
 );
 const publicPriceFloors = loadPublicPriceFloorMap();
-const verifiedProducts = dedupeVerifiedProducts(previousSnapshotItems);
+const verifiedProducts = dedupeVerifiedProducts([...previousSnapshotItems, ...quoteProducts]);
 const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
   mergeAlloysLivePricing([
     ...readJson(path.join(dataDir, "catalog-products.json")),
     ...staticLeaderProducts,
     ...staticFourCProducts,
     ...previousSnapshotItems,
+    ...quoteProducts,
   ], previousAlloysItems),
   verifiedProducts,
 )).map((product) => applyPublicPriceFloor(product, publicPriceFloors));

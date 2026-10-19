@@ -1,8 +1,15 @@
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import test from "node:test";
+import {
+  isCurrentFourCProduct,
+  isVisibleCatalogProduct,
+} from "../shared/four-c-catalog-freshness.js";
 
 const products = JSON.parse(fs.readFileSync("public/data/4c-products.json", "utf8"));
+const quoteProducts = JSON.parse(
+  fs.readFileSync("public/data/supplier-quote-products.json", "utf8"),
+).products;
 
 test("4C snapshot contains only unique, priced physical products", () => {
   assert.equal(products.length, 4542);
@@ -37,4 +44,16 @@ test("an RRP is never generated above the supplier's real RRP", () => {
   assert.ok(products.some((product) => product.rrp === null));
   assert.ok(products.every((product) => product.rrp === null || product.rrp > product.price));
   assert.ok(products.every((product) => product.rrp !== null || product.rrpText === ""));
+});
+
+test("verified surface mount boxes remain discoverable without exposing stale commercial data", () => {
+  for (const supplierCode of ["016.008.0001", "016.008.0002"]) {
+    const product = quoteProducts.find((item) => item.supplierCode === supplierCode);
+    assert.ok(product);
+    assert.equal(product.quoteRequired, true);
+    assert.equal(Object.hasOwn(product, "price"), false);
+    assert.equal(Object.hasOwn(product, "stockQuantity"), false);
+    assert.equal(isCurrentFourCProduct(product), false);
+    assert.equal(isVisibleCatalogProduct(product), true);
+  }
 });

@@ -29,12 +29,18 @@ const escapeXml = (value) =>
 const staticProducts = readJson(path.join(publicDir, "data", "catalog-products.json"), []);
 const leaderProducts = readJson(path.join(publicDir, "data", "leader-products.json"), []);
 const fourCProducts = readJson(path.join(publicDir, "data", "4c-products.json"), []).filter((product) => isCurrentFourCProduct(product));
+const quoteProducts = (readJson(
+  path.join(publicDir, "data", "supplier-quote-products.json"),
+  { products: [] },
+).products || []).filter((product) =>
+  product?.code && product?.manufacturer && (product?.description || product?.name),
+);
 const previousLiveItems = readJson(
   path.join(publicDir, "data", "catalog-live-overrides.json"),
   { items: [] },
 ).items?.filter((product) => isCurrentFourCProduct(product)) || [];
 // Feed generation refreshes this once; every downstream build artifact must use the same snapshot.
-const verifiedProducts = dedupeVerifiedProducts(previousLiveItems);
+const verifiedProducts = dedupeVerifiedProducts([...previousLiveItems, ...quoteProducts]);
 const productCodes = Array.from(
   new Set(
     filterTangibleCatalogProducts(applyVerifiedProductIdentities(
@@ -43,6 +49,7 @@ const productCodes = Array.from(
         ...leaderProducts,
         ...fourCProducts,
         ...previousLiveItems,
+        ...quoteProducts,
       ],
       verifiedProducts,
     ))

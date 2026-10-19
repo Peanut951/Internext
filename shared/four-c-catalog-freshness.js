@@ -5,3 +5,6 @@ export const isCurrentFourCProduct = (product, now = Date.now()) => {
   const updatedAt = Date.parse(String(product.supplierCatalogUpdatedAt || ""));
   return Number.isFinite(updatedAt) && updatedAt <= now && now - updatedAt <= FOUR_C_CATALOG_MAX_AGE_MS;
 };
+
+export const isVisibleCatalogProduct = (product, now = Date.now()) =>
+  product?.quoteRequired === true || isCurrentFourCProduct(product, now);

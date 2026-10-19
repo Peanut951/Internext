@@ -3,3 +3,11 @@ export declare const isCurrentFourCProduct: (
   product: { supplierSource?: string; supplierCatalogUpdatedAt?: string } | null | undefined,
   now?: number,
 ) => boolean;
+export declare const isVisibleCatalogProduct: (
+  product: {
+    supplierSource?: string;
+    supplierCatalogUpdatedAt?: string;
+    quoteRequired?: boolean;
+  } | null | undefined,
+  now?: number,
+) => boolean;
