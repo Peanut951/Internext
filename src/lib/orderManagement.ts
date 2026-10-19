@@ -346,6 +346,30 @@ export const getOrderShipments = (
 };
 
 const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<OrderRecord> & { reseller?: OrderReseller }) => {
+  const storedCustomer = order.customer && typeof order.customer === "object" ? order.customer : null;
+  const customer: CheckoutCustomer = {
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    address1: "",
+    suburb: "",
+    state: "",
+    postcode: "",
+    country: "Australia",
+    ...(storedCustomer || {}),
+    email: typeof storedCustomer?.email === "string" ? storedCustomer.email : "",
+  };
+  const storedReseller = order.reseller && typeof order.reseller === "object" ? order.reseller : null;
+  const resellerRole = storedReseller?.role;
+  const reseller: OrderReseller = {
+    ...(storedReseller || {}),
+    email: typeof storedReseller?.email === "string" ? storedReseller.email : customer.email,
+    role:
+      resellerRole === "user" || resellerRole === "reseller" || resellerRole === "admin" || resellerRole === "guest"
+        ? resellerRole
+        : "guest",
+  };
   const itemsSubtotal = order.itemsSubtotal ?? order.subtotal ?? 0;
   const discountTotal = order.discountTotal ?? 0;
   const gstAmount = order.gstAmount ?? 0;
@@ -354,10 +378,8 @@ const normalizeOrderRecord = (order: Omit<OrderRecord, "reseller"> & Partial<Ord
 
   return {
     ...order,
-    reseller: order.reseller ?? {
-      email: order.customer.email,
-      role: "guest" as const,
-    },
+    reseller,
+    customer,
     itemsSubtotal,
     subtotal: order.subtotal ?? itemsSubtotal,
     discountTotal,
@@ -503,11 +525,19 @@ const submitToWebhook = async (
   }
 };
 
-export const getCartItems = () =>
-  readJson<CartItem[]>(CART_STORAGE_KEY, []).map((item) => ({
-    ...item,
-    description: buildProductDisplayTitle(item),
-  }));
+export const getCartItems = () => {
+  const storedItems = readJson<unknown>(CART_STORAGE_KEY, []);
+  if (!Array.isArray(storedItems)) {
+    return [];
+  }
+
+  return storedItems
+    .filter((item): item is CartItem => Boolean(item && typeof item === "object"))
+    .map((item) => ({
+      ...item,
+      description: buildProductDisplayTitle(item),
+    }));
+};
 
 export const saveCartItems = (items: CartItem[]) => writeJson(CART_STORAGE_KEY, items);
 
@@ -523,11 +553,18 @@ export const clearCartItems = () => {
   }
 };
 
-export const getOrders = () =>
-  readJson<Array<Omit<OrderRecord, "reseller"> & { reseller?: OrderReseller }>>(
-    ORDERS_STORAGE_KEY,
-    [],
-  ).map(normalizeOrderRecord);
+export const getOrders = () => {
+  const storedOrders = readJson<unknown>(ORDERS_STORAGE_KEY, []);
+  if (!Array.isArray(storedOrders)) {
+    return [];
+  }
+
+  return storedOrders
+    .filter((order): order is Omit<OrderRecord, "reseller"> & Partial<OrderRecord> & { reseller?: OrderReseller } =>
+      Boolean(order && typeof order === "object"),
+    )
+    .map(normalizeOrderRecord);
+};
 
 export const getOrdersForReseller = (reseller: Pick<OrderReseller, "userId" | "email">) => {
   const normalizedEmail = reseller.email.trim().toLowerCase();
