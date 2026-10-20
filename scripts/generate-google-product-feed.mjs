@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
+import { buildOptimizedProductTitle } from "../shared/product-title-policy.js";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import {
@@ -586,39 +587,7 @@ const buildShoppingTitle = (product) => {
   if (override) {
     return override;
   }
-
-  const brand = stripHtml(product.manufacturer || "");
-  const mpn = getProductMpn(product);
-  const rawBase = removeLeadingBrandFromTitle(
-    removeMpnFromTitle(
-      removeSupplierReferences(product.description || product.name || product.code),
-      mpn,
-    ),
-    brand,
-  ).replace(/^\s*\d{8,14}\s+/, "");
-  const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
-  const productType = getShoppingTitleProductType(product);
-  const normalizedBase = normalizeToken(base);
-  const normalizedType = normalizeToken(productType);
-  const normalizedMpn = normalizeToken(mpn);
-  const skipProductType =
-    normalizeToken(brand) === "akuvox" &&
-    normalizedMpn.startsWith("it88") &&
-    /indoor monitor/i.test(base);
-  const parts = [
-    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
-    mpn && normalizedMpn ? mpn : "",
-    productType &&
-    !skipProductType &&
-    normalizedType &&
-    !normalizedBase.includes(normalizedType)
-      ? productType
-      : "",
-    base,
-  ].filter(Boolean);
-  const title = normalizeTitleCapitalization(parts.join(" "));
-
-  return truncate(hasExcessiveCapitalization(title) ? normalizeTitleCapitalization(parts.join(" ")) : title, 150);
+  return buildOptimizedProductTitle(product);
 };
 
 const buildShoppingDescription = (product) => {

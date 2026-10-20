@@ -5,11 +5,12 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/import-4c-catalog.mjs --refresh-if-configured && node scripts/generate-google-product-feed.mjs && node scripts/audit-google-product-titles.mjs && node scripts/audit-public-price-floors.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-route-pages.mjs && node scripts/generate-static-product-pages.mjs && node scripts/audit-seo-pages.mjs && node scripts/audit-4c-quote-fallback.mjs && node scripts/audit-catalog-integrity.mjs",
+    "build": "node scripts/import-4c-catalog.mjs --refresh-if-configured && node scripts/generate-google-product-feed.mjs && node scripts/audit-google-product-titles.mjs && node scripts/audit-public-price-floors.mjs && node scripts/generate-static-sitemap.mjs && vite build && node scripts/generate-static-route-pages.mjs && node scripts/generate-static-product-pages.mjs && node scripts/audit-product-seo-content.mjs && node scripts/audit-seo-pages.mjs && node scripts/audit-4c-quote-fallback.mjs && node scripts/audit-catalog-integrity.mjs",
     "build:dev": "vite build --mode development",
     "audit:catalog": "node scripts/audit-catalog-integrity.mjs",
     "audit:mobile": "node scripts/audit-mobile-layout.mjs",
     "audit:seo": "node scripts/audit-seo-pages.mjs",
+    "audit:product-seo": "node scripts/audit-product-seo-content.mjs",
     "audit:seo:live": "node scripts/audit-live-indexability.mjs",
     "test:catalog-identity": "node --test tests/verified-product-identity.test.mjs",
     "test:4c-catalog": "node --test tests/four-c-catalog.test.mjs",

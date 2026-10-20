@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { isTangibleCatalogProduct, loadMergedCatalogProducts } from "../catalog/live.js";
 import { getGoogleShippingDimension, getGoogleShippingWeight } from "../shipping/_estimates.js";
+import { buildOptimizedProductTitle } from "../../shared/product-title-policy.js";
 
 const SITE_URL = "https://www.internext.com.au";
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
@@ -294,34 +295,7 @@ const buildShoppingTitle = (product: {
   description?: string | null;
   longDescription?: string | null;
 }) => {
-  const brand = stripHtml(product.manufacturer || "");
-  const rawBase = removeLeadingBrandFromTitle(
-    removeSupplierReferences(product.description || product.name || product.code),
-    brand,
-  ).replace(/^\s*\d{8,14}\s+/, "");
-  const mpn = getProductMpn(product);
-  const base = normalizeBaseTitleForProduct(rawBase, product, mpn);
-  const productType = getShoppingTitleProductType(product);
-  const normalizedBase = normalizeToken(base);
-  const normalizedType = normalizeToken(productType);
-  const normalizedMpn = normalizeToken(mpn);
-  const skipProductType =
-    normalizeToken(brand) === "akuvox" &&
-    normalizedMpn.startsWith("it88") &&
-    /indoor monitor/i.test(base);
-  const parts = [
-    brand && !normalizedBase.startsWith(normalizeToken(brand)) ? brand : "",
-    mpn && normalizedMpn && !normalizedBase.includes(normalizedMpn) ? mpn : "",
-    productType &&
-    !skipProductType &&
-    normalizedType &&
-    !normalizedBase.includes(normalizedType)
-      ? productType
-      : "",
-    base,
-  ].filter(Boolean);
-
-  return truncate(parts.join(" "), 150);
+  return buildOptimizedProductTitle(product);
 };
 
 const isPlaceholderImage = (value: unknown) => /product-placeholder\.(svg|png)/i.test(String(value || ""));
