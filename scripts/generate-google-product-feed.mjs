@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
+import { applyCatalogContentOverride } from "../shared/catalog-content-overrides.js";
 import { buildOptimizedProductTitle } from "../shared/product-title-policy.js";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
@@ -870,8 +871,9 @@ const products = mergeProducts(applyVerifiedProductIdentities(
     const sourcedProduct = applySourcedShippingMeasurement(product, sourcedShippingMeasurements);
     const measuredProduct = applyShippingMeasurementOverride(sourcedProduct, shippingMeasurementOverrides);
     const pricedProduct = applyPublicPriceFloor(measuredProduct, publicPriceFloors);
-    const overrideImages = imageOverrideMap.get(String(pricedProduct.code || "").trim().toUpperCase());
-    return overrideImages?.length ? { ...pricedProduct, googleImageOverrides: overrideImages } : pricedProduct;
+    const contentProduct = applyCatalogContentOverride(pricedProduct);
+    const overrideImages = imageOverrideMap.get(String(contentProduct.code || "").trim().toUpperCase());
+    return overrideImages?.length ? { ...contentProduct, googleImageOverrides: overrideImages } : contentProduct;
   })
   .filter(isTangibleCatalogProduct)
   .filter((product) => typeof product.price === "number" && product.price > 0)

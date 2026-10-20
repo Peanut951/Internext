@@ -1,4 +1,5 @@
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
+import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
 
 const ACRONYMS = new Set([
   "IP",
@@ -430,12 +431,12 @@ export const normalizeCatalogProduct = <T extends CatalogQualityInput>(product: 
     ? buildLongDescription(manufacturer, description, cleanEncodingNoise(product.code || ""))
     : existingLong;
 
-  return {
+  return applyCatalogContentOverride({
     ...product,
     description,
     manufacturer,
     longDescription,
-  };
+  });
 };
 
 export const normalizeCatalogProducts = <T extends CatalogQualityInput>(products: T[]) => {

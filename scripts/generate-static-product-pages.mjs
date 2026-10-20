@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
+import { applyCatalogContentOverride } from "../shared/catalog-content-overrides.js";
 import { buildOptimizedProductTitle } from "../shared/product-title-policy.js";
 import { mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import { filterTangibleCatalogProducts } from "./lib/product-classification.mjs";
@@ -449,7 +450,7 @@ const products = filterTangibleCatalogProducts(applyVerifiedProductIdentities(
         quoteRequired: true,
       }
     : product;
-  return applyPublicPriceFloor(quoteSafeProduct, publicPriceFloors);
+  return applyCatalogContentOverride(applyPublicPriceFloor(quoteSafeProduct, publicPriceFloors));
 });
 const uniqueProducts = new Map();
 

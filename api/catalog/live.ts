@@ -7,6 +7,7 @@ import {
   isCurrentFourCProduct,
   isVisibleCatalogProduct,
 } from "../../shared/four-c-catalog-freshness.js";
+import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
 import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
@@ -2139,11 +2140,12 @@ const loadMergedCatalogProductsUncached = async (
         mergedProduct,
         sourcedShippingMeasurementsByKey,
       );
+      const contentProduct = applyCatalogContentOverride(sourcedProduct);
       if (mergedProduct.quoteRequired) {
-        return sourcedProduct;
+        return contentProduct;
       }
       return applyShippingMeasurementOverride(
-        applyStockOverrideToProduct(sourcedProduct, stockOverride),
+        applyStockOverrideToProduct(contentProduct, stockOverride),
         shippingMeasurementOverride,
       );
     })
