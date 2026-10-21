@@ -365,7 +365,7 @@ const Cart = () => {
                   <div className="flex items-start gap-2">
                     <Truck className="mt-0.5 h-4 w-4 shrink-0 text-accent" />
                     <p className="text-muted-foreground">
-                      Shipping is calculated from the delivery postcode and product dimensions.
+                      Eligible online orders have flat-rate shipping of $15 including GST.
                     </p>
                   </div>
                   <div className="flex items-start gap-2">

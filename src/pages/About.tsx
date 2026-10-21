@@ -17,7 +17,7 @@ const values = [
   {
     icon: Target,
     title: "Reliable Fulfilment",
-    description: "Shipping is calculated from the order contents and destination so customers see freight before payment.",
+    description: "Eligible online orders have a clear $15 flat shipping rate including GST, shown before payment.",
   },
   {
     icon: Award,
@@ -76,8 +76,8 @@ const About = () => {
               <div className="space-y-4 text-muted-foreground leading-relaxed">
                 <p>
                   Internext is built around a simple buying experience: search the catalogue, compare current
-                  product information, add items to cart, and complete checkout with delivery calculated from
-                  the order and destination.
+                  product information, add items to cart, and complete eligible online orders with a clear
+                  $15 flat shipping rate including GST.
                 </p>
                 <p>
                   The catalogue brings together thousands of technology products across print, networking,

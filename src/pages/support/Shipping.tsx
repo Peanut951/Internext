@@ -12,8 +12,8 @@ const Shipping = () => {
               Shipping & Delivery
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Delivery across Australia for security, networking, AV, print, consumables, and technology
-              hardware, with freight calculated from the items and destination at checkout.
+              Eligible online orders are delivered across Australia for a flat $15 including GST. Products
+              marked as requiring a quote will have freight confirmed separately before purchase.
             </p>
           </div>
         </div>
@@ -28,7 +28,7 @@ const Shipping = () => {
             
             <div className="space-y-4 mb-12">
               {[
-                { name: "Standard Delivery", desc: "The default freight option calculated from the delivery address and product dimensions.", time: "1-5 business days" },
+                { name: "Standard Delivery", desc: "$15 including GST for eligible online orders delivered within Australia.", time: "1-5 business days" },
                 { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
                 { name: "Bulky or Fragile Freight", desc: "Contact Internext for information.", time: "Contact for info" },
               ].map((option) => (
@@ -45,21 +45,21 @@ const Shipping = () => {
               ))}
             </div>
 
-            <h2 className="text-2xl font-bold text-foreground mb-8">How Freight Is Calculated</h2>
+            <h2 className="text-2xl font-bold text-foreground mb-8">How Shipping Works</h2>
 
             <div className="bg-card rounded-xl p-6 shadow-card border border-border/50 mb-12">
               <ul className="space-y-3 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  Checkout uses the delivery postcode and the cart item's weight and dimensions where available.
+                  The $15 shipping charge applies once per eligible online order and includes GST.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  If a supplier has not provided exact measurements, Internext applies a product-category estimate so freight can still be calculated.
+                  Products that require a manual product or freight quote are clearly identified and cannot be paid for through standard online checkout.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  Large, fragile, high-value, or multi-carton orders may need manual confirmation if the carrier cannot quote automatically.
+                  Contact Internext before ordering if you need scheduled delivery, special handling, or project logistics.
                 </li>
               </ul>
             </div>
@@ -107,7 +107,7 @@ const Shipping = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  Freight charges are calculated at checkout based on delivery location and order weight/dimensions.
+                  Eligible online orders have a flat $15 shipping charge including GST.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />

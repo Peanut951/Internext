@@ -3,9 +3,10 @@ import { join } from "node:path";
 import { isTangibleCatalogProduct, loadMergedCatalogProducts } from "../catalog/live.js";
 import { getGoogleShippingDimension, getGoogleShippingWeight } from "../shipping/_estimates.js";
 import { buildOptimizedProductTitle } from "../../shared/product-title-policy.js";
+import { STANDARD_SHIPPING_RATE_INC_GST_AUD } from "../../shared/shipping-policy.js";
 
 const SITE_URL = "https://www.internext.com.au";
-const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
+const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = STANDARD_SHIPPING_RATE_INC_GST_AUD;
 const GOOGLE_IMAGE_FEED_VERSION = "20260604-2";
 const GOOGLE_BLOCKED_IMAGE_PRODUCT_CODES = new Set([
   "AK-NK-2",
@@ -686,7 +687,7 @@ export default async function handler(
     const shippingTags = [
       "      <g:shipping>",
       "        <g:country>AU</g:country>",
-      "        <g:service>Australia Post Standard</g:service>",
+      "        <g:service>Standard Delivery</g:service>",
       `        <g:price>${DEFAULT_GOOGLE_SHIPPING_PRICE_AUD.toFixed(2)} AUD</g:price>`,
       "      </g:shipping>",
       optionalTag("g:shipping_weight", getGoogleShippingWeight(product)),

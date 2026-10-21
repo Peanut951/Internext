@@ -10,8 +10,7 @@ import {
 } from "./_shared.js";
 import { getSessionFromRequest } from "../auth/_shared.js";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
-import { calculateAuthoritativeShippingQuote } from "../shipping/quote.js";
-import { verifyShippingQuoteToken } from "../shipping/_quoteToken.js";
+import { getStandardShippingService } from "../../shared/shipping-policy.js";
 
 const FIRST_ORDER_DISCOUNT_RATE = 0.1;
 const FIRST_ORDER_DISCOUNT_NAME = "First order account discount";
@@ -289,6 +288,12 @@ const verifyCheckoutItems = async (
       };
     }
 
+    if (product.quoteRequired) {
+      return {
+        error: `${product.code} requires a manual product and freight quote and cannot be paid for online.`,
+      };
+    }
+
     const currentPrice = useResellerPrice ? product.resellerPrice : product.price;
     if (typeof currentPrice !== "number" || currentPrice <= 0) {
       return {
@@ -373,6 +378,19 @@ export default async function handler(
     return sendJson(res, 400, { message: validationError });
   }
 
+  const destinationCountry = String(body.customer?.country || "").trim().toLowerCase();
+  const destinationPostcode = String(body.customer?.postcode || "").trim();
+  if (destinationCountry !== "australia") {
+    return sendJson(res, 400, {
+      message: "Online delivery is currently available to Australian addresses only.",
+    });
+  }
+  if (!/^\d{4}$/.test(destinationPostcode)) {
+    return sendJson(res, 400, {
+      message: "A valid 4-digit Australian delivery postcode is required.",
+    });
+  }
+
   let verifiedItems: NonNullable<RequestBody["items"]>;
   try {
     const verification = await verifyCheckoutItems(body.items || [], authSession?.role);
@@ -401,28 +419,11 @@ export default async function handler(
     ? calculateFirstOrderDiscountAmount(verifiedItems)
     : 0;
 
-  let verifiedShipping: { name: string; price: number };
-  try {
-    const destinationPostcode = String(body.customer?.postcode || "");
-    const tokenService = verifyShippingQuoteToken({
-      token: body.shippingQuoteToken,
-      destinationPostcode,
-      items: verifiedItems,
-    });
-    if (tokenService) {
-      verifiedShipping = tokenService;
-    } else {
-      const shippingQuote = await calculateAuthoritativeShippingQuote(destinationPostcode, verifiedItems);
-      verifiedShipping = {
-        name: shippingQuote.service.name,
-        price: shippingQuote.service.price,
-      };
-    }
-  } catch {
-    return sendJson(res, 503, {
-      message: "Shipping could not be verified. No payment was created. Please check the delivery address and try again.",
-    });
-  }
+  const standardShipping = getStandardShippingService();
+  const verifiedShipping = {
+    name: standardShipping.name,
+    price: standardShipping.price,
+  };
 
   const params = buildStripeCheckoutParams({
     origin,

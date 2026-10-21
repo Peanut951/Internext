@@ -3,6 +3,7 @@ import path from "node:path";
 import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../shared/catalog-content-overrides.js";
 import { buildOptimizedProductTitle } from "../shared/product-title-policy.js";
+import { STANDARD_SHIPPING_RATE_INC_GST_AUD } from "../shared/shipping-policy.js";
 import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import {
@@ -25,7 +26,7 @@ const publicDir = path.resolve("public");
 const dataDir = path.join(publicDir, "data");
 const outputPath = path.join(publicDir, "google-products.xml");
 const liveOverridesPath = path.join(dataDir, "catalog-live-overrides.json");
-const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = 35;
+const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = STANDARD_SHIPPING_RATE_INC_GST_AUD;
 const GOOGLE_IMAGE_FEED_VERSION = "20260618-1";
 
 const loadShippingMeasurementOverrides = async () => {
@@ -893,7 +894,7 @@ const items = products.map((product) => {
   const shippingTags = [
     "      <g:shipping>",
     "        <g:country>AU</g:country>",
-    "        <g:service>Australia Post Standard</g:service>",
+    "        <g:service>Standard Delivery</g:service>",
     `        <g:price>${DEFAULT_GOOGLE_SHIPPING_PRICE_AUD.toFixed(2)} AUD</g:price>`,
     "      </g:shipping>",
     optionalTag("g:shipping_weight", getGoogleShippingWeight(product)),

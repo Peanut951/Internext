@@ -24,6 +24,7 @@ import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldC
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { trackPurchase } from "@/lib/analytics";
 import { hasCompletedFirstOrderOnDevice, markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
+import { getStandardShippingService } from "../../../shared/shipping-policy.js";
 
 const defaultCustomer: CheckoutCustomer = {
   firstName: "",
@@ -297,41 +298,7 @@ type OrderNotificationResult = {
   customerEmailMessage?: string;
 };
 
-type ShippingQuote = {
-  quoteToken?: string;
-  service: {
-    code: string;
-    name: string;
-    price: number;
-    priceText: string;
-  };
-  parcel: {
-    weightKg: number;
-    lengthCm: number;
-    widthCm: number;
-    heightCm: number;
-  };
-};
-
-const getShippingQuoteKey = (
-  postcode: string,
-  country: string,
-  items: CartItem[],
-) =>
-  JSON.stringify({
-    postcode: postcode.trim(),
-    country: country.trim().toLowerCase(),
-    items: items
-      .map((item) => ({
-        code: item.code,
-        qty: item.qty,
-        weightKg: item.weightKg ?? null,
-        heightCm: item.heightCm ?? null,
-        widthCm: item.widthCm ?? null,
-        depthCm: item.depthCm ?? null,
-      }))
-      .sort((a, b) => a.code.localeCompare(b.code)),
-  });
+const STANDARD_SHIPPING = getStandardShippingService();
 
 declare global {
   interface Window {
@@ -594,10 +561,6 @@ const Checkout = () => {
   const [showAddressSuggestions, setShowAddressSuggestions] = useState(false);
   const [selectedAddressLabel, setSelectedAddressLabel] = useState<string | null>(null);
   const [paymentStateMessage, setPaymentStateMessage] = useState<string | null>(null);
-  const [shippingQuote, setShippingQuote] = useState<ShippingQuote | null>(null);
-  const [shippingQuoteKey, setShippingQuoteKey] = useState<string | null>(null);
-  const [shippingLoading, setShippingLoading] = useState(false);
-  const [shippingError, setShippingError] = useState<string | null>(null);
   const [accountHasPreviousOrders, setAccountHasPreviousOrders] = useState(false);
   const [firstOrderDiscountLoading, setFirstOrderDiscountLoading] = useState(false);
   const [firstOrderDiscountChecked, setFirstOrderDiscountChecked] = useState(false);
@@ -717,19 +680,11 @@ const Checkout = () => {
     ) / 100;
   }, [cartItems, firstOrderDiscountEligible]);
 
-  const currentShippingQuoteKey = useMemo(
-    () => getShippingQuoteKey(customer.postcode, customer.country, cartItems),
-    [cartItems, customer.country, customer.postcode],
-  );
-  const activeShippingQuote =
-    shippingQuoteKey === currentShippingQuoteKey ? shippingQuote : null;
   const hasAustralianPostcode = /^\d{4}$/.test(customer.postcode.trim());
-  const requiresShippingQuote =
-    cartItems.length > 0 &&
-    customer.country.trim().toLowerCase() === "australia";
-  const isShippingReady =
-    !requiresShippingQuote || (hasAustralianPostcode && Boolean(activeShippingQuote));
-  const shippingTotal = activeShippingQuote?.service.price || 0;
+  const isAustralianAddress = customer.country.trim().toLowerCase() === "australia";
+  const requiresShipping = cartItems.length > 0;
+  const isShippingReady = !requiresShipping || (isAustralianAddress && hasAustralianPostcode);
+  const shippingTotal = requiresShipping && isAustralianAddress ? STANDARD_SHIPPING.price : 0;
 
   const poaLines = useMemo(() => {
     return cartItems.reduce((sum, item) => sum + (item.price === null ? item.qty : 0), 0);
@@ -836,91 +791,6 @@ const Checkout = () => {
       controller.abort();
     };
   }, [customer.address1, selectedAddressLabel]);
-
-  useEffect(() => {
-    const postcode = customer.postcode.trim();
-    const isAustralianAddress = customer.country.trim().toLowerCase() === "australia";
-
-    if (!/^\d{4}$/.test(postcode) || !isAustralianAddress || cartItems.length === 0) {
-      setShippingQuote(null);
-      setShippingQuoteKey(null);
-      setShippingError(null);
-      setShippingLoading(false);
-      return;
-    }
-
-    let isActive = true;
-    const controller = new AbortController();
-    const quoteKey = getShippingQuoteKey(postcode, customer.country, cartItems);
-
-    setShippingQuote(null);
-    setShippingQuoteKey(null);
-    setShippingError(null);
-    setShippingLoading(true);
-
-    const quoteShipping = async () => {
-      try {
-        const response = await fetch("/api/shipping/quote", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          signal: controller.signal,
-          body: JSON.stringify({
-            destinationPostcode: postcode,
-            items: cartItems.map((item) => ({
-              code: item.code,
-              manufacturer: item.manufacturer,
-              description: item.description,
-              longDescription: item.longDescription,
-              qty: item.qty,
-              weightKg: item.weightKg,
-              heightCm: item.heightCm,
-              widthCm: item.widthCm,
-              depthCm: item.depthCm,
-              measurementSource: item.measurementSource,
-              measurementSourceReference: item.measurementSourceReference,
-              measurementConfidence: item.measurementConfidence,
-            })),
-          }),
-        });
-
-        const payload = (await response.json()) as ShippingQuote & { message?: string };
-        if (!response.ok) {
-          throw new Error(payload.message || "Unable to calculate shipping.");
-        }
-
-        if (isActive) {
-          setShippingQuote(payload);
-          setShippingQuoteKey(quoteKey);
-        }
-      } catch (quoteError) {
-        if (!isActive || (quoteError instanceof Error && quoteError.name === "AbortError")) {
-          return;
-        }
-
-        setShippingQuote(null);
-        setShippingQuoteKey(null);
-        setShippingError(
-          quoteError instanceof Error ? quoteError.message : "Unable to calculate shipping.",
-        );
-      } finally {
-        if (isActive) {
-          setShippingLoading(false);
-        }
-      }
-    };
-
-    const timeout = window.setTimeout(() => {
-      void quoteShipping();
-    }, 500);
-
-    return () => {
-      isActive = false;
-      window.clearTimeout(timeout);
-      controller.abort();
-    };
-  }, [cartItems, customer.country, customer.postcode]);
 
   useEffect(() => {
     if (checkoutState === "cancelled") {
@@ -1113,13 +983,13 @@ const Checkout = () => {
       return;
     }
 
-    if (requiresShippingQuote && !hasAustralianPostcode) {
-      setError("Enter a valid 4-digit Australian postcode before payment.");
+    if (requiresShipping && !isAustralianAddress) {
+      setError("Online delivery is currently available to Australian addresses only.");
       return;
     }
 
-    if (requiresShippingQuote && (shippingLoading || !activeShippingQuote)) {
-      setError("Wait for the latest shipping total to finish calculating before payment.");
+    if (requiresShipping && !hasAustralianPostcode) {
+      setError("Enter a valid 4-digit Australian postcode before payment.");
       return;
     }
 
@@ -1140,13 +1010,12 @@ const Checkout = () => {
         customer,
         reseller,
         items: cartItems,
-        shipping:
-          activeShippingQuote && activeShippingQuote.service.price > 0
-            ? {
-                name: activeShippingQuote.service.name,
-                price: activeShippingQuote.service.price,
-              }
-            : undefined,
+        shipping: requiresShipping
+          ? {
+              name: STANDARD_SHIPPING.name,
+              price: STANDARD_SHIPPING.price,
+            }
+          : undefined,
       };
 
       saveCheckoutDraft(checkoutDraft);
@@ -1182,14 +1051,12 @@ const Checkout = () => {
             priceText: item.priceText,
             stockQuantity: item.stockQuantity,
           })),
-          shipping:
-            activeShippingQuote && activeShippingQuote.service.price > 0
-              ? {
-                  name: activeShippingQuote.service.name,
-                  price: activeShippingQuote.service.price,
-                }
-              : undefined,
-          shippingQuoteToken: activeShippingQuote?.quoteToken,
+          shipping: requiresShipping
+            ? {
+                name: STANDARD_SHIPPING.name,
+                price: STANDARD_SHIPPING.price,
+              }
+            : undefined,
         }),
       });
 
@@ -1589,7 +1456,6 @@ const Checkout = () => {
                   disabled={
                     submitting ||
                     confirmingPayment ||
-                    shippingLoading ||
                     !isShippingReady ||
                     cartItems.length === 0 ||
                     hasStockBlockingItems
@@ -1599,9 +1465,7 @@ const Checkout = () => {
                     ? "Finalising Payment..."
                     : submitting
                       ? "Redirecting to Payment..."
-                      : shippingLoading
-                        ? "Calculating Shipping..."
-                        : "Pay Securely"}
+                      : "Pay Securely"}
                 </Button>
               </form>
 
@@ -1710,16 +1574,13 @@ const Checkout = () => {
                       <p className="flex items-center justify-between mb-2">
                         <span className="text-muted-foreground">Shipping</span>
                         <span className="font-semibold text-foreground">
-                          {shippingLoading
-                            ? "Calculating..."
-                            : activeShippingQuote
-                              ? activeShippingQuote.service.priceText
-                              : "Enter postcode"}
+                          {requiresShipping && isAustralianAddress
+                            ? `${STANDARD_SHIPPING.priceText} inc GST`
+                            : requiresShipping
+                              ? "Australia only"
+                              : "Not applicable"}
                         </span>
                       </p>
-                      {shippingError ? (
-                        <p className="mb-2 text-xs text-destructive">{shippingError}</p>
-                      ) : null}
                       <p className="flex items-center justify-between border-t border-border pt-3 font-semibold">
                         <span className="text-foreground">Estimated total</span>
                         <span className="text-foreground">{formatAud(orderTotal)}</span>

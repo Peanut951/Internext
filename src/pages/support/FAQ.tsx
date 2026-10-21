@@ -17,7 +17,7 @@ const faqCategories = [
     title: "Delivery",
     questions: [
       { q: "What are your delivery timeframes?", a: "Metro areas are typically 1-3 business days after dispatch. Regional areas are generally 2-5 business days depending on location." },
-      { q: "Do you ship to regional areas?", a: "Yes, we deliver Australia-wide including regional and remote areas. Additional freight charges may apply for remote locations." },
+      { q: "Do you ship to regional areas?", a: "Yes. Eligible online orders are delivered Australia-wide for a flat $15 including GST. Products marked as requiring a quote are priced separately before purchase." },
       { q: "Can I track my order?", a: "Yes, tracking information is provided by email once your order is dispatched and the carrier has supplied tracking details." },
       { q: "Do you offer express shipping?", a: "Express options may be available for selected products and delivery areas." },
     ],

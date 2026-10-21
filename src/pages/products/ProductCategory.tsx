@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { getOptionalProductImage, handleProductImageError } from "@/lib/productImages";
 import { buildProductDisplayTitle } from "@/lib/productTitles";
 import { getCatalogSummaryText } from "@/lib/catalogQuality";
+import { MIN_CATALOG_SEARCH_LENGTH, searchCatalogProducts } from "@/lib/catalogSearch";
 import { loadCatalogProducts, loadCatalogProductsFast } from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
@@ -1020,6 +1021,11 @@ const ProductCategory = () => {
 
   const filteredProducts = useMemo(() => {
     const search = normalizeKey(query);
+    const searchScores = search.length >= MIN_CATALOG_SEARCH_LENGTH
+      ? new Map(
+          searchCatalogProducts(categoryProducts, query).map((match) => [match.product.code, match.score]),
+        )
+      : null;
     const filtered = categoryProducts.filter((product) => {
       const productManufacturer = safeText(product.manufacturer, "Unbranded");
       if (
@@ -1052,11 +1058,13 @@ const ProductCategory = () => {
         return true;
       }
 
-      return normalizeKey(
-        [product.description, product.code, product.manufacturer, product.supplierCode]
-          .filter(Boolean)
-          .join(" "),
-      ).includes(search);
+      return searchScores
+        ? searchScores.has(product.code)
+        : normalizeKey(
+            [product.description, product.code, product.manufacturer, product.supplierCode]
+              .filter(Boolean)
+              .join(" "),
+          ).includes(search);
     });
 
     const getFeaturedScore = (product: (typeof categoryProducts)[number]) => {
@@ -1074,6 +1082,13 @@ const ProductCategory = () => {
 
     if (sort === "featured") {
       return [...filtered].sort((a, b) => {
+        if (searchScores) {
+          const searchScoreDiff = (searchScores.get(b.code) || 0) - (searchScores.get(a.code) || 0);
+          if (searchScoreDiff !== 0) {
+            return searchScoreDiff;
+          }
+        }
+
         const imageDiff =
           Number(Boolean(getOptionalProductImage(b))) - Number(Boolean(getOptionalProductImage(a)));
         if (imageDiff !== 0) {
