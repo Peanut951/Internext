@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   isDomainApproved,
+  isEligibleAustralianRetailerDomain,
   normalizeDataForSeoProductInfo,
   normalizePrice2SpyPayload,
   normalizePrisyncListing,
@@ -83,6 +84,13 @@ test("normalizes Price2Spy current pricing data", () => {
 test("allows subdomains of an approved seller but not lookalike domains", () => {
   assert.equal(isDomainApproved("deals.store.com.au", ["store.com.au"]), true);
   assert.equal(isDomainApproved("store.com.au.example.net", ["store.com.au"]), false);
+});
+
+test("accepts Australian retailers but blocks marketplaces and overseas domains", () => {
+  assert.equal(isEligibleAustralianRetailerDomain("store.example.com.au"), true);
+  assert.equal(isEligibleAustralianRetailerDomain("www.amazon.com.au"), false);
+  assert.equal(isEligibleAustralianRetailerDomain("deals.ebay.com.au"), false);
+  assert.equal(isEligibleAustralianRetailerDomain("retailer.example.com"), false);
 });
 
 test("rejects title-only and partial product-code matches", () => {

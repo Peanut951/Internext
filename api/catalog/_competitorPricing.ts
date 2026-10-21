@@ -1,4 +1,8 @@
 import { readEnv } from "../checkout/_shared.js";
+import {
+  getCompetitorMinimumAllowedPrice,
+  isProtectedCompetitorPricingProduct,
+} from "../../shared/competitor-pricing.js";
 
 export type CompetitorPricingMode = "disabled" | "observe" | "active";
 
@@ -28,6 +32,7 @@ export type CompetitorAdjustableProduct = {
   originalPriceText?: string;
   competitorAdjusted?: boolean;
   competitorPriceObservedAt?: string;
+  manufacturer?: string | null;
 };
 
 type ActiveCompetitorAdjustment = {
@@ -175,7 +180,7 @@ export const applyCompetitorPriceAdjustments = async <T extends CompetitorAdjust
   }
 
   return products.map((product) => {
-    if (product.publicPriceFixed) return product;
+    if (product.publicPriceFixed || isProtectedCompetitorPricingProduct(product)) return product;
 
     const currentPrice = toPositiveMoney(product.price);
     if (currentPrice === null) return product;
@@ -188,9 +193,12 @@ export const applyCompetitorPriceAdjustments = async <T extends CompetitorAdjust
 
     // A supplier or floor price change invalidates the stored recommendation.
     if (Math.abs(currentPrice - adjustment.standardPriceIncGst) > 0.001) return product;
+    const liveMinimumProfitPrice = getCompetitorMinimumAllowedPrice(product.resellerPrice);
+    if (liveMinimumProfitPrice === null) return product;
     const publicPriceFloor = toPositiveMoney(product.publicPriceFloor);
     const enforcedMinimum = Math.max(
       adjustment.minimumAllowedPriceIncGst,
+      liveMinimumProfitPrice,
       publicPriceFloor || 0,
     );
     if (

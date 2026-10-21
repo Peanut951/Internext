@@ -1,6 +1,9 @@
 import { getSessionFromRequest } from "../auth/_shared.js";
 import { readEnv, sendJson } from "../checkout/_shared.js";
-import { normalizeCompetitorDomain } from "../../shared/competitor-provider-normalization.js";
+import {
+  isEligibleAustralianRetailerDomain,
+  normalizeCompetitorDomain,
+} from "../../shared/competitor-provider-normalization.js";
 import { getCompetitorPricingMode } from "./_competitorPricing.js";
 import { runCompetitorProviderSync } from "./_competitorProviderSync.js";
 
@@ -234,6 +237,11 @@ export default async function handler(
       const now = new Date().toISOString();
 
       if (action === "approve-seller") {
+        if (!isEligibleAustralianRetailerDomain(domain)) {
+          return sendJson(res, 400, {
+            message: "Only independent Australian retailer domains can be approved. Marketplaces are blocked.",
+          });
+        }
         const existing = await fetchRows(
           config,
           `${TABLES.sellers}?select=id&domain=ilike.${encodeURIComponent(domain)}&limit=1`,

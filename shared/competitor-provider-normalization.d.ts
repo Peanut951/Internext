@@ -23,6 +23,7 @@ export type NormalizedProviderListing = {
 };
 
 export function normalizeCompetitorDomain(value: unknown): string;
+export function isEligibleAustralianRetailerDomain(value: unknown): boolean;
 export function isDomainApproved(domain: unknown, approvedDomains: unknown[]): boolean;
 export function normalizePrisyncListing(
   product: Record<string, unknown>,

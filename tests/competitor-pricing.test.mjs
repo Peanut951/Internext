@@ -5,6 +5,7 @@ import {
   getCompetitorMinimumAllowedPrice,
   isAutomaticCompetitorPricingAllowed,
   isEligibleCompetitorObservation,
+  isProtectedCompetitorPricingProduct,
 } from "../shared/competitor-pricing.js";
 
 const now = new Date("2026-09-01T02:00:00.000Z");
@@ -12,6 +13,7 @@ const now = new Date("2026-09-01T02:00:00.000Z");
 const observation = (overrides = {}) => ({
   id: "observation-1",
   sellerName: "Verified Seller",
+  sellerDomain: "verified-seller.com.au",
   sellerVerified: true,
   sellerEnabled: true,
   inStock: true,
@@ -104,16 +106,26 @@ test("does not change the price when Internext is already cheapest", () => {
   assert.deepEqual(result, { eligible: false, reason: "internext_already_cheapest" });
 });
 
-test("keeps the advertised price above the unchanged reseller price including GST", () => {
-  assert.equal(getCompetitorMinimumAllowedPrice(100), 110);
-  assert.equal(getCompetitorMinimumAllowedPrice(123.45), 135.8);
+test("derives a minimum advertised price with five percent profit above supplier cost", () => {
+  assert.equal(getCompetitorMinimumAllowedPrice(100), 96.25);
+  assert.equal(getCompetitorMinimumAllowedPrice(123.45), 118.82);
   assert.equal(getCompetitorMinimumAllowedPrice(null), null);
 });
 
-test("defaults ordinary products to automatic but never adjusts fixed or excluded products", () => {
+test("defaults ordinary products to automatic but never adjusts fixed, excluded, or Grandstream products", () => {
   assert.equal(isAutomaticCompetitorPricingAllowed({}, undefined), true);
   assert.equal(isAutomaticCompetitorPricingAllowed({}, "monitor_only"), false);
   assert.equal(isAutomaticCompetitorPricingAllowed({}, "excluded"), false);
   assert.equal(isAutomaticCompetitorPricingAllowed({ publicPriceFixed: true }, "automatic"), false);
+  assert.equal(isAutomaticCompetitorPricingAllowed({ manufacturer: "Grandstream" }, "automatic"), false);
+  assert.equal(isProtectedCompetitorPricingProduct({ manufacturer: "Grandstream Networks" }), true);
+  assert.equal(isProtectedCompetitorPricingProduct({ code: "GR-GRP2613W" }), true);
+  assert.equal(isProtectedCompetitorPricingProduct({ manufacturer: "Canon" }), false);
+});
+
+test("rejects marketplaces and non-Australian sellers even if marked verified", () => {
+  assert.equal(isEligibleCompetitorObservation(observation({ sellerDomain: "amazon.com.au" }), now).eligible, false);
+  assert.equal(isEligibleCompetitorObservation(observation({ sellerDomain: "retailer.example.com" }), now).eligible, false);
+  assert.equal(isEligibleCompetitorObservation(observation({ sellerDomain: "retailer.com.au" }), now).eligible, true);
 });
 

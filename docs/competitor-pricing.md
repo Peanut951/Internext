@@ -67,14 +67,21 @@ tagged for Internext are read from the account.
 Provider discovery and public repricing are separate controls. Enabling discovery only imports
 review data; it does not enable recommendations or alter customer prices.
 
+Automatic repricing is fail-closed. Grandstream products (including `GR-` catalogue codes),
+fixed-price products, monitor-only products and excluded products can never receive an automatic
+adjustment. A recommendation must be exactly $1 below the cheapest eligible landed price and remain
+at least 5% above supplier cost before GST. Products whose cost cannot be derived are unchanged.
+
 ## Seller approval
 
 Discovered domains are quarantined in `competitor_discovery_candidates`. An administrator can
 approve or reject a seller from the competitor-pricing section on an admin product page. Approval
 adds the normalized domain to `competitor_sellers`; eligible exact matches are imported as verified
 observations on the next provider sync. Subdomains are allowed only under that approved parent
-domain. Unknown domains, Internext's own domain, title-only matches, non-AUD listings, and listings
-without verified GST or shipping treatment cannot influence pricing.
+domain. Only eligible `.au` retailer domains can be approved. Known marketplaces including Amazon,
+eBay, Kogan, MyDeal, Catch, AliExpress and Temu are blocked even if a seller record is accidentally
+marked verified. Unknown domains, Internext's own domain, title-only matches, non-AUD listings, and
+listings without verified GST or shipping treatment cannot influence pricing.
 
 Before enabling observation imports, confirm whether the selected provider returns prices inclusive
 of Australian GST and whether its price includes delivery. Record those verified facts with

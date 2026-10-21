@@ -42,6 +42,33 @@ export const normalizeCompetitorDomain = (value) => {
   }
 };
 
+const BLOCKED_MARKETPLACE_DOMAINS = new Set([
+  "alibaba.com",
+  "aliexpress.com",
+  "amazon.com",
+  "amazon.com.au",
+  "catch.com.au",
+  "ebay.com",
+  "ebay.com.au",
+  "facebook.com",
+  "gumtree.com.au",
+  "kogan.com",
+  "kogan.com.au",
+  "mydeal.com.au",
+  "temu.com",
+]);
+
+const matchesDomain = (domain, expected) =>
+  domain === expected || domain.endsWith(`.${expected}`);
+
+export const isEligibleAustralianRetailerDomain = (value) => {
+  const domain = normalizeCompetitorDomain(value);
+  if (!domain || !domain.endsWith(".au")) return false;
+  return !Array.from(BLOCKED_MARKETPLACE_DOMAINS).some((blocked) =>
+    matchesDomain(domain, blocked),
+  );
+};
+
 export const isDomainApproved = (domain, approvedDomains) => {
   const normalized = normalizeCompetitorDomain(domain);
   return (Array.isArray(approvedDomains) ? approvedDomains : []).some((approved) => {

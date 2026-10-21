@@ -6,6 +6,7 @@ import {
   getConfiguredCompetitorProvider,
 } from "./_competitorProviders.js";
 import {
+  isEligibleAustralianRetailerDomain,
   normalizeCompetitorDomain,
   resolveExactCatalogMatch,
   type NormalizedProviderListing,
@@ -34,6 +35,7 @@ type CatalogIdentityProduct = Record<string, unknown> & {
   publicPriceFloor?: number | null;
   publicPriceFixed?: boolean;
   quoteRequired?: boolean;
+  manufacturer?: string;
 };
 
 type CatalogMatch = {
@@ -65,7 +67,7 @@ type StoredObservation = {
   observed_at: string;
   expires_at: string;
   competitor_product_url: string;
-  seller?: { verified?: boolean; enabled?: boolean } | { verified?: boolean; enabled?: boolean }[] | null;
+  seller?: { domain?: string; verified?: boolean; enabled?: boolean } | { domain?: string; verified?: boolean; enabled?: boolean }[] | null;
 };
 
 type OpenRecommendation = {
@@ -146,7 +148,9 @@ const getApprovedSellers = async (config: RestConfig): Promise<ApprovedSeller[]>
     config,
     `${TABLES.sellers}?select=id,name,domain,verified,enabled&verified=eq.true&enabled=eq.true`,
   );
-  return Array.isArray(rows) ? rows : [];
+  return Array.isArray(rows)
+    ? rows.filter((seller) => isEligibleAustralianRetailerDomain(seller.domain))
+    : [];
 };
 
 const getPricingSettings = async (config: RestConfig) => {
@@ -232,6 +236,10 @@ const processListings = ({
     }
     if (listing.isNew === false) {
       candidates.push(candidateRow(listing, "condition_not_new"));
+      continue;
+    }
+    if (!isEligibleAustralianRetailerDomain(listing.sellerDomain)) {
+      candidates.push(candidateRow(listing, "seller_not_eligible_australian_retailer"));
       continue;
     }
 
@@ -345,7 +353,7 @@ const getActiveObservations = async (
   const now = new Date().toISOString();
   const rows = await restRequest(
     config,
-    `${TABLES.observations}?select=id,product_code,supplier_code,landed_price_inc_gst,in_stock,price_includes_gst,shipping_verified,match_method,match_verified,observed_at,expires_at,competitor_product_url,seller:competitor_sellers(verified,enabled)&provider=eq.${encodeURIComponent(provider)}&expires_at=gt.${encodeURIComponent(now)}&order=observed_at.desc&limit=10000`,
+    `${TABLES.observations}?select=id,product_code,supplier_code,landed_price_inc_gst,in_stock,price_includes_gst,shipping_verified,match_method,match_verified,observed_at,expires_at,competitor_product_url,seller:competitor_sellers(domain,verified,enabled)&provider=eq.${encodeURIComponent(provider)}&expires_at=gt.${encodeURIComponent(now)}&order=observed_at.desc&limit=10000`,
   );
   return Array.isArray(rows) ? rows : [];
 };
@@ -362,6 +370,7 @@ const toCompetitorObservation = (row: StoredObservation): CompetitorObservation 
   const seller = Array.isArray(row.seller) ? row.seller[0] : row.seller;
   return {
     id: row.id,
+    sellerDomain: String(seller?.domain || ""),
     sellerVerified: seller?.verified === true,
     sellerEnabled: seller?.enabled === true,
     inStock: row.in_stock === true,

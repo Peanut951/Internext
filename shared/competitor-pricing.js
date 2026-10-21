@@ -1,3 +1,5 @@
+import { isEligibleAustralianRetailerDomain } from "./competitor-provider-normalization.js";
+
 const EXACT_MATCH_METHODS = new Set(["gtin", "brand_mpn", "manual_verified"]);
 
 const roundCurrency = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
@@ -7,11 +9,28 @@ const isPositiveMoney = (value) =>
 
 export const getCompetitorMinimumAllowedPrice = (resellerPriceExGst) => {
   const value = Number(resellerPriceExGst);
-  return Number.isFinite(value) && value > 0 ? roundCurrency(value * 1.1) : null;
+  if (!Number.isFinite(value) || value <= 0) return null;
+
+  const resellerMarkupRate = 0.2;
+  const minimumProfitRate = 0.05;
+  const supplierCostExGst = value / (1 + resellerMarkupRate);
+  return roundCurrency(supplierCostExGst * (1 + minimumProfitRate) * 1.1);
+};
+
+export const isProtectedCompetitorPricingProduct = (product) => {
+  const manufacturer = normalizeProductIdentity(product?.manufacturer);
+  const catalogueCode = String(product?.code || "").trim().toLowerCase();
+  const supplierCode = String(product?.supplierCode || "").trim().toLowerCase();
+  return manufacturer === "grandstream" ||
+    manufacturer.startsWith("grandstreamnetworks") ||
+    catalogueCode.startsWith("gr-") ||
+    supplierCode.startsWith("gr-");
 };
 
 export const isAutomaticCompetitorPricingAllowed = (product, mode) =>
-  product?.publicPriceFixed !== true && (mode || "automatic") === "automatic";
+  product?.publicPriceFixed !== true &&
+  !isProtectedCompetitorPricingProduct(product) &&
+  (mode || "automatic") === "automatic";
 
 const toTimestamp = (value) => {
   const timestamp = Date.parse(String(value || ""));
@@ -30,6 +49,9 @@ export const isEligibleCompetitorObservation = (observation, now = new Date()) =
   }
   if (observation.sellerEnabled !== true) {
     return { eligible: false, reason: "seller_disabled" };
+  }
+  if (!isEligibleAustralianRetailerDomain(observation.sellerDomain)) {
+    return { eligible: false, reason: "seller_not_eligible_australian_retailer" };
   }
   if (observation.inStock !== true) {
     return { eligible: false, reason: "competitor_not_in_stock" };

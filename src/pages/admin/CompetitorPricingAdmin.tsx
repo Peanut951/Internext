@@ -16,6 +16,7 @@ import PortalNav from "@/components/auth/PortalNav";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { isEligibleAustralianRetailerDomain } from "../../../shared/competitor-provider-normalization.js";
 
 type PricingMode = "disabled" | "observe" | "active";
 type ProductMode = "monitor_only" | "automatic" | "excluded";
@@ -318,7 +319,9 @@ const CompetitorPricingAdmin = () => {
     [summary?.productControls],
   );
   const latestRun = summary?.syncRuns?.[0];
-  const verifiedSellers = summary?.sellers.filter((seller) => seller.verified && seller.enabled) || [];
+  const verifiedSellers = summary?.sellers.filter(
+    (seller) => seller.verified && seller.enabled && isEligibleAustralianRetailerDomain(seller.domain),
+  ) || [];
   const activeObservations = summary?.observations.filter(
     (observation) => observation.in_stock && new Date(observation.expires_at).getTime() > Date.now(),
   ) || [];
@@ -481,7 +484,13 @@ const CompetitorPricingAdmin = () => {
                         <Button type="button" size="sm" variant="outline" onClick={() => void reviewSeller(candidate, "reject-seller")} disabled={Boolean(actionId)}>
                           <X className="mr-1.5 h-4 w-4" /> Reject
                         </Button>
-                        <Button type="button" size="sm" onClick={() => void reviewSeller(candidate, "approve-seller")} disabled={Boolean(actionId)}>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => void reviewSeller(candidate, "approve-seller")}
+                          disabled={Boolean(actionId) || !isEligibleAustralianRetailerDomain(candidate.seller_domain)}
+                          title={isEligibleAustralianRetailerDomain(candidate.seller_domain) ? "Approve this Australian retailer" : "Marketplaces and non-Australian domains cannot be approved"}
+                        >
                           <Check className="mr-1.5 h-4 w-4" /> {actionId === candidate.id ? "Saving..." : "Approve"}
                         </Button>
                       </div>
