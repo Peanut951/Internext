@@ -1,5 +1,3 @@
-export const CANON_CST_28_COMPATIBILITY_NOTE: string;
-
 export function applyCatalogContentOverride<T extends {
   code?: string;
   supplierCode?: string;

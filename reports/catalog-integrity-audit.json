@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-10-08T03:27:35.765Z",
-  "verifiedSnapshotUpdatedAt": "2026-10-08T03:26:53.673Z",
+  "auditedAt": "2026-10-21T01:49:11.918Z",
+  "verifiedSnapshotUpdatedAt": "2026-10-21T01:48:15.676Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -10,12 +10,12 @@
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
     "fourCEnrichmentProducts": 4542,
-    "verifiedSupplierProducts": 7078,
-    "verifiedQuoteProducts": 1,
-    "unsupportedRawEnrichmentProducts": 5484,
-    "googleProducts": 4742,
-    "sitemapProducts": 5769,
-    "staticProductPages": 5769
+    "verifiedSupplierProducts": 7130,
+    "verifiedQuoteProducts": 4543,
+    "unsupportedRawEnrichmentProducts": 1032,
+    "googleProducts": 4724,
+    "sitemapProducts": 10286,
+    "staticProductPages": 10286
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],
@@ -504,6 +504,24 @@
       "description": "Ceiling Mount for DVY23"
     },
     {
+      "code": "BQLIC-XSIGNPR1Y",
+      "supplierCode": "5J.F1T14.008",
+      "manufacturer": "Benq",
+      "description": "X-SIGN Premium Licence 1-YEAR Cloud Based Management for X-SIGN Design Il Series Only"
+    },
+    {
+      "code": "BQLIC-XSIGNPR3Y",
+      "supplierCode": "5J.F1T14.010",
+      "manufacturer": "Benq",
+      "description": "X-SIGN Premium Licence 3-YEAR Cloud Based Management for X-SIGN Design Il Series Only"
+    },
+    {
+      "code": "BQLIC-XSIGNPR5Y",
+      "supplierCode": "5J.F1T14.013",
+      "manufacturer": "Benq",
+      "description": "X-SIGN Premium Licence 5-YEAR Cloud Based Management for X-SIGN Design Il Series Only"
+    },
+    {
       "code": "BQOPS-TEY21-I7",
       "supplierCode": "TEY21-I7",
       "manufacturer": "Benq",
@@ -604,24 +622,6 @@
       "supplierCode": "CART316C",
       "manufacturer": "Canon",
       "description": "Canon CART316C Cyan Toner for LBP5050N 1.5K"
-    },
-    {
-      "code": "CCART318M",
-      "supplierCode": "CART318M",
-      "manufacturer": "Canon",
-      "description": "Canon CART318M Magenta Toner for LBP7200CDN LBP7680CX 2.9K"
-    },
-    {
-      "code": "CCART324-RET",
-      "supplierCode": "EA",
-      "manufacturer": "Canon",
-      "description": "CART324 Toner Cartridge for Canon LBP6750DN Damaged Carton"
-    },
-    {
-      "code": "CCART332BK",
-      "supplierCode": "CART332BK",
-      "manufacturer": "Canon",
-      "description": "CART332BK Blk Cartridge for LBP7780CX"
     }
   ]
 }

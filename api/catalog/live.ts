@@ -8,6 +8,7 @@ import {
   isVisibleCatalogProduct,
 } from "../../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
+import { isCatalogProductExcluded } from "../../shared/catalog-product-exclusions.js";
 import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
@@ -1491,6 +1492,8 @@ const hasPhysicalProductSignal = (text: string) =>
   );
 
 export const isTangibleCatalogProduct = (product: Record<string, unknown>) => {
+  if (isCatalogProductExcluded(product)) return false;
+
   const text = getProductClassificationText(product);
   const offerText = getOfferClassificationText(product);
   const debrandedOfferText = removeLeadingManufacturer(offerText, product.manufacturer);

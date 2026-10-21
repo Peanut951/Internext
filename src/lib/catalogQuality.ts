@@ -1,5 +1,6 @@
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
+import { isCatalogProductExcluded } from "../../shared/catalog-product-exclusions.js";
 
 const ACRONYMS = new Set([
   "IP",
@@ -441,6 +442,6 @@ export const normalizeCatalogProduct = <T extends CatalogQualityInput>(product: 
 
 export const normalizeCatalogProducts = <T extends CatalogQualityInput>(products: T[]) => {
   return products
-    .filter((product) => isTangibleCatalogProduct(product))
+    .filter((product) => !isCatalogProductExcluded(product) && isTangibleCatalogProduct(product))
     .map((product) => normalizeCatalogProduct(product));
 };

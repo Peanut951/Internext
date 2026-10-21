@@ -1,14 +1,6 @@
 const normalizeKey = (value) => String(value || "").trim().toLowerCase();
 
-export const CANON_CST_28_COMPATIBILITY_NOTE =
-  "If your customer is still using an older Canon imagePROGRAF iPF64xx-series printer, this replacement basket and stand assembly can replace a damaged or broken original unit.";
-
-const CONTENT_OVERRIDES = [
-  {
-    keys: new Set(["cst-28", "st-28"]),
-    appendLongDescription: CANON_CST_28_COMPATIBILITY_NOTE,
-  },
-];
+const CONTENT_OVERRIDES = [];
 
 const findContentOverride = (product) => {
   const keys = [product?.code, product?.supplierCode].map(normalizeKey).filter(Boolean);
