@@ -170,13 +170,16 @@ alter table public.competitor_provider_sync_state add constraint competitor_prov
 
 create table if not exists public.competitor_product_controls (
   product_code text primary key check (length(trim(product_code)) > 0),
-  mode text not null default 'monitor_only'
+  mode text not null default 'automatic'
     check (mode in ('monitor_only', 'automatic', 'excluded')),
   reason text,
   updated_by text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
+
+alter table public.competitor_product_controls
+  alter column mode set default 'automatic';
 
 create index if not exists competitor_product_controls_mode_idx
 on public.competitor_product_controls (mode, lower(product_code));
@@ -277,10 +280,10 @@ join public.competitor_sellers seller
   on seller.id = observation.seller_id
 join public.competitor_pricing_settings settings
   on settings.id = true
-join public.competitor_product_controls control
+left join public.competitor_product_controls control
   on lower(control.product_code) = lower(recommendation.product_code)
 where settings.enabled = true
-  and control.mode = 'automatic'
+  and coalesce(control.mode, 'automatic') = 'automatic'
   and recommendation.status = 'approved'
   and recommendation.expires_at > now()
   and observation.expires_at > now()

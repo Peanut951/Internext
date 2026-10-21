@@ -11,6 +11,7 @@ import {
   buildDataForSeoSearchKeyword,
   classifyDataForSeoTaskPayload,
   collectDataForSeoTaskPayloads,
+  getWeeklyScanBatchSize,
 } from "../shared/dataforseo-task-utils.js";
 
 const catalog = [
@@ -259,6 +260,12 @@ test("a no-results task does not discard successful tasks from the same batch", 
 
 test("searches Google Shopping by brand and model instead of an overly narrow GTIN", () => {
   assert.equal(buildDataForSeoSearchKeyword(catalog[0]), "Grandstream GR-GRP2613W");
+});
+
+test("plans a complete catalogue scan within six runs of a seven-day cycle", () => {
+  assert.equal(getWeeklyScanBatchSize(7_130), 1_189);
+  assert.equal(getWeeklyScanBatchSize(10_287), 1_715);
+  assert.equal(getWeeklyScanBatchSize(0), 0);
 });
 
 test("marks used DataForSEO offers as ineligible", () => {

@@ -8,6 +8,7 @@ import {
   buildDataForSeoSearchKeyword,
   classifyDataForSeoTaskPayload,
   collectDataForSeoTaskPayloads,
+  getWeeklyScanBatchSize,
 } from "../../shared/dataforseo-task-utils.js";
 
 export { buildDataForSeoSearchKeyword } from "../../shared/dataforseo-task-utils.js";
@@ -51,6 +52,13 @@ export type DataForSeoFetchResult = {
     failedTasks: number;
     searchMatchesQueued: number;
     unverifiedProductPages: number;
+  };
+  scanPlan: {
+    cycleDays: number;
+    batchSize: number;
+    eligibleProducts: number;
+    offset: number;
+    scanCompleted: boolean;
   };
 };
 
@@ -208,13 +216,18 @@ const postTasks = async (
 
 const parseCursor = (cursor: string | null | undefined) => {
   try {
-    const parsed = JSON.parse(cursor || "{}") as { offset?: unknown; nextScanAt?: unknown };
+    const parsed = JSON.parse(cursor || "{}") as {
+      offset?: unknown;
+      nextScanAt?: unknown;
+      cycleStartedAt?: unknown;
+    };
     return {
       offset: Math.max(0, Math.floor(Number(parsed.offset) || 0)),
       nextScanAt: String(parsed.nextScanAt || ""),
+      cycleStartedAt: String(parsed.cycleStartedAt || ""),
     };
   } catch {
-    return { offset: 0, nextScanAt: "" };
+    return { offset: 0, nextScanAt: "", cycleStartedAt: "" };
   }
 };
 
@@ -227,7 +240,21 @@ export const fetchDataForSeoListings = async (
       .map((product) => [String(product.code || "").trim().toLowerCase(), product] as const)
       .filter(([code]) => Boolean(code)),
   );
-  const maxReady = readPositiveInteger("DATAFORSEO_READY_TASK_LIMIT", 100, 500);
+  const cycleDays = readPositiveInteger("DATAFORSEO_FULL_RESCAN_DAYS", 7, 30);
+  const weeklyBatchSize = getWeeklyScanBatchSize(options.products.length, cycleDays, 1);
+  const configuredBatchSize = readPositiveInteger(
+    "COMPETITOR_SYNC_MAX_PRODUCTS",
+    weeklyBatchSize || 1,
+    5000,
+  );
+  const batchSize = Math.max(weeklyBatchSize, configuredBatchSize);
+  const configuredReadyLimit = readPositiveInteger(
+    "DATAFORSEO_READY_TASK_LIMIT",
+    batchSize || 1,
+    2000,
+  );
+  const maxReady = Math.min(2000, Math.max(batchSize, configuredReadyLimit));
+  const resultConcurrency = readPositiveInteger("DATAFORSEO_RESULT_CONCURRENCY", 24, 50);
   const requests = { count: 0 };
   const listings: NormalizedProviderListing[] = [];
   const productMatches: DataForSeoProductMatch[] = [];
@@ -246,7 +273,9 @@ export const fetchDataForSeoListings = async (
   ]);
   requests.count += 2;
 
-  const searchReady = getReadyTasks(searchReadyPayload).slice(0, maxReady);
+  const infoReady = getReadyTasks(infoReadyPayload).slice(0, maxReady);
+  const remainingReadyCapacity = Math.max(0, maxReady - infoReady.length);
+  const searchReady = getReadyTasks(searchReadyPayload).slice(0, remainingReadyCapacity);
   const searchResults = await collectDataForSeoTaskPayloads(searchReady, async (ready) => {
     try {
       return await requestJson(
@@ -256,7 +285,7 @@ export const fetchDataForSeoListings = async (
     } finally {
       requests.count += 1;
     }
-  });
+  }, resultConcurrency);
   for (const result of searchResults) {
     diagnostics.tasksCollected += 1;
     if (result.outcome === "no_results") diagnostics.noResultTasks += 1;
@@ -278,7 +307,6 @@ export const fetchDataForSeoListings = async (
     diagnostics.searchMatchesQueued += 1;
   }
 
-  const infoReady = getReadyTasks(infoReadyPayload).slice(0, maxReady);
   const infoResults = await collectDataForSeoTaskPayloads(infoReady, async (ready) => {
     try {
       return await requestJson(
@@ -288,7 +316,7 @@ export const fetchDataForSeoListings = async (
     } finally {
       requests.count += 1;
     }
-  });
+  }, resultConcurrency);
   for (const result of infoResults) {
     diagnostics.tasksCollected += 1;
     if (result.outcome === "no_results") diagnostics.noResultTasks += 1;
@@ -320,8 +348,11 @@ export const fetchDataForSeoListings = async (
   const cursor = parseCursor(options.cursor);
   const now = Date.now();
   const scanDue = !cursor.nextScanAt || Date.parse(cursor.nextScanAt) <= now;
-  const batchSize = readPositiveInteger("COMPETITOR_SYNC_MAX_PRODUCTS", 100, 500);
   const batch = scanDue ? options.products.slice(cursor.offset, cursor.offset + batchSize) : [];
+  const parsedCycleStartedAt = Date.parse(cursor.cycleStartedAt);
+  const cycleStartedAt = cursor.offset > 0 && Number.isFinite(parsedCycleStartedAt)
+    ? parsedCycleStartedAt
+    : now;
   const knownByCode = new Map(
     (options.knownMatches || []).map((match) => [match.productCode.toLowerCase(), match]),
   );
@@ -359,13 +390,18 @@ export const fetchDataForSeoListings = async (
 
   const nextOffset = cursor.offset + batch.length;
   const scanCompleted = batch.length > 0 && nextOffset >= options.products.length;
-  const rescanDays = readPositiveInteger("DATAFORSEO_FULL_RESCAN_DAYS", 7, 30);
+  const nextCycleAt = cycleStartedAt + cycleDays * 24 * 60 * 60 * 1000;
   const nextCursor = scanCompleted
     ? JSON.stringify({
         offset: 0,
-        nextScanAt: new Date(now + rescanDays * 24 * 60 * 60 * 1000).toISOString(),
+        nextScanAt: new Date(Math.max(now, nextCycleAt)).toISOString(),
+        cycleStartedAt: null,
       })
-    : JSON.stringify({ offset: nextOffset, nextScanAt: cursor.nextScanAt || null });
+    : JSON.stringify({
+        offset: nextOffset,
+        nextScanAt: cursor.nextScanAt || null,
+        cycleStartedAt: new Date(cycleStartedAt).toISOString(),
+      });
 
   return {
     provider: "dataforseo",
@@ -375,5 +411,12 @@ export const fetchDataForSeoListings = async (
     requestsMade: requests.count,
     nextCursor,
     diagnostics,
+    scanPlan: {
+      cycleDays,
+      batchSize,
+      eligibleProducts: options.products.length,
+      offset: cursor.offset,
+      scanCompleted,
+    },
   };
 };

@@ -140,6 +140,41 @@ export default async function handler(
       }
     }
 
+    if (action === "set-database-enabled") {
+      if (typeof body.enabled !== "boolean") {
+        return sendJson(res, 400, { message: "A valid automatic pricing switch value is required." });
+      }
+      try {
+        const now = new Date().toISOString();
+        await mutateRows(
+          config,
+          `${TABLES.settings}?id=eq.true`,
+          "PATCH",
+          {
+            enabled: body.enabled,
+            note: body.enabled
+              ? "Automatic competitor pricing enabled from the Internext admin portal."
+              : "Automatic competitor pricing paused from the Internext admin portal.",
+            updated_by: session.email,
+            updated_at: now,
+          },
+        );
+        res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
+        return sendJson(res, 200, {
+          ok: true,
+          enabled: body.enabled,
+          message: body.enabled
+            ? "Automatic competitor pricing is enabled."
+            : "Automatic competitor pricing is paused.",
+        });
+      } catch (error) {
+        return sendJson(res, 503, {
+          message: "The automatic pricing switch could not be saved.",
+          detail: error instanceof Error ? error.message : "Unknown storage error.",
+        });
+      }
+    }
+
     if (action === "set-product-mode") {
       const productCode = String(body.productCode || "").trim();
       const mode = String(body.mode || "").trim();
@@ -326,7 +361,7 @@ export default async function handler(
       sellers,
       syncRuns,
       productControl: productCode
-        ? controlRows[0] || { product_code: productCode, mode: "monitor_only" }
+        ? controlRows[0] || { product_code: productCode, mode: "automatic" }
         : null,
       productControls: productCode ? [] : controlRows,
       productMatches,

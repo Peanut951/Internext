@@ -57,9 +57,12 @@ Prisync imports resume from a stored product cursor, so repeated runs eventually
 provider catalogue without restarting at page one. Price2Spy returns its current pricing data in a
 bulk request.
 
-DataForSEO uses asynchronous standard-priority tasks. Each cron run imports completed tasks and then
-submits the next bounded catalogue batch. Verified Google product IDs are cached so later scans can
-request current Product Info directly. Only tasks tagged for Internext are read from the account.
+DataForSEO uses asynchronous standard-priority tasks. The daily cron imports completed tasks and
+submits at least one-sixth of the eligible, currently priced catalogue. This completes a full scan
+within six daily runs and leaves the seventh day as recovery capacity. The cursor starts the next
+cycle seven days after the prior cycle began, rather than seven days after it finished. Verified
+Google product IDs are cached so later scans can request current Product Info directly. Only tasks
+tagged for Internext are read from the account.
 
 Provider discovery and public repricing are separate controls. Enabling discovery only imports
 review data; it does not enable recommendations or alter customer prices.

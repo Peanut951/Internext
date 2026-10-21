@@ -1,5 +1,11 @@
 export type DataForSeoTaskOutcome = "success" | "no_results" | "failed";
 
+export function getWeeklyScanBatchSize(
+  productCount: unknown,
+  cycleDays?: unknown,
+  recoveryDays?: unknown,
+): number;
+
 export function classifyDataForSeoTaskPayload(payload: Record<string, unknown>): {
   outcome: DataForSeoTaskOutcome;
   statusCode: number;

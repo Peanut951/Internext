@@ -4,6 +4,7 @@ import {
   AlertCircle,
   Check,
   ExternalLink,
+  Power,
   RefreshCw,
   SearchCheck,
   ShieldCheck,
@@ -166,6 +167,7 @@ const CompetitorPricingAdmin = () => {
   const [syncing, setSyncing] = useState(false);
   const [actionId, setActionId] = useState("");
   const [savingProductCode, setSavingProductCode] = useState("");
+  const [savingDatabaseSwitch, setSavingDatabaseSwitch] = useState(false);
 
   const loadSummary = useCallback(async () => {
     setLoading(true);
@@ -248,6 +250,34 @@ const CompetitorPricingAdmin = () => {
     }
   };
 
+  const setDatabaseEnabled = async (enabled: boolean) => {
+    if (savingDatabaseSwitch) return;
+    setSavingDatabaseSwitch(true);
+    try {
+      const response = await fetch("/api/catalog/competitor-pricing", {
+        method: "POST",
+        credentials: "same-origin",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "set-database-enabled", enabled }),
+      });
+      const payload = await response.json().catch(() => ({})) as { message?: string; detail?: string };
+      if (!response.ok) throw new Error(payload.detail || payload.message || "The automatic pricing switch could not be saved.");
+      setSummary((current) => current ? { ...current, databaseEnabled: enabled } : current);
+      toast({
+        title: enabled ? "Automatic pricing enabled" : "Automatic pricing paused",
+        description: payload.message,
+      });
+    } catch (switchError) {
+      toast({
+        variant: "destructive",
+        title: "Automatic pricing switch not saved",
+        description: switchError instanceof Error ? switchError.message : "The automatic pricing switch could not be saved.",
+      });
+    } finally {
+      setSavingDatabaseSwitch(false);
+    }
+  };
+
   const setProductMode = async (productCode: string, mode: ProductMode) => {
     if (savingProductCode) return;
     setSavingProductCode(productCode);
@@ -310,6 +340,19 @@ const CompetitorPricingAdmin = () => {
               <span className={`rounded-full px-3 py-2 text-xs font-semibold ${statusClass(summary?.mode || "disabled")}`}>
                 {formatLabel(summary?.mode || "disabled")}
               </span>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => void setDatabaseEnabled(!summary?.databaseEnabled)}
+                disabled={loading || savingDatabaseSwitch}
+              >
+                <Power className="mr-2 h-4 w-4" />
+                {savingDatabaseSwitch
+                  ? "Saving..."
+                  : summary?.databaseEnabled
+                    ? "Pause automatic pricing"
+                    : "Enable automatic pricing"}
+              </Button>
               <Button type="button" variant="outline" onClick={() => void loadSummary()} disabled={loading || syncing}>
                 <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
                 Refresh
@@ -329,6 +372,16 @@ const CompetitorPricingAdmin = () => {
             <div className="flex items-start gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{error}</span>
+            </div>
+          ) : null}
+
+          {summary && summary.mode !== "active" ? (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>
+                Scans and recommendations are active, but customer prices remain unchanged while the server mode is {formatLabel(summary.mode)}.
+                Set <code className="font-semibold">COMPETITOR_PRICING_MODE=active</code> in production before enabling the database switch.
+              </span>
             </div>
           ) : null}
 
@@ -529,7 +582,7 @@ const CompetitorPricingAdmin = () => {
                           <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">{formatDate(match.last_seen_at)}</td>
                           <td className="px-4 py-3">
                             <select
-                              value={controlsByProduct.get(match.product_code) || "monitor_only"}
+                              value={controlsByProduct.get(match.product_code) || "automatic"}
                               onChange={(event) => void setProductMode(match.product_code, event.target.value as ProductMode)}
                               disabled={Boolean(savingProductCode)}
                               className="h-9 rounded-md border border-border bg-background px-3 text-sm"

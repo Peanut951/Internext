@@ -5,6 +5,14 @@ const roundCurrency = (value) => Math.round((value + Number.EPSILON) * 100) / 10
 const isPositiveMoney = (value) =>
   typeof value === "number" && Number.isFinite(value) && value > 0;
 
+export const getCompetitorMinimumAllowedPrice = (resellerPriceExGst) => {
+  const value = Number(resellerPriceExGst);
+  return Number.isFinite(value) && value > 0 ? roundCurrency(value * 1.1) : null;
+};
+
+export const isAutomaticCompetitorPricingAllowed = (product, mode) =>
+  product?.publicPriceFixed !== true && (mode || "automatic") === "automatic";
+
 const toTimestamp = (value) => {
   const timestamp = Date.parse(String(value || ""));
   return Number.isFinite(timestamp) ? timestamp : null;

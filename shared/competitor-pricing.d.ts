@@ -30,6 +30,11 @@ export type CompetitorRecommendation =
     };
 
 export function normalizeProductIdentity(value: unknown): string;
+export function getCompetitorMinimumAllowedPrice(resellerPriceExGst: unknown): number | null;
+export function isAutomaticCompetitorPricingAllowed(
+  product: { publicPriceFixed?: boolean } | null | undefined,
+  mode?: "monitor_only" | "automatic" | "excluded",
+): boolean;
 export function isEligibleCompetitorObservation(
   observation: CompetitorObservation,
   now?: Date | string,

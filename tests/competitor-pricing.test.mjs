@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import {
   buildCompetitorPriceRecommendation,
+  getCompetitorMinimumAllowedPrice,
+  isAutomaticCompetitorPricingAllowed,
   isEligibleCompetitorObservation,
 } from "../shared/competitor-pricing.js";
 
@@ -100,5 +102,18 @@ test("does not change the price when Internext is already cheapest", () => {
   });
 
   assert.deepEqual(result, { eligible: false, reason: "internext_already_cheapest" });
+});
+
+test("keeps the advertised price above the unchanged reseller price including GST", () => {
+  assert.equal(getCompetitorMinimumAllowedPrice(100), 110);
+  assert.equal(getCompetitorMinimumAllowedPrice(123.45), 135.8);
+  assert.equal(getCompetitorMinimumAllowedPrice(null), null);
+});
+
+test("defaults ordinary products to automatic but never adjusts fixed or excluded products", () => {
+  assert.equal(isAutomaticCompetitorPricingAllowed({}, undefined), true);
+  assert.equal(isAutomaticCompetitorPricingAllowed({}, "monitor_only"), false);
+  assert.equal(isAutomaticCompetitorPricingAllowed({}, "excluded"), false);
+  assert.equal(isAutomaticCompetitorPricingAllowed({ publicPriceFixed: true }, "automatic"), false);
 });
 

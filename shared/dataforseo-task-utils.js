@@ -1,5 +1,16 @@
 const tasksFromPayload = (payload) => Array.isArray(payload?.tasks) ? payload.tasks : [];
 
+export const getWeeklyScanBatchSize = (
+  productCount,
+  cycleDays = 7,
+  recoveryDays = 1,
+) => {
+  const count = Math.max(0, Math.floor(Number(productCount) || 0));
+  const days = Math.max(1, Math.floor(Number(cycleDays) || 7));
+  const recovery = Math.max(0, Math.min(days - 1, Math.floor(Number(recoveryDays) || 0)));
+  return count === 0 ? 0 : Math.ceil(count / Math.max(1, days - recovery));
+};
+
 export const classifyDataForSeoTaskPayload = (payload) => {
   const failedTask = tasksFromPayload(payload)
     .find((task) => Number(task?.status_code) >= 40000);
