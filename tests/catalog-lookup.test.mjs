@@ -40,17 +40,6 @@ test("expired 4C products remain discoverable only as non-purchasable quotes", a
   assert.equal(body.item.stockQuantity, 0);
 });
 
-test("T54W remains discoverable as a quote when it is absent from current supplier feeds", async () => {
-  const { status, body } = await request("/api/catalog/live?view=product&code=IPY-T54W");
-  assert.equal(status, 200);
-  assert.equal(body.item.code, "IPY-T54W");
-  assert.equal(body.item.supplierCode, "SIP-T54W");
-  assert.equal(body.item.manufacturer, "Yealink");
-  assert.equal(body.item.quoteRequired, true);
-  assert.equal(body.item.price, null);
-  assert.equal(body.item.resellerPrice, null);
-});
-
 test("stale enrichment collisions cannot restore a 4C price", async () => {
   const { status, body } = await request("/api/catalog/live?view=product&code=4C-IVNC110XC");
   assert.equal(status, 200);

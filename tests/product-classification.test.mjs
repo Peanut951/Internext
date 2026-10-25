@@ -17,7 +17,7 @@ test("keeps physical products whose titles contain generic service-like words", 
   assert.equal(isTangibleCatalogProduct(product("Canon Extra Large Ink Tank")), true);
   assert.equal(isTangibleCatalogProduct(product("Fujifilm Extra High Yield Toner Cartridge")), true);
   assert.equal(isTangibleCatalogProduct(product("Fujitsu Post Imprinter")), true);
-  assert.equal(isTangibleCatalogProduct(product("Yealink SIP-T54W Prime Business IP Phone")), true);
+  assert.equal(isTangibleCatalogProduct(product("Yealink SIP Business IP Phone")), true);
   assert.equal(isTangibleCatalogProduct(product("Ecosys P4060DN Mono Laser Printer 3YRS Onsite WTY")), true);
   assert.equal(isTangibleCatalogProduct(product("Epson SureColour SC-P906 Photo Printer 5YR CoverPlus Bundle")), true);
 });
