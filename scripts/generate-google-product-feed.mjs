@@ -28,6 +28,11 @@ const outputPath = path.join(publicDir, "google-products.xml");
 const liveOverridesPath = path.join(dataDir, "catalog-live-overrides.json");
 const DEFAULT_GOOGLE_SHIPPING_PRICE_AUD = STANDARD_SHIPPING_RATE_INC_GST_AUD;
 const GOOGLE_IMAGE_FEED_VERSION = "20260618-1";
+const MIN_EXPECTED_SUPPLIER_PRODUCTS = {
+  alloys: 5_000,
+  leader: 1_000,
+  fourCabling: 4_000,
+};
 
 const loadShippingMeasurementOverrides = async () => {
   const supabaseUrl = String(process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || "")
@@ -775,7 +780,8 @@ let alloysLiveItems = [];
 const previousSnapshot = readJson(liveOverridesPath, { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
-const staticFourCProducts = readJson(path.join(dataDir, "4c-products.json")).filter((product) => isCurrentFourCProduct(product));
+const allStaticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
+const staticFourCProducts = allStaticFourCProducts.filter((product) => isCurrentFourCProduct(product));
 const isLeaderSnapshotItem = (product) =>
   product?.supplierSource === "leader" ||
   product?.leaderDealerBuyEx != null ||
@@ -798,6 +804,34 @@ try {
 } catch (error) {
   console.warn(`Alloys live feed unavailable for Google product feed: ${error.message}`);
 }
+
+const assertConfiguredFeedCoverage = (supplier, configured, count, minimum) => {
+  if (configured && count < minimum) {
+    throw new Error(
+      `${supplier} catalogue returned ${count} products; expected at least ${minimum}. ` +
+      "Deployment stopped to prevent a partial supplier catalogue from being published.",
+    );
+  }
+};
+
+assertConfiguredFeedCoverage(
+  "Alloys",
+  Boolean(process.env.ALLOYS_CATALOG_XML_FEED_URL || process.env.ALLOYS_CATALOG_FEED_URL),
+  alloysLiveItems.length,
+  MIN_EXPECTED_SUPPLIER_PRODUCTS.alloys,
+);
+assertConfiguredFeedCoverage(
+  "Leader",
+  Boolean(process.env.LEADER_DATA_FEED_URL),
+  leaderFeedProducts.length,
+  MIN_EXPECTED_SUPPLIER_PRODUCTS.leader,
+);
+assertConfiguredFeedCoverage(
+  "4Cabling",
+  true,
+  allStaticFourCProducts.length,
+  MIN_EXPECTED_SUPPLIER_PRODUCTS.fourCabling,
+);
 
 const activeAlloysItems = (alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems)
   .map((product) => ({ ...product, supplierSource: "alloys" }));

@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { isTangibleCatalogProduct, loadMergedCatalogProducts } from "../catalog/live.js";
+import { loadMergedCatalogProducts } from "../catalog/live.js";
 import { getGoogleShippingDimension, getGoogleShippingWeight } from "../shipping/_estimates.js";
+import { isTangibleCatalogProduct } from "../../shared/catalog-product-classification.js";
 import { buildOptimizedProductTitle } from "../../shared/product-title-policy.js";
 import { STANDARD_SHIPPING_RATE_INC_GST_AUD } from "../../shared/shipping-policy.js";
 

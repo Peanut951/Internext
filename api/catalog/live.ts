@@ -8,7 +8,7 @@ import {
   isVisibleCatalogProduct,
 } from "../../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
-import { isCatalogProductExcluded } from "../../shared/catalog-product-exclusions.js";
+import { isTangibleCatalogProduct } from "../../shared/catalog-product-classification.js";
 import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
@@ -1445,90 +1445,6 @@ const deleteStockOverride = async (input: {
   };
 };
 
-const cleanClassificationText = (value: unknown) =>
-  String(value || "")
-    .replace(/\u00a0/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .toLowerCase();
-
-const getProductClassificationText = (product: Record<string, unknown>) =>
-  cleanClassificationText(
-    [
-      product.code,
-      product.supplierCode,
-      product.manufacturer,
-      product.name,
-      product.description,
-      product.leaderCategory,
-      product.category,
-      product.subcategory,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
-
-const getOfferClassificationText = (product: Record<string, unknown>) =>
-  cleanClassificationText(
-    [
-      product.name,
-      product.description,
-      product.leaderCategory,
-      product.category,
-      product.subcategory,
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
-
-const removeLeadingManufacturer = (text: string, manufacturer: unknown) => {
-  const brand = cleanClassificationText(manufacturer);
-  return brand && text.startsWith(`${brand} `) ? text.slice(brand.length).trim() : text;
-};
-
-const hasPhysicalProductSignal = (text: string) =>
-  /\b(?:adapter|adaptor|access\s*point|battery|bracket|cable|camera|cartridge|case|chair|charger|cord|desktop|display|dock|drum|filament|firewall|handset|hard\s*drive|headset|ink|intercom|keyboard|kit|laptop|lead|monitor|mount|mouse|nas|notebook|nvr|panel|paper|phone|power\s*bank|power\s*supply|printer|printhead|projector|remote|router|scanner|screen|server|speaker|stand|switch|tablet|toner|ups|webcam|workstation)\b/i.test(
-    text,
-  );
-
-export const isTangibleCatalogProduct = (product: Record<string, unknown>) => {
-  if (isCatalogProductExcluded(product)) return false;
-
-  const text = getProductClassificationText(product);
-  const offerText = getOfferClassificationText(product);
-  const debrandedOfferText = removeLeadingManufacturer(offerText, product.manufacturer);
-  if (!text) {
-    return true;
-  }
-
-  const leaderCategory = cleanClassificationText(product.leaderCategory);
-  if (/^(?:software|services?|subscriptions?|licen[cs]es?|warrant(?:y|ies)|support|maintenance)$/.test(leaderCategory)) {
-    return false;
-  }
-
-  const leadingIntangiblePattern =
-    /^(?:[a-z0-9&.+-]+\s+){0,4}(?:\d+\s*)?(?:additional|extra|extended|post|onsite|on-site|nbd|next\s+business\s+day|warranty|support|care\s*pack|cover\s*plus|coverplus|service\s*pack|phone\s+service|renewal|licen[cs]e|subscription|software|cloud\s+service|managed\s+service|professional\s+service|installation\s+service)\b/i;
-  const intangiblePattern =
-    /\b(?:microsoft\s*365|office\s*365|defender\s+suite|subscription|renewal|licen[cs]e|digital\s+download|virtual\s+item|software\s+(?:download|licen[cs]e|subscription|upgrade|assurance)|cloud\s+service|saas|care\s*pack|cover\s*plus|coverplus|service\s*pack|support\s*pack|phone\s+service|post\s*warranty|extended\s*warranty|warranty\s+(?:renewal|upgrade|extension|service|pack)|hardware\s+support|onsite\s+support|on-site\s+support|nbd\s+support|next\s+business\s+day\s+support|installation\s+service|professional\s+service|managed\s+service|training\s+(?:service|course|session)|bootcamp|postscript\s+upgrade|pdf\s+upgrade|additional\s+(?:year|years)|total\s+of\s+\d+\s+(?:year|years)|response\s+service|repair\s+service|exchange\s+service|\b(?:\d+\s*)?(?:year|yr|month|mth)\s+(?:phone\s+)?service\b|\b(?:phone\s+)?service\s+(?:agreement|contract|plan|pack|renewal|support)\b)\b/i;
-
-  const startsLikeIntangible =
-    leadingIntangiblePattern.test(offerText) || leadingIntangiblePattern.test(debrandedOfferText);
-
-  if (startsLikeIntangible || intangiblePattern.test(offerText)) {
-    return false;
-  }
-
-  if (
-    /\b(?:warranty|service)\b/i.test(offerText) &&
-    /\b(?:additional|addl|extra|extended|post|renewal|upgrade|extension|support|onsite|on-site|nbd|response|repair|exchange|care|pack|agreement|contract|plan|total\s+of|swap\s+out|year|years|yr|yrs|mth|month|months)\b/i.test(offerText) &&
-    (!hasPhysicalProductSignal(offerText) || startsLikeIntangible)
-  ) {
-    return false;
-  }
-
-  return true;
-};
-
 const loadLeaderCatalogProducts = async () => {
   const cached = globalCatalogCache.__internextLeaderCatalogProductsCache;
   const now = Date.now();
@@ -2318,7 +2234,10 @@ export default async function handler(
     const forceRefresh = requestUrl.searchParams.has("refresh");
     const refreshStockOverrides = requestUrl.searchParams.has("stockRefresh");
     const wantsMergedProducts = view === "products" || view === "product" || view === "search" || view === "cart";
-    const usesBrowseSnapshot = view === "product" || view === "search";
+    const usesBrowseSnapshot =
+      view === "product" ||
+      view === "search" ||
+      (view === "products" && !forceRefresh && !refreshStockOverrides);
     const catalog = wantsMergedProducts
       ? usesBrowseSnapshot
         ? await loadBrowseCatalogProducts()

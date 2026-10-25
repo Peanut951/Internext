@@ -45,6 +45,27 @@
       "gtin": "9358148021649",
       "supplierCatalogUpdatedAt": "2026-09-21T01:10:21.830Z",
       "quoteRequired": true
+    },
+    {
+      "code": "IPY-T54W",
+      "supplierCode": "SIP-T54W",
+      "supplierSource": "leader",
+      "manufacturer": "Yealink",
+      "name": "Yealink SIP-T54W Prime Business IP Phone",
+      "description": "Yealink SIP-T54W Prime Business IP Phone",
+      "longDescription": "Professional SIP desk phone with an adjustable 4.3-inch 480 x 272 colour display, support for up to 16 VoIP accounts, dual Gigabit Ethernet ports and Power over Ethernet. Integrated Bluetooth 4.2, dual-band Wi-Fi and a USB 2.0 port support flexible office deployments. The phone also includes Yealink Optima HD Voice with Opus codec support, a hearing-aid-compatible handset and wall-mount support.",
+      "category": "VOIP Phones",
+      "subcategory": "Deskphones",
+      "imageUrl": "https://www.yealink.com/website-service/attachment/product/image/20220412/20220412014042818e5253f80492aae3227fc1468a05a.png",
+      "imageUrls": [
+        "https://www.yealink.com/website-service/attachment/product/image/20220412/20220412014042818e5253f80492aae3227fc1468a05a.png"
+      ],
+      "weightKg": null,
+      "heightCm": null,
+      "widthCm": null,
+      "depthCm": null,
+      "gtin": "6938818303171",
+      "quoteRequired": true
     }
   ]
 }

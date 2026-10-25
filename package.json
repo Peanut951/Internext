@@ -13,6 +13,7 @@
     "audit:product-seo": "node scripts/audit-product-seo-content.mjs",
     "audit:seo:live": "node scripts/audit-live-indexability.mjs",
     "test:catalog-identity": "node --test tests/verified-product-identity.test.mjs",
+    "test:catalog-classification": "node --test tests/product-classification.test.mjs",
     "test:4c-catalog": "node --test tests/four-c-catalog.test.mjs",
     "audit:shipping": "node scripts/count-missing-shipping-dimensions.mjs",
     "audit:4c-images": "node scripts/audit-4c-images.mjs",
