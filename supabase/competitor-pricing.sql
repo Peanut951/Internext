@@ -8,7 +8,7 @@ create table if not exists public.competitor_pricing_settings (
   enabled boolean not null default false,
   undercut_amount_inc_gst numeric(12, 2) not null default 1.00
     check (undercut_amount_inc_gst > 0),
-  observation_max_age_hours integer not null default 24
+  observation_max_age_hours integer not null default 168
     check (observation_max_age_hours between 1 and 168),
   note text,
   updated_by text,
@@ -19,6 +19,9 @@ create table if not exists public.competitor_pricing_settings (
 insert into public.competitor_pricing_settings (id, enabled)
 values (true, false)
 on conflict (id) do nothing;
+
+alter table public.competitor_pricing_settings
+  alter column observation_max_age_hours set default 168;
 
 create table if not exists public.competitor_sellers (
   id uuid primary key default gen_random_uuid(),

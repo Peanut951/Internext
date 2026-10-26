@@ -15,6 +15,7 @@ import {
   buildCompetitorPriceRecommendation,
   getCompetitorMinimumAllowedPrice,
   isAutomaticCompetitorPricingAllowed,
+  isProtectedCompetitorPricingProduct,
   type CompetitorObservation,
 } from "../../shared/competitor-pricing.js";
 
@@ -25,6 +26,11 @@ type ApprovedSeller = {
   verified: boolean;
   enabled: boolean;
 };
+
+const BUILT_IN_TRUSTED_SELLERS = [
+  { name: "Mwave Australia", domain: "mwave.com.au" },
+];
+const WEEKLY_OBSERVATION_MAX_AGE_HOURS = 168;
 
 type CatalogIdentityProduct = Record<string, unknown> & {
   code?: string;
@@ -143,30 +149,114 @@ const upsertRows = async (
   });
 };
 
-const getApprovedSellers = async (config: RestConfig): Promise<ApprovedSeller[]> => {
+const getStoredSellers = async (config: RestConfig): Promise<ApprovedSeller[]> => {
   const rows = await restRequest(
     config,
-    `${TABLES.sellers}?select=id,name,domain,verified,enabled&verified=eq.true&enabled=eq.true`,
+    `${TABLES.sellers}?select=id,name,domain,verified,enabled&limit=10000`,
   );
-  return Array.isArray(rows)
-    ? rows.filter((seller) => isEligibleAustralianRetailerDomain(seller.domain))
-    : [];
+  return Array.isArray(rows) ? rows : [];
+};
+
+const getTrustedSellerDefinitions = () => {
+  const configuredDomains = readEnv("COMPETITOR_TRUSTED_SELLER_DOMAINS")
+    .split(",")
+    .map(normalizeCompetitorDomain)
+    .filter(Boolean)
+    .map((domain) => ({ name: domain, domain }));
+  const definitions = [...BUILT_IN_TRUSTED_SELLERS, ...configuredDomains];
+  return Array.from(
+    new Map(
+      definitions
+        .map((seller) => ({ ...seller, domain: normalizeCompetitorDomain(seller.domain) }))
+        .filter((seller) => isEligibleAustralianRetailerDomain(seller.domain))
+        .map((seller) => [seller.domain, seller]),
+    ).values(),
+  );
+};
+
+const ensureTrustedSellers = async (
+  config: RestConfig,
+  provider: string,
+  storedSellers: ApprovedSeller[],
+): Promise<ApprovedSeller[]> => {
+  const sellers = [...storedSellers];
+  const now = new Date().toISOString();
+
+  for (const trusted of getTrustedSellerDefinitions()) {
+    const existing = sellers.find(
+      (seller) => normalizeCompetitorDomain(seller.domain) === trusted.domain,
+    );
+    if (existing?.enabled === false) continue;
+
+    if (existing) {
+      if (!existing.verified) {
+        await restRequest(config, `${TABLES.sellers}?id=eq.${encodeURIComponent(existing.id)}`, {
+          method: "PATCH",
+          headers: { Prefer: "return=minimal" },
+          body: JSON.stringify({
+            verified: true,
+            verification_note: "Trusted Australian retailer configured for automatic competitor pricing.",
+            verified_by: "system:trusted-seller-policy",
+            verified_at: now,
+            updated_at: now,
+          }),
+        });
+        existing.verified = true;
+      }
+      continue;
+    }
+
+    const seller: ApprovedSeller = {
+      id: randomUUID(),
+      name: trusted.name,
+      domain: trusted.domain,
+      verified: true,
+      enabled: true,
+    };
+    try {
+      await restRequest(config, TABLES.sellers, {
+        method: "POST",
+        headers: { Prefer: "return=minimal" },
+        body: JSON.stringify({
+          ...seller,
+          provider,
+          verification_note: "Trusted Australian retailer configured for automatic competitor pricing.",
+          verified_by: "system:trusted-seller-policy",
+          verified_at: now,
+          updated_at: now,
+        }),
+      });
+      sellers.push(seller);
+    } catch (error) {
+      const refreshed = await getStoredSellers(config);
+      const concurrent = refreshed.find(
+        (row) => normalizeCompetitorDomain(row.domain) === trusted.domain,
+      );
+      if (!concurrent) throw error;
+      sellers.push(concurrent);
+    }
+  }
+
+  return sellers.filter(
+    (seller) =>
+      seller.verified === true &&
+      seller.enabled === true &&
+      isEligibleAustralianRetailerDomain(seller.domain),
+  );
 };
 
 const getPricingSettings = async (config: RestConfig) => {
   const rows = await restRequest(
     config,
-    `${TABLES.settings}?select=undercut_amount_inc_gst,observation_max_age_hours&id=eq.true&limit=1`,
+    `${TABLES.settings}?select=observation_max_age_hours&id=eq.true&limit=1`,
   );
   const row = Array.isArray(rows) ? rows[0] : null;
   const maxAgeHours = Number(row?.observation_max_age_hours);
-  const undercutAmountIncGst = Number(row?.undercut_amount_inc_gst);
   return {
-    maxAgeHours: Number.isFinite(maxAgeHours) && maxAgeHours > 0 ? Math.min(maxAgeHours, 168) : 24,
-    undercutAmountIncGst:
-      Number.isFinite(undercutAmountIncGst) && undercutAmountIncGst > 0
-        ? Math.round(undercutAmountIncGst * 100) / 100
-        : 1,
+    maxAgeHours:
+      Number.isFinite(maxAgeHours) && maxAgeHours > 0
+        ? Math.min(maxAgeHours, WEEKLY_OBSERVATION_MAX_AGE_HOURS)
+        : WEEKLY_OBSERVATION_MAX_AGE_HOURS,
   };
 };
 
@@ -390,13 +480,11 @@ const generateAutomaticRecommendations = async ({
   provider,
   products,
   controls,
-  undercutAmountIncGst,
 }: {
   config: RestConfig;
   provider: string;
   products: CatalogIdentityProduct[];
   controls: ProductControl[];
-  undercutAmountIncGst: number;
 }) => {
   const [storedObservations, openRecommendations] = await Promise.all([
     getActiveObservations(config, provider),
@@ -436,7 +524,6 @@ const generateAutomaticRecommendations = async ({
       standardPriceIncGst: standardPrice,
       minimumAllowedPriceIncGst: minimumAllowedPrice ?? standardPrice,
       observations: rows.map(toCompetitorObservation),
-      undercutAmount: undercutAmountIncGst,
       now,
     });
     const existing = openByCode.get(code);
@@ -467,9 +554,9 @@ const generateAutomaticRecommendations = async ({
       minimum_allowed_price_inc_gst: minimumAllowedPrice,
       competitor_price_inc_gst: decision.competitorPriceIncGst,
       recommended_price_inc_gst: decision.recommendedPriceIncGst,
-      undercut_amount_inc_gst: undercutAmountIncGst,
+      undercut_amount_inc_gst: decision.undercutAmountIncGst,
       status: "approved",
-      decision_note: "Automatically approved from an exact product match and an admin-verified seller.",
+      decision_note: `Automatically set ${decision.undercutPercent}% below the landed price from an exact product match and a verified Australian seller.`,
       decided_by: "system:competitor-pricing",
       decided_at: now.toISOString(),
       generated_at: now.toISOString(),
@@ -522,14 +609,15 @@ export const runCompetitorProviderSync = async () => {
   const runId = await createSyncRun(config, provider);
 
   try {
-    const [catalog, sellers, pricingSettings, cursor, controls, storedMatches] = await Promise.all([
+    const [catalog, storedSellers, pricingSettings, cursor, controls, storedMatches] = await Promise.all([
       loadMergedCatalogProducts(),
-      getApprovedSellers(config),
+      getStoredSellers(config),
       getPricingSettings(config),
       getSyncCursor(config, provider),
       getProductControls(config),
       getStoredProductMatches(config, provider),
     ]);
+    const sellers = await ensureTrustedSellers(config, provider, storedSellers);
     const excludedCodes = new Set(
       controls
         .filter((control) => control.mode === "excluded")
@@ -540,6 +628,7 @@ export const runCompetitorProviderSync = async () => {
       (product) =>
         product.quoteRequired !== true &&
         product.publicPriceFixed !== true &&
+        !isProtectedCompetitorPricingProduct(product) &&
         !excludedCodes.has(String(product.code || "").trim().toLowerCase()),
     );
     const providerResult = await fetchConfiguredProviderListings({
@@ -591,7 +680,6 @@ export const runCompetitorProviderSync = async () => {
       provider: providerResult.provider,
       products: catalog.items,
       controls,
-      undercutAmountIncGst: pricingSettings.undercutAmountIncGst,
     });
     await saveSyncCursor(config, providerResult.provider, providerResult.nextCursor);
 

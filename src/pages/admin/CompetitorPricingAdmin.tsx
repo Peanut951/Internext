@@ -116,7 +116,7 @@ type PricingSummary = {
   mode: PricingMode;
   databaseEnabled: boolean;
   settings?: {
-    undercut_amount_inc_gst?: number;
+    undercut_percent?: number;
     observation_max_age_hours?: number;
     updated_at?: string;
   } | null;

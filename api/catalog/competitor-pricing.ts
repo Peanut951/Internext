@@ -6,6 +6,7 @@ import {
 } from "../../shared/competitor-provider-normalization.js";
 import { getCompetitorPricingMode } from "./_competitorPricing.js";
 import { runCompetitorProviderSync } from "./_competitorProviderSync.js";
+import { DEFAULT_COMPETITOR_UNDERCUT_PERCENT } from "../../shared/competitor-pricing.js";
 
 const TABLES = {
   settings: "competitor_pricing_settings",
@@ -155,6 +156,7 @@ export default async function handler(
           "PATCH",
           {
             enabled: body.enabled,
+            ...(body.enabled ? { observation_max_age_hours: 168 } : {}),
             note: body.enabled
               ? "Automatic competitor pricing enabled from the Internext admin portal."
               : "Automatic competitor pricing paused from the Internext admin portal.",
@@ -305,7 +307,7 @@ export default async function handler(
     const [settingsRows, observations, recommendations, candidates, sellers, syncRuns, controlRows, productMatches] = await Promise.all([
       fetchRows(
         config,
-        `${TABLES.settings}?select=enabled,undercut_amount_inc_gst,observation_max_age_hours,updated_at&id=eq.true&limit=1`,
+        `${TABLES.settings}?select=enabled,observation_max_age_hours,updated_at&id=eq.true&limit=1`,
       ),
       productCode
         ? fetchRows(
@@ -356,7 +358,9 @@ export default async function handler(
             `${TABLES.productMatches}?select=product_code,provider,provider_product_id,provider_product_name,match_method,verified,verified_at,last_seen_at&order=last_seen_at.desc&limit=250`,
           ),
     ]);
-    const settings = settingsRows[0] || null;
+    const settings = settingsRows[0]
+      ? { ...settingsRows[0], undercut_percent: DEFAULT_COMPETITOR_UNDERCUT_PERCENT }
+      : null;
 
     res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
     return sendJson(res, 200, {

@@ -18,20 +18,22 @@ for collecting and reviewing recommendations without applying them.
 
 An observation must meet every requirement:
 
-- The seller is enabled and has been verified by an Internext administrator.
+- The seller is enabled and is either a configured trusted retailer or has been verified by an
+  Internext administrator.
 - The listing is in stock.
 - Item and shipping prices are GST-inclusive and shipping has been verified.
 - Product matching is exact by GTIN, exact brand plus MPN, or explicit manual verification.
 - The observation has not expired.
 - The competitor's landed price is below the current Internext standard public price.
 
-The proposed public price is the cheapest eligible landed price minus `$1.00`. It is rejected when
-that result is below the explicitly supplied minimum allowed price. Reseller pricing is not read or
-changed by this rule.
+The proposed public price is `95%` of the cheapest eligible landed price, which places Internext 5%
+below that competitor. It is rejected when that result is below the explicitly supplied minimum
+allowed price. Reseller pricing is not changed by this rule.
 
 ## Product modes
 
-- `Monitor` is the default. Offers are recorded, but the public price cannot change.
+- `Automatic` is the default for otherwise eligible products.
+- `Monitor` records offers but prevents the public price from changing.
 - `Automatic` permits an otherwise eligible approved recommendation to reach the public catalogue.
 - `Excluded` prevents the product from being submitted for competitor discovery.
 
@@ -61,20 +63,24 @@ DataForSEO uses asynchronous standard-priority tasks. The daily cron imports com
 submits at least one-sixth of the eligible, currently priced catalogue. This completes a full scan
 within six daily runs and leaves the seventh day as recovery capacity. The cursor starts the next
 cycle seven days after the prior cycle began, rather than seven days after it finished. Verified
-Google product IDs are cached so later scans can request current Product Info directly. Only tasks
-tagged for Internext are read from the account.
+Google product IDs are cached so later scans can request current Product Info directly. Eligible
+observations remain valid for the seven-day scan cycle and are replaced by the next verified scan.
+Only tasks tagged for Internext are read from the account.
 
 Provider discovery and public repricing are separate controls. Enabling discovery only imports
 review data; it does not enable recommendations or alter customer prices.
 
 Automatic repricing is fail-closed. Grandstream products (including `GR-` catalogue codes),
 fixed-price products, monitor-only products and excluded products can never receive an automatic
-adjustment. A recommendation must be exactly $1 below the cheapest eligible landed price and remain
+adjustment. A recommendation must be exactly 5% below the cheapest eligible landed price and remain
 at least 5% above supplier cost before GST. Products whose cost cannot be derived are unchanged.
 
 ## Seller approval
 
-Discovered domains are quarantined in `competitor_discovery_candidates`. An administrator can
+Mwave (`mwave.com.au`) is a built-in trusted Australian retailer. Additional deliberately trusted
+domains can be supplied through `COMPETITOR_TRUSTED_SELLER_DOMAINS` as a comma-separated list.
+Discovered domains that are not on that trusted list are quarantined in
+`competitor_discovery_candidates`. An administrator can
 approve or reject a seller from the competitor-pricing section on an admin product page. Approval
 adds the normalized domain to `competitor_sellers`; eligible exact matches are imported as verified
 observations on the next provider sync. Subdomains are allowed only under that approved parent
