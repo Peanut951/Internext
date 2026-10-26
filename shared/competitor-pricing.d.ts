@@ -27,9 +27,12 @@ export type CompetitorRecommendation =
       standardPriceIncGst: number;
       competitorPriceIncGst: number;
       recommendedPriceIncGst: number;
+      undercutPercent: number;
+      undercutAmountIncGst: number;
       savingIncGst: number;
     };
 
+export const DEFAULT_COMPETITOR_UNDERCUT_PERCENT: number;
 export function normalizeProductIdentity(value: unknown): string;
 export function getCompetitorMinimumAllowedPrice(resellerPriceExGst: unknown): number | null;
 export function isProtectedCompetitorPricingProduct(
@@ -47,7 +50,7 @@ export function buildCompetitorPriceRecommendation(input: {
   standardPriceIncGst: number;
   minimumAllowedPriceIncGst: number;
   observations: CompetitorObservation[];
-  undercutAmount?: number;
+  undercutPercent?: number;
   now?: Date | string;
 }): CompetitorRecommendation;
 

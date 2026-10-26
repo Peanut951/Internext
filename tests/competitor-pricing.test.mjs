@@ -27,7 +27,7 @@ const observation = (overrides = {}) => ({
   ...overrides,
 });
 
-test("selects the cheapest eligible seller and recommends exactly one dollar below", () => {
+test("selects the cheapest eligible seller and recommends five percent below", () => {
   const result = buildCompetitorPriceRecommendation({
     standardPriceIncGst: 180,
     minimumAllowedPriceIncGst: 120,
@@ -41,8 +41,10 @@ test("selects the cheapest eligible seller and recommends exactly one dollar bel
   assert.equal(result.eligible, true);
   assert.equal(result.cheapestObservation.id, "lowest");
   assert.equal(result.competitorPriceIncGst, 150);
-  assert.equal(result.recommendedPriceIncGst, 149);
-  assert.equal(result.savingIncGst, 31);
+  assert.equal(result.recommendedPriceIncGst, 142.5);
+  assert.equal(result.undercutPercent, 5);
+  assert.equal(result.undercutAmountIncGst, 7.5);
+  assert.equal(result.savingIncGst, 37.5);
 });
 
 test("rejects an unverified seller even when it has the cheapest price", () => {
@@ -58,7 +60,7 @@ test("rejects an unverified seller even when it has the cheapest price", () => {
 
   assert.equal(result.eligible, true);
   assert.equal(result.cheapestObservation.id, "verified");
-  assert.equal(result.recommendedPriceIncGst, 149);
+  assert.equal(result.recommendedPriceIncGst, 142.5);
 });
 
 test("rejects stale, out-of-stock, unknown-shipping, and fuzzy matches", () => {
@@ -92,7 +94,32 @@ test("refuses to reduce below the explicit minimum allowed price", () => {
 
   assert.equal(result.eligible, false);
   assert.equal(result.reason, "minimum_price_would_be_breached");
-  assert.equal(result.recommendedPriceIncGst, 148);
+  assert.equal(result.recommendedPriceIncGst, 141.55);
+});
+
+test("supports an explicit percentage while rejecting invalid percentages", () => {
+  const result = buildCompetitorPriceRecommendation({
+    standardPriceIncGst: 200,
+    minimumAllowedPriceIncGst: 100,
+    observations: [observation({ landedPriceIncGst: 160 })],
+    undercutPercent: 10,
+    now,
+  });
+
+  assert.equal(result.eligible, true);
+  assert.equal(result.recommendedPriceIncGst, 144);
+  assert.equal(result.undercutAmountIncGst, 16);
+
+  assert.deepEqual(
+    buildCompetitorPriceRecommendation({
+      standardPriceIncGst: 200,
+      minimumAllowedPriceIncGst: 100,
+      observations: [observation()],
+      undercutPercent: 100,
+      now,
+    }),
+    { eligible: false, reason: "invalid_undercut_percent" },
+  );
 });
 
 test("does not change the price when Internext is already cheapest", () => {

@@ -2,6 +2,8 @@ import { isEligibleAustralianRetailerDomain } from "./competitor-provider-normal
 
 const EXACT_MATCH_METHODS = new Set(["gtin", "brand_mpn", "manual_verified"]);
 
+export const DEFAULT_COMPETITOR_UNDERCUT_PERCENT = 5;
+
 const roundCurrency = (value) => Math.round((value + Number.EPSILON) * 100) / 100;
 
 const isPositiveMoney = (value) =>
@@ -92,7 +94,7 @@ export const buildCompetitorPriceRecommendation = ({
   standardPriceIncGst,
   minimumAllowedPriceIncGst,
   observations,
-  undercutAmount = 1,
+  undercutPercent = DEFAULT_COMPETITOR_UNDERCUT_PERCENT,
   now = new Date(),
 }) => {
   if (!isPositiveMoney(standardPriceIncGst)) {
@@ -101,8 +103,8 @@ export const buildCompetitorPriceRecommendation = ({
   if (!isPositiveMoney(minimumAllowedPriceIncGst)) {
     return { eligible: false, reason: "minimum_price_required" };
   }
-  if (!isPositiveMoney(undercutAmount)) {
-    return { eligible: false, reason: "invalid_undercut_amount" };
+  if (!isPositiveMoney(undercutPercent) || undercutPercent >= 100) {
+    return { eligible: false, reason: "invalid_undercut_percent" };
   }
 
   const eligibleObservations = (Array.isArray(observations) ? observations : [])
@@ -118,7 +120,10 @@ export const buildCompetitorPriceRecommendation = ({
   }
 
   const recommendedPriceIncGst = roundCurrency(
-    cheapestObservation.landedPriceIncGst - undercutAmount,
+    cheapestObservation.landedPriceIncGst * (1 - undercutPercent / 100),
+  );
+  const undercutAmountIncGst = roundCurrency(
+    cheapestObservation.landedPriceIncGst - recommendedPriceIncGst,
   );
   if (!isPositiveMoney(recommendedPriceIncGst)) {
     return { eligible: false, reason: "recommended_price_invalid" };
@@ -139,6 +144,8 @@ export const buildCompetitorPriceRecommendation = ({
     standardPriceIncGst: roundCurrency(standardPriceIncGst),
     competitorPriceIncGst: roundCurrency(cheapestObservation.landedPriceIncGst),
     recommendedPriceIncGst,
+    undercutPercent,
+    undercutAmountIncGst,
     savingIncGst: roundCurrency(standardPriceIncGst - recommendedPriceIncGst),
   };
 };
