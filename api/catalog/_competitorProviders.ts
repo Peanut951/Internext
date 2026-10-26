@@ -28,6 +28,13 @@ export type ProviderFetchResult = {
     searchMatchesQueued: number;
     unverifiedProductPages: number;
   };
+  scanPlan?: {
+    cycleDays: number;
+    batchSize: number;
+    eligibleProducts: number;
+    offset: number;
+    scanCompleted: boolean;
+  };
 };
 
 export type ProviderFetchOptions = {
@@ -245,7 +252,9 @@ export const getConfiguredCompetitorProvider = (): CompetitorProviderName => {
   throw new Error("COMPETITOR_PRICE_PROVIDER must be dataforseo, prisync, or price2spy.");
 };
 
-export const fetchConfiguredProviderListings = async (options: ProviderFetchOptions = {}) => {
+export const fetchConfiguredProviderListings = async (
+  options: ProviderFetchOptions = {},
+): Promise<ProviderFetchResult> => {
   const provider = getConfiguredCompetitorProvider();
   if (provider === "prisync") return fetchPrisyncListings(options);
   if (provider === "price2spy") return fetchPrice2SpyListings();

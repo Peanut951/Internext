@@ -60,12 +60,12 @@ provider catalogue without restarting at page one. Price2Spy returns its current
 bulk request.
 
 DataForSEO uses asynchronous standard-priority tasks. The daily cron imports completed tasks and
-submits at least one-sixth of the eligible, currently priced catalogue. This completes a full scan
-within six daily runs and leaves the seventh day as recovery capacity. The cursor starts the next
-cycle seven days after the prior cycle began, rather than seven days after it finished. Verified
-Google product IDs are cached so later scans can request current Product Info directly. Eligible
-observations remain valid for the seven-day scan cycle and are replaced by the next verified scan.
-Only tasks tagged for Internext are read from the account.
+submits at least one-third of the eligible, currently priced catalogue. Product codes are sorted
+before batching and the stored cursor advances to a distinct batch after every successful run. This
+completes a full submission cycle in three daily runs, then starts the next cycle on the following
+scheduled day. Verified Google product IDs are cached so later scans can request current Product
+Info directly. Eligible observations remain valid for up to seven days and are replaced by the next
+verified scan. Only tasks tagged for Internext are read from the account.
 
 Provider discovery and public repricing are separate controls. Enabling discovery only imports
 review data; it does not enable recommendations or alter customer prices.

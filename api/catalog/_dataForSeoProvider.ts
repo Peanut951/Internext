@@ -8,7 +8,8 @@ import {
   buildDataForSeoSearchKeyword,
   classifyDataForSeoTaskPayload,
   collectDataForSeoTaskPayloads,
-  getWeeklyScanBatchSize,
+  getScanCycleBatchSize,
+  getScanCycleWindow,
 } from "../../shared/dataforseo-task-utils.js";
 
 export { buildDataForSeoSearchKeyword } from "../../shared/dataforseo-task-utils.js";
@@ -64,6 +65,7 @@ export type DataForSeoFetchResult = {
 
 const API_ROOT = "https://api.dataforseo.com/v3/merchant/google";
 const TAG_PREFIX = "internext:";
+const DAILY_BATCH_INTERVAL_MS = 20 * 60 * 60 * 1000;
 
 const readPositiveInteger = (name: string, fallback: number, maximum: number) => {
   const value = Math.floor(Number(readEnv(name)));
@@ -220,14 +222,16 @@ const parseCursor = (cursor: string | null | undefined) => {
       offset?: unknown;
       nextScanAt?: unknown;
       cycleStartedAt?: unknown;
+      cycleDays?: unknown;
     };
     return {
       offset: Math.max(0, Math.floor(Number(parsed.offset) || 0)),
       nextScanAt: String(parsed.nextScanAt || ""),
       cycleStartedAt: String(parsed.cycleStartedAt || ""),
+      cycleDays: Math.max(0, Math.floor(Number(parsed.cycleDays) || 0)),
     };
   } catch {
-    return { offset: 0, nextScanAt: "", cycleStartedAt: "" };
+    return { offset: 0, nextScanAt: "", cycleStartedAt: "", cycleDays: 0 };
   }
 };
 
@@ -240,20 +244,20 @@ export const fetchDataForSeoListings = async (
       .map((product) => [String(product.code || "").trim().toLowerCase(), product] as const)
       .filter(([code]) => Boolean(code)),
   );
-  const cycleDays = readPositiveInteger("DATAFORSEO_FULL_RESCAN_DAYS", 7, 30);
-  const weeklyBatchSize = getWeeklyScanBatchSize(options.products.length, cycleDays, 1);
+  const cycleDays = readPositiveInteger("DATAFORSEO_FULL_RESCAN_DAYS", 3, 3);
+  const cycleBatchSize = getScanCycleBatchSize(options.products.length, cycleDays);
   const configuredBatchSize = readPositiveInteger(
     "COMPETITOR_SYNC_MAX_PRODUCTS",
-    weeklyBatchSize || 1,
-    5000,
+    cycleBatchSize || 1,
+    10_000,
   );
-  const batchSize = Math.max(weeklyBatchSize, configuredBatchSize);
+  const batchSize = Math.max(cycleBatchSize, configuredBatchSize);
   const configuredReadyLimit = readPositiveInteger(
     "DATAFORSEO_READY_TASK_LIMIT",
     batchSize || 1,
-    2000,
+    6000,
   );
-  const maxReady = Math.min(2000, Math.max(batchSize, configuredReadyLimit));
+  const maxReady = Math.min(6000, Math.max(batchSize, configuredReadyLimit));
   const resultConcurrency = readPositiveInteger("DATAFORSEO_RESULT_CONCURRENCY", 24, 50);
   const requests = { count: 0 };
   const listings: NormalizedProviderListing[] = [];
@@ -345,10 +349,14 @@ export const fetchDataForSeoListings = async (
     });
   }
 
-  const cursor = parseCursor(options.cursor);
+  const storedCursor = parseCursor(options.cursor);
+  const cursor = storedCursor.cycleDays === cycleDays
+    ? storedCursor
+    : { offset: 0, nextScanAt: "", cycleStartedAt: "", cycleDays };
   const now = Date.now();
   const scanDue = !cursor.nextScanAt || Date.parse(cursor.nextScanAt) <= now;
-  const batch = scanDue ? options.products.slice(cursor.offset, cursor.offset + batchSize) : [];
+  const window = getScanCycleWindow(options.products.length, batchSize, cursor.offset);
+  const batch = scanDue ? options.products.slice(window.start, window.end) : [];
   const parsedCycleStartedAt = Date.parse(cursor.cycleStartedAt);
   const cycleStartedAt = cursor.offset > 0 && Number.isFinite(parsedCycleStartedAt)
     ? parsedCycleStartedAt
@@ -388,19 +396,23 @@ export const fetchDataForSeoListings = async (
   requests.count += await postTasks("product_info/task_post", productInfoTasks, config.authorization);
   requests.count += await postTasks("products/task_post", searchTasks, config.authorization);
 
-  const nextOffset = cursor.offset + batch.length;
-  const scanCompleted = batch.length > 0 && nextOffset >= options.products.length;
+  const nextOffset = scanDue ? window.nextOffset : cursor.offset;
+  const scanCompleted = batch.length > 0 && window.completed;
   const nextCycleAt = cycleStartedAt + cycleDays * 24 * 60 * 60 * 1000;
   const nextCursor = scanCompleted
     ? JSON.stringify({
         offset: 0,
         nextScanAt: new Date(Math.max(now, nextCycleAt)).toISOString(),
         cycleStartedAt: null,
+        cycleDays,
       })
     : JSON.stringify({
         offset: nextOffset,
-        nextScanAt: cursor.nextScanAt || null,
+        nextScanAt: scanDue
+          ? new Date(now + DAILY_BATCH_INTERVAL_MS).toISOString()
+          : cursor.nextScanAt || null,
         cycleStartedAt: new Date(cycleStartedAt).toISOString(),
+        cycleDays,
       });
 
   return {

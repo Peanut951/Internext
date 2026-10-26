@@ -1,14 +1,28 @@
 const tasksFromPayload = (payload) => Array.isArray(payload?.tasks) ? payload.tasks : [];
 
-export const getWeeklyScanBatchSize = (
+export const getScanCycleBatchSize = (
   productCount,
-  cycleDays = 7,
-  recoveryDays = 1,
+  cycleDays = 3,
+  recoveryDays = 0,
 ) => {
   const count = Math.max(0, Math.floor(Number(productCount) || 0));
-  const days = Math.max(1, Math.floor(Number(cycleDays) || 7));
+  const days = Math.max(1, Math.floor(Number(cycleDays) || 3));
   const recovery = Math.max(0, Math.min(days - 1, Math.floor(Number(recoveryDays) || 0)));
   return count === 0 ? 0 : Math.ceil(count / Math.max(1, days - recovery));
+};
+
+export const getScanCycleWindow = (productCount, batchSize, offset = 0) => {
+  const count = Math.max(0, Math.floor(Number(productCount) || 0));
+  const size = Math.max(1, Math.floor(Number(batchSize) || 1));
+  const requestedStart = Math.max(0, Math.floor(Number(offset) || 0));
+  const start = count > 0 && requestedStart >= count ? 0 : Math.min(count, requestedStart);
+  const end = Math.min(count, start + size);
+  return {
+    start,
+    end,
+    nextOffset: end,
+    completed: count > 0 && end >= count,
+  };
 };
 
 export const classifyDataForSeoTaskPayload = (payload) => {

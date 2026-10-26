@@ -12,7 +12,8 @@ import {
   buildDataForSeoSearchKeyword,
   classifyDataForSeoTaskPayload,
   collectDataForSeoTaskPayloads,
-  getWeeklyScanBatchSize,
+  getScanCycleBatchSize,
+  getScanCycleWindow,
 } from "../shared/dataforseo-task-utils.js";
 
 const catalog = [
@@ -270,10 +271,22 @@ test("searches Google Shopping by brand and model instead of an overly narrow GT
   assert.equal(buildDataForSeoSearchKeyword(catalog[0]), "Grandstream GR-GRP2613W");
 });
 
-test("plans a complete catalogue scan within six runs of a seven-day cycle", () => {
-  assert.equal(getWeeklyScanBatchSize(7_130), 1_189);
-  assert.equal(getWeeklyScanBatchSize(10_287), 1_715);
-  assert.equal(getWeeklyScanBatchSize(0), 0);
+test("plans distinct daily batches that cover the catalogue in three runs", () => {
+  const batchSize = getScanCycleBatchSize(7_130);
+  assert.equal(batchSize, 2_377);
+  assert.equal(getScanCycleBatchSize(10_287), 3_429);
+  assert.equal(getScanCycleBatchSize(0), 0);
+
+  const dayOne = getScanCycleWindow(7_130, batchSize, 0);
+  const dayTwo = getScanCycleWindow(7_130, batchSize, dayOne.nextOffset);
+  const dayThree = getScanCycleWindow(7_130, batchSize, dayTwo.nextOffset);
+  assert.deepEqual(dayOne, { start: 0, end: 2_377, nextOffset: 2_377, completed: false });
+  assert.deepEqual(dayTwo, { start: 2_377, end: 4_754, nextOffset: 4_754, completed: false });
+  assert.deepEqual(dayThree, { start: 4_754, end: 7_130, nextOffset: 7_130, completed: true });
+  assert.deepEqual(
+    getScanCycleWindow(7_000, batchSize, 7_130),
+    { start: 0, end: 2_377, nextOffset: 2_377, completed: false },
+  );
 });
 
 test("marks used DataForSEO offers as ineligible", () => {

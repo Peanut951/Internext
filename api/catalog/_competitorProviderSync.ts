@@ -624,13 +624,20 @@ export const runCompetitorProviderSync = async () => {
         .map((control) => control.product_code.trim().toLowerCase())
         .filter(Boolean),
     );
-    const eligibleProducts = catalog.items.filter(
-      (product) =>
-        product.quoteRequired !== true &&
-        product.publicPriceFixed !== true &&
-        !isProtectedCompetitorPricingProduct(product) &&
-        !excludedCodes.has(String(product.code || "").trim().toLowerCase()),
-    );
+    const eligibleProducts = catalog.items
+      .filter(
+        (product) =>
+          product.quoteRequired !== true &&
+          product.publicPriceFixed !== true &&
+          !isProtectedCompetitorPricingProduct(product) &&
+          !excludedCodes.has(String(product.code || "").trim().toLowerCase()),
+      )
+      .sort((left, right) =>
+        String(left.code || "").localeCompare(String(right.code || ""), "en", {
+          numeric: true,
+          sensitivity: "base",
+        }),
+      );
     const providerResult = await fetchConfiguredProviderListings({
       cursor,
       products: eligibleProducts,
@@ -695,10 +702,19 @@ export const runCompetitorProviderSync = async () => {
       recommendationsGenerated: recommendationResult.generated,
       recommendationsExpired: recommendationResult.expired,
       diagnostics: providerResult.diagnostics,
+      scanPlan: providerResult.scanPlan,
     };
     const resultParts = [];
     if (result.diagnostics) {
-      resultParts.push(`${result.productsRead} catalogue products submitted`);
+      const batchStart = result.scanPlan && result.productsRead > 0
+        ? result.scanPlan.offset + 1
+        : null;
+      const batchEnd = batchStart === null ? null : batchStart + result.productsRead - 1;
+      resultParts.push(
+        batchStart !== null && batchEnd !== null
+          ? `${result.productsRead} catalogue products submitted (batch ${batchStart}-${batchEnd} of ${result.scanPlan?.eligibleProducts})`
+          : `${result.productsRead} catalogue products submitted`,
+      );
       resultParts.push(`${result.diagnostics.tasksCollected} completed tasks collected`);
       resultParts.push(`${result.diagnostics.searchMatchesQueued} seller lookups queued`);
     }
