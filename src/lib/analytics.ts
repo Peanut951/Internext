@@ -127,13 +127,16 @@ export const trackPurchase = (params: {
   tax: number;
   items: AnalyticsItem[];
 }) => {
-  trackEvent("purchase", {
+  const purchaseParams = {
     transaction_id: params.transactionId,
     value: params.value,
     shipping: params.shipping,
     tax: params.tax,
     items: params.items,
-  });
+  };
+
+  trackEvent("purchase", purchaseParams);
+  trackEvent("conversion_event_purchase", purchaseParams);
 };
 
 export const trackContactFormSubmitted = (enquiryType: string) => {
