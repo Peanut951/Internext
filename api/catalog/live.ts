@@ -1508,12 +1508,25 @@ const loadLeaderCatalogProductsUncached = async (
     }
 
     const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
-    const raw = await readFile(leaderPath, "utf8");
+    const localStockPath = join(process.cwd(), "public", "data", "local-stock-products.json");
+    const [raw, localStockRaw] = await Promise.all([
+      readFile(leaderPath, "utf8"),
+      readFile(localStockPath, "utf8"),
+    ]);
     const staticProducts = (JSON.parse(raw) as LeaderCatalogProduct[]).filter(
       (product) => !isLeaderPdfExcluded(product),
     );
+    const localStockProducts = (JSON.parse(localStockRaw) as LeaderCatalogProduct[]).filter(
+      (product) => !isLeaderPdfExcluded(product),
+    );
     const productsByKey = new Map<string, LeaderCatalogProduct>();
-    const sourceProducts = feedUrl && feedProducts.length > 0 ? feedProducts : staticProducts;
+    const localStockKeys = new Set(localStockProducts.flatMap(getProductKeys));
+    const supplierProducts = feedUrl && feedProducts.length > 0 ? feedProducts : staticProducts;
+    const sourceProducts = [
+      ...supplierProducts.filter((product) =>
+        getProductKeys(product).every((key) => !localStockKeys.has(key))),
+      ...localStockProducts,
+    ];
 
     for (const product of sourceProducts) {
       const keys = getProductKeys(product);
@@ -1545,8 +1558,19 @@ const loadLeaderCatalogProductsUncached = async (
     try {
       await loadLeaderPdfExclusionCodes();
       const leaderPath = join(process.cwd(), "public", "data", "leader-products.json");
-      const raw = await readFile(leaderPath, "utf8");
-      return (JSON.parse(raw) as LeaderCatalogProduct[]).filter(
+      const localStockPath = join(process.cwd(), "public", "data", "local-stock-products.json");
+      const [raw, localStockRaw] = await Promise.all([
+        readFile(leaderPath, "utf8"),
+        readFile(localStockPath, "utf8"),
+      ]);
+      const staticProducts = JSON.parse(raw) as LeaderCatalogProduct[];
+      const localStockProducts = JSON.parse(localStockRaw) as LeaderCatalogProduct[];
+      const localStockKeys = new Set(localStockProducts.flatMap(getProductKeys));
+      return [
+        ...staticProducts.filter((product) =>
+          getProductKeys(product).every((key) => !localStockKeys.has(key))),
+        ...localStockProducts,
+      ].filter(
         (product) => !isLeaderPdfExcluded(product) && isTangibleCatalogProduct(product as Record<string, unknown>),
       );
     } catch {

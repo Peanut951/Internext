@@ -158,6 +158,23 @@ const formatCustomerAud = (value) =>
 const formatResellerAud = (value) =>
   value === null ? "P.O.A." : `${formatAud(value)} Ex GST`;
 
+export const applyLeaderPricing = (product) => {
+  const costExGst = parsePositiveNumber(product?.leaderDealerBuyEx);
+  const resellerPrice = applyMarkup(costExGst, RESELLER_MARGIN_PERCENT);
+  const price = applyTax(
+    applyMarkup(costExGst, CUSTOMER_MARGIN_PERCENT),
+    CUSTOMER_GST_PERCENT,
+  );
+
+  return {
+    ...product,
+    price,
+    priceText: formatCustomerAud(price),
+    resellerPrice,
+    resellerPriceText: formatResellerAud(resellerPrice),
+  };
+};
+
 export const parseLeaderFeedCsv = (csv) => {
   const [headers = [], ...records] = parseCsvRecords(csv);
   const normalizedHeaders = headers.map(normalizeHeaderName);
@@ -190,13 +207,7 @@ export const parseLeaderFeedCsv = (csv) => {
       const category = cleanText(getCsvValue(row, "CATEGORY NAME"));
       const subcategory = cleanText(getCsvValue(row, "SUBCATEGORY NAME"));
       const longDescription = cleanText(getCsvValue(row, "LONG DESCRIPTION"));
-      const resellerPrice = applyMarkup(dealerBuyEx, RESELLER_MARGIN_PERCENT);
-      const price = applyTax(
-        applyMarkup(dealerBuyEx, CUSTOMER_MARGIN_PERCENT),
-        CUSTOMER_GST_PERCENT,
-      );
-
-      return {
+      return applyLeaderPricing({
         code,
         supplierCode: getCsvValue(row, "MANUFACTURER SKU").trim() || code,
         manufacturer: cleanText(getCsvValue(row, "MANUFACTURER")) || "Leader",
@@ -205,10 +216,6 @@ export const parseLeaderFeedCsv = (csv) => {
         imageUrl,
         imageUrls: imageUrl ? [imageUrl] : [],
         leaderDealerBuyEx: dealerBuyEx,
-        price,
-        priceText: formatCustomerAud(price),
-        resellerPrice,
-        resellerPriceText: formatResellerAud(resellerPrice),
         stockQuantity,
         stockByWarehouse,
         category,
@@ -219,7 +226,7 @@ export const parseLeaderFeedCsv = (csv) => {
         depthCm: millimetresToCentimetres(parsePositiveNumber(getCsvValue(row, "LENGTH"))),
         gtin: barcode,
         barcode,
-      };
+      });
     })
     .filter(Boolean);
 };

@@ -4,7 +4,7 @@ import { isCurrentFourCProduct } from "../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../shared/catalog-content-overrides.js";
 import { buildOptimizedProductTitle } from "../shared/product-title-policy.js";
 import { STANDARD_SHIPPING_RATE_INC_GST_AUD } from "../shared/shipping-policy.js";
-import { loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
+import { applyLeaderPricing, loadLeaderFeedProducts } from "./lib/leader-feed.mjs";
 import { loadAlloysLiveCatalogItems, mergeAlloysLivePricing } from "./lib/alloys-live-feed.mjs";
 import {
   applyVerifiedProductIdentities,
@@ -780,6 +780,8 @@ let alloysLiveItems = [];
 const previousSnapshot = readJson(liveOverridesPath, { items: [] });
 const previousSnapshotItems = Array.isArray(previousSnapshot.items) ? previousSnapshot.items : [];
 const staticLeaderProducts = readJson(path.join(dataDir, "leader-products.json"));
+const localStockProducts = readJson(path.join(dataDir, "local-stock-products.json"), [])
+  .map(applyLeaderPricing);
 const allStaticFourCProducts = readJson(path.join(dataDir, "4c-products.json"));
 const staticFourCProducts = allStaticFourCProducts.filter((product) => isCurrentFourCProduct(product));
 const isLeaderSnapshotItem = (product) =>
@@ -835,13 +837,19 @@ assertConfiguredFeedCoverage(
 
 const activeAlloysItems = (alloysLiveItems.length > 0 ? alloysLiveItems : previousAlloysItems)
   .map((product) => ({ ...product, supplierSource: "alloys" }));
-const activeLeaderItems = (
+const supplierLeaderItems = (
   leaderFeedProducts.length > 0
     ? leaderFeedProducts
     : previousLeaderItems.length > 0
       ? previousLeaderItems
       : staticLeaderProducts
-).map((product) => ({ ...product, supplierSource: "leader" }));
+);
+const localStockKeys = new Set(localStockProducts.flatMap(getProductKeys));
+const activeLeaderItems = [
+  ...supplierLeaderItems.filter((product) =>
+    getProductKeys(product).every((key) => !localStockKeys.has(key))),
+  ...localStockProducts,
+].map((product) => ({ ...product, supplierSource: "leader" }));
 const activeFourCItems = (
   staticFourCProducts.length > 0 ? staticFourCProducts : previousFourCItems
 ).map((product) => ({ ...product, supplierSource: "4cabling" }));
@@ -919,7 +927,7 @@ const products = mergeProducts(applyVerifiedProductIdentities(
 const items = products.map((product) => {
   const images = getGoogleImages(product, excludedCodes);
   const image = images[0] || getGoogleImage(product, excludedCodes);
-  const additionalImages = [];
+  const additionalImages = product.googleAdditionalImages === true ? images.slice(1, 11) : [];
   const mpn = getProductMpn(product);
   const gtin = getProductGtin(product);
   const availability = getAvailability(product);

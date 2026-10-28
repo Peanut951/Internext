@@ -1,0 +1,38 @@
+[
+  {
+    "code": "IPY-T54W",
+    "supplierCode": "SIP-T54W",
+    "supplierSource": "leader",
+    "manufacturer": "Yealink",
+    "description": "Yealink SIP-T54W Prime Business Phone",
+    "longDescription": "The Yealink SIP-T54W is a professional 16-account SIP desk phone designed for managers, executives and busy office users. Its adjustable 4.3-inch colour display, Yealink HD Voice and full-duplex speakerphone provide a clear and practical calling experience for day-to-day business communications.\n\nKey specifications:\n- 4.3-inch 480 x 272-pixel colour display with backlight\n- Up to 16 SIP accounts\n- Built-in dual-band 2.4 GHz and 5 GHz Wi-Fi\n- Built-in Bluetooth 4.2 for compatible headsets and mobile contact synchronisation\n- Dual-port Gigabit Ethernet\n- IEEE 802.3af Power over Ethernet support\n- USB 2.0 port for call recording, compatible USB headsets and up to three optional EXP50 expansion modules\n- Yealink HD Voice, Acoustic Shield and smart noise filtering\n- Hearing aid compatible handset\n- Wall-mountable with the optional Yealink bracket\n\nThe T54W supports central provisioning and is suitable for office rollouts, reception overflow positions, hybrid workstations and replacement of existing SIP handsets. Compatibility with your SIP platform, provisioning service and accessories should be confirmed before deployment.\n\nPackage contents:\n- Yealink SIP-T54W IP phone\n- Handset and handset cord\n- Ethernet cable\n- Desk stand\n- Quick start guide\n\nThe external AC power adapter is optional and is not included unless specifically stated. The phone can be powered using a compatible PoE network connection.",
+    "leaderDealerBuyEx": 262,
+    "leaderStatus": "In Stock at Internext",
+    "category": "VoIP Phones",
+    "subcategory": "Business IP Phones",
+    "stockQuantity": 1,
+    "stockByWarehouse": {
+      "adl": 0,
+      "bne": 0,
+      "mel": 0,
+      "syd": 0,
+      "wa": 0,
+      "internext": 1
+    },
+    "weightKg": 1.36,
+    "heightCm": 10.3,
+    "widthCm": 25.9,
+    "depthCm": 24.3,
+    "gtin": "6938818303171",
+    "barcode": "6938818303171",
+    "imageUrl": "/product-images/yealink/t54w-main.png",
+    "imageUrls": [
+      "/product-images/yealink/t54w-main.png",
+      "/product-images/yealink/t54w-angle.png",
+      "/product-images/yealink/t54w-front.png",
+      "/product-images/yealink/t54w-side.png"
+    ],
+    "googleAdditionalImages": true,
+    "sourceUrl": "https://www.yealink.com/en/product-detail/ip-phone-t54w"
+  }
+]
