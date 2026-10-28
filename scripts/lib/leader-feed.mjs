@@ -143,6 +143,21 @@ const applyMarkup = (value, percent) => (value === null ? null : Math.round(valu
 
 const applyTax = (value, percent) => (value === null ? null : Math.round(value * (1 + percent / 100) * 100) / 100);
 
+const CUSTOMER_MARGIN_PERCENT = 20;
+const CUSTOMER_GST_PERCENT = 10;
+const RESELLER_MARGIN_PERCENT = 20;
+
+const formatAud = (value) =>
+  value === null
+    ? "P.O.A."
+    : value.toLocaleString("en-AU", { style: "currency", currency: "AUD" });
+
+const formatCustomerAud = (value) =>
+  value === null ? "P.O.A." : `${formatAud(value)} Inc GST`;
+
+const formatResellerAud = (value) =>
+  value === null ? "P.O.A." : `${formatAud(value)} Ex GST`;
+
 export const parseLeaderFeedCsv = (csv) => {
   const [headers = [], ...records] = parseCsvRecords(csv);
   const normalizedHeaders = headers.map(normalizeHeaderName);
@@ -175,6 +190,11 @@ export const parseLeaderFeedCsv = (csv) => {
       const category = cleanText(getCsvValue(row, "CATEGORY NAME"));
       const subcategory = cleanText(getCsvValue(row, "SUBCATEGORY NAME"));
       const longDescription = cleanText(getCsvValue(row, "LONG DESCRIPTION"));
+      const resellerPrice = applyMarkup(dealerBuyEx, RESELLER_MARGIN_PERCENT);
+      const price = applyTax(
+        applyMarkup(dealerBuyEx, CUSTOMER_MARGIN_PERCENT),
+        CUSTOMER_GST_PERCENT,
+      );
 
       return {
         code,
@@ -185,7 +205,10 @@ export const parseLeaderFeedCsv = (csv) => {
         imageUrl,
         imageUrls: imageUrl ? [imageUrl] : [],
         leaderDealerBuyEx: dealerBuyEx,
-        price: applyTax(applyMarkup(dealerBuyEx, 10), 10),
+        price,
+        priceText: formatCustomerAud(price),
+        resellerPrice,
+        resellerPriceText: formatResellerAud(resellerPrice),
         stockQuantity,
         stockByWarehouse,
         category,

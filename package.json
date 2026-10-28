@@ -22,6 +22,7 @@
     "audit:price-floors": "node scripts/audit-public-price-floors.mjs",
     "test:google-ads": "node --test tests/google-ads-campaign.test.mjs",
     "test:auth": "node --experimental-strip-types --test tests/auth-session-reactivity.test.mjs",
+    "test:catalog-pricing": "node --test tests/leader-feed-pricing.test.mjs",
     "test:competitor-pricing": "node --test tests/competitor-pricing.test.mjs tests/competitor-provider-normalization.test.mjs",
     "import:4c": "node scripts/import-4c-catalog.mjs",
     "import:4c-measurements": "node scripts/import-4c-measurements.mjs",
