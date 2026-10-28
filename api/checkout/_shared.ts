@@ -165,6 +165,11 @@ export const buildStripeCheckoutParams = (payload: {
   resellerEmail?: string;
   shipping?: CheckoutShipping;
   discount?: CheckoutDiscount;
+  conversion?: {
+    value: number;
+    complete: boolean;
+    basis: string;
+  };
   successUrl?: string;
   cancelUrl?: string;
 }) => {
@@ -203,6 +208,21 @@ export const buildStripeCheckoutParams = (payload: {
     "payment_intent_data[metadata][customer_name]",
     `${payload.customer.firstName.trim()} ${payload.customer.lastName.trim()}`.trim(),
   );
+
+  if (payload.conversion) {
+    const conversionValue = Number.isFinite(payload.conversion.value)
+      ? Math.max(0, normalizeMoney(payload.conversion.value))
+      : 0;
+    const conversionComplete = payload.conversion.complete ? "complete" : "unavailable";
+    const conversionBasis = payload.conversion.basis.trim();
+
+    params.set("metadata[google_ads_conversion_value]", String(conversionValue));
+    params.set("metadata[google_ads_conversion_status]", conversionComplete);
+    params.set("metadata[google_ads_conversion_basis]", conversionBasis);
+    params.set("payment_intent_data[metadata][google_ads_conversion_value]", String(conversionValue));
+    params.set("payment_intent_data[metadata][google_ads_conversion_status]", conversionComplete);
+    params.set("payment_intent_data[metadata][google_ads_conversion_basis]", conversionBasis);
+  }
 
   if (discountRate > 0 && discountAmount > 0) {
     params.set("metadata[discount_name]", discountName);

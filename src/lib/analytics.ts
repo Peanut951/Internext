@@ -1,6 +1,9 @@
 const DEFAULT_GOOGLE_ANALYTICS_ID = "G-45E9SWHH1N";
 const GOOGLE_ANALYTICS_ID =
   (import.meta.env.VITE_GOOGLE_ANALYTICS_ID as string | undefined)?.trim() || DEFAULT_GOOGLE_ANALYTICS_ID;
+const GOOGLE_ADS_ID = (import.meta.env.VITE_GOOGLE_ADS_ID as string | undefined)?.trim() || "";
+const GOOGLE_ADS_PURCHASE_LABEL =
+  (import.meta.env.VITE_GOOGLE_ADS_PURCHASE_LABEL as string | undefined)?.trim() || "";
 const MICROSOFT_CLARITY_ID = (import.meta.env.VITE_MICROSOFT_CLARITY_ID as string | undefined)?.trim() || "";
 let initialStaticPageViewSkipped = false;
 
@@ -48,6 +51,10 @@ export const initAnalytics = () => {
         "internext-google-analytics",
         `https://www.googletagmanager.com/gtag/js?id=${encodeURIComponent(GOOGLE_ANALYTICS_ID)}`,
       );
+    }
+
+    if (/^AW-\d+$/.test(GOOGLE_ADS_ID) && GOOGLE_ADS_PURCHASE_LABEL) {
+      window.gtag?.("config", GOOGLE_ADS_ID);
     }
   }
 
@@ -123,6 +130,8 @@ export const trackCheckoutStarted = (params: { value: number; items: AnalyticsIt
 export const trackPurchase = (params: {
   transactionId: string;
   value: number;
+  conversionValue: number | null;
+  conversionValueBasis?: string;
   shipping: number;
   tax: number;
   items: AnalyticsItem[];
@@ -136,7 +145,47 @@ export const trackPurchase = (params: {
   };
 
   trackEvent("purchase", purchaseParams);
-  trackEvent("conversion_event_purchase", purchaseParams);
+  trackPurchaseConversion({
+    transactionId: params.transactionId,
+    value: params.conversionValue,
+    basis: params.conversionValueBasis,
+  });
+};
+
+export const trackPurchaseConversion = (params: {
+  transactionId: string;
+  value: number | null;
+  basis?: string;
+}) => {
+  if (params.value === null || !Number.isFinite(params.value) || params.value < 0) {
+    return;
+  }
+
+  trackEvent("conversion_event_purchase", {
+    transaction_id: params.transactionId,
+    value: params.value,
+    conversion_value_basis: params.basis || "gross_profit_ex_gst_before_freight_and_fees",
+  });
+
+  if (
+    typeof window === "undefined" ||
+    !window.gtag ||
+    !/^AW-\d+$/.test(GOOGLE_ADS_ID) ||
+    !GOOGLE_ADS_PURCHASE_LABEL
+  ) {
+    return;
+  }
+
+  try {
+    window.gtag("event", "conversion", {
+      send_to: `${GOOGLE_ADS_ID}/${GOOGLE_ADS_PURCHASE_LABEL}`,
+      transaction_id: params.transactionId,
+      value: params.value,
+      currency: "AUD",
+    });
+  } catch {
+    // Conversion reporting must never interrupt payment completion.
+  }
 };
 
 export const trackContactFormSubmitted = (enquiryType: string) => {

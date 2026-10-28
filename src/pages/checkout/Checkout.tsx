@@ -22,7 +22,7 @@ import { loadCartCatalogProducts } from "@/lib/liveCatalog";
 import { formatStoredPrice, formatStoredTotal } from "@/lib/pricing";
 import { ArrowLeft, CheckCircle2, AlertTriangle, LockKeyhole, MailCheck, ShieldCheck, Truck } from "lucide-react";
 import { useAuthSession } from "@/hooks/use-auth-session";
-import { trackPurchase } from "@/lib/analytics";
+import { trackPurchase, trackPurchaseConversion } from "@/lib/analytics";
 import { hasCompletedFirstOrderOnDevice, markFirstOrderCompletedOnDevice } from "@/lib/firstOrderPromo";
 import { getStandardShippingService } from "../../../shared/shipping-policy.js";
 
@@ -837,6 +837,9 @@ const Checkout = () => {
           invoicePayment?: boolean;
           invoiceMarkedPaid?: boolean;
           orderNumber?: string;
+          amountTotal?: number;
+          conversionValue?: number | null;
+          conversionValueBasis?: string;
         };
         if (!confirmResponse.ok) {
           throw new Error(confirmPayload.message || "Unable to verify the Stripe payment.");
@@ -845,6 +848,11 @@ const Checkout = () => {
         const draft = readCheckoutDraft();
         if (!draft) {
           if (confirmPayload.invoicePayment && confirmPayload.invoiceMarkedPaid) {
+            trackPurchaseConversion({
+              transactionId: confirmPayload.orderNumber || checkoutSessionId,
+              value: confirmPayload.conversionValue ?? null,
+              basis: confirmPayload.conversionValueBasis,
+            });
             markSessionHandled(checkoutSessionId);
             markFirstOrderCompletedOnDevice();
             setPaymentStateMessage(
@@ -876,7 +884,12 @@ const Checkout = () => {
         clearCheckoutDraft();
         trackPurchase({
           transactionId: order.orderNumber,
-          value: order.totalKnownValue,
+          value:
+            typeof confirmPayload.amountTotal === "number"
+              ? confirmPayload.amountTotal / 100
+              : order.totalKnownValue,
+          conversionValue: confirmPayload.conversionValue ?? null,
+          conversionValueBasis: confirmPayload.conversionValueBasis,
           shipping: order.shippingTotal,
           tax: order.gstAmount,
           items: order.items.map((item) => ({

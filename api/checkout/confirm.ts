@@ -7,6 +7,17 @@ type RequestBody = {
 const readEnv = (key: string) => process.env[key]?.trim() || "";
 const ORDERS_TABLE = "orders";
 
+const getConversionMetadata = (metadata: Record<string, string>) => {
+  const rawValue = metadata.google_ads_conversion_value;
+  const value = rawValue === undefined || rawValue === "" ? Number.NaN : Number(rawValue);
+  const complete = metadata.google_ads_conversion_status === "complete";
+
+  return {
+    conversionValue: complete && Number.isFinite(value) && value >= 0 ? value : null,
+    conversionValueBasis: metadata.google_ads_conversion_basis || "",
+  };
+};
+
 const getSupabaseOrdersConfig = () => {
   const supabaseUrl = readEnv("SUPABASE_URL") || readEnv("VITE_SUPABASE_URL");
   const serviceRoleKey = readEnv("SUPABASE_SERVICE_ROLE_KEY") || readEnv("SERVICE_ROLE_SECRET_KEY");
@@ -149,6 +160,7 @@ export default async function handler(
 
   const invoiceOrderId = stripeSession.session.metadata.invoice_order_id || "";
   const isAdminInvoice = stripeSession.session.metadata.internext_payment_type === "admin_invoice";
+  const conversion = getConversionMetadata(stripeSession.session.metadata);
   const invoiceUpdate =
     isAdminInvoice && invoiceOrderId
       ? await markStoredInvoicePaid(invoiceOrderId, {
@@ -177,5 +189,6 @@ export default async function handler(
     invoicePayment: Boolean(invoiceUpdate),
     invoiceMarkedPaid: invoiceUpdate?.ok ?? false,
     orderNumber: invoiceUpdate?.orderNumber || stripeSession.session.metadata.order_number || "",
+    ...conversion,
   });
 }

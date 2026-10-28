@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-10-21T01:49:11.918Z",
-  "verifiedSnapshotUpdatedAt": "2026-10-21T01:48:15.676Z",
+  "auditedAt": "2026-10-28T23:20:14.430Z",
+  "verifiedSnapshotUpdatedAt": "2026-10-28T23:19:17.400Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -10,14 +10,24 @@
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
     "fourCEnrichmentProducts": 4542,
-    "verifiedSupplierProducts": 7130,
-    "verifiedQuoteProducts": 4543,
-    "unsupportedRawEnrichmentProducts": 1032,
-    "googleProducts": 4724,
-    "sitemapProducts": 10286,
-    "staticProductPages": 10286
+    "verifiedSupplierProducts": 7127,
+    "verifiedQuoteProducts": 4542,
+    "expectedVisibleProducts": 10222,
+    "unsupportedRawEnrichmentProducts": 1037,
+    "googleProducts": 4767,
+    "sitemapProducts": 10222,
+    "staticProductPages": 10222
   },
   "unsupportedCustomerFacing": {
+    "googleProductCodes": [],
+    "sitemapProductCodes": [],
+    "staticPageProductCodes": []
+  },
+  "missingCustomerFacing": {
+    "sitemapProductCodes": [],
+    "staticPageProductCodes": []
+  },
+  "duplicateCustomerFacing": {
     "googleProductCodes": [],
     "sitemapProductCodes": [],
     "staticPageProductCodes": []
@@ -28,6 +38,12 @@
       "supplierCode": "9137410E",
       "manufacturer": "Controlbyweb",
       "description": "External IP Relay - 1X Output 1 X Input"
+    },
+    {
+      "code": "AD345G",
+      "supplierCode": "AD345G",
+      "manufacturer": "Avision",
+      "description": "Avision AD345G Document Scanner"
     },
     {
       "code": "AK-C319A-WHITE",
@@ -100,6 +116,12 @@
       "supplierCode": "AR-HDMI-FLAT-1",
       "manufacturer": "Arkin",
       "description": "Arkin 4K 18GBPS Hdmi 2.0 Flat Cable with Ethernet - 1M"
+    },
+    {
+      "code": "AV2122",
+      "supplierCode": "AD370GN",
+      "manufacturer": "Avision",
+      "description": "Avision AD370GN Document Scanner (A4 Duplex)"
     },
     {
       "code": "AV5385",
@@ -610,18 +632,6 @@
       "supplierCode": "97003888",
       "manufacturer": "Canon",
       "description": "Canon IJM-416 Image Canvas 375GSM 1067MM X 18M"
-    },
-    {
-      "code": "CCART046BKH",
-      "supplierCode": "CART046BKH",
-      "manufacturer": "Canon",
-      "description": "Canon CART046BKH High Yield Black for LBP654CX / MF735CX 6.2K"
-    },
-    {
-      "code": "CCART316C",
-      "supplierCode": "CART316C",
-      "manufacturer": "Canon",
-      "description": "Canon CART316C Cyan Toner for LBP5050N 1.5K"
     }
   ]
 }

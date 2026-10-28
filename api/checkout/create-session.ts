@@ -11,6 +11,11 @@ import {
 import { getSessionFromRequest } from "../auth/_shared.js";
 import { loadMergedCatalogProducts } from "../catalog/live.js";
 import { getStandardShippingService } from "../../shared/shipping-policy.js";
+import {
+  calculateGrossProfitConversionValue,
+  deriveSupplierCostExGst,
+  type GrossProfitConversionItem,
+} from "../../shared/conversion-profit.js";
 
 const FIRST_ORDER_DISCOUNT_RATE = 0.1;
 const FIRST_ORDER_DISCOUNT_NAME = "First order account discount";
@@ -279,6 +284,7 @@ const verifyCheckoutItems = async (
 
   const useResellerPrice = role === "reseller" || role === "admin";
   const verifiedItems: NonNullable<RequestBody["items"]> = [];
+  const conversionItems: GrossProfitConversionItem[] = [];
 
   for (const item of submittedItems) {
     const product = productsByKey.get(item.code.trim().toLowerCase());
@@ -336,9 +342,16 @@ const verifyCheckoutItems = async (
       measurementSourceReference: product.measurementSourceReference,
       measurementConfidence: product.measurementConfidence,
     });
+
+    conversionItems.push({
+      sellPrice: currentPrice,
+      supplierCostExGst: deriveSupplierCostExGst(product.resellerPrice) ?? Number.NaN,
+      quantity: item.qty,
+      sellPriceIncludesGst: !useResellerPrice,
+    });
   }
 
-  return { items: verifiedItems };
+  return { items: verifiedItems, conversionItems };
 };
 
 export default async function handler(
@@ -392,12 +405,14 @@ export default async function handler(
   }
 
   let verifiedItems: NonNullable<RequestBody["items"]>;
+  let conversionItems: GrossProfitConversionItem[];
   try {
     const verification = await verifyCheckoutItems(body.items || [], authSession?.role);
     if (verification.error || !verification.items) {
       return sendJson(res, 409, { message: verification.error || "Unable to verify cart items." });
     }
     verifiedItems = verification.items;
+    conversionItems = verification.conversionItems || [];
   } catch {
     return sendJson(res, 503, {
       message: "Product availability could not be verified. No payment was created. Please try again.",
@@ -424,6 +439,9 @@ export default async function handler(
     name: standardShipping.name,
     price: standardShipping.price,
   };
+  const conversion = calculateGrossProfitConversionValue(conversionItems, {
+    discountRate: firstOrderDiscountApplies ? FIRST_ORDER_DISCOUNT_RATE : 0,
+  });
 
   const params = buildStripeCheckoutParams({
     origin,
@@ -438,6 +456,7 @@ export default async function handler(
     items: verifiedItems,
     resellerEmail: authSession?.email || body.resellerEmail,
     shipping: verifiedShipping,
+    conversion,
     discount:
       firstOrderDiscountApplies && firstOrderDiscountAmount > 0
         ? {

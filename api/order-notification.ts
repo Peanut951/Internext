@@ -6,6 +6,10 @@ import {
   sendJson,
 } from "./checkout/_shared.js";
 import { getSessionFromRequest } from "./auth/_shared.js";
+import {
+  calculateGrossProfitConversionValue,
+  deriveSupplierCostExGst,
+} from "../shared/conversion-profit.js";
 
 type RequestBody = {
   order?: Record<string, unknown>;
@@ -1378,6 +1382,23 @@ const buildPaymentInvoiceCheckoutItems = (order: Record<string, unknown>) => {
   });
 };
 
+const buildPaymentInvoiceConversion = (order: Record<string, unknown>) => {
+  const items = Array.isArray(order.items) ? order.items : [];
+  return calculateGrossProfitConversionValue(
+    items.map((item) => {
+      const line = item && typeof item === "object" ? item as Record<string, unknown> : {};
+      const resellerPrice = typeof line.resellerPrice === "number" ? line.resellerPrice : null;
+      return {
+        sellPrice: typeof line.price === "number" ? line.price : Number.NaN,
+        supplierCostExGst: deriveSupplierCostExGst(resellerPrice) ?? Number.NaN,
+        quantity: Math.max(1, Math.floor(getNumber(line.qty) || 1)),
+        sellPriceIncludesGst: !/\bex\s*gst\b/i.test(getString(line.priceText)),
+      };
+    }),
+    { discountRate: getNumber(order.discountRate) },
+  );
+};
+
 const buildAdminPaidOrderEmail = (order: Record<string, unknown>) => {
   const summary = buildOrderEmailSummary(order);
   const customer = order.customer && typeof order.customer === "object"
@@ -1827,6 +1848,7 @@ export default async function handler(
     const origin = getRequestOrigin(req.headers, body.origin || "");
     const discountTotal = getNumber(body.order.discountTotal);
     const discountRate = getNumber(body.order.discountRate);
+    const conversion = buildPaymentInvoiceConversion(body.order);
     const checkoutParams = buildStripeCheckoutParams({
       origin,
       orderNumber,
@@ -1839,6 +1861,7 @@ export default async function handler(
       },
       items: payableItems,
       resellerEmail: session.email,
+      conversion,
       discount:
         discountTotal > 0 && discountRate > 0
           ? {
