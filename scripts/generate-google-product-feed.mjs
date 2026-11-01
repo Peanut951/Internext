@@ -775,6 +775,73 @@ const mergeProducts = (products) => {
   return merged;
 };
 
+const CURRENT_COMMERCE_FIELDS = [
+  "price",
+  "priceText",
+  "resellerPrice",
+  "resellerPriceText",
+  "rrp",
+  "rrpText",
+  "rrpExGst",
+  "taxRate",
+  "availabilityText",
+  "etaDate",
+  "etaStatus",
+  "stockQuantity",
+  "stockByWarehouse",
+  "stockRecordUpdated",
+  "supplierCatalogUpdatedAt",
+  "quoteRequired",
+];
+
+const buildCurrentProductMap = (products) => {
+  const currentByKey = new Map();
+  for (const product of products) {
+    for (const key of getProductKeys(product)) currentByKey.set(key, product);
+  }
+  return currentByKey;
+};
+
+const applyCurrentCommerceData = (product, currentByKey) => {
+  const current = getProductKeys(product).map((key) => currentByKey.get(key)).find(Boolean);
+  if (!current) return null;
+
+  const merged = {
+    ...product,
+    code: current.code,
+    supplierCode: current.supplierCode || current.code,
+    supplierSource: current.supplierSource || product.supplierSource,
+  };
+  for (const field of CURRENT_COMMERCE_FIELDS) merged[field] = current[field];
+  return merged;
+};
+
+const assertCustomerPrices = (products) => {
+  const invalid = [];
+  for (const product of products) {
+    if (product.quoteRequired || product.publicPriceFixed) continue;
+    const price = Number(product.price);
+    const resellerPrice = Number(product.resellerPrice);
+    if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(resellerPrice) || resellerPrice <= 0) {
+      invalid.push({ code: product.code, price, resellerPrice, reason: "missing price component" });
+      continue;
+    }
+
+    const expectedCustomerPrice = Math.round(resellerPrice * 1.1 * 100) / 100;
+    // Both prices originate from supplier cost, but each display amount is rounded independently.
+    if (Math.abs(price - expectedCustomerPrice) > 0.011) {
+      invalid.push({ code: product.code, price, resellerPrice, expectedCustomerPrice });
+    }
+  }
+
+  if (invalid.length > 0) {
+    throw new Error(
+      `Refusing to publish ${invalid.length} Google products with non-customer pricing. ` +
+      `Examples: ${JSON.stringify(invalid.slice(0, 10))}`,
+    );
+  }
+};
+
 let leaderFeedProducts = [];
 let alloysLiveItems = [];
 const previousSnapshot = readJson(liveOverridesPath, { items: [] });
@@ -868,6 +935,7 @@ const generatedCatalogItems = dedupeVerifiedProducts([
   .map(annotateSupplierMeasurements)
   .map((product) => applySourcedShippingMeasurement(product, sourcedShippingMeasurements))
   .map((product) => applyShippingMeasurementOverride(product, shippingMeasurementOverrides));
+const currentProductByKey = buildCurrentProductMap(generatedCatalogItems);
 if (generatedCatalogItems.length > 0) {
   fs.writeFileSync(
     liveOverridesPath,
@@ -910,6 +978,8 @@ const products = mergeProducts(applyVerifiedProductIdentities(
   ], activeAlloysItems),
   generatedCatalogItems,
 ))
+  .map((product) => applyCurrentCommerceData(product, currentProductByKey))
+  .filter(Boolean)
   .map((product) => {
     const sourcedProduct = applySourcedShippingMeasurement(product, sourcedShippingMeasurements);
     const measuredProduct = applyShippingMeasurementOverride(sourcedProduct, shippingMeasurementOverrides);
@@ -923,6 +993,8 @@ const products = mergeProducts(applyVerifiedProductIdentities(
   .filter(isGoogleMerchantPhysicalProduct)
   .filter((product) => Boolean(getGoogleImage(product, excludedCodes)))
   .slice(0, 50000);
+
+assertCustomerPrices(products);
 
 const items = products.map((product) => {
   const images = getGoogleImages(product, excludedCodes);
