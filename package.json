@@ -21,6 +21,7 @@
     "audit:titles": "node scripts/audit-google-product-titles.mjs",
     "audit:price-floors": "node scripts/audit-public-price-floors.mjs",
     "audit:google-prices": "node scripts/audit-google-feed-customer-prices.mjs",
+    "audit:competitor-pricing": "node scripts/audit-competitor-pricing-state.mjs",
     "test:google-ads": "node --test tests/google-ads-campaign.test.mjs",
     "test:conversions": "node --test tests/conversion-profit.test.mjs && node --experimental-strip-types --test tests/checkout-conversion-metadata.test.mjs",
     "test:auth": "node --experimental-strip-types --test tests/auth-session-reactivity.test.mjs",
