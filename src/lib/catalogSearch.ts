@@ -1,10 +1,14 @@
 type SearchableCatalogProduct = {
   code?: string;
+  supplierSource?: string;
   manufacturer?: string;
   name?: string;
   description?: string;
   longDescription?: string;
   supplierCode?: string;
+  price?: number | null;
+  quoteRequired?: boolean;
+  stockQuantity?: number;
   category?: string;
   subcategory?: string;
   productType?: string;
@@ -105,6 +109,99 @@ export const normalizeCatalogSearchText = (value: string) =>
     .trim();
 
 const compactSearchText = (value: string) => normalizeCatalogSearchText(value).replace(/\s+/g, "");
+
+const hasCustomerPrice = (product: SearchableCatalogProduct) =>
+  product.quoteRequired !== true &&
+  typeof product.price === "number" &&
+  Number.isFinite(product.price) &&
+  product.price > 0;
+
+const isFourCQuoteFallback = (product: SearchableCatalogProduct) =>
+  product.quoteRequired === true && (
+    String(product.supplierSource || "").toLowerCase() === "4cabling" ||
+    String(product.code || "").toLowerCase().startsWith("4c-")
+  );
+
+const getPricedModelKey = (product: SearchableCatalogProduct) =>
+  compactSearchText(product.supplierCode || "");
+
+const getFourCQuoteModelKeys = (product: SearchableCatalogProduct) => {
+  const supplierCode = String(product.supplierCode || "").trim();
+  if (!supplierCode) return [];
+
+  const unprefixed = supplierCode.replace(/^[a-z0-9]{1,5}[._-]/i, "");
+  const normalizedUnprefixed = compactSearchText(unprefixed);
+  const knownSupplierVariants = [
+    normalizedUnprefixed === "uswultra42w" ? "uswultra" : "",
+    /^usw(?:pro)?max\d+n$/.test(normalizedUnprefixed)
+      ? normalizedUnprefixed.replace(/n$/, "")
+      : "",
+  ];
+  return Array.from(new Set([
+    compactSearchText(supplierCode),
+    normalizedUnprefixed,
+    ...knownSupplierVariants,
+  ].filter((key) => key.length >= 5)));
+};
+
+const hasCompatibleBrand = (
+  quoteProduct: SearchableCatalogProduct,
+  pricedProduct: SearchableCatalogProduct,
+) => {
+  const pricedBrand = normalizeCatalogSearchText(pricedProduct.manufacturer || "");
+  if (!pricedBrand) return false;
+
+  const quoteBrand = normalizeCatalogSearchText(quoteProduct.manufacturer || "");
+  if (quoteBrand && quoteBrand !== "4cabling" && quoteBrand === pricedBrand) return true;
+
+  const quoteText = normalizeCatalogSearchText([
+    quoteProduct.manufacturer,
+    quoteProduct.name,
+    quoteProduct.description,
+  ].filter(Boolean).join(" "));
+  return includesTerm(quoteText, pricedBrand);
+};
+
+const choosePreferredPricedProduct = <T extends SearchableCatalogProduct>(products: T[]) =>
+  [...products].sort((left, right) => {
+    const leftInStock = Number(left.stockQuantity || 0) > 0 ? 1 : 0;
+    const rightInStock = Number(right.stockQuantity || 0) > 0 ? 1 : 0;
+    if (leftInStock !== rightInStock) return rightInStock - leftInStock;
+    return Number(right.price || 0) - Number(left.price || 0);
+  })[0] || null;
+
+export const resolvePricedCatalogEquivalent = <T extends SearchableCatalogProduct>(
+  product: T,
+  products: T[],
+) => {
+  if (!isFourCQuoteFallback(product)) return null;
+
+  const quoteKeys = new Set(getFourCQuoteModelKeys(product));
+  if (quoteKeys.size === 0) return null;
+  const candidates = products.filter((candidate) =>
+    candidate !== product &&
+    hasCustomerPrice(candidate) &&
+    quoteKeys.has(getPricedModelKey(candidate)) &&
+    hasCompatibleBrand(product, candidate),
+  );
+  return choosePreferredPricedProduct(candidates);
+};
+
+const replaceQuoteFallbackMatches = <T extends SearchableCatalogProduct>(
+  matches: CatalogSearchMatch<T>[],
+  products: T[],
+) => {
+  const byCode = new Map<string, CatalogSearchMatch<T>>();
+  for (const match of matches) {
+    const product = resolvePricedCatalogEquivalent(match.product, products) || match.product;
+    const key = String(product.code || product.supplierCode || "").trim().toLowerCase();
+    if (!key) continue;
+
+    const existing = byCode.get(key);
+    if (!existing || match.score > existing.score) byCode.set(key, { product, score: match.score });
+  }
+  return Array.from(byCode.values()).sort((left, right) => right.score - left.score);
+};
 
 const getSingularVariant = (term: string) => {
   if (term.length > 4 && term.endsWith("ies")) return `${term.slice(0, -3)}y`;
@@ -341,8 +438,8 @@ export const searchCatalogProducts = <T extends SearchableCatalogProduct>(
       return String(a.product.description || "").localeCompare(String(b.product.description || ""));
     });
 
-  const directMatches = sortMatches(collectMatches(false));
+  const directMatches = replaceQuoteFallbackMatches(sortMatches(collectMatches(false)), products);
   if (directMatches.length >= 8 || (directMatches[0]?.score || 0) >= 400) return directMatches;
 
-  return sortMatches(collectMatches(true));
+  return replaceQuoteFallbackMatches(sortMatches(collectMatches(true)), products);
 };

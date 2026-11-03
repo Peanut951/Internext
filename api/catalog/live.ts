@@ -9,7 +9,10 @@ import {
 } from "../../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
 import { isTangibleCatalogProduct } from "../../shared/catalog-product-classification.js";
-import { searchCatalogProducts } from "../../src/lib/catalogSearch.js";
+import {
+  resolvePricedCatalogEquivalent,
+  searchCatalogProducts,
+} from "../../src/lib/catalogSearch.js";
 import {
   applyShippingMeasurementOverride,
   buildShippingMeasurementOverrideMap,
@@ -2285,7 +2288,10 @@ export default async function handler(
       const lookup = code.toLowerCase();
       const exact = catalog.items.find((item) => item.code.trim().toLowerCase() === lookup);
       const aliases = exact ? [] : catalog.items.filter((item) => item.supplierCode?.trim().toLowerCase() === lookup);
-      const item = exact || (aliases.length === 1 ? aliases[0] : null);
+      const requestedItem = exact || (aliases.length === 1 ? aliases[0] : null);
+      const item = requestedItem
+        ? resolvePricedCatalogEquivalent(requestedItem, catalog.items) || requestedItem
+        : null;
       return sendJson(res, item ? 200 : 404, { item, updatedAt: catalog.updatedAt });
     }
     if (view === "cart") {
