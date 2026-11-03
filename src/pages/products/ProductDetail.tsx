@@ -22,6 +22,7 @@ import { buildProductDisplayTitle, getProductMpnForTitle } from "@/lib/productTi
 
 type CatalogProduct = {
   code: string;
+  supplierSource?: "alloys" | "leader" | "4cabling";
   manufacturer: string;
   description: string;
   longDescription?: string;
@@ -116,6 +117,13 @@ const safeText = (value: unknown) => {
     return "";
   }
   return String(value).trim();
+};
+
+const getSupplierSourceLabel = (value: CatalogProduct["supplierSource"]) => {
+  if (value === "alloys") return "Alloys";
+  if (value === "leader") return "Leader";
+  if (value === "4cabling") return "4Cabling";
+  return "Not specified";
 };
 
 const hasCustomerPrice = (product?: CatalogProduct | null) =>
@@ -1795,6 +1803,11 @@ const ProductDetail = () => {
                         {session?.role === "admin" && supplierCodeLabel ? (
                           <span className="inline-flex items-center rounded-full border border-border/60 px-3 py-1 text-xs font-medium text-muted-foreground">
                             Ref: {supplierCodeLabel}
+                          </span>
+                        ) : null}
+                        {session?.role === "admin" ? (
+                          <span className="inline-flex items-center rounded-full border border-accent/30 bg-accent/5 px-3 py-1 text-xs font-semibold text-accent">
+                            Supplier: {getSupplierSourceLabel(product.supplierSource)}
                           </span>
                         ) : null}
                       </div>

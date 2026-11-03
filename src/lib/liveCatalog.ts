@@ -1,5 +1,6 @@
 import { normalizeCatalogProducts } from "@/lib/catalogQuality";
 import { searchCatalogProducts } from "@/lib/catalogSearch";
+import { dedupeCatalogProductsByIdentity } from "../../shared/catalog-product-identity.js";
 import {
   isCurrentFourCProduct,
   isVisibleCatalogProduct,
@@ -8,6 +9,7 @@ import {
 export type CatalogProductWithLive = {
   code: string;
   supplierSource?: "alloys" | "leader" | "4cabling";
+  catalogAliases?: string[];
   manufacturer: string;
   description: string;
   longDescription?: string;
@@ -132,7 +134,7 @@ type PublicPriceFloorEntry = {
   floorIncGst?: number;
 };
 
-const CATALOG_CACHE_KEY = "internext-live-catalog-products-v7";
+const CATALOG_CACHE_KEY = "internext-live-catalog-products-v8";
 const CATALOG_CACHE_MS = 15 * 60 * 1000;
 const CATALOG_PAGE_SIZE = 500;
 const CATALOG_PAGE_CONCURRENCY = 4;
@@ -298,8 +300,8 @@ const stripCachedEtaData = (product: CatalogProductWithLive): CatalogProductWith
 const stripCachedEtaProductsData = (products: CatalogProductWithLive[]) =>
   products.map(stripCachedEtaData);
 
-const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode">) =>
-  [product.code, product.supplierCode]
+const getProductKeys = (product: Pick<CatalogProductWithLive, "code" | "supplierCode" | "catalogAliases">) =>
+  [product.code, product.supplierCode, ...(product.catalogAliases || [])]
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
@@ -403,7 +405,16 @@ const dedupeCatalogProductsByCode = (products: CatalogProductWithLive[]) => {
       productsByCode.set(code, product);
     }
   }
-  return Array.from(productsByCode.values());
+  return dedupeCatalogProductsByIdentity(Array.from(productsByCode.values()), {
+    selectPreferred: (current, next) => {
+      const currentHasPrice = current.quoteRequired !== true && Number(current.price) > 0;
+      const nextHasPrice = next.quoteRequired !== true && Number(next.price) > 0;
+      if (currentHasPrice !== nextHasPrice) return nextHasPrice ? next : current;
+      return Number(next.resellerPrice ?? next.price ?? 0) > Number(current.resellerPrice ?? current.price ?? 0)
+        ? next
+        : current;
+    },
+  });
 };
 
 export const mergeCatalogProductUpdates = (

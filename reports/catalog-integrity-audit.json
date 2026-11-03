@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-11-03T04:20:07.184Z",
-  "verifiedSnapshotUpdatedAt": "2026-11-03T04:19:03.644Z",
+  "auditedAt": "2026-11-03T04:51:58.457Z",
+  "verifiedSnapshotUpdatedAt": "2026-11-03T04:51:02.120Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -12,11 +12,11 @@
     "fourCEnrichmentProducts": 4542,
     "verifiedSupplierProducts": 7116,
     "verifiedQuoteProducts": 4542,
-    "expectedVisibleProducts": 10211,
-    "unsupportedRawEnrichmentProducts": 1049,
+    "expectedVisibleProducts": 10208,
+    "unsupportedRawEnrichmentProducts": 1054,
     "googleProducts": 4756,
-    "sitemapProducts": 10211,
-    "staticProductPages": 10211
+    "sitemapProducts": 10208,
+    "staticProductPages": 10208
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],

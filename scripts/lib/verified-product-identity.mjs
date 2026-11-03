@@ -1,14 +1,20 @@
+import {
+  areCatalogProductsSameIdentity,
+  dedupeCatalogProductsByIdentity,
+  getCatalogProductIdentityKeys,
+} from "../../shared/catalog-product-identity.js";
+
 const normalizeKey = (value) => String(value || "").trim().toLowerCase();
 
 export const getVerifiedProductKeys = (product) =>
-  [product?.code, product?.supplierCode]
+  [product?.code, product?.supplierCode, ...(product?.catalogAliases || [])]
     .map(normalizeKey)
     .filter(Boolean);
 
 const getComparablePrice = (product) =>
   Number(product?.resellerPrice ?? product?.price ?? product?.leaderDealerBuyEx ?? 0);
 
-export const dedupeVerifiedProducts = (products) => {
+const dedupeVerifiedProductKeys = (products) => {
   const merged = [];
   const indexByKey = new Map();
 
@@ -37,9 +43,16 @@ export const dedupeVerifiedProducts = (products) => {
   return merged;
 };
 
+export const dedupeVerifiedProducts = (products) =>
+  dedupeCatalogProductsByIdentity(dedupeVerifiedProductKeys(products), {
+    selectPreferred: (current, next) =>
+      getComparablePrice(next) > getComparablePrice(current) ? next : current,
+  });
+
 export const createVerifiedProductIdentityResolver = (verifiedProducts) => {
   const byCode = new Map();
   const byKey = new Map();
+  const byIdentityKey = new Map();
 
   for (const product of verifiedProducts || []) {
     const code = normalizeKey(product?.code);
@@ -49,12 +62,22 @@ export const createVerifiedProductIdentityResolver = (verifiedProducts) => {
     for (const key of getVerifiedProductKeys(product)) {
       if (!byKey.has(key)) byKey.set(key, product);
     }
+    for (const key of getCatalogProductIdentityKeys(product)) {
+      if (!byIdentityKey.has(key)) byIdentityKey.set(key, []);
+      byIdentityKey.get(key).push(product);
+    }
   }
 
   return (product) => {
     const code = normalizeKey(product?.code);
     const supplierCode = normalizeKey(product?.supplierCode);
-    const verified = byCode.get(code) || byKey.get(supplierCode) || byKey.get(code);
+    const directMatch = byCode.get(code) || byKey.get(supplierCode) || byKey.get(code);
+    const identityCandidates = Array.from(new Set(
+      getCatalogProductIdentityKeys(product).flatMap((key) => byIdentityKey.get(key) || []),
+    ));
+    const verified = directMatch || identityCandidates.find((candidate) =>
+      areCatalogProductsSameIdentity(product, candidate),
+    );
     if (!verified) return null;
 
     return {

@@ -9,6 +9,7 @@ import {
 } from "../../shared/four-c-catalog-freshness.js";
 import { applyCatalogContentOverride } from "../../shared/catalog-content-overrides.js";
 import { isTangibleCatalogProduct } from "../../shared/catalog-product-classification.js";
+import { dedupeCatalogProductsByIdentity } from "../../shared/catalog-product-identity.js";
 import {
   resolvePricedCatalogEquivalent,
   searchCatalogProducts,
@@ -30,6 +31,7 @@ export type LiveCatalogItem = {
   code: string;
   supplierCode: string;
   supplierSource?: "alloys" | "leader" | "4cabling";
+  catalogAliases?: string[];
   manufacturer: string;
   name: string;
   longDescription?: string;
@@ -93,6 +95,8 @@ type LiveCatalogResult = {
 type StaticCatalogProduct = {
   code: string;
   supplierCode?: string;
+  supplierSource?: "alloys" | "leader" | "4cabling";
+  catalogAliases?: string[];
   quoteRequired?: boolean;
   gtin?: string;
   ean?: string;
@@ -912,8 +916,8 @@ const globalCatalogCache = globalThis as typeof globalThis & {
   __internextFourCCatalogProductsPromise?: Promise<FourCCatalogProduct[]>;
 };
 
-const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode">) =>
-  [product.code, product.supplierCode]
+const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode" | "catalogAliases">) =>
+  [product.code, product.supplierCode, ...(product.catalogAliases || [])]
     .map((value) => value?.trim().toLowerCase())
     .filter((value): value is string => Boolean(value));
 
@@ -1663,15 +1667,21 @@ const createFourCLiveCatalogItem = (product: FourCCatalogProduct): LiveCatalogIt
 const getComparablePrice = (item: LiveCatalogItem) =>
   item.resellerPrice ?? item.price ?? 0;
 
-const chooseHigherPricedCatalogItem = (current: LiveCatalogItem | undefined, next: LiveCatalogItem) => {
+const chooseHigherPricedCatalogItem = <T extends LiveCatalogItem | MergedCatalogItem>(current: T | undefined, next: T) => {
   if (!current) {
     return next;
+  }
+
+  const currentHasPrice = current.quoteRequired !== true && Number(current.price) > 0;
+  const nextHasPrice = next.quoteRequired !== true && Number(next.price) > 0;
+  if (currentHasPrice !== nextHasPrice) {
+    return nextHasPrice ? next : current;
   }
 
   return getComparablePrice(next) > getComparablePrice(current) ? next : current;
 };
 
-const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
+const mergeLiveCatalogItemsByKeys = (items: LiveCatalogItem[]) => {
   const merged: LiveCatalogItem[] = [];
   const indexByKey = new Map<string, number>();
 
@@ -1705,6 +1715,11 @@ const mergeLiveCatalogItems = (items: LiveCatalogItem[]) => {
 
   return merged;
 };
+
+const mergeLiveCatalogItems = (items: LiveCatalogItem[]) =>
+  dedupeCatalogProductsByIdentity(mergeLiveCatalogItemsByKeys(items), {
+    selectPreferred: chooseHigherPricedCatalogItem,
+  });
 
 const loadPersistedVerifiedCatalog = async (): Promise<LiveCatalogResult> => {
   const snapshotPath = join(process.cwd(), "public", "data", "catalog-live-overrides.json");
@@ -2027,7 +2042,12 @@ const loadMergedCatalogProductsUncached = async (
             rrpText: live.rrpText,
             rrpExGst: live.rrpExGst,
             taxRate: live.taxRate,
+            supplierSource: live.supplierSource || product.supplierSource,
             supplierCode: live.supplierCode || live.code,
+            catalogAliases: Array.from(new Set([
+              ...(product.catalogAliases || []),
+              ...(live.catalogAliases || []),
+            ])),
             longDescription: chooseLongDescription(live.longDescription, product.longDescription),
             availabilityText: live.availabilityText,
             etaDate: live.etaDate,
@@ -2105,7 +2125,9 @@ const loadMergedCatalogProductsUncached = async (
       itemsByCode.set(code, applyPublicPriceFloor(item, publicPriceFloors));
     }
   }
-  const items = Array.from(itemsByCode.values()).filter((item) => isVisibleCatalogProduct(item));
+  const items = dedupeCatalogProductsByIdentity(Array.from(itemsByCode.values()), {
+    selectPreferred: chooseHigherPricedCatalogItem,
+  }).filter((item) => isVisibleCatalogProduct(item));
 
   const cacheEntry: MergedCatalogCache = {
     expiresAt: Date.now() + getServerCatalogCacheMs(),
@@ -2286,7 +2308,9 @@ export default async function handler(
     );
     if (view === "product") {
       const lookup = code.toLowerCase();
-      const exact = catalog.items.find((item) => item.code.trim().toLowerCase() === lookup);
+      const exact = catalog.items.find((item) =>
+        getProductKeys(item).some((key) => key === lookup),
+      );
       const aliases = exact ? [] : catalog.items.filter((item) => item.supplierCode?.trim().toLowerCase() === lookup);
       const requestedItem = exact || (aliases.length === 1 ? aliases[0] : null);
       const item = requestedItem
@@ -2297,7 +2321,7 @@ export default async function handler(
     if (view === "cart") {
       const productsByKey = new Map<string, MergedCatalogItem>();
       for (const item of catalog.items as MergedCatalogItem[]) {
-        for (const key of [item.code, item.supplierCode]) {
+        for (const key of getProductKeys(item)) {
           const normalized = String(key || "").trim().toLowerCase();
           if (normalized) productsByKey.set(normalized, item);
         }

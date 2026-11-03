@@ -1,5 +1,9 @@
 import fs from "node:fs";
 import path from "node:path";
+import {
+  areCatalogProductsSameIdentity,
+  getCatalogProductIdentityKeys,
+} from "../shared/catalog-product-identity.js";
 
 const readJson = (filePath) => JSON.parse(fs.readFileSync(filePath, "utf8"));
 const normalizeCode = (value) => String(value || "").trim().toLowerCase();
@@ -10,6 +14,7 @@ const liveProducts = Array.isArray(liveSnapshot.items) ? liveSnapshot.items : []
 
 const liveByCode = new Map();
 const liveBySupplierCode = new Map();
+const liveByIdentityKey = new Map();
 
 for (const product of liveProducts) {
   const code = normalizeCode(product.code);
@@ -17,6 +22,10 @@ for (const product of liveProducts) {
   if (code && !liveByCode.has(code)) liveByCode.set(code, product);
   if (supplierCode && !liveBySupplierCode.has(supplierCode)) {
     liveBySupplierCode.set(supplierCode, product);
+  }
+  for (const key of getCatalogProductIdentityKeys(product)) {
+    if (!liveByIdentityKey.has(key)) liveByIdentityKey.set(key, []);
+    liveByIdentityKey.get(key).push(product);
   }
 }
 
@@ -26,11 +35,17 @@ const canonicalCurrentCodes = new Set();
 for (const product of fourCProducts) {
   const code = normalizeCode(product.code);
   const supplierCode = normalizeCode(product.supplierCode);
-  const currentMatch =
+  const exactMatch =
     liveByCode.get(code) ||
     liveByCode.get(supplierCode) ||
     liveBySupplierCode.get(supplierCode) ||
     liveBySupplierCode.get(code);
+  const identityCandidates = Array.from(new Set(
+    getCatalogProductIdentityKeys(product).flatMap((key) => liveByIdentityKey.get(key) || []),
+  ));
+  const currentMatch = exactMatch || identityCandidates.find((candidate) =>
+    areCatalogProductsSameIdentity(product, candidate),
+  );
 
   if (currentMatch) {
     canonicalCurrentCodes.add(String(currentMatch.code));
@@ -39,14 +54,14 @@ for (const product of fourCProducts) {
   }
 }
 
-let missingCanonicalPages = 0;
+const missingCanonicalPageCodes = [];
 const quotePagesMissingContactPricing = [];
 const quotePagesWithStructuredOffers = [];
 
 for (const code of new Set([...quoteOnlyCodes, ...canonicalCurrentCodes])) {
   const pagePath = path.resolve("dist", "products", "item", encodeURIComponent(code), "index.html");
   if (!fs.existsSync(pagePath)) {
-    missingCanonicalPages += 1;
+    missingCanonicalPageCodes.push(code);
     continue;
   }
 
@@ -64,7 +79,8 @@ const result = {
   fourCProductsChecked: fourCProducts.length,
   quoteOnlyFallbackProducts: quoteOnlyCodes.size,
   canonicalCurrentSupplierMatches: canonicalCurrentCodes.size,
-  missingCanonicalPages,
+  missingCanonicalPages: missingCanonicalPageCodes.length,
+  missingCanonicalPageCodes,
   quotePagesMissingContactPricing: quotePagesMissingContactPricing.length,
   quotePagesWithStructuredOffers: quotePagesWithStructuredOffers.length,
   quotePagesMissingContactPricingCodes: quotePagesMissingContactPricing,
@@ -75,7 +91,7 @@ const result = {
 console.log(JSON.stringify(result, null, 2));
 
 if (
-  missingCanonicalPages > 0 ||
+  missingCanonicalPageCodes.length > 0 ||
   quotePagesMissingContactPricing.length > 0 ||
   quotePagesWithStructuredOffers.length > 0 ||
   staleFourCItemsInGoogleFeed > 0
