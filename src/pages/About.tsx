@@ -17,7 +17,7 @@ const values = [
   {
     icon: Target,
     title: "Reliable Fulfilment",
-    description: "Eligible online orders have a clear $15 flat shipping rate including GST, shown before payment.",
+    description: "Eligible online orders have a clear $15 flat shipping rate excluding GST ($16.50 including GST), shown before payment.",
   },
   {
     icon: Award,
@@ -77,7 +77,7 @@ const About = () => {
                 <p>
                   Internext is built around a simple buying experience: search the catalogue, compare current
                   product information, add items to cart, and complete eligible online orders with a clear
-                  $15 flat shipping rate including GST.
+                  $15 flat shipping rate excluding GST ($16.50 including GST).
                 </p>
                 <p>
                   The catalogue brings together thousands of technology products across print, networking,

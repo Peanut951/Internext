@@ -469,7 +469,7 @@ const getDeliverySummary = (product: CatalogProduct) => {
     return etaDate ? `Backorder available from ${etaDate}` : "Delivery timing confirmed once ETA is available";
   }
 
-  return "$15 flat-rate shipping including GST for eligible online orders";
+  return "$15 ex GST ($16.50 inc GST) flat-rate shipping for eligible online orders";
 };
 
 const getSchemaAvailability = (product: CatalogProduct) => {

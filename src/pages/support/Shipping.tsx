@@ -12,7 +12,7 @@ const Shipping = () => {
               Shipping & Delivery
             </h1>
             <p className="text-base leading-7 text-primary-foreground/80 sm:text-lg">
-              Eligible online orders are delivered across Australia for a flat $15 including GST. Products
+              Eligible online orders are delivered across Australia for a flat $15 excluding GST ($16.50 including GST). Products
               marked as requiring a quote will have freight confirmed separately before purchase.
             </p>
           </div>
@@ -28,7 +28,7 @@ const Shipping = () => {
             
             <div className="space-y-4 mb-12">
               {[
-                { name: "Standard Delivery", desc: "$15 including GST for eligible online orders delivered within Australia.", time: "1-5 business days" },
+                { name: "Standard Delivery", desc: "$15 excluding GST ($16.50 including GST) for eligible online orders delivered within Australia.", time: "1-5 business days" },
                 { name: "Scheduled Delivery", desc: "For orders that need a specific delivery window or project timing.", time: "As scheduled" },
                 { name: "Bulky or Fragile Freight", desc: "Contact Internext for information.", time: "Contact for info" },
               ].map((option) => (
@@ -51,7 +51,7 @@ const Shipping = () => {
               <ul className="space-y-3 text-muted-foreground">
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  The $15 shipping charge applies once per eligible online order and includes GST.
+                  The $15 excluding GST shipping charge applies once per eligible online order. The checkout charge is $16.50 including GST.
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
@@ -107,7 +107,7 @@ const Shipping = () => {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />
-                  Eligible online orders have a flat $15 shipping charge including GST.
+                  Eligible online orders have a flat $15 shipping charge excluding GST ($16.50 including GST).
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="w-1.5 h-1.5 bg-accent rounded-full mt-2 flex-shrink-0" />

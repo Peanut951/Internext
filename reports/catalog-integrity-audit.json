@@ -1,6 +1,6 @@
 {
-  "auditedAt": "2026-11-03T04:51:58.457Z",
-  "verifiedSnapshotUpdatedAt": "2026-11-03T04:51:02.120Z",
+  "auditedAt": "2026-11-09T22:07:28.079Z",
+  "verifiedSnapshotUpdatedAt": "2026-11-09T22:06:06.351Z",
   "supplierSnapshotStatus": {
     "alloys": "live",
     "leader": "last_verified",
@@ -10,13 +10,13 @@
     "rawEnrichmentProducts": 7589,
     "leaderEnrichmentProducts": 27,
     "fourCEnrichmentProducts": 4542,
-    "verifiedSupplierProducts": 7116,
+    "verifiedSupplierProducts": 7105,
     "verifiedQuoteProducts": 4542,
-    "expectedVisibleProducts": 10208,
-    "unsupportedRawEnrichmentProducts": 1054,
-    "googleProducts": 4756,
-    "sitemapProducts": 10208,
-    "staticProductPages": 10208
+    "expectedVisibleProducts": 10198,
+    "unsupportedRawEnrichmentProducts": 1066,
+    "googleProducts": 4743,
+    "sitemapProducts": 10198,
+    "staticProductPages": 10198
   },
   "unsupportedCustomerFacing": {
     "googleProductCodes": [],
@@ -38,6 +38,18 @@
       "supplierCode": "9137410E",
       "manufacturer": "Controlbyweb",
       "description": "External IP Relay - 1X Output 1 X Input"
+    },
+    {
+      "code": "2N9137411E",
+      "supplierCode": "9137411E",
+      "manufacturer": "Controlbyweb",
+      "description": "External IP Relay 4 Outputs PoE 28V 1A (SPDT)"
+    },
+    {
+      "code": "2N914423E",
+      "supplierCode": "914423E",
+      "manufacturer": "Media Hub",
+      "description": "24V Dc 2A Power Supply"
     },
     {
       "code": "AD345G",
@@ -620,18 +632,6 @@
       "supplierCode": "RP8604",
       "manufacturer": "Benq",
       "description": "Benq 86\" RP8604 4K UHD 450NITS 1200:1 Contrast Android 13 with WI-FI Dongle - 5YRS Wty"
-    },
-    {
-      "code": "BQRP8604+MT02E",
-      "supplierCode": "RP8604+MT02E",
-      "manufacturer": "Benq",
-      "description": "Benq 86\" RP8604 4K 450 Nits Android 13 and MT02E Motorised Height Adjustable Trolley"
-    },
-    {
-      "code": "CCANVAS1067-18M1",
-      "supplierCode": "97003888",
-      "manufacturer": "Canon",
-      "description": "Canon IJM-416 Image Canvas 375GSM 1067MM X 18M"
     }
   ]
 }
