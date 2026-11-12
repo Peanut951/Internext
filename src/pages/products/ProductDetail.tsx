@@ -11,7 +11,12 @@ import {
   handleProductImageError,
   PRODUCT_IMAGE_PLACEHOLDER,
 } from "@/lib/productImages";
-import { clearCatalogProductsCache, loadCatalogProductByCode, searchCatalogProductsPage } from "@/lib/liveCatalog";
+import {
+  clearCatalogProductsCache,
+  loadCartCatalogProducts,
+  loadCatalogProductByCode,
+  searchCatalogProductsPage,
+} from "@/lib/liveCatalog";
 import { extractProductSpecHighlights } from "@/lib/productSpecs";
 import { useAuthSession } from "@/hooks/use-auth-session";
 import { formatAud, getCartPricedProduct } from "@/lib/pricing";
@@ -128,6 +133,22 @@ const getSupplierSourceLabel = (value: CatalogProduct["supplierSource"]) => {
 
 const hasCustomerPrice = (product?: CatalogProduct | null) =>
   typeof product?.price === "number" && Number.isFinite(product.price) && product.price > 0;
+
+const hideSnapshotStock = (product: CatalogProduct): CatalogProduct => ({
+  ...product,
+  availabilityText: "Checking live availability...",
+  stockQuantity: undefined,
+  stockByWarehouse: undefined,
+  stockRecordUpdated: undefined,
+});
+
+const markLiveStockUnavailable = (product: CatalogProduct): CatalogProduct => ({
+  ...product,
+  availabilityText: "Live availability temporarily unavailable",
+  stockQuantity: undefined,
+  stockByWarehouse: undefined,
+  stockRecordUpdated: undefined,
+});
 
 type DescriptionBlock =
   | { type: "heading"; text: string }
@@ -975,11 +996,28 @@ const ProductDetail = () => {
           return;
         }
 
-        setProduct(found);
+        setProduct(found ? hideSnapshotStock(found) : null);
         setIsLivePriceReady(hasCustomerPrice(found));
         setHasCheckedFullCatalog(true);
         setLoading(false);
         if (found) {
+          void loadCartCatalogProducts([found.code])
+            .then((liveProducts) => {
+              if (!isMounted) return;
+              const liveProduct = liveProducts[0] as CatalogProduct | undefined;
+              if (!liveProduct) {
+                setProduct((current) => current ? markLiveStockUnavailable(current) : current);
+                return;
+              }
+              setProduct(liveProduct);
+              setIsLivePriceReady(hasCustomerPrice(liveProduct));
+            })
+            .catch(() => {
+              if (isMounted) {
+                setProduct((current) => current ? markLiveStockUnavailable(current) : current);
+              }
+            });
+
           const seriesToken = Array.from(getSeriesTokens(found))[0];
           const descriptionToken = Array.from(getRecommendationTokens(found)).find(
             (token) => token !== safeText(found.manufacturer).toLowerCase() && !/\d/.test(token),
