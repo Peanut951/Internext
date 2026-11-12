@@ -1277,7 +1277,7 @@ const applyStockOverrideToProduct = <
 };
 
 const removeAppliedStockOverrides = <T extends MergedCatalogItem>(product: T): T => {
-  const currentStock = product.stockByWarehouse;
+  const currentStock = product.stockByWarehouse || {};
   const recordedAdjustments = currentStock.adminAdjustments || {};
   const adjustments: Record<string, number> = Object.keys(recordedAdjustments).length > 0
     ? { ...recordedAdjustments }
@@ -2136,8 +2136,9 @@ const loadMergedCatalogProductsUncached = async (
       if (mergedProduct.quoteRequired) {
         return contentProduct;
       }
+      const supplierContentProduct = removeAppliedStockOverrides(contentProduct);
       return applyShippingMeasurementOverride(
-        applyStockOverrideToProduct(contentProduct, stockOverride),
+        applyStockOverrideToProduct(supplierContentProduct, stockOverride),
         shippingMeasurementOverride,
       );
     })

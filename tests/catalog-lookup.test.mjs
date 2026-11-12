@@ -24,7 +24,7 @@ const request = async (url) => {
 
 test("exact product lookup returns only the current supplier product", async () => {
   const { status, body } = await request("/api/catalog/live?view=product&code=CPGI29M");
-  assert.equal(status, 200);
+  assert.equal(status, 200, JSON.stringify(body));
   assert.equal(body.item.code, "CPGI29M");
   assert.ok(Number.isFinite(body.item.price));
   assert.equal(Object.hasOwn(body, "items"), false);
