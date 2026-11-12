@@ -917,9 +917,11 @@ const globalCatalogCache = globalThis as typeof globalThis & {
 };
 
 const getProductKeys = (product: Pick<StaticCatalogProduct, "code" | "supplierCode" | "catalogAliases">) =>
-  [product.code, product.supplierCode, ...(product.catalogAliases || [])]
-    .map((value) => value?.trim().toLowerCase())
-    .filter((value): value is string => Boolean(value));
+  Array.from(new Set(
+    [product.code, product.supplierCode, ...(product.catalogAliases || [])]
+      .map((value) => value?.trim().toLowerCase())
+      .filter((value): value is string => Boolean(value)),
+  ));
 
 const getSupplierMeasurementSource = (product: StaticCatalogProduct) => {
   const supplierSource = String(product.supplierSource || "").trim().toLowerCase();
@@ -1220,7 +1222,9 @@ const getStockOverrideForProduct = (
   product: Pick<StaticCatalogProduct, "code" | "supplierCode">,
   overridesByKey: Map<string, StockOverride[]>,
 ) =>
-  getProductKeys(product).flatMap((key) => overridesByKey.get(key) || []);
+  Array.from(new Set(
+    getProductKeys(product).flatMap((key) => overridesByKey.get(key) || []),
+  ));
 
 const applyStockOverrideToProduct = <
   T extends {
@@ -1256,7 +1260,8 @@ const applyStockOverrideToProduct = <
     const adjustment = override.stockQuantity;
     stockByWarehouse[stockLocation] = Math.max(0, (stockByWarehouse[stockLocation] ?? 0) + adjustment);
     stockByWarehouse.adminAdjustment += adjustment;
-    stockByWarehouse.adminAdjustments[stockLocation] = adjustment;
+    stockByWarehouse.adminAdjustments[stockLocation] =
+      (stockByWarehouse.adminAdjustments[stockLocation] ?? 0) + adjustment;
     latestUpdatedAt = override.updatedAt || latestUpdatedAt;
   }
 
@@ -1274,11 +1279,24 @@ const applyStockOverrideToProduct = <
 const removeAppliedStockOverrides = <T extends MergedCatalogItem>(product: T): T => {
   const currentStock = product.stockByWarehouse;
   const recordedAdjustments = currentStock.adminAdjustments || {};
-  const adjustments = Object.keys(recordedAdjustments).length > 0
-    ? recordedAdjustments
+  const adjustments: Record<string, number> = Object.keys(recordedAdjustments).length > 0
+    ? { ...recordedAdjustments }
     : currentStock.adminLocation && typeof currentStock.adminAdjustment === "number"
       ? { [currentStock.adminLocation]: currentStock.adminAdjustment }
       : {};
+  const recordedTotal = Object.values(adjustments).reduce((total, value) => {
+    const adjustment = Number(value);
+    return Number.isFinite(adjustment) ? total + adjustment : total;
+  }, 0);
+  const appliedTotal = Number(currentStock.adminAdjustment);
+  if (
+    currentStock.adminLocation &&
+    Number.isFinite(appliedTotal) &&
+    appliedTotal !== recordedTotal
+  ) {
+    const location = normalizeStockOverrideLocation(currentStock.adminLocation);
+    adjustments[location] = (Number(adjustments[location]) || 0) + appliedTotal - recordedTotal;
+  }
   const supplierStock = {
     adl: currentStock.adl ?? 0,
     bne: currentStock.bne ?? 0,
@@ -1313,6 +1331,13 @@ const refreshStockOverridesOnMergedCatalog = async (items: MergedCatalogItem[]) 
       getStockOverrideForProduct(supplierProduct, overridesByKey),
     );
   });
+};
+
+export const catalogStockOverrideTestUtils = {
+  buildStockOverrideMap,
+  getStockOverrideForProduct,
+  applyStockOverrideToProduct,
+  removeAppliedStockOverrides,
 };
 
 const upsertStockOverride = async (input: {
@@ -1617,6 +1642,7 @@ const createLeaderLiveCatalogItem = (product: LeaderCatalogProduct): LiveCatalog
       mel: product.stockByWarehouse?.mel ?? 0,
       syd: product.stockByWarehouse?.syd ?? 0,
       wa: product.stockByWarehouse?.wa ?? 0,
+      internext: product.stockByWarehouse?.internext ?? 0,
     },
     stockRecordUpdated: "",
     etaDate: product.etaDate || "",
