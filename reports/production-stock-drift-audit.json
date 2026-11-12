@@ -1,595 +1,303 @@
 {
-  "auditedAt": "2026-11-12T00:21:45.944Z",
+  "auditedAt": "2026-11-12T00:50:03.498Z",
   "siteUrl": "https://www.internext.com.au",
-  "snapshotUpdatedAt": "2026-11-12T00:12:34.655Z",
-  "liveUpdatedAt": "2026-11-12T00:15:16.062Z",
+  "snapshotUpdatedAt": "2026-11-12T00:38:44.013Z",
+  "liveUpdatedAt": "2026-11-12T00:42:44.692Z",
   "summary": {
-    "snapshotProducts": 21119,
-    "liveProducts": 20993,
-    "pricedSupplierProducts": 16785,
-    "stockDiscrepancies": 20,
-    "pricedSupplierStockDiscrepancies": 20,
+    "snapshotProducts": 21118,
+    "liveProducts": 20992,
+    "pricedSupplierProducts": 16784,
+    "stockDiscrepancies": 10,
+    "pricedSupplierStockDiscrepancies": 10,
     "missingFromLive": 126,
     "missingFromSnapshot": 0,
-    "increases": 2,
-    "decreases": 18,
+    "increases": 3,
+    "decreases": 7,
     "unchangedTotalsWithWarehouseChanges": 0
   },
   "discrepancies": [
     {
-      "code": "IPY-T54W",
-      "supplierCode": "SIP-T54W",
+      "code": "BIW-ME300-1TB",
+      "supplierCode": "BAME30001TB-RGX",
       "supplierSource": "leader",
-      "description": "Yealink SIP-T54W Prime Business Phone",
+      "description": "BIWIN ME300-1TB microSD Express Read & Write Speed up to 900 MB/s & 800 MB/s BAME30001TB-RGX",
       "snapshotStock": {
-        "total": 433,
-        "adl": 0,
-        "bne": 0,
-        "mel": 0,
-        "syd": 0,
-        "wa": 0,
-        "internext": 433
-      },
-      "liveStock": {
-        "total": 23328,
-        "adl": 0,
-        "bne": 0,
-        "mel": 0,
-        "syd": 0,
-        "wa": 0,
-        "internext": 23328
-      },
-      "totalDelta": 22895,
-      "snapshotStockRecordUpdated": "2026-08-04T01:33:46.921+00:00",
-      "liveStockRecordUpdated": "2026-08-04T01:33:46.921+00:00",
-      "adminAdjustment": 216,
-      "adminAdjustments": {
-        "internext": 108
-      }
-    },
-    {
-      "code": "CBAT-CAT6ABLU05M",
-      "supplierCode": "AT-RJ45BLUF6A-0.5M",
-      "supplierSource": "leader",
-      "description": "Astrotek CAT6A Shielded Ethernet Cable 50cm/0.5m Blue Color 10GbE RJ45 Network LAN Patch Lead S/FTP LSZH Cord 26AWG",
-      "snapshotStock": {
-        "total": 494,
-        "adl": 100,
-        "bne": 94,
-        "mel": 100,
-        "syd": 100,
-        "wa": 100,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 484,
-        "adl": 90,
-        "bne": 94,
-        "mel": 100,
-        "syd": 100,
-        "wa": 100,
-        "internext": 0
-      },
-      "totalDelta": -10,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "CBAT-DPHDMI-MM-2",
-      "supplierCode": "AT-DPHDMI-2",
-      "supplierSource": "leader",
-      "description": "Astrotek DisplayPort DP to HDMI Adapter Converter Cable 2m - Male to Male 1080P Gold-Plated for PC/Laptop to HDTVs Projectors Displays",
-      "snapshotStock": {
-        "total": 340,
-        "adl": 49,
-        "bne": 36,
-        "mel": 100,
-        "syd": 100,
-        "wa": 55,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 330,
-        "adl": 39,
-        "bne": 36,
-        "mel": 100,
-        "syd": 100,
-        "wa": 55,
-        "internext": 0
-      },
-      "totalDelta": -10,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "CBAT-USBCDP-MF15",
-      "supplierCode": "AT-USBCDP-MF15",
-      "supplierSource": "leader",
-      "description": "Astrotek 15cm USB-C to DP DisplayPort Male to Female Adapter Converter 8K@60Hz 4K@60Hz for iPad Pro Macbook Air Samsung Galaxy MS Surface Dell XPS",
-      "snapshotStock": {
-        "total": 124,
-        "adl": 10,
-        "bne": 25,
-        "mel": 7,
-        "syd": 75,
-        "wa": 7,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 119,
-        "adl": 5,
-        "bne": 25,
-        "mel": 7,
-        "syd": 75,
-        "wa": 7,
-        "internext": 0
-      },
-      "totalDelta": -5,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "CBSI-DA323",
-      "supplierCode": "DA323",
-      "supplierSource": "leader",
-      "description": "Simplecom DA323 USB-C to DisplayPort Cable DP1.4 8K@60Hz 2M",
-      "snapshotStock": {
-        "total": 121,
-        "adl": 13,
-        "bne": 14,
-        "mel": 48,
-        "syd": 32,
-        "wa": 14,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 116,
-        "adl": 8,
-        "bne": 14,
-        "mel": 48,
-        "syd": 32,
-        "wa": 14,
-        "internext": 0
-      },
-      "totalDelta": -5,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "COB-LT-5505",
-      "supplierCode": "LT-5505",
-      "supplierSource": "leader",
-      "description": "Brother OPTIONAL 250 SHEETS PAPER TRAY TO SUIT WITH HL-L6400DW /MFC-L6900DW/ MFC-L6915DW/ MFC-L6720DW/ MFC-L5915DW/ MFC-L5710DW/ HL-L5210DW/ HL-L5210D",
-      "snapshotStock": {
-        "total": 28,
-        "adl": 8,
-        "bne": 4,
-        "mel": 5,
-        "syd": 5,
-        "wa": 6,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 25,
-        "adl": 8,
-        "bne": 4,
-        "mel": 5,
-        "syd": 2,
-        "wa": 6,
-        "internext": 0
-      },
-      "totalDelta": -3,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "IPY-W90B",
-      "supplierCode": "W90B",
-      "supplierSource": "leader",
-      "description": "Yealink W90B Multicell DECT Base Station, support W53H,W56H,CP930W and DD Phone, PoE support, Wallmount only",
-      "snapshotStock": {
-        "total": 10,
-        "adl": 0,
-        "bne": 2,
-        "mel": 1,
-        "syd": 2,
-        "wa": 5,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 13,
-        "adl": 0,
-        "bne": 2,
-        "mel": 4,
-        "syd": 2,
-        "wa": 5,
-        "internext": 0
-      },
-      "totalDelta": 3,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "NHU-UVC-G6-PTZ-B",
-      "supplierCode": "UVC-G6-PTZ-B",
-      "supplierSource": "leader",
-      "description": "Ubiquiti G6 PTZ,Black,IP66, 4K Dual-lens Camera,10x Hybrid Zoom,1/1.8 8MP Image Sensor,Multi-TOPS AI Engine,Ultra-low Latency Pan-tilt-zoom Control",
-      "snapshotStock": {
-        "total": 72,
-        "adl": 5,
-        "bne": 20,
-        "mel": 15,
-        "syd": 20,
-        "wa": 12,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 69,
-        "adl": 2,
-        "bne": 20,
-        "mel": 15,
-        "syd": 20,
-        "wa": 12,
-        "internext": 0
-      },
-      "totalDelta": -3,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "HBC-T710-2TB",
-      "supplierCode": "CT2000T710SSD8",
-      "supplierSource": "leader",
-      "description": "Crucial T710 2TB PCIe Gen5 NVMe 2280 SSD - 14500/13800 MB/s R/W 1200TBW 2.3M IOPs 1.5M hrs MTTF with DirectStorage for Intel & AMD 5yrs",
-      "snapshotStock": {
-        "total": 57,
-        "adl": 7,
-        "bne": 8,
-        "mel": 13,
-        "syd": 20,
-        "wa": 9,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 55,
-        "adl": 5,
-        "bne": 8,
-        "mel": 13,
-        "syd": 20,
-        "wa": 9,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MBG-B860MAELITEWF6E",
-      "supplierCode": "B860M A ELITE WIFI6E 1.0",
-      "supplierSource": "leader",
-      "description": "Gigabyte M/B B860M A ELITE WIFI6E 1.0, Intel ® B860, 4 x DDR5 up to 256 GB, 2x HDMI, 2 x PCI Express x16, 3 x M.2, 4 x SATA, 8x USB 3.2",
-      "snapshotStock": {
-        "total": 3,
-        "adl": 1,
-        "bne": 2,
-        "mel": 0,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 1,
-        "adl": 1,
-        "bne": 0,
-        "mel": 0,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MPA-HDTWP10.9",
-      "supplierCode": "HDTWP10.9",
-      "supplierSource": "leader",
-      "description": "USP Apple iPad (11') (A16) (11th Gen) / iPad (10.9') (10th Gen) WaterProof Case Black - IP68, Reliable & Durable, Drop Protection, 5 Years Warranty",
-      "snapshotStock": {
-        "total": 5,
-        "adl": 0,
-        "bne": 0,
-        "mel": 5,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 3,
-        "adl": 0,
-        "bne": 0,
-        "mel": 3,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MPAB2.4AUSBC8OPS",
-      "supplierCode": "BSV804au2M",
-      "supplierSource": "leader",
-      "description": "Belkin SurgePlus 8-Outlet Surge Protector With Dual USB Port 2.4 Amp-White(BSV804au2M),Heavy Duty 2M Power Cord,900 Joules,$50000 CEW,2 Years Warranty",
-      "snapshotStock": {
-        "total": 27,
-        "adl": 0,
-        "bne": 0,
-        "mel": 8,
-        "syd": 19,
-        "wa": 0,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 25,
-        "adl": 0,
-        "bne": 0,
-        "mel": 8,
-        "syd": 17,
-        "wa": 0,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "UPSA-PB4066E",
-      "supplierCode": "PAD-4066E",
-      "supplierSource": "leader",
-      "description": "Sansai 6 Outlets & 4 USB Outlets Surge Protected Powerboard Master On/Off switch Surge and overload protected 230-240VAC IV Retail box",
-      "snapshotStock": {
-        "total": 19,
-        "adl": 2,
-        "bne": 3,
-        "mel": 3,
-        "syd": 9,
-        "wa": 2,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 17,
-        "adl": 2,
-        "bne": 3,
-        "mel": 3,
-        "syd": 7,
-        "wa": 2,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "USPA-STV-907AC",
-      "supplierCode": "STV-907AC",
-      "supplierSource": "leader",
-      "description": "Sansai USB Travel Adaptor USB A + C 2xUSB Charging Outlets 100-240VAC 10A 2400W Compatible with plugs from many countries",
-      "snapshotStock": {
-        "total": 41,
-        "adl": 17,
-        "bne": 11,
-        "mel": 8,
-        "syd": 0,
-        "wa": 5,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 39,
-        "adl": 17,
-        "bne": 11,
-        "mel": 6,
-        "syd": 0,
-        "wa": 5,
-        "internext": 0
-      },
-      "totalDelta": -2,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "CAO-CP3WOOD",
-      "supplierCode": "CAO-CP3WOOD",
-      "supplierSource": "leader",
-      "description": "OKINOS Cypress 3 Genuine Walnut Wood MicroATX with 4×120mm, USB-C, 3 Pin Non-PWM Case Fans Pre-Installed,Temper Glass Side Panel, Case",
-      "snapshotStock": {
-        "total": 32,
-        "adl": 5,
-        "bne": 0,
-        "mel": 20,
-        "syd": 0,
-        "wa": 7,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 31,
-        "adl": 5,
-        "bne": 0,
-        "mel": 19,
-        "syd": 0,
-        "wa": 7,
-        "internext": 0
-      },
-      "totalDelta": -1,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "HXSI-SD326",
-      "supplierCode": "SD326",
-      "supplierSource": "leader",
-      "description": "Simplecom SD326 USB 3.0 to SATA Hard Drive Docking Station for 3.5' and 2.5' HDD SSD",
-      "snapshotStock": {
-        "total": 63,
-        "adl": 8,
-        "bne": 18,
-        "mel": 2,
-        "syd": 15,
-        "wa": 20,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 62,
-        "adl": 8,
-        "bne": 18,
-        "mel": 1,
-        "syd": 15,
-        "wa": 20,
-        "internext": 0
-      },
-      "totalDelta": -1,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MPA-134003114343",
-      "supplierCode": "134003114343",
-      "supplierSource": "leader",
-      "description": "UAG Plyo Apple MacBook Pro (16') (M5/M4/M3 Max & Pro) Case - Ice (134003114343), Tactile Grip Frame, Lightweight, 10 Years Warranty",
-      "snapshotStock": {
-        "total": 5,
-        "adl": 3,
-        "bne": 0,
-        "mel": 1,
-        "syd": 0,
-        "wa": 1,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 4,
-        "adl": 3,
-        "bne": 0,
-        "mel": 0,
-        "syd": 0,
-        "wa": 1,
-        "internext": 0
-      },
-      "totalDelta": -1,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MPA-BT4CC10M",
-      "supplierCode": "BT4CC10M",
-      "supplierSource": "leader",
-      "description": "USP BoostUp Hyperlink USB4 USB-C to USB-C Cable (1M) Black - USB4 - 40Gbps,240W, 8K (60Hz)/4K (144Hz), Fast Charge, 5 Years Warranty",
-      "snapshotStock": {
-        "total": 168,
-        "adl": 8,
-        "bne": 1,
-        "mel": 91,
-        "syd": 58,
-        "wa": 10,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 167,
-        "adl": 8,
-        "bne": 1,
-        "mel": 90,
-        "syd": 58,
-        "wa": 10,
-        "internext": 0
-      },
-      "totalDelta": -1,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "MPA-OVA296FQ",
-      "supplierCode": "OVA296FQ",
-      "supplierSource": "leader",
-      "description": "Belkin Titan SmartShield Pro Blue-to-Red Screen Protector for Apple iPhone 18 Pro Max/iPhone 17 Pro Max-(OVA296FQ),Scratch Protection,2 Years Warranty",
-      "snapshotStock": {
-        "total": 4,
-        "adl": 0,
-        "bne": 0,
-        "mel": 4,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "liveStock": {
-        "total": 3,
-        "adl": 0,
-        "bne": 0,
-        "mel": 3,
-        "syd": 0,
-        "wa": 0,
-        "internext": 0
-      },
-      "totalDelta": -1,
-      "snapshotStockRecordUpdated": null,
-      "liveStockRecordUpdated": null,
-      "adminAdjustment": 0,
-      "adminAdjustments": {}
-    },
-    {
-      "code": "NHU-UVC-AI-360-W",
-      "supplierCode": "UVC-AI-360-W",
-      "supplierSource": "leader",
-      "description": "EOL, Last Stock- Ubiquiti UniFi Protect Indoor/Outdoor HD PoE Camera, White, With Pan-tilt-zoom - Full 360° Surveillance - Replaces 4x Regular Cameras",
-      "snapshotStock": {
-        "total": 1,
-        "adl": 0,
-        "bne": 0,
-        "mel": 0,
-        "syd": 1,
-        "wa": 0,
-        "internext": 0
-      },
-      "liveStock": {
         "total": 0,
         "adl": 0,
         "bne": 0,
         "mel": 0,
         "syd": 0,
         "wa": 0,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 20,
+        "adl": 0,
+        "bne": 0,
+        "mel": 0,
+        "syd": 20,
+        "wa": 0,
+        "internext": 0
+      },
+      "totalDelta": 20,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "BIW-MS100-128G",
+      "supplierCode": "BMMS100128G-RGX",
+      "supplierSource": "leader",
+      "description": "BIWIN MS100-128G microSD3.0 Read & Write Speed up to 100MB/s & 50MB/s BMMS100128G-RGX",
+      "snapshotStock": {
+        "total": 38,
+        "adl": 20,
+        "bne": 0,
+        "mel": 18,
+        "syd": 0,
+        "wa": 0,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 58,
+        "adl": 20,
+        "bne": 0,
+        "mel": 18,
+        "syd": 20,
+        "wa": 0,
+        "internext": 0
+      },
+      "totalDelta": 20,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "BIW-ME300-512G",
+      "supplierCode": "BAME300512G-RGX",
+      "supplierSource": "leader",
+      "description": "BIWIN ME300-512G microSD Express Read & Write Speed up to 900 MB/s & 800 MB/s BAME300512G-RGX",
+      "snapshotStock": {
+        "total": 2,
+        "adl": 0,
+        "bne": 0,
+        "mel": 0,
+        "syd": 2,
+        "wa": 0,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 20,
+        "adl": 0,
+        "bne": 0,
+        "mel": 0,
+        "syd": 20,
+        "wa": 0,
+        "internext": 0
+      },
+      "totalDelta": 18,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "KBLT-MK220",
+      "supplierCode": "920-003235",
+      "supplierSource": "leader",
+      "description": "Logitech MK220 Wireless Keyboard & Mouse Combo Much smaller design, same keys 2.4 GHz 128-bit AES encryption Fewer battery hassles",
+      "snapshotStock": {
+        "total": 91,
+        "adl": 20,
+        "bne": 20,
+        "mel": 20,
+        "syd": 17,
+        "wa": 14,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 86,
+        "adl": 20,
+        "bne": 20,
+        "mel": 20,
+        "syd": 12,
+        "wa": 14,
+        "internext": 0
+      },
+      "totalDelta": -5,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "CBAT-MINIDPHDMI-MF",
+      "supplierCode": "AT-MINIDPHDMI-MF",
+      "supplierSource": "leader",
+      "description": "Astrotek Mini DisplayPort DP to HDMI Cable 15cm - 20 pins Male to Female 1080P Adapter Converter for Macbook Pro Air iMac Microsoft Surface Pro",
+      "snapshotStock": {
+        "total": 171,
+        "adl": 19,
+        "bne": 13,
+        "mel": 19,
+        "syd": 65,
+        "wa": 55,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 167,
+        "adl": 19,
+        "bne": 13,
+        "mel": 15,
+        "syd": 65,
+        "wa": 55,
+        "internext": 0
+      },
+      "totalDelta": -4,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "CB8W-GC-DPVGA-2",
+      "supplierCode": "GC-DPVGA-2",
+      "supplierSource": "leader",
+      "description": "8ware DisplayPort DP to VGA Adapter Converter Cable 20cm - Male to Female for Desktop Computer Laptop PC Monitor Projector HDTV Chromebook Xbox",
+      "snapshotStock": {
+        "total": 275,
+        "adl": 33,
+        "bne": 45,
+        "mel": 40,
+        "syd": 100,
+        "wa": 57,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 273,
+        "adl": 33,
+        "bne": 45,
+        "mel": 38,
+        "syd": 100,
+        "wa": 57,
+        "internext": 0
+      },
+      "totalDelta": -2,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "HBC-P310-4TBH",
+      "supplierCode": "CT4000P310SSD5",
+      "supplierSource": "leader",
+      "description": "Crucial P310 4TB Gen4 2280 NVMe SSD Heatsink 7100/6000 MB/s R/W 800TBW 1000K/1000K IOPS 1.5M hrs MTTF Full-Drive Encryption M.2 PCIe4 5yrs",
+      "snapshotStock": {
+        "total": 39,
+        "adl": 3,
+        "bne": 5,
+        "mel": 6,
+        "syd": 20,
+        "wa": 5,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 38,
+        "adl": 2,
+        "bne": 5,
+        "mel": 6,
+        "syd": 20,
+        "wa": 5,
+        "internext": 0
+      },
+      "totalDelta": -1,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "MBM-PRO-A620AM-B-EVO",
+      "supplierCode": "PRO A620AM-B EVO",
+      "supplierSource": "leader",
+      "description": "MSI PRO A620AM-B EVO ATX Motherboard, AM5, AMD A620A, 2xDDR5 128GB, PCIe4.0 x16, 1xM.2, 2xSATA, HDMI/VGA, 2.5G LAN, ATX",
+      "snapshotStock": {
+        "total": 49,
+        "adl": 3,
+        "bne": 2,
+        "mel": 20,
+        "syd": 20,
+        "wa": 4,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 48,
+        "adl": 2,
+        "bne": 2,
+        "mel": 20,
+        "syd": 20,
+        "wa": 4,
+        "internext": 0
+      },
+      "totalDelta": -1,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "NBHP-15F-C516256",
+      "supplierCode": "D6MY7PA",
+      "supplierSource": "leader",
+      "description": "HP 15.6' FHD Intel Core 5 120U 16GB 256GB SSD Windows 11 Home Intel Integrated GPU 1 yr wty 1.6kg",
+      "snapshotStock": {
+        "total": 54,
+        "adl": 7,
+        "bne": 9,
+        "mel": 8,
+        "syd": 20,
+        "wa": 10,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 53,
+        "adl": 7,
+        "bne": 9,
+        "mel": 7,
+        "syd": 20,
+        "wa": 10,
+        "internext": 0
+      },
+      "totalDelta": -1,
+      "snapshotStockRecordUpdated": null,
+      "liveStockRecordUpdated": null,
+      "adminAdjustment": 0,
+      "adminAdjustments": {}
+    },
+    {
+      "code": "NBL-16-U532512G8",
+      "supplierCode": "21SK007JAU",
+      "supplierSource": "leader",
+      "description": "LENOVO ThinkBook 16 G8 16' WUXGA Intel U5-225U 32GB DDR5 512GB SSD WIN 11 PRO Intel GPU AI PC NPU 12 TOPS Thunderbolt Fingerprint 1yr OS 1.7kg ~i5",
+      "snapshotStock": {
+        "total": 45,
+        "adl": 4,
+        "bne": 8,
+        "mel": 5,
+        "syd": 20,
+        "wa": 8,
+        "internext": 0
+      },
+      "liveStock": {
+        "total": 44,
+        "adl": 4,
+        "bne": 7,
+        "mel": 5,
+        "syd": 20,
+        "wa": 8,
         "internext": 0
       },
       "totalDelta": -1,
@@ -601,10 +309,40 @@
   ],
   "missingFromLive": [
     {
-      "code": "MPA-F1DN-USB-XTRC",
-      "supplierCode": "F1DN-USB-XTRC",
+      "code": "NBHP-EB84-U516512TG1I",
+      "supplierCode": "BQ4F6PT",
       "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Copper CAT6 USB Transmitter and Receiver, VELCRO® Tape ,TAA compliance, 3-Year Warranty"
+      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "NBHP-EB84-U716512G1I",
+      "supplierCode": "BQ4E7PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "NBHP-EB66-U716512G1I",
+      "supplierCode": "BQ4M5PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB84-U532512G1I",
+      "supplierCode": "BX3Q6PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-225U 32GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "NBHP-EB66-U516512TG1I",
+      "supplierCode": "BQ4M2PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB66-U516512LG1I",
+      "supplierCode": "BQ4M3PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro 4G-LTE Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
     },
     {
       "code": "NBHP-EB84-U7321TBLG1IL",
@@ -613,214 +351,22 @@
       "description": "HP EliteBook 8 G1i 14' WUXGA IR PVCY Intel U7-255U 32GB DDR5 1TB SSD Windows 11 Pro 5G-LTE Intel GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "NBHP-EB86-U716512TG1IV",
-      "supplierCode": "BQ4V3PT",
+      "code": "NBHP-EB84-U716512TLG1I",
+      "supplierCode": "BQ4E9PT",
       "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-256V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXTC6X",
-      "supplierCode": "F1DN-KVM-EXTC6X",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Copper CAT6 - Universal Video, UHD 4K@60Hz 4:4:4 up to 100m, TAA compliance, 3-Year Warranty"
-    },
-    {
-      "code": "MPA-78-81439",
-      "supplierCode": "78-81439",
-      "supplierSource": "leader",
-      "description": "OtterBox Holster Defender Apple iPhone 17e / iPhone 16e / iPhone 15 / iPhone 14 / iPhone 13 (6.1') Black ProPack - (78-81439), 7 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB86-U516512TG1I",
-      "supplierCode": "BQ4G1PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg ~BQ4T2PT"
-    },
-    {
-      "code": "NBHP-EB86-U516512TG1IV",
-      "supplierCode": "BQ4T2PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U716512TLG1I",
-      "supplierCode": "BQ4G7PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U516512LG1I",
-      "supplierCode": "BQ4G2PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U516512TLG1I",
-      "supplierCode": "BQ4M9PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "MPA-78-81047",
-      "supplierCode": "78-81047",
-      "supplierSource": "leader",
-      "description": "OtterBox Holster Defender XT Apple iPhone 17e / iPhone 16e / iPhone 15 / iPhone 14 / iPhone 13 (6.1') Black - (78-81047) , 7 Years Warranty"
-    },
-    {
-      "code": "MPA-77-98258",
-      "supplierCode": "77-98258",
-      "supplierSource": "leader",
-      "description": "OtterBox Defender Pro XT Clear Magnets Google Pixel 10/Pixel 10 Pro Dark Side - black-(77-98258), Drop+7X Military Standard, 7 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB86-U732512G1I",
-      "supplierCode": "BX3R1PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 32GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U516512G1I",
-      "supplierCode": "BQ4F5PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg ~BQ4M1PT"
-    },
-    {
-      "code": "NBHP-EB86-U716512G1I",
-      "supplierCode": "BQ4G4PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U716512TG1I",
-      "supplierCode": "BQ4G5PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U716512G1IV",
-      "supplierCode": "BQ4T4PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-256V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U516512G1IV",
-      "supplierCode": "BQ4T1PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg ~BQ4F5PT"
-    },
-    {
-      "code": "MPA-EI-T5600KWEGAU",
-      "supplierCode": "EI-T5600KWEGAU",
-      "supplierSource": "leader",
-      "description": "Samsung Galaxy SmartTag2 - Black/White(EI-T5600KWEGAU)*AU STOCK*,2xWhite, 2x Black, Bluetooth Tracker,1 Year Warranty"
-    },
-    {
-      "code": "NBHP-EB86-U716512LG1I",
-      "supplierCode": "BQ4G6PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
-    },
-    {
-      "code": "MPA-SPP2DPRO11",
-      "supplierCode": "spp2dpro11",
-      "supplierSource": "leader",
-      "description": "USP Apple iPad Pro (11') (M5/M4) (6th/5th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, Anti-fingerprint, 5 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB84-U516512G1I",
-      "supplierCode": "BQ4E3PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "NBHP-EB84-U516512G1IV",
-      "supplierCode": "BQ4S5PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 Pro Intel Arc GPU Copilot+ PC 40 TOPS TB 3yr NBD OS 1.4kg ~BQ4E3PT"
-    },
-    {
-      "code": "MPA-SPP2DAIR11",
-      "supplierCode": "spp2dair11",
-      "supplierSource": "leader",
-      "description": "USP Apple iPad Air (11') (M4/M3/M2) (8th/7th/6th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant,5 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB84-U516512TLG1IV",
-      "supplierCode": "BQ4S7PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 40 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "MPA-G3H0002FQBLV2",
-      "supplierCode": "G3H0002fqBLV2",
-      "supplierSource": "leader",
-      "description": "Belkin SoundForm USB-C Wired Earbuds With Adjustable Volume Limiter - Blue(G3H0002fqBLV2),IPX5-Rated,10mm Drivers,Built-in Microphone,2 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB66-I516512G1I",
-      "supplierCode": "BX7R7PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA Intel i5-1334U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB86-U7321TBLG1I",
-      "supplierCode": "BQ4G8PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 16' WUXGA IR PVCY Intel U7-255U 32GB DDR5 1TB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS Thunderbolt 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "MPA-6902957318839",
-      "supplierCode": "6902957318839",
-      "supplierSource": "leader",
-      "description": "USP Pisen Half-in-Ear 3.5mm Earphones - White, Ergonomic Design ,HD Call Microphone, 5 Years Warranty"
-    },
-    {
-      "code": "MPA-SPP2DPRO129",
-      "supplierCode": "spp2dpro129",
-      "supplierSource": "leader",
-      "description": "USP Apple iPad Pro (12.9') (6th/5th/4th/3rd Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, 5 Years Warranty"
-    },
-    {
-      "code": "MPA-SPP2DPRO13",
-      "supplierCode": "spp2dpro13",
-      "supplierSource": "leader",
-      "description": "USP Apple iPad Pro (13') (M5/M4) (8th/7th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, 5 Years Warranty"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXTC6",
-      "supplierCode": "F1DN-KVM-EXTC6",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Copper CAT6 - Universal Video, UHD 4K@60Hz 4:2:0 up to 100m, TAA compliance, 3-Year Warranty"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXTFI",
-      "supplierCode": "F1DN-KVM-EXTFI",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Fiber SFP - Universal Video, UHD 4K@60Hz 4:2:0 up to 100m, TAA compliance, 3-Year Warranty"
-    },
-    {
-      "code": "MPA-77-99863",
-      "supplierCode": "77-99863",
-      "supplierSource": "leader",
-      "description": "OtterBox Defender Pro Magnets Samsung Galaxy S26 5G (6.3') Riverside - Blue - (77-99863), DROP+ 7X Military Standard, Tri-Layer, 7 Years Warranty"
-    },
-    {
-      "code": "MPA-EF-JX730CLEGWW",
-      "supplierCode": "EF-JX730CLEGWW",
-      "supplierSource": "leader",
-      "description": "Samsung Galaxy Tab S11 Frame Cover - Blue(EF-JX730CLEGWW), Built-in magnets, Lightweight & Portable, 6 Months Warranty"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXRC6X",
-      "supplierCode": "F1DN-KVM-EXRC6X",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Copper CAT6 - Universal Video, TAA-compliance, UHD 4K @60Hz 4:4:4 up to 100 m, 3-Year Warranty"
+      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
       "code": "NBHP-EB64-U516512TG1I",
       "supplierCode": "BQ4L1PT",
       "supplierSource": "leader",
       "description": "HP EliteBook 6 G1i 14' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "SCE4-B4-C8P",
+      "supplierCode": "SCE4-B4-C8P",
+      "supplierSource": "leader",
+      "description": "Leader Breeze SCE4-B4, 14' FHD, Intel Celeron N4500, 8GB RAM,128GB eMMC, WiFi AC, 2M HD Cam,Windows 11 Professional, 1 Yr Warranty"
     },
     {
       "code": "NBHP-EB84-U532512G1IV",
@@ -833,42 +379,6 @@
       "supplierCode": "BQ4E5PT",
       "supplierSource": "leader",
       "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS TB 3yr NBD OS 1.4kg ~BQ4S6PT"
-    },
-    {
-      "code": "MPA-F1DN2CC-HHPP6T",
-      "supplierCode": "F1DN2CC-HHPP6t",
-      "supplierSource": "leader",
-      "description": "BELKIN Cybersecurity and Secure KVM TAA DUAL (1) HDMI-HDMI (1) DP-DP with USB and Audio Combo 6 ft (1.8M) - Black (F1DN2CC-HHPP6t), 3 Years Warranty"
-    },
-    {
-      "code": "BASY-DS223J",
-      "supplierCode": "DS223J",
-      "supplierSource": "leader",
-      "description": "Synology DiskStation DS223J 2-Bay 3.5' SATA HDD/ 2.5' SATA SSD/ 4-core 1.7 GHz / 1 GB DDR4 non-ECC / 2-year hardware warranty"
-    },
-    {
-      "code": "MPA-MSC014BTBK",
-      "supplierCode": "MSC014btBK",
-      "supplierSource": "leader",
-      "description": "Belkin Waterproof Secure Holder with Key Ring for AirTag (Pack of 2) - Black(MSC014btBK), Clean, IPX8-Rated, Sweat & Rain Resistance, 2 Years Warranty"
-    },
-    {
-      "code": "UPPS-PSCERT3000L",
-      "supplierCode": "PSCERT3000L",
-      "supplierSource": "leader",
-      "description": "PowerShield Centurion RT 3000VA Long Run Model - 15Amp, No internal batteries, 2 AUS sockets, 10A, C13 x 5, 16A, C19 x 1, 2-year warranty"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXRFI",
-      "supplierCode": "F1DN-KVM-EXRFI",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Fiber SFP - Universal Video, TAA compliance, UHD 4K @60Hz 4:2:0 up to 10 km, 3-Year Warranty"
-    },
-    {
-      "code": "SCE4-B4-C8P",
-      "supplierCode": "SCE4-B4-C8P",
-      "supplierSource": "leader",
-      "description": "Leader Breeze SCE4-B4, 14' FHD, Intel Celeron N4500, 8GB RAM,128GB eMMC, WiFi AC, 2M HD Cam,Windows 11 Professional, 1 Yr Warranty"
     },
     {
       "code": "NBHP-EB64-I516512TG1I",
@@ -895,148 +405,76 @@
       "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "MPA-78-81441",
-      "supplierCode": "78-81441",
+      "code": "NBHP-EB66-I516512G1I",
+      "supplierCode": "BX7R7PT",
       "supplierSource": "leader",
-      "description": "OtterBox Holster Defender Apple iPhone 16 Pro Black ProPack - (78-81441), DROP+ 5X Military Standard, Hassle-free, 7 Years Warranty"
+      "description": "HP EliteBook 6 G1i 16' WUXGA Intel i5-1334U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
     },
     {
-      "code": "MPA-SPP2DTABA9PLUS",
-      "supplierCode": "spp2dtaba9plus",
+      "code": "NBHP-EB86-U7321TBLG1I",
+      "supplierCode": "BQ4G8PT",
       "supplierSource": "leader",
-      "description": "USP Samsung Galaxy Tab A11+ / Tab A9+ (11') Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, Anti-fingerprint, 5 Years Warranty"
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR PVCY Intel U7-255U 32GB DDR5 1TB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS Thunderbolt 3yr NBD OS 1.7kg"
     },
     {
-      "code": "MPA-F1DN2CCBL-HH6T",
-      "supplierCode": "F1DN2CCBL-HH6T",
+      "code": "NBHP-EB84-U516512G1I",
+      "supplierCode": "BQ4E3PT",
       "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM TAA AA DUAL HDMI/USB/AUD CBL, HDMI M/M; USB A/B,(1.8M) - Black(F1DN2CCBL-HH6T), 2 Years Warranty"
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "NBHP-EB64-U716512TG1I",
-      "supplierCode": "BQ4L5PT",
+      "code": "NBHP-EB84-U516512TLG1IV",
+      "supplierCode": "BQ4S7PT",
       "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 14' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
+      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 40 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "NBHP-EB66-U716512TG1I",
-      "supplierCode": "BQ4M6PT",
+      "code": "NBHP-EB86-U516512LG1I",
+      "supplierCode": "BQ4G2PT",
       "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
     },
     {
-      "code": "NBHP-EB84-U732512G1IV",
-      "supplierCode": "BX3Q8PT",
+      "code": "NBHP-EB86-U516512TLG1I",
+      "supplierCode": "BQ4M9PT",
       "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U7-258V 32GB DDR5 512GB SSD WIN 11 Pro Intel Arc GPU Copilot+ PC 47 TOPS TB Fingerprint 3yr NBD 1.4kg ~BX3Q7PT"
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB84-U516512G1IV",
+      "supplierCode": "BQ4S5PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 Pro Intel Arc GPU Copilot+ PC 40 TOPS TB 3yr NBD OS 1.4kg ~BQ4E3PT"
+    },
+    {
+      "code": "MPA-SPP2DAIR11",
+      "supplierCode": "spp2dair11",
+      "supplierSource": "leader",
+      "description": "USP Apple iPad Air (11') (M4/M3/M2) (8th/7th/6th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant,5 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB86-U716512TG1I",
+      "supplierCode": "BQ4G5PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB86-U716512G1IV",
+      "supplierCode": "BQ4T4PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-256V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB86-U716512TG1IV",
+      "supplierCode": "BQ4V3PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-256V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
     },
     {
       "code": "MPA-BKKRBLK",
       "supplierCode": "F8W973btBLK",
       "supplierSource": "leader",
       "description": "Belkin Secure Holder With Key Ring for AirTag - Black (F8W973btBLK), Twist & Lock Design, Raised Edges, 2 Years Warranty"
-    },
-    {
-      "code": "MPA-EF-BX710PBEGWW",
-      "supplierCode": "EF-BX710PBEGWW",
-      "supplierSource": "leader",
-      "description": "Samsung Galaxy Tab S10 Lite / S10 FE / S9 / S9 FE Smart Book Cover - Black(EF-BX710PBEGWW), Slim and Lightweight, 6 Months Warranty"
-    },
-    {
-      "code": "NBHP-EB84-U532512G1I",
-      "supplierCode": "BX3Q6PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U5-225U 32GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "NBHP-EB84-U516512TG1I",
-      "supplierCode": "BQ4F6PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "NBHP-EB66-U516512TG1I",
-      "supplierCode": "BQ4M2PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB84-U716512G1I",
-      "supplierCode": "BQ4E7PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "NBHP-EB66-U716512G1I",
-      "supplierCode": "BQ4M5PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB66-U516512LG1I",
-      "supplierCode": "BQ4M3PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro 4G-LTE Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "NBHP-EB84-U716512TLG1I",
-      "supplierCode": "BQ4E9PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "MPA-77-98498",
-      "supplierCode": "77-98498",
-      "supplierSource": "leader",
-      "description": "OtterBox Defender Pro XT MagSafe Apple iPhone Air (6.5') Dark Side (Clear / Black) - (77-98498), DROP+ 7X Military Standard, 7 Years Warranty"
-    },
-    {
-      "code": "MPA-EF-BX710PWEGWW",
-      "supplierCode": "EF-BX710PWEGWW",
-      "supplierSource": "leader",
-      "description": "Samsung Galaxy Tab S10 Lite / S10 FE / S9 / S9 FE Smart Book Cover - White(EF-BX710PWEGWW), Slim and Lightweight, 6 Months Warranty"
-    },
-    {
-      "code": "MPA-77-99061",
-      "supplierCode": "77-99061",
-      "supplierSource": "leader",
-      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max (6.9') Noir Ash (Black) - (77-99061), 7 Years Warranty"
-    },
-    {
-      "code": "MPA-77-99065",
-      "supplierCode": "77-99065",
-      "supplierSource": "leader",
-      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max (6.9') Desert Saddle (Brown) - (77-99065),7 Years Warranty"
-    },
-    {
-      "code": "MPA-77-98876",
-      "supplierCode": "77-98876",
-      "supplierSource": "leader",
-      "description": "OtterBox Symmetry Clear MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max Black Mist (Clear/Black) -(77-98876), 7 Years Warranty"
-    },
-    {
-      "code": "MPA-F1DN-KVM-EXRC6",
-      "supplierCode": "F1DN-KVM-EXRC6",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Copper CAT6 - Universal Video, TAA-compliance, UHD 4K @60Hz 4:2:0 up to 100 m, 3-Year Warranty"
-    },
-    {
-      "code": "NBHP-EB66-U516512G1I",
-      "supplierCode": "BQ4M1PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "MPA-77-99057",
-      "supplierCode": "77-99057",
-      "supplierSource": "leader",
-      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 17 Pro (6.3') Grey Comfort (Biege) - (77-99057), DROP+ 3X Military Standard, 7 Years Warranty"
-    },
-    {
-      "code": "MPA-77-98851",
-      "supplierCode": "77-98851",
-      "supplierSource": "leader",
-      "description": "OtterBox Symmetry Clear MagSafe Apple iPhone 17 Pro (6.3') Black Mist (Clear/Black) - (77-98851), DROP+ 3X Military Standard, 7 Years Warranty"
     },
     {
       "code": "NBHP-EB66-U716512LG1I",
@@ -1057,28 +495,178 @@
       "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro 5G-LTE Intel Arc GPU 12 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "MPA-EI-T5600BWEGAU",
-      "supplierCode": "EI-T5600BWEGAU",
+      "code": "MPA-EI-T5600KWEGAU",
+      "supplierCode": "EI-T5600KWEGAU",
       "supplierSource": "leader",
-      "description": "Samsung Galaxy SmartTag 2 - White (EI-T5600BWEGAU),*AU STOCK*, IP67, Built-in Carabiner Ring, 1 Years Warranty"
+      "description": "Samsung Galaxy SmartTag2 - Black/White(EI-T5600KWEGAU)*AU STOCK*,2xWhite, 2x Black, Bluetooth Tracker,1 Year Warranty"
     },
     {
-      "code": "MPA-F1D9020B06T",
-      "supplierCode": "F1D9020B06T",
+      "code": "NBHP-EB64-U716512TG1I",
+      "supplierCode": "BQ4L5PT",
       "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM TAA DUAL DP/USB/AUD SKVM CBL,DP M/M; USB A/B, (1.8M) - Black(F1D9020b06t),TAA Compliant, 4K@60hz, 2 Years Warranty"
+      "description": "HP EliteBook 6 G1i 14' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
     },
     {
-      "code": "SRAV41-E",
-      "supplierCode": "SRAV41-E",
+      "code": "NBHP-EB66-U716512TG1I",
+      "supplierCode": "BQ4M6PT",
       "supplierSource": "leader",
-      "description": "Resistance Apache V41 Essentials Gaming PC, i3-13100F, H610, 16GB DDR4, 500GB M.2 NVMe SSD, RTX 3050, Wi-Fi AC, 1 Month Gamepass, 3 Year RTB Warranty"
+      "description": "HP EliteBook 6 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
     },
     {
-      "code": "SRAV41-P",
-      "supplierCode": "SRAV41-P",
+      "code": "NBHP-EB84-U732512G1IV",
+      "supplierCode": "BX3Q8PT",
       "supplierSource": "leader",
-      "description": "Resistance Apache V41 Plus Gaming PC, i5-14600KF, Z790, 32GB DDR5, 1TB M.2 NVMe SSD, RTX 4070, Wi-Fi 6 AX, 1 Month Gamepass, 3 Year RTB Warranty"
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR Intel U7-258V 32GB DDR5 512GB SSD WIN 11 Pro Intel Arc GPU Copilot+ PC 47 TOPS TB Fingerprint 3yr NBD 1.4kg ~BX3Q7PT"
+    },
+    {
+      "code": "MPA-F1DN2CCBL-HH6T",
+      "supplierCode": "F1DN2CCBL-HH6T",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM TAA AA DUAL HDMI/USB/AUD CBL, HDMI M/M; USB A/B,(1.8M) - Black(F1DN2CCBL-HH6T), 2 Years Warranty"
+    },
+    {
+      "code": "MPA-SPP2DPRO11",
+      "supplierCode": "spp2dpro11",
+      "supplierSource": "leader",
+      "description": "USP Apple iPad Pro (11') (M5/M4) (6th/5th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, Anti-fingerprint, 5 Years Warranty"
+    },
+    {
+      "code": "MPA-78-81439",
+      "supplierCode": "78-81439",
+      "supplierSource": "leader",
+      "description": "OtterBox Holster Defender Apple iPhone 17e / iPhone 16e / iPhone 15 / iPhone 14 / iPhone 13 (6.1') Black ProPack - (78-81439), 7 Years Warranty"
+    },
+    {
+      "code": "MPA-77-98498",
+      "supplierCode": "77-98498",
+      "supplierSource": "leader",
+      "description": "OtterBox Defender Pro XT MagSafe Apple iPhone Air (6.5') Dark Side (Clear / Black) - (77-98498), DROP+ 7X Military Standard, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-6902957318839",
+      "supplierCode": "6902957318839",
+      "supplierSource": "leader",
+      "description": "USP Pisen Half-in-Ear 3.5mm Earphones - White, Ergonomic Design ,HD Call Microphone, 5 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB86-U516512TG1I",
+      "supplierCode": "BQ4G1PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg ~BQ4T2PT"
+    },
+    {
+      "code": "MPA-77-99863",
+      "supplierCode": "77-99863",
+      "supplierSource": "leader",
+      "description": "OtterBox Defender Pro Magnets Samsung Galaxy S26 5G (6.3') Riverside - Blue - (77-99863), DROP+ 7X Military Standard, Tri-Layer, 7 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB86-U516512TG1IV",
+      "supplierCode": "BQ4T2PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB86-U716512TLG1I",
+      "supplierCode": "BQ4G7PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA TOUCH IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "MPA-SPP2DTABA9PLUS",
+      "supplierCode": "spp2dtaba9plus",
+      "supplierSource": "leader",
+      "description": "USP Samsung Galaxy Tab A11+ / Tab A9+ (11') Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, Anti-fingerprint, 5 Years Warranty"
+    },
+    {
+      "code": "BASY-DS223J",
+      "supplierCode": "DS223J",
+      "supplierSource": "leader",
+      "description": "Synology DiskStation DS223J 2-Bay 3.5' SATA HDD/ 2.5' SATA SSD/ 4-core 1.7 GHz / 1 GB DDR4 non-ECC / 2-year hardware warranty"
+    },
+    {
+      "code": "MPA-G3H0002FQBLV2",
+      "supplierCode": "G3H0002fqBLV2",
+      "supplierSource": "leader",
+      "description": "Belkin SoundForm USB-C Wired Earbuds With Adjustable Volume Limiter - Blue(G3H0002fqBLV2),IPX5-Rated,10mm Drivers,Built-in Microphone,2 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB86-U732512G1I",
+      "supplierCode": "BX3R1PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 32GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB86-U516512G1I",
+      "supplierCode": "BQ4F5PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-225U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg ~BQ4M1PT"
+    },
+    {
+      "code": "NBHP-EB86-U716512G1I",
+      "supplierCode": "BQ4G4PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
+    },
+    {
+      "code": "MPA-77-99057",
+      "supplierCode": "77-99057",
+      "supplierSource": "leader",
+      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 17 Pro (6.3') Grey Comfort (Biege) - (77-99057), DROP+ 3X Military Standard, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-77-98851",
+      "supplierCode": "77-98851",
+      "supplierSource": "leader",
+      "description": "OtterBox Symmetry Clear MagSafe Apple iPhone 17 Pro (6.3') Black Mist (Clear/Black) - (77-98851), DROP+ 3X Military Standard, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXTC6X",
+      "supplierCode": "F1DN-KVM-EXTC6X",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Copper CAT6 - Universal Video, UHD 4K@60Hz 4:4:4 up to 100m, TAA compliance, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXRC6X",
+      "supplierCode": "F1DN-KVM-EXRC6X",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Copper CAT6 - Universal Video, TAA-compliance, UHD 4K @60Hz 4:4:4 up to 100 m, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-F1DN2CC-HHPP6T",
+      "supplierCode": "F1DN2CC-HHPP6t",
+      "supplierSource": "leader",
+      "description": "BELKIN Cybersecurity and Secure KVM TAA DUAL (1) HDMI-HDMI (1) DP-DP with USB and Audio Combo 6 ft (1.8M) - Black (F1DN2CC-HHPP6t), 3 Years Warranty"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXRC6",
+      "supplierCode": "F1DN-KVM-EXRC6",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Copper CAT6 - Universal Video, TAA-compliance, UHD 4K @60Hz 4:2:0 up to 100 m, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXTC6",
+      "supplierCode": "F1DN-KVM-EXTC6",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Copper CAT6 - Universal Video, UHD 4K@60Hz 4:2:0 up to 100m, TAA compliance, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXTFI",
+      "supplierCode": "F1DN-KVM-EXTFI",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Transmitter Fiber SFP - Universal Video, UHD 4K@60Hz 4:2:0 up to 100m, TAA compliance, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-77-99065",
+      "supplierCode": "77-99065",
+      "supplierSource": "leader",
+      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max (6.9') Desert Saddle (Brown) - (77-99065),7 Years Warranty"
+    },
+    {
+      "code": "MPA-78-81047",
+      "supplierCode": "78-81047",
+      "supplierSource": "leader",
+      "description": "OtterBox Holster Defender XT Apple iPhone 17e / iPhone 16e / iPhone 15 / iPhone 14 / iPhone 13 (6.1') Black - (78-81047) , 7 Years Warranty"
     },
     {
       "code": "MPA-EF-JX730CNEGWW",
@@ -1099,34 +687,100 @@
       "description": "PowerShield Commander RT 1100VA/990W, 10A input, hot-swappable batteries, 3 AUS sockets, 10A, C13 x 5, 2-year warranty"
     },
     {
-      "code": "MPA-6972890208108",
-      "supplierCode": "6972890208108",
+      "code": "UPPS-PSCERT3000L",
+      "supplierCode": "PSCERT3000L",
       "supplierSource": "leader",
-      "description": "USP True Wireless Buds White BT241 - Smart Touch Controls, Noise Isolation, Ergonomic Fit, Bluetooth v5.0, 240 mAh,5 Years Warranty"
+      "description": "PowerShield Centurion RT 3000VA Long Run Model - 15Amp, No internal batteries, 2 AUS sockets, 10A, C13 x 5, 16A, C19 x 1, 2-year warranty"
     },
     {
-      "code": "MPA-EI-T5600BBEGAU",
-      "supplierCode": "EI-T5600BBEGAU",
+      "code": "NBHP-EB86-U516512G1IV",
+      "supplierCode": "BQ4T1PT",
       "supplierSource": "leader",
-      "description": "Samsung Galaxy SmartTag 2 - Black (EI-T5600BBEGAU),*AU STOCK*, IP67, Built-in Carabiner Ring, 1 Years Warranty"
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U5-226V 16GB LPDDR5X 512GB SSD Windows 11 PRO Intel Arc GPU Copilot+ PC 47 TOPS 3YR NBD OS 1.7kg ~BQ4F5PT"
     },
     {
-      "code": "MPA-EF-BX730PBEGWW",
-      "supplierCode": "EF-BX730PBEGWW",
+      "code": "MPA-EF-JX730CLEGWW",
+      "supplierCode": "EF-JX730CLEGWW",
       "supplierSource": "leader",
-      "description": "Samsung Galaxy Tab S11 Book Cover - Black(EF-BX730PBEGWW), Magnetic, Slim and Lightweight, Scratch-Resistant, 6 Months Warranty"
+      "description": "Samsung Galaxy Tab S11 Frame Cover - Blue(EF-JX730CLEGWW), Built-in magnets, Lightweight & Portable, 6 Months Warranty"
     },
     {
-      "code": "NBHP-EB66-R516512G1A",
-      "supplierCode": "BX2P2PT",
+      "code": "MPA-77-98876",
+      "supplierCode": "77-98876",
       "supplierSource": "leader",
-      "description": "HP EliteBook 6 G1a 16' WUXGA AMD Ryzen R5-220 16GB DDR5 512GB SSD Windows 11 Pro AMD Radeon GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg ~i5"
+      "description": "OtterBox Symmetry Clear MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max Black Mist (Clear/Black) -(77-98876), 7 Years Warranty"
     },
     {
-      "code": "MPA-F1DN1VCBL-HH6T",
-      "supplierCode": "F1DN1VCBL-HH6t",
+      "code": "MPA-SPP2DPRO129",
+      "supplierCode": "spp2dpro129",
       "supplierSource": "leader",
-      "description": "BELKIN Cybersecurity and Secure KVM TAA HDMI/HDMI SKVM VIDEO CBL, HDMI M/M, 6 ft. (1.8M) - Black (F1DN1VCBL-HH6t), Supports 4K@60hz,3 Years Warranty"
+      "description": "USP Apple iPad Pro (12.9') (6th/5th/4th/3rd Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, 5 Years Warranty"
+    },
+    {
+      "code": "MPA-SPP2DPRO13",
+      "supplierCode": "spp2dpro13",
+      "supplierSource": "leader",
+      "description": "USP Apple iPad Pro (13') (M5/M4) (8th/7th Gen) Premium Armor Tempered Glass Clear - 9H Hardness, Scratch-resistant, 5 Years Warranty"
+    },
+    {
+      "code": "MPA-EI-T5600BWEGAU",
+      "supplierCode": "EI-T5600BWEGAU",
+      "supplierSource": "leader",
+      "description": "Samsung Galaxy SmartTag 2 - White (EI-T5600BWEGAU),*AU STOCK*, IP67, Built-in Carabiner Ring, 1 Years Warranty"
+    },
+    {
+      "code": "MPA-77-98258",
+      "supplierCode": "77-98258",
+      "supplierSource": "leader",
+      "description": "OtterBox Defender Pro XT Clear Magnets Google Pixel 10/Pixel 10 Pro Dark Side - black-(77-98258), Drop+7X Military Standard, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-EF-BX710PWEGWW",
+      "supplierCode": "EF-BX710PWEGWW",
+      "supplierSource": "leader",
+      "description": "Samsung Galaxy Tab S10 Lite / S10 FE / S9 / S9 FE Smart Book Cover - White(EF-BX710PWEGWW), Slim and Lightweight, 6 Months Warranty"
+    },
+    {
+      "code": "MPA-77-000834",
+      "supplierCode": "77-000834",
+      "supplierSource": "leader",
+      "description": "OtterBox Commuter Magnets Samsung Galaxy S26 FE 5G (6.7') Black- (77-000834), DROP+ 3X Military Standard, Dual-Layer, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-F1DN1VCBL-PP6T_",
+      "supplierCode": "F1DN1VCBL-PP6t",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM TAA DP/DP VIDEO CBL,DP M/M (1.8M) - Black (F1DN1VCBL-PP6t), TAA Compliant, Supports 4K@60hz, 2 Years Warranty"
+    },
+    {
+      "code": "CATH-CL-P140-CA14BL-A",
+      "supplierCode": "CL-P140-CA14BL-A",
+      "supplierSource": "leader",
+      "description": "Thermaltake WAir CPU Cooler - 2 Year Warranty Supports Intel LGA4677 & AMD sTR5 / SP6 Sockets"
+    },
+    {
+      "code": "MPA-78-81441",
+      "supplierCode": "78-81441",
+      "supplierSource": "leader",
+      "description": "OtterBox Holster Defender Apple iPhone 16 Pro Black ProPack - (78-81441), DROP+ 5X Military Standard, Hassle-free, 7 Years Warranty"
+    },
+    {
+      "code": "MPA-MSC014BTBK",
+      "supplierCode": "MSC014btBK",
+      "supplierSource": "leader",
+      "description": "Belkin Waterproof Secure Holder with Key Ring for AirTag (Pack of 2) - Black(MSC014btBK), Clean, IPX8-Rated, Sweat & Rain Resistance, 2 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB64-U516512G2I",
+      "supplierCode": "DH6F9PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G2i 14' WUXGA Intel U5-325 16GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "SRAV41-U",
+      "supplierCode": "SRAV41-U",
+      "supplierSource": "leader",
+      "description": "Resistance Apache V41 Ultimate Gaming PC, i7-14700KF, Z790, 32GB DDR5, 2TB M.2 NVMe SSD, RTX 4070Ti, Wi-Fi 6 AX, 1 Month Gamepass, 3 Year RTB Warranty"
     },
     {
       "code": "SCE4-B3-C8P",
@@ -1141,22 +795,16 @@
       "description": "Belkin USB-C 4-Port Mini Hub (USB Type-C) - Black(F4U090btBLK), 5Gbps, 2x USB-C, 2x USB-A, Compact & Travel-Ready, Ultra-Portable,2 Years Warranty"
     },
     {
-      "code": "MPA-AUD005BTBLK",
-      "supplierCode": "AUD005btBLK",
+      "code": "MPA-F1D9020B06T",
+      "supplierCode": "F1D9020B06T",
       "supplierSource": "leader",
-      "description": "Belkin SoundForm Adapt Wireless Over-The-Ear Headphones - Black (AUD005btBLK), 65 Hours Playtime, ENC Noise Cancellation, 2 Years Warranty"
+      "description": "Belkin Cybersecurity and Secure KVM TAA DUAL DP/USB/AUD SKVM CBL,DP M/M; USB A/B, (1.8M) - Black(F1D9020b06t),TAA Compliant, 4K@60hz, 2 Years Warranty"
     },
     {
-      "code": "MPA-AVC009FQSGY-V2",
-      "supplierCode": "AVC009fqSGY-V2",
+      "code": "NBHP-EB64-U532512G2I",
+      "supplierCode": "DH6G0PT",
       "supplierSource": "leader",
-      "description": "Belkin Connect USB-C 7-in-1 Multiport Hub - Space Grey (AVC009fqSGY-V2), 5Gbps, 2x USB-A, 1x USB-C, 1x 4K HDMI, 1x SD,1X ,Micro SD, 2 Years Warranty"
-    },
-    {
-      "code": "MEGS-F5-6400-5252-32GB",
-      "supplierCode": "F5-6400R5252A32GX1-G5",
-      "supplierSource": "leader",
-      "description": "G.SKILL F5-6400R5252A32GX1-G5 32GB/ DDR5 6400 MT/s/ Timings 52-52-52-102/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+      "description": "HP EliteBook 6 G2i 14' WUXGA Intel U5-325 32GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
     },
     {
       "code": "MPA-AVC022FQSGY",
@@ -1165,40 +813,10 @@
       "description": "Belkin Connect 5-Port USB-C Hub With Dual USB-C Ports - (AVC022fqSGY), 100W PD, 5Gbps, 1x 4K HDMI, 2x USB-A, 2x USB-C, 2 Years Warranty"
     },
     {
-      "code": "CATH-CL-P140-CA14BL-A",
-      "supplierCode": "CL-P140-CA14BL-A",
+      "code": "NBHP-EB86-U716512LG1I",
+      "supplierCode": "BQ4G6PT",
       "supplierSource": "leader",
-      "description": "Thermaltake WAir CPU Cooler - 2 Year Warranty Supports Intel LGA4677 & AMD sTR5 / SP6 Sockets"
-    },
-    {
-      "code": "MEGS-F5-5600-4645-48GB",
-      "supplierCode": "F5-5600R4645A48GX1-G5",
-      "supplierSource": "leader",
-      "description": "G.SKILL F5-5600R4645A48GX1-G5 48GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
-    },
-    {
-      "code": "BAQS-XS5316D_8C",
-      "supplierCode": "93-S5316D0A-10",
-      "supplierSource": "leader",
-      "description": "QSAN XCubeSAN XS5316D_8C 3U16, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
-    },
-    {
-      "code": "BAQS-XS5326D",
-      "supplierCode": "93-S5326D0A-00",
-      "supplierSource": "leader",
-      "description": "QSAN XCubeSAN XS5326D 2U26, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
-    },
-    {
-      "code": "MPA-6976552044455",
-      "supplierCode": "6976552044455",
-      "supplierSource": "leader",
-      "description": "USP 2-in-1 Selfie Stick & Tripod - Tripod Base for Hands-Free Shooting, Perfect for Full-Body Shots, 5 Years Warranty"
-    },
-    {
-      "code": "MPA-77-000834",
-      "supplierCode": "77-000834",
-      "supplierSource": "leader",
-      "description": "OtterBox Commuter Magnets Samsung Galaxy S26 FE 5G (6.7') Black- (77-000834), DROP+ 3X Military Standard, Dual-Layer, 7 Years Warranty"
+      "description": "HP EliteBook 8 G1i 16' WUXGA IR Intel U7-255U 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel Arc GPU AI PC 11 TOPS 3YR NBD OS 1.7kg"
     },
     {
       "code": "MPA-G3H0002FQWHV2",
@@ -1207,100 +825,10 @@
       "description": "Belkin SoundForm USB-C Wired Earbuds With Adjustable Volume Limiter -White(G3H0002fqPKV2),IPX5-Rated,10mm Drivers,Built-in Microphone,2 Years Warranty"
     },
     {
-      "code": "MEGS-F5-5600-4645-32GB",
-      "supplierCode": "F5-5600R4645A32GX1-G5",
-      "supplierSource": "leader",
-      "description": "G.SKILL F5-5600R4645A32GX1-G5 32GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
-    },
-    {
-      "code": "NBDB-Z4L8S3D1HBXX",
-      "supplierCode": "Z4L8S3D1HBXX",
-      "supplierSource": "leader",
-      "description": "DURABOOK Z14I, 14' FHD 1200nit Touch, Intel Core Ultra 7, 64 GB, 512GB SSD, Wi-Fi 7, BT 5.4, IP66, 3 Year Warranty with Expansion Unit"
-    },
-    {
-      "code": "MPA-INC024FQSGY",
-      "supplierCode": "INC024fqSGY",
-      "supplierSource": "leader",
-      "description": "Belkin Connect 8-Port USB-C Hub with 2.5Gb Ethernet - (INC024fqSGY),100W PD,10Gbps,4K@60Hz,2xUSB-A,1xUSB-C,1x HDMI,1x MicroSD/SD, 2 Years Warranty"
-    },
-    {
-      "code": "NBHP-EB84-R732512G1A",
-      "supplierCode": "BX2X3PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 8 G1i 14' WUXGA IR AMD Ryzen 7-350 32GB DDR5 512GB SSD Windows 11 Pro Radeon 860M GPU 50 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "MPA-12328X114040",
-      "supplierCode": "12328X114040",
-      "supplierSource": "leader",
-      "description": "UAG Metropolis SE Apple iPad Mini (8.3') (6th Gen) - Black (12328X114040), DROP+ Military Standard, Soft Impact-Resistant Core, 10 Years Warranty"
-    },
-    {
-      "code": "MEGS-F5-5600-4645-64GB",
-      "supplierCode": "F5-5600R4645A64GX1-G5",
-      "supplierSource": "leader",
-      "description": "G.SKILL F5-5600R4645A64GX1-G5 64GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
-    },
-    {
-      "code": "MEGS-F5-6400-5252-48GB",
-      "supplierCode": "F5-6400R5252A48GX1-G5",
-      "supplierSource": "leader",
-      "description": "G.SKILL F5-6400R5252A48GX1-G5 48GB/ DDR5 6400 MT/s/ Timings 52-52-52-102/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
-    },
-    {
-      "code": "MPA-F1DN2CCBL-HH10T",
-      "supplierCode": "F1DN2CCBL-HH10t",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM TAA DUAL HDMI/USB/AUD CBL, HDMI M/M; USB A/B, 10' - Black(F1DN2CCBL-HH10t), 3 Years Warranty"
-    },
-    {
-      "code": "BAQS-XS3312D",
-      "supplierCode": "93-S3312D0A-00",
-      "supplierSource": "leader",
-      "description": "QSAN XCubeSAN XS3312D 2U12, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
-    },
-    {
       "code": "UPPS-PSVG1500",
       "supplierCode": "PSVG1500",
       "supplierSource": "leader",
       "description": "PowerShield VoltGuard 1500VA/750W Voltage Regulator, protects sensitive equipment from voltage fluctuations, 2-year warranty"
-    },
-    {
-      "code": "BAQS-XS5324D_8C",
-      "supplierCode": "93-S5324D0A-10",
-      "supplierSource": "leader",
-      "description": "QSAN XCubeSAN XS5324D_8C 4U24, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
-    },
-    {
-      "code": "NBHP-EB66-U516512G2I",
-      "supplierCode": "DH6J1PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G2i 16' WUXGA Intel U5-325 16GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
-    },
-    {
-      "code": "BAQS-XN2212-4C",
-      "supplierCode": "93-N221210A-00",
-      "supplierSource": "leader",
-      "description": "QSAN XCubeNAS XN2212-4C Rackmount 2U12 bay, Intel Xeon 4-Core CPU, 8GB DDR4 RAM, 2 x M.2 slots, 4 x 10GbE SFP+ & 4 x 2.5GbE, 3-Year Warranty"
-    },
-    {
-      "code": "VILT-BRIO705BUSINESS",
-      "supplierCode": "960-001531",
-      "supplierSource": "leader",
-      "description": "Logitech MX BRIO 705 FOR BUSINESS 4K/30 fps (up to 4096 x 2160 pixels) USB-C plug-and-play 3-year limited hardware warranty"
-    },
-    {
-      "code": "MPA-AUD004BTBK",
-      "supplierCode": "AUD004btBK",
-      "supplierSource": "leader",
-      "description": "Belkin SoundForm Mini Wired on-Ear Headphones for Kids - Black(AUD004btBK), 85dB Volume Cap, Built-in Microphone, 3.5mm Connector, 2 Years Warranty"
-    },
-    {
-      "code": "MPA-SRA01AU",
-      "supplierCode": "SRA010AU",
-      "supplierSource": "leader",
-      "description": "Belkin SurgePro 1-Outlet Surge Protector - White (SRA010AU),1800 Joules, Belkin 6-Point Safety System, RCM Certified, $30000 CEW, 2 Years Warranty"
     },
     {
       "code": "BAQS-XN5226D-12C",
@@ -1321,28 +849,16 @@
       "description": "QSAN XCubeNAS XN2216-8C Rackmount 2U12 + 4 bay, Intel Xeon 8-Core CPU, 8GB DDR4 RAM, 2 x M.2 slots, 4 x 10GbE SFP+ & 4 x 2.5GbE, 5-Year Warranty"
     },
     {
-      "code": "SRAV41-U",
-      "supplierCode": "SRAV41-U",
+      "code": "MPA-SRA01AU",
+      "supplierCode": "SRA010AU",
       "supplierSource": "leader",
-      "description": "Resistance Apache V41 Ultimate Gaming PC, i7-14700KF, Z790, 32GB DDR5, 2TB M.2 NVMe SSD, RTX 4070Ti, Wi-Fi 6 AX, 1 Month Gamepass, 3 Year RTB Warranty"
+      "description": "Belkin SurgePro 1-Outlet Surge Protector - White (SRA010AU),1800 Joules, Belkin 6-Point Safety System, RCM Certified, $30000 CEW, 2 Years Warranty"
     },
     {
-      "code": "NBHP-EB64-U516512G2I",
-      "supplierCode": "DH6F9PT",
+      "code": "MPA-77-99061",
+      "supplierCode": "77-99061",
       "supplierSource": "leader",
-      "description": "HP EliteBook 6 G2i 14' WUXGA Intel U5-325 16GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "NBHP-EB64-U532512G2I",
-      "supplierCode": "DH6G0PT",
-      "supplierSource": "leader",
-      "description": "HP EliteBook 6 G2i 14' WUXGA Intel U5-325 32GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
-    },
-    {
-      "code": "MPA-F1DN1VCBL-PP6T_",
-      "supplierCode": "F1DN1VCBL-PP6t",
-      "supplierSource": "leader",
-      "description": "Belkin Cybersecurity and Secure KVM TAA DP/DP VIDEO CBL,DP M/M (1.8M) - Black (F1DN1VCBL-PP6t), TAA Compliant, Supports 4K@60hz, 2 Years Warranty"
+      "description": "OtterBox Symmetry Cactus Leather MagSafe Apple iPhone 18 Pro Max / iPhone 17 Pro Max (6.9') Noir Ash (Black) - (77-99061), 7 Years Warranty"
     },
     {
       "code": "NBHP-EB64-U516512LG2I",
@@ -1351,10 +867,202 @@
       "description": "HP EliteBook 6 G2i 14' WUXGA Intel U5-322 16GB DDR5 512GB SSD Windows 11 PRO 5G-LTE Intel GPU NPU 46 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.4kg"
     },
     {
+      "code": "MPA-EF-BX730PBEGWW",
+      "supplierCode": "EF-BX730PBEGWW",
+      "supplierSource": "leader",
+      "description": "Samsung Galaxy Tab S11 Book Cover - Black(EF-BX730PBEGWW), Magnetic, Slim and Lightweight, Scratch-Resistant, 6 Months Warranty"
+    },
+    {
+      "code": "BAQS-XS3312D",
+      "supplierCode": "93-S3312D0A-00",
+      "supplierSource": "leader",
+      "description": "QSAN XCubeSAN XS3312D 2U12, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
+    },
+    {
+      "code": "BAQS-XS5316D_8C",
+      "supplierCode": "93-S5316D0A-10",
+      "supplierSource": "leader",
+      "description": "QSAN XCubeSAN XS5316D_8C 3U16, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
+    },
+    {
+      "code": "BAQS-XS5326D",
+      "supplierCode": "93-S5326D0A-00",
+      "supplierSource": "leader",
+      "description": "QSAN XCubeSAN XS5326D 2U26, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
+    },
+    {
+      "code": "VILT-BRIO705BUSINESS",
+      "supplierCode": "960-001531",
+      "supplierSource": "leader",
+      "description": "Logitech MX BRIO 705 FOR BUSINESS 4K/30 fps (up to 4096 x 2160 pixels) USB-C plug-and-play 3-year limited hardware warranty"
+    },
+    {
+      "code": "MPA-F1DN-USB-XTRC",
+      "supplierCode": "F1DN-USB-XTRC",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Copper CAT6 USB Transmitter and Receiver, VELCRO® Tape ,TAA compliance, 3-Year Warranty"
+    },
+    {
+      "code": "NBHP-EB66-U516512G1I",
+      "supplierCode": "BQ4M1PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G1i 16' WUXGA Intel U5-225U 16GB DDR5 512GB SSD Windows 11 Pro Intel GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
+    },
+    {
+      "code": "BAQS-XS5324D_8C",
+      "supplierCode": "93-S5324D0A-10",
+      "supplierSource": "leader",
+      "description": "QSAN XCubeSAN XS5324D_8C 4U24, Dual-Controller SAN System, Max 512GB RAM, 8-ported 10GbE SFP+ iSCSI with optical transceivers x 4, 3-Year Warranty"
+    },
+    {
+      "code": "BAQS-XN2212-4C",
+      "supplierCode": "93-N221210A-00",
+      "supplierSource": "leader",
+      "description": "QSAN XCubeNAS XN2212-4C Rackmount 2U12 bay, Intel Xeon 4-Core CPU, 8GB DDR4 RAM, 2 x M.2 slots, 4 x 10GbE SFP+ & 4 x 2.5GbE, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-EF-BX710PBEGWW",
+      "supplierCode": "EF-BX710PBEGWW",
+      "supplierSource": "leader",
+      "description": "Samsung Galaxy Tab S10 Lite / S10 FE / S9 / S9 FE Smart Book Cover - Black(EF-BX710PBEGWW), Slim and Lightweight, 6 Months Warranty"
+    },
+    {
+      "code": "SRAV41-P",
+      "supplierCode": "SRAV41-P",
+      "supplierSource": "leader",
+      "description": "Resistance Apache V41 Plus Gaming PC, i5-14600KF, Z790, 32GB DDR5, 1TB M.2 NVMe SSD, RTX 4070, Wi-Fi 6 AX, 1 Month Gamepass, 3 Year RTB Warranty"
+    },
+    {
+      "code": "MPA-F1DN2CCBL-HH10T",
+      "supplierCode": "F1DN2CCBL-HH10t",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM TAA DUAL HDMI/USB/AUD CBL, HDMI M/M; USB A/B, 10' - Black(F1DN2CCBL-HH10t), 3 Years Warranty"
+    },
+    {
+      "code": "MPA-INC024FQSGY",
+      "supplierCode": "INC024fqSGY",
+      "supplierSource": "leader",
+      "description": "Belkin Connect 8-Port USB-C Hub with 2.5Gb Ethernet - (INC024fqSGY),100W PD,10Gbps,4K@60Hz,2xUSB-A,1xUSB-C,1x HDMI,1x MicroSD/SD, 2 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB66-R516512G1A",
+      "supplierCode": "BX2P2PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G1a 16' WUXGA AMD Ryzen R5-220 16GB DDR5 512GB SSD Windows 11 Pro AMD Radeon GPU Thunderbolt Fingerprint 3yr NBD OS 1.7kg ~i5"
+    },
+    {
+      "code": "MPA-F1DN-KVM-EXRFI",
+      "supplierCode": "F1DN-KVM-EXRFI",
+      "supplierSource": "leader",
+      "description": "Belkin Cybersecurity and Secure KVM Extender Receiver Fiber SFP - Universal Video, TAA compliance, UHD 4K @60Hz 4:2:0 up to 10 km, 3-Year Warranty"
+    },
+    {
+      "code": "MPA-AUD005BTBLK",
+      "supplierCode": "AUD005btBLK",
+      "supplierSource": "leader",
+      "description": "Belkin SoundForm Adapt Wireless Over-The-Ear Headphones - Black (AUD005btBLK), 65 Hours Playtime, ENC Noise Cancellation, 2 Years Warranty"
+    },
+    {
+      "code": "MPA-AVC009FQSGY-V2",
+      "supplierCode": "AVC009fqSGY-V2",
+      "supplierSource": "leader",
+      "description": "Belkin Connect USB-C 7-in-1 Multiport Hub - Space Grey (AVC009fqSGY-V2), 5Gbps, 2x USB-A, 1x USB-C, 1x 4K HDMI, 1x SD,1X ,Micro SD, 2 Years Warranty"
+    },
+    {
+      "code": "MPA-6972890208108",
+      "supplierCode": "6972890208108",
+      "supplierSource": "leader",
+      "description": "USP True Wireless Buds White BT241 - Smart Touch Controls, Noise Isolation, Ergonomic Fit, Bluetooth v5.0, 240 mAh,5 Years Warranty"
+    },
+    {
+      "code": "MPA-EI-T5600BBEGAU",
+      "supplierCode": "EI-T5600BBEGAU",
+      "supplierSource": "leader",
+      "description": "Samsung Galaxy SmartTag 2 - Black (EI-T5600BBEGAU),*AU STOCK*, IP67, Built-in Carabiner Ring, 1 Years Warranty"
+    },
+    {
+      "code": "MPA-6976552044455",
+      "supplierCode": "6976552044455",
+      "supplierSource": "leader",
+      "description": "USP 2-in-1 Selfie Stick & Tripod - Tripod Base for Hands-Free Shooting, Perfect for Full-Body Shots, 5 Years Warranty"
+    },
+    {
+      "code": "MPA-AUD004BTBK",
+      "supplierCode": "AUD004btBK",
+      "supplierSource": "leader",
+      "description": "Belkin SoundForm Mini Wired on-Ear Headphones for Kids - Black(AUD004btBK), 85dB Volume Cap, Built-in Microphone, 3.5mm Connector, 2 Years Warranty"
+    },
+    {
       "code": "MEGS-F5-6400-5252-64GB",
       "supplierCode": "F5-6400R5252A64GX1-G5",
       "supplierSource": "leader",
       "description": "G.SKILL F5-6400R5252A64GX1-G5 64GB/ DDR5 6400 MT/s/ Timings 52-52-52-102/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+    },
+    {
+      "code": "MEGS-F5-5600-4645-32GB",
+      "supplierCode": "F5-5600R4645A32GX1-G5",
+      "supplierSource": "leader",
+      "description": "G.SKILL F5-5600R4645A32GX1-G5 32GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+    },
+    {
+      "code": "NBDB-Z4L8S3D1HBXX",
+      "supplierCode": "Z4L8S3D1HBXX",
+      "supplierSource": "leader",
+      "description": "DURABOOK Z14I, 14' FHD 1200nit Touch, Intel Core Ultra 7, 64 GB, 512GB SSD, Wi-Fi 7, BT 5.4, IP66, 3 Year Warranty with Expansion Unit"
+    },
+    {
+      "code": "MEGS-F5-5600-4645-48GB",
+      "supplierCode": "F5-5600R4645A48GX1-G5",
+      "supplierSource": "leader",
+      "description": "G.SKILL F5-5600R4645A48GX1-G5 48GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+    },
+    {
+      "code": "MEGS-F5-5600-4645-64GB",
+      "supplierCode": "F5-5600R4645A64GX1-G5",
+      "supplierSource": "leader",
+      "description": "G.SKILL F5-5600R4645A64GX1-G5 64GB/ DDR5 5600 MT/s/ Timings 46-45-45-89/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+    },
+    {
+      "code": "MEGS-F5-6400-5252-48GB",
+      "supplierCode": "F5-6400R5252A48GX1-G5",
+      "supplierSource": "leader",
+      "description": "G.SKILL F5-6400R5252A48GX1-G5 48GB/ DDR5 6400 MT/s/ Timings 52-52-52-102/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
+    },
+    {
+      "code": "MPA-F1DN1VCBL-HH6T",
+      "supplierCode": "F1DN1VCBL-HH6t",
+      "supplierSource": "leader",
+      "description": "BELKIN Cybersecurity and Secure KVM TAA HDMI/HDMI SKVM VIDEO CBL, HDMI M/M, 6 ft. (1.8M) - Black (F1DN1VCBL-HH6t), Supports 4K@60hz,3 Years Warranty"
+    },
+    {
+      "code": "NBHP-EB66-U516512G2I",
+      "supplierCode": "DH6J1PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 6 G2i 16' WUXGA Intel U5-325 16GB DDR5 512GB SSD Windows 11 PRO Intel GPU NPU 47 TOPS Thunderbolt Fingerprint 3yr NBD OS 1.7kg"
+    },
+    {
+      "code": "NBHP-EB84-R732512G1A",
+      "supplierCode": "BX2X3PT",
+      "supplierSource": "leader",
+      "description": "HP EliteBook 8 G1i 14' WUXGA IR AMD Ryzen 7-350 32GB DDR5 512GB SSD Windows 11 Pro Radeon 860M GPU 50 TOPS TB Fingerprint 3yr NBD OS 1.4kg"
+    },
+    {
+      "code": "MPA-12328X114040",
+      "supplierCode": "12328X114040",
+      "supplierSource": "leader",
+      "description": "UAG Metropolis SE Apple iPad Mini (8.3') (6th Gen) - Black (12328X114040), DROP+ Military Standard, Soft Impact-Resistant Core, 10 Years Warranty"
+    },
+    {
+      "code": "SRAV41-E",
+      "supplierCode": "SRAV41-E",
+      "supplierSource": "leader",
+      "description": "Resistance Apache V41 Essentials Gaming PC, i3-13100F, H610, 16GB DDR4, 500GB M.2 NVMe SSD, RTX 3050, Wi-Fi AC, 1 Month Gamepass, 3 Year RTB Warranty"
+    },
+    {
+      "code": "MEGS-F5-6400-5252-32GB",
+      "supplierCode": "F5-6400R5252A32GX1-G5",
+      "supplierSource": "leader",
+      "description": "G.SKILL F5-6400R5252A32GX1-G5 32GB/ DDR5 6400 MT/s/ Timings 52-52-52-102/ Voltage 1.10V/Plug-and-Play ECC R-DIMM 5 YEARS WARRANTY"
     }
   ],
   "missingFromSnapshot": []

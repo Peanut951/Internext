@@ -997,7 +997,7 @@ const ProductDetail = () => {
         }
 
         setProduct(found ? hideSnapshotStock(found) : null);
-        setIsLivePriceReady(hasCustomerPrice(found));
+        setIsLivePriceReady(false);
         setHasCheckedFullCatalog(true);
         setLoading(false);
         if (found) {
@@ -1007,6 +1007,7 @@ const ProductDetail = () => {
               const liveProduct = liveProducts[0] as CatalogProduct | undefined;
               if (!liveProduct) {
                 setProduct((current) => current ? markLiveStockUnavailable(current) : current);
+                setIsLivePriceReady(false);
                 return;
               }
               setProduct(liveProduct);
@@ -1015,6 +1016,7 @@ const ProductDetail = () => {
             .catch(() => {
               if (isMounted) {
                 setProduct((current) => current ? markLiveStockUnavailable(current) : current);
+                setIsLivePriceReady(false);
               }
             });
 
